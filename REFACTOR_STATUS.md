@@ -1,7 +1,7 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** `eb5c1e5` (Phase 0 completion: "refactor: Phase 0 baseline audit and golden-master protection")
+**Current commit:** `5444fe2` (Phase 1 completion: "refactor: Phase 1 core runtime contracts, JSON schemas, registries, and content loading")
 **Current phase:** 1 — Core/content runtime (automated gate passed)
 **Last passing phase:** 1 — Core/content runtime
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
@@ -40,7 +40,7 @@ Known baseline limitations:
 | Phase | Status | Commit | Gate |
 |---|---|---|---|
 | 0 — Baseline audit | Complete | `eb5c1e5` | All four commands PASS |
-| 1 — Core/content runtime | Automated gate passed | (Phase 1 commit) | All four commands PASS |
+| 1 — Core/content runtime | Automated gate passed | `5444fe2` | All four commands PASS |
 | 2 — Stats/DemoMode | Not started | | |
 | 3 — Weapons/damage/projectiles | Not started | | |
 | 4 — Enemies/items/objectives | Not started | | |
