@@ -1,0 +1,27 @@
+{
+  "assets": [
+    {
+      "id": "playerTank.chassis",
+      "category": "model",
+      "file": "/assets/models/tank-chassis.glb"
+    },
+    {
+      "id": "enemy.rammer",
+      "category": "model",
+      "file": "/assets/models/rammer.glb"
+    },
+    {
+      "id": "vfx.cannonImpact",
+      "category": "vfx",
+      "color": 16748288,
+      "size": 0.8,
+      "count": 60
+    },
+    {
+      "id": "ui.driverTheme",
+      "category": "ui",
+      "primary": "#00e5cc",
+      "accent": "#aafff2"
+    }
+  ]
+}

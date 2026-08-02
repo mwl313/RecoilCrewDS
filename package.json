@@ -1,0 +1,36 @@
+{
+  "name": "recoil-crew",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Recoil Crew - two-player online cooperative tank game",
+  "scripts": {
+    "dev:client": "vite",
+    "dev:server": "tsx watch src/server/index.ts",
+    "server": "node dist-server/index.js",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build",
+    "build:server": "esbuild src/server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.js --packages=external",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:loop": "node scripts/verify-full-round.mjs",
+    "start": "npm run build && npm run server"
+  },
+  "dependencies": {
+    "three": "^0.178.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.0.0",
+    "@types/three": "^0.178.0",
+    "@types/ws": "^8.18.1",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0"
+  }
+}
