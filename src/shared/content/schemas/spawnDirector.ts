@@ -29,6 +29,11 @@ export const spawnDirectorSchema = z.object({
     rammerMax: positiveInt,
     towerProbability: probability,
   }),
+  truck: z.object({
+    spawnTime: positiveNumber,
+    escapeTime: positiveNumber,
+    escapeShortcut: positiveNumber,
+  }),
   arena: z.object({
     half: positiveNumber,
     maxPickups: positiveInt,

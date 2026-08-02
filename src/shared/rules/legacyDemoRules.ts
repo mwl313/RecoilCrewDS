@@ -1,8 +1,11 @@
 import { BASE_CONFIG, GAME } from '../config';
 import { DEMO_GRADE_RULES, DEMO_TITLE_RULES } from '../sim/results';
+import type { DropTableDefinition } from '../content/schemas/dropTable';
+import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ModeDefinition } from '../content/schemas/mode';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
+import type { PickupDefinition } from '../content/schemas/pickup';
 import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
@@ -23,6 +26,9 @@ export interface DemoRulesBundle {
   weaponStatBlocks: StatBlock;
   loadout: LoadoutDefinition;
   weapons: Record<string, WeaponDefinition>;
+  enemies: Record<string, EnemyDefinition>;
+  dropTables: Record<string, DropTableDefinition>;
+  pickups: Record<string, PickupDefinition>;
 }
 
 export const LEGACY_DEMO_CONSTANTS = {
@@ -126,6 +132,11 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     maxRammers: BASE_CONFIG.arena.maxRammers,
     maxTowers: BASE_CONFIG.arena.maxTowers,
     finalChaos: { start: 70, rammerProbability: 0.12, rammerMax: 3, towerProbability: 0.08 },
+    truck: {
+      spawnTime: BASE_CONFIG.enemies.truckSpawnTime,
+      escapeTime: BASE_CONFIG.enemies.truckEscapeTime,
+      escapeShortcut: 8,
+    },
     arena: { half: BASE_CONFIG.arena.half, maxPickups: BASE_CONFIG.arena.maxPickups },
     props: {
       barrelHp: BASE_CONFIG.weapons.barrelHp,
@@ -244,7 +255,157 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     },
   };
 
-  return { objective, scoring, results, spawnDirector, weaponStatBlocks, loadout, weapons };
+  const enemies: Record<string, EnemyDefinition> = {
+    'enemy.scrapBug': {
+      id: 'enemy.scrapBug',
+      label: 'Scrap Bug',
+      type: 'scrapBug',
+      presentationId: 'enemy.scrapBug',
+      behaviors: [
+        { id: 'movement.seekTank', parameters: {} },
+        { id: 'movement.circleTarget', parameters: {} },
+        { id: 'movement.separation', parameters: {} },
+        { id: 'movement.obstacleAvoid', parameters: {} },
+        { id: 'movement.integrate', parameters: {} },
+        { id: 'attack.contactRam', parameters: {} },
+      ],
+      hp: BASE_CONFIG.enemies.bugHp,
+      radius: BASE_CONFIG.arena.bugRadius,
+      score: BASE_CONFIG.scoring.bugScore,
+      jackpotGain: BASE_CONFIG.jackpot.bugGain,
+      contributionPoints: 2,
+      dropTableId: 'drops.scrapBug',
+      speed: BASE_CONFIG.enemies.bugSpeed,
+      damage: BASE_CONFIG.enemies.bugDamage,
+      hitCooldown: 1.0,
+      circleDistance: 7,
+      circleStrength: 0.85,
+      separationDistance: 2.4,
+      separationStrength: 0.8,
+      obstacleAvoidTurn: 1.1,
+      speedWobbleAmplitude: 0.6,
+      speedWobbleFrequency: 1.7,
+      ramSpeedThreshold: 5,
+      ramScore: LEGACY_DEMO_CONSTANTS.ramScore,
+      ramKnockback: 0.92,
+    },
+    'enemy.rammer': {
+      id: 'enemy.rammer',
+      label: 'Rammer',
+      type: 'rammer',
+      presentationId: 'enemy.rammer',
+      behaviors: [
+        { id: 'attack.telegraphedCharge', parameters: {} },
+        { id: 'trait.vulnerableRear', parameters: { rearBonus: 1.5, whenState: 'recovery' } },
+      ],
+      hp: BASE_CONFIG.enemies.rammerHp,
+      radius: BASE_CONFIG.arena.rammerRadius,
+      score: BASE_CONFIG.scoring.rammerScore,
+      jackpotGain: BASE_CONFIG.jackpot.rammerGain,
+      contributionPoints: 2,
+      dropTableId: 'drops.rammer',
+      approachSpeed: BASE_CONFIG.enemies.rammerApproachSpeed,
+      chargeSpeed: BASE_CONFIG.enemies.rammerChargeSpeed,
+      damage: BASE_CONFIG.enemies.rammerDamage,
+      telegraphTime: BASE_CONFIG.enemies.rammerTelegraphTime,
+      chargeTime: BASE_CONFIG.enemies.rammerChargeTime,
+      recoveryTime: BASE_CONFIG.enemies.rammerRecoveryTime,
+      lockTime: BASE_CONFIG.enemies.rammerLockTime,
+      lockDistance: 16,
+      dodgeDistance: 3.6,
+      knockback: 7,
+      recoveryDecel: 8,
+      rearBonus: 1.5,
+    },
+    'enemy.gunTower': {
+      id: 'enemy.gunTower',
+      label: 'Gun Tower',
+      type: 'gunTower',
+      presentationId: 'enemy.gunTower',
+      behaviors: [{ id: 'attack.projectileBurst', parameters: {} }],
+      hp: BASE_CONFIG.enemies.towerHp,
+      radius: BASE_CONFIG.arena.towerRadius,
+      score: BASE_CONFIG.scoring.towerScore,
+      jackpotGain: BASE_CONFIG.jackpot.towerGain,
+      contributionPoints: 3,
+      dropTableId: 'drops.gunTower',
+      damage: BASE_CONFIG.enemies.towerShotDamage,
+      shotSpeed: BASE_CONFIG.enemies.towerShotSpeed,
+      shotInterval: BASE_CONFIG.enemies.towerShotInterval,
+      shotCount: BASE_CONFIG.enemies.towerShotCount,
+      firePause: BASE_CONFIG.enemies.towerFirePause,
+      telegraphTime: BASE_CONFIG.enemies.towerTelegraphTime,
+      trackRate: BASE_CONFIG.enemies.towerTrackRate,
+      idleTime: 1.2,
+      aimJitter: 0.05,
+      muzzleOffsetX: 1.3,
+      muzzleHeight: 2.4,
+      shotLife: 6,
+    },
+    'enemy.lootTruck': {
+      id: 'enemy.lootTruck',
+      label: 'Loot Truck',
+      type: 'lootTruck',
+      presentationId: 'enemy.lootTruck',
+      behaviors: [
+        { id: 'movement.followRoute', parameters: {} },
+        { id: 'trait.nonAttackingObjective', parameters: {} },
+      ],
+      hp: BASE_CONFIG.enemies.truckHp,
+      radius: BASE_CONFIG.arena.truckRadius,
+      score: BASE_CONFIG.scoring.truckScore,
+      jackpotGain: BASE_CONFIG.jackpot.truckGain,
+      contributionPoints: 4,
+      dropTableId: 'drops.lootTruck',
+      speed: BASE_CONFIG.enemies.truckSpeed,
+      spawnTime: BASE_CONFIG.enemies.truckSpawnTime,
+      escapeTime: BASE_CONFIG.enemies.truckEscapeTime,
+      waypointReach: 2.5,
+      escapeShortcut: 8,
+      collisionPushTank: 4,
+      collisionPushTruck: 0.7,
+      jackpotScrapCount: 5,
+      jackpotScrapLife: 16,
+    },
+  };
+
+  const dropTables: Record<string, DropTableDefinition> = {
+    'drops.scrapBug': {
+      id: 'drops.scrapBug',
+      behaviors: [],
+      entries: [{ kind: 'normal', count: 1, offsetX: 0, offsetZ: 0 }],
+    },
+    'drops.rammer': {
+      id: 'drops.rammer',
+      behaviors: [],
+      entries: [
+        { kind: 'heavy', count: 1, offsetX: 0, offsetZ: 0 },
+        { kind: 'normal', count: 1, offsetX: 1.2, offsetZ: 0 },
+      ],
+    },
+    'drops.gunTower': {
+      id: 'drops.gunTower',
+      behaviors: [],
+      entries: [
+        { kind: 'heavy', count: 1, offsetX: 0, offsetZ: 0 },
+        { kind: 'normal', count: 1, offsetX: 1, offsetZ: 0 },
+        { kind: 'normal', count: 1, offsetX: -1, offsetZ: 0 },
+      ],
+    },
+    'drops.lootTruck': {
+      id: 'drops.lootTruck',
+      behaviors: [],
+      entries: [{ kind: 'jackpot', count: 5, scatter: { minRadius: 1.4, maxRadius: 3.6, angleJitter: 0.6 } }],
+    },
+  };
+
+  const pickups: Record<string, PickupDefinition> = {
+    'pickup.normalScrap': { id: 'pickup.normalScrap', kind: 'normal', life: 26, magnetRadius: 5, presentationId: 'pickup.normalScrap', behaviors: [] },
+    'pickup.heavyScrap': { id: 'pickup.heavyScrap', kind: 'heavy', life: 26, magnetRadius: 6.5, presentationId: 'pickup.heavyScrap', behaviors: [] },
+    'pickup.jackpotScrap': { id: 'pickup.jackpotScrap', kind: 'jackpot', life: 16, magnetRadius: 8, presentationId: 'pickup.jackpotScrap', behaviors: [] },
+  };
+
+  return { objective, scoring, results, spawnDirector, weaponStatBlocks, loadout, weapons, enemies, dropTables, pickups };
 }
 
 /** Mode definition for the client-safe path (mirrors content/modes). */

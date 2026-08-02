@@ -14,6 +14,8 @@ export * from './schemas/loadout';
 export * from './schemas/weapon';
 export * from './schemas/projectile';
 export * from './schemas/enemy';
+export * from './schemas/dropTable';
+export * from './schemas/pickup';
 export * from './schemas/item';
 export * from './schemas/spawnDirector';
 export * from './schemas/scoring';

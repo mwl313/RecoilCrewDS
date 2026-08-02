@@ -1,0 +1,7 @@
+{
+  "id": "drops.scrapBug",
+  "label": "Scrap Bug Drops",
+  "entries": [
+    { "kind": "normal", "count": 1, "offsetX": 0, "offsetZ": 0 }
+  ]
+}

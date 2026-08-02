@@ -62,8 +62,21 @@ export class ReferenceValidator {
     }
 
     for (const enemy of this.registries.enemies.all()) {
-      const file = this.fileOf(enemy.id, this.registries.enemies);
-      this.checkCommon(issues, enemy, file);
+      const enemyFile = this.fileOf(enemy.id, this.registries.enemies);
+      this.checkCommon(issues, enemy, enemyFile);
+      this.ref(issues, enemy.dropTableId, this.registries.dropTables, enemyFile, 'dropTableId');
+      enemy.behaviors.forEach((behavior, i) => {
+        if (!this.behaviors.has(behavior.id)) {
+          issues.push(`${enemyFile}: behaviors[${i}].id — unknown enemy behavior '${behavior.id}'`);
+        }
+      });
+    }
+
+    for (const dropTable of this.registries.dropTables.all()) {
+      this.checkCommon(issues, dropTable, this.fileOf(dropTable.id, this.registries.dropTables));
+    }
+    for (const pickup of this.registries.pickups.all()) {
+      this.checkCommon(issues, pickup, this.fileOf(pickup.id, this.registries.pickups));
     }
 
     for (const spawn of this.registries.spawnDirectors.all()) {
@@ -154,12 +167,13 @@ export class ReferenceValidator {
 
   private checkCommon(
     issues: string[],
-    def: { id: string; behaviors?: string[]; stats?: Record<string, number> },
+    def: { id: string; behaviors?: string[] | Array<{ id: string }>; stats?: Record<string, number> },
     file: string,
   ): void {
     const behaviors = def.behaviors;
     if (behaviors) {
-      behaviors.forEach((id, i) => {
+      behaviors.forEach((entry, i) => {
+        const id = typeof entry === 'string' ? entry : entry.id;
         if (!this.behaviors.has(id)) issues.push(`${file}: behaviors[${i}] — unknown behavior '${id}'`);
       });
     }

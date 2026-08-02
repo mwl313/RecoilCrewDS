@@ -21,9 +21,16 @@ export class DamageSystem {
     const e = enemy;
     if (!e.alive) return { applied: false, killed: false, amount: 0, targetId: e.id };
     if (source === 'mg') this.ctx.combo.addContribution('gunner', 0.2);
-    e.hp -= amount;
     e.flash = 0.12;
-    const rearBonus = e.type === 'rammer' && e.state === 'recovery' ? 1.5 : 1;
+    // Damage modifiers come from composed enemy traits/defenses (data).
+    const vulnerable = this.ctx.enemies.traitParameters(enemy, 'trait.vulnerableRear');
+    const rearBonus =
+      vulnerable && enemy.state === (vulnerable.whenState ?? 'recovery')
+        ? typeof vulnerable.rearBonus === 'number'
+          ? vulnerable.rearBonus
+          : 1.5
+        : 1;
+    e.hp -= amount * this.ctx.enemies.damageMultiplier(enemy, source);
     e.hp -= amount * (rearBonus - 1);
     pushEvent(this.ctx, 'hit', e.x, e.y + 0.8, e.z, { value: amount, id: e.id, kind: e.type });
     const applied: DamageAppliedEvent = { targetId: e.id, targetKind: 'enemy', amount, source, weaponId };

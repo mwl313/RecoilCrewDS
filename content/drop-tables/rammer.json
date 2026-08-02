@@ -1,0 +1,8 @@
+{
+  "id": "drops.rammer",
+  "label": "Rammer Drops",
+  "entries": [
+    { "kind": "heavy", "count": 1, "offsetX": 0, "offsetZ": 0 },
+    { "kind": "normal", "count": 1, "offsetX": 1.2, "offsetZ": 0 }
+  ]
+}

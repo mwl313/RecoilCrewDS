@@ -1,0 +1,1 @@
+export { DropTableResolver } from './dropTableResolver';

@@ -1,0 +1,9 @@
+{
+  "id": "drops.gunTower",
+  "label": "Gun Tower Drops",
+  "entries": [
+    { "kind": "heavy", "count": 1, "offsetX": 0, "offsetZ": 0 },
+    { "kind": "normal", "count": 1, "offsetX": 1, "offsetZ": 0 },
+    { "kind": "normal", "count": 1, "offsetX": -1, "offsetZ": 0 }
+  ]
+}

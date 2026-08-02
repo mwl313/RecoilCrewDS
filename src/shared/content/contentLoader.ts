@@ -10,12 +10,14 @@ import { ReferenceValidator } from './referenceValidator';
 import type { PackManifest } from './schemas/pack';
 import { packManifestSchema } from './schemas/pack';
 import { difficultySchema } from './schemas/difficulty';
+import { dropTableSchema } from './schemas/dropTable';
 import { enemySchema } from './schemas/enemy';
 import { itemSchema, statusEffectSchema } from './schemas/item';
 import { loadoutSchema } from './schemas/loadout';
 import { modeSchema } from './schemas/mode';
 import { objectiveSchema } from './schemas/objective';
 import { presentationSchema } from './schemas/presentation';
+import { pickupSchema } from './schemas/pickup';
 import { projectileSchema } from './schemas/projectile';
 import { resultsSchema } from './schemas/results';
 import { scoringSchema } from './schemas/scoring';
@@ -32,6 +34,8 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   weapons: weaponSchema,
   projectiles: projectileSchema,
   enemies: enemySchema,
+  dropTables: dropTableSchema,
+  pickups: pickupSchema,
   items: itemSchema,
   statusEffects: statusEffectSchema,
   spawnDirectors: spawnDirectorSchema,
@@ -152,6 +156,8 @@ function createEmptyRegistries(): CategoryRegistries {
     weapons: new DefinitionRegistry(),
     projectiles: new DefinitionRegistry(),
     enemies: new DefinitionRegistry(),
+    dropTables: new DefinitionRegistry(),
+    pickups: new DefinitionRegistry(),
     items: new DefinitionRegistry(),
     statusEffects: new DefinitionRegistry(),
     spawnDirectors: new DefinitionRegistry(),

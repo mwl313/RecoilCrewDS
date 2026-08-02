@@ -13,6 +13,8 @@ export const packManifestSchema = z.object({
       weapons: z.array(z.string()),
       projectiles: z.array(z.string()),
       enemies: z.array(z.string()),
+      dropTables: z.array(z.string()),
+      pickups: z.array(z.string()),
       items: z.array(z.string()),
       statusEffects: z.array(z.string()),
       spawnDirectors: z.array(z.string()),

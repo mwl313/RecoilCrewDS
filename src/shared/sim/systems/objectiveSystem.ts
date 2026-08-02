@@ -1,12 +1,37 @@
 import { pushEvent, type SystemContext } from './systemContext';
 
+export type ObjectiveEventType =
+  | 'kill'
+  | 'collection'
+  | 'zoneEntered'
+  | 'delivery'
+  | 'protection'
+  | 'timerElapsed';
+
+export interface ObjectiveEvent {
+  type: ObjectiveEventType;
+  time: number;
+  payload?: unknown;
+}
+
 /**
  * ObjectiveSystem owns the Demo assistance pacing (content-driven floors)
  * and the JACKPOT ready flag. This is Demo-mode behavior selected by the
  * mode's objective definition, not generic Match logic.
  */
 export class ObjectiveSystem {
-  constructor(private readonly ctx: SystemContext) {}
+  /** Optional objective reaction hook (Demo registers none; tests use it). */
+  onObjectiveEvent: ((event: ObjectiveEvent) => void) | null = null;
+
+  constructor(private readonly ctx: SystemContext) {
+    ctx.eventBus.subscribe('entity.killed', () => this.route('kill'));
+    ctx.eventBus.subscribe('pickup.collected', () => this.route('collection'));
+  }
+
+  private route(type: ObjectiveEventType): void {
+    if (!this.onObjectiveEvent) return;
+    this.onObjectiveEvent({ type, time: this.ctx.state.time });
+  }
 
   update(): void {
     const s = this.ctx.state;

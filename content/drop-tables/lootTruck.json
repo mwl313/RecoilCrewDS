@@ -1,0 +1,11 @@
+{
+  "id": "drops.lootTruck",
+  "label": "Loot Truck Drops",
+  "entries": [
+    {
+      "kind": "jackpot",
+      "count": 5,
+      "scatter": { "minRadius": 1.4, "maxRadius": 3.6, "angleJitter": 0.6 }
+    }
+  ]
+}

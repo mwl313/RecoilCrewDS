@@ -10,12 +10,21 @@ import {
 const enemyBase = {
   ...commonDefinition,
   id: z.string().regex(/^enemy\./, 'enemy id must start with enemy.'),
+  presentationId: z.string().optional(),
   hp: positiveNumber,
   radius: positiveNumber,
   score: nonNegativeInt,
   jackpotGain: nonNegativeNumber,
-  scrapDrops: z.array(z.enum(['normal', 'heavy', 'jackpot'])).default([]),
   contributionPoints: nonNegativeInt,
+  dropTableId: z.string().regex(/^drops\./, 'dropTableId must reference a drop table'),
+  behaviors: z
+    .array(
+      z.object({
+        id: z.string().regex(/^(movement|attack|defense|trait)\./, 'behavior id must be namespaced'),
+        parameters: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+      }),
+    )
+    .min(1),
 };
 
 export const enemySchema = z.discriminatedUnion('type', [

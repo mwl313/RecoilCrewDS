@@ -156,11 +156,13 @@ describe('content validation failures', () => {
 
   it('rejects unknown behavior ids', () => {
     const { manifest, files } = loadRealPackRecords();
-    const rammer = deepClone(files['enemies/rammer.json']) as { behaviors: string[] };
-    rammer.behaviors.push('behavior.nonexistent');
+    const rammer = deepClone(files['enemies/rammer.json']) as {
+      behaviors: Array<{ id: string; parameters?: Record<string, unknown> }>;
+    };
+    rammer.behaviors.push({ id: 'movement.nonexistent', parameters: {} });
     files['enemies/rammer.json'] = rammer;
     const err = loadExpectingError(manifest, files);
-    expect(err.issues.some((i) => i.includes('enemies/rammer.json: behaviors[3] — unknown behavior'))).toBe(true);
+    expect(err.issues.some((i) => i.includes("enemies/rammer.json: behaviors[2].id — unknown enemy behavior 'movement.nonexistent'"))).toBe(true);
   });
 
   it('rejects unknown stat ids in stats records', () => {
@@ -220,6 +222,7 @@ describe('content validation failures', () => {
           files: {
             modes: [], objectives: [], tanks: [], loadouts: [],
             weapons: ['../../package.json'], projectiles: [], enemies: [],
+            dropTables: [], pickups: [],
             items: [], statusEffects: [], spawnDirectors: [], scoring: [],
             results: [], difficulties: [], presentation: [],
           },

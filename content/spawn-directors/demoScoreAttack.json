@@ -22,6 +22,11 @@
     "rammerMax": 3,
     "towerProbability": 0.08
   },
+  "truck": {
+    "spawnTime": 42,
+    "escapeTime": 78,
+    "escapeShortcut": 8
+  },
   "arena": {
     "half": 40,
     "maxPickups": 26

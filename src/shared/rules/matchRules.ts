@@ -1,7 +1,10 @@
 import { BASE_CONFIG, MODIFIER_OVERRIDES, buildMatchConfig, type GameConfig } from '../config';
 import type { ContentPack } from '../content/contentPack';
+import type { DropTableDefinition } from '../content/schemas/dropTable';
+import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
+import type { PickupDefinition } from '../content/schemas/pickup';
 import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
@@ -41,6 +44,9 @@ export class MatchRules {
   readonly spawnDirector: SpawnDirectorDefinition;
   readonly loadout: LoadoutDefinition;
   readonly weapons: ReadonlyMap<string, WeaponDefinition>;
+  readonly enemies: ReadonlyMap<string, EnemyDefinition>;
+  readonly dropTables: ReadonlyMap<string, DropTableDefinition>;
+  readonly pickups: ReadonlyMap<string, PickupDefinition>;
   readonly resolver: StatResolver;
 
   private readonly baseConfig: GameConfig;
@@ -83,6 +89,9 @@ export class MatchRules {
     this.spawnDirector = deepFreeze(options.bundle.spawnDirector);
     this.loadout = deepFreeze(options.bundle.loadout);
     this.weapons = deepFreeze(new Map(Object.entries(options.bundle.weapons)));
+    this.enemies = deepFreeze(new Map(Object.entries(options.bundle.enemies)));
+    this.dropTables = deepFreeze(new Map(Object.entries(options.bundle.dropTables)));
+    this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
@@ -139,6 +148,9 @@ export class MatchRules {
         weaponStatBlocks: loadoutWeaponStatBlocks(pack, pack.getLoadout(mode.loadout)),
         loadout: pack.getLoadout(mode.loadout),
         weapons: packWeapons(pack),
+        enemies: packEnemies(pack),
+        dropTables: packDropTables(pack),
+        pickups: packPickups(pack),
       },
       difficultyModifiers,
     });
@@ -308,5 +320,23 @@ function loadoutWeaponStatBlocks(
 function packWeapons(pack: ContentPack): Record<string, WeaponDefinition> {
   const out: Record<string, WeaponDefinition> = {};
   for (const id of pack.ids('weapons')) out[id] = pack.getWeapon(id);
+  return out;
+}
+
+function packEnemies(pack: ContentPack): Record<string, EnemyDefinition> {
+  const out: Record<string, EnemyDefinition> = {};
+  for (const id of pack.ids('enemies')) out[id] = pack.getEnemy(id);
+  return out;
+}
+
+function packDropTables(pack: ContentPack): Record<string, DropTableDefinition> {
+  const out: Record<string, DropTableDefinition> = {};
+  for (const id of pack.ids('dropTables')) out[id] = pack.getDropTable(id);
+  return out;
+}
+
+function packPickups(pack: ContentPack): Record<string, PickupDefinition> {
+  const out: Record<string, PickupDefinition> = {};
+  for (const id of pack.ids('pickups')) out[id] = pack.getPickup(id);
   return out;
 }

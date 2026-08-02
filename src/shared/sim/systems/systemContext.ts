@@ -3,6 +3,11 @@ import { GameplayEventBus } from '../../core/gameplayEventBus';
 import { DamageSystem } from '../../damage/damageSystem';
 import { RecoilEffect } from '../../effects/recoilEffect';
 import { ProjectileSystem } from '../../projectiles/projectileSystem';
+import { EnemySystem } from '../../enemies/enemySystem';
+import { PickupSystem } from '../../pickups/pickupSystem';
+import { DropTableResolver } from '../../drops/dropTableResolver';
+import { SpawnDirectorRuntime } from '../../spawning/spawnDirectorRuntime';
+import { ItemSystem, StatusEffectSystem } from '../../items/itemSystem';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -30,6 +35,12 @@ export interface SystemContext {
   damage: DamageSystem;
   projectiles: ProjectileSystem;
   recoil: RecoilEffect;
+  enemies: EnemySystem;
+  pickups: PickupSystem;
+  drops: DropTableResolver;
+  spawnDirector: SpawnDirectorRuntime;
+  items: ItemSystem;
+  statusEffects: StatusEffectSystem;
 }
 
 export function pushEvent(
@@ -57,6 +68,12 @@ export function createSystemContext(
   ctx.damage = new DamageSystem(ctx);
   ctx.projectiles = new ProjectileSystem(ctx);
   ctx.recoil = new RecoilEffect(ctx);
+  ctx.enemies = new EnemySystem(ctx);
+  ctx.pickups = new PickupSystem(ctx);
+  ctx.drops = new DropTableResolver(ctx);
+  ctx.spawnDirector = new SpawnDirectorRuntime(ctx, rules.spawnDirector);
+  ctx.items = new ItemSystem(ctx);
+  ctx.statusEffects = new StatusEffectSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);

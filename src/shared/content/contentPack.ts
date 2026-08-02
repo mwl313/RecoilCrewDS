@@ -1,12 +1,14 @@
 import { DefinitionRegistry, type ContentDefinition } from './definitionRegistry';
 import { deepFreeze } from './freeze';
 import type { DifficultyDefinition } from './schemas/difficulty';
+import type { DropTableDefinition } from './schemas/dropTable';
 import type { EnemyDefinition } from './schemas/enemy';
 import type { ItemDefinition, StatusEffectDefinition } from './schemas/item';
 import type { LoadoutDefinition } from './schemas/loadout';
 import type { ModeDefinition } from './schemas/mode';
 import type { ObjectiveDefinition } from './schemas/objective';
 import type { PresentationDefinition } from './schemas/presentation';
+import type { PickupDefinition } from './schemas/pickup';
 import type { ProjectileDefinition } from './schemas/projectile';
 import type { ResultsDefinition } from './schemas/results';
 import type { ScoringDefinition } from './schemas/scoring';
@@ -22,6 +24,8 @@ export const CONTENT_CATEGORIES = [
   'weapons',
   'projectiles',
   'enemies',
+  'dropTables',
+  'pickups',
   'items',
   'statusEffects',
   'spawnDirectors',
@@ -41,6 +45,8 @@ export interface CategoryRegistries {
   weapons: DefinitionRegistry<WeaponDefinition>;
   projectiles: DefinitionRegistry<ProjectileDefinition>;
   enemies: DefinitionRegistry<EnemyDefinition>;
+  dropTables: DefinitionRegistry<DropTableDefinition>;
+  pickups: DefinitionRegistry<PickupDefinition>;
   items: DefinitionRegistry<ItemDefinition>;
   statusEffects: DefinitionRegistry<StatusEffectDefinition>;
   spawnDirectors: DefinitionRegistry<SpawnDirectorDefinition>;
@@ -133,6 +139,12 @@ export class ContentPack {
   }
   getEnemy(id: string): EnemyDefinition {
     return this.require('enemies', id);
+  }
+  getDropTable(id: string): DropTableDefinition {
+    return this.require('dropTables', id);
+  }
+  getPickup(id: string): PickupDefinition {
+    return this.require('pickups', id);
   }
   getItem(id: string): ItemDefinition {
     return this.require('items', id);

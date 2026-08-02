@@ -2,13 +2,16 @@
   "id": "enemy.gunTower",
   "label": "Gun Tower",
   "type": "gunTower",
+  "presentationId": "enemy.gunTower",
   "hp": 18,
   "radius": 1.0,
   "score": 400,
   "jackpotGain": 12,
-  "scrapDrops": ["heavy", "normal", "normal"],
   "contributionPoints": 3,
-  "behaviors": ["behavior.burstFire", "behavior.trackTarget"],
+  "dropTableId": "drops.gunTower",
+  "behaviors": [
+    { "id": "attack.projectileBurst", "parameters": {} }
+  ],
   "damage": 5,
   "shotSpeed": 9,
   "shotInterval": 0.22,

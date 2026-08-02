@@ -24,6 +24,17 @@
         "enemies/gunTower.json",
         "enemies/lootTruck.json"
       ],
+      "dropTables": [
+        "drop-tables/scrapBug.json",
+        "drop-tables/rammer.json",
+        "drop-tables/gunTower.json",
+        "drop-tables/lootTruck.json"
+      ],
+      "pickups": [
+        "pickups/normalScrap.json",
+        "pickups/heavyScrap.json",
+        "pickups/jackpotScrap.json"
+      ],
       "items": [],
       "statusEffects": [],
       "spawnDirectors": ["spawn-directors/demoScoreAttack.json"],
