@@ -105,9 +105,24 @@ Picture-in-Picture feed in the bottom-right corner.
 | `npm test` | Unit/integration tests (vitest) |
 | `npm run test:e2e` | Two-browser Playwright end-to-end (90-second round) |
 | `npm run test:loop` | Headless two-client full-round + rematch verification |
+| `npm run test:demo` | Deterministic golden Demo fixture (byte-exact regression) |
 
 See `DEPLOYMENT.md` for hosting, `SMOKE_TEST.md` for the manual checklist, and
 `ASSET_GUIDE.md` for replacing models, UI themes, VFX, and audio.
+
+## Architecture
+
+The game is data-driven: validated JSON content (`content/`) defines modes,
+tanks, loadouts, weapons, projectiles, enemies, drop tables, pickups, items,
+effects, spawn pacing, scoring, results, difficulties, and presentation.
+The authoritative server resolves rules through an immutable stat service
+and replicates revisions + a compact movement block so Driver prediction
+stays synchronized. The client is a thin coordinator over focused modules
+with an awaited semantic asset service (custom GLBs or registered
+procedural fallbacks).
+
+See `ARCHITECTURE.md` and `CONTENT_AUTHORING_GUIDE.md`, plus the
+`ADDING_A_*` guides for modes, weapons, enemies, and items.
 
 ---
 

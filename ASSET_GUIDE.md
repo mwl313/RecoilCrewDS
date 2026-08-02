@@ -21,12 +21,23 @@ audio.engine … audio.music (see registry)
 ```
 
 `src/shared/assetRegistry.ts` validates every ID and enforces that a fallback
-exists for all of them.
+exists for all of them. The client builds on this with `AssetService.load()`
+(awaited before game construction): manifest entries register model files
+and transform/socket/material metadata; models are cached as prototypes and
+cloned per instance. VFX, audio, themes, icons, and camera impulses resolve
+through the bundled presentation definition
+(`content/presentation/demoScoreAttack.json`).
 
 ## How replacement works
 
 The client loads an optional manifest at **`public/assets/manifest.json`**
 (served as `/assets/manifest.json`). Example:
+
+Model entries support optional `transform` (`position`, `rotation`,
+`scale`, `socket`) and `materials` (`match`, `color`, `emissive`,
+`emissiveIntensity`) metadata applied to every cloned instance. GLB load
+failures fall back to the registered procedural factory with a console
+warning; unknown semantic ids are skipped.
 
 ```json
 {

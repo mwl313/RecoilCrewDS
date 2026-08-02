@@ -9,7 +9,7 @@ import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
 import type { WeaponDefinition } from '../content/schemas/weapon';
-import { legacyGameConfigFromContent, legacyMatchConfigFromContent } from '../legacy/legacyConfigAdapter';
+import { legacyGameConfigFromContent, legacyMatchConfigFromContent } from './contentConfig';
 import { baseStatBlocksFromConfig, type StatBlock } from '../stats/statBlock';
 import { ENEMY_STAT_IDS, MATCH_STAT_IDS, MOVEMENT_STAT_IDS, TANK_STAT_IDS, WEAPON_STAT_IDS } from '../stats/statIds';
 import type { StatModifier } from '../stats/statModifier';
@@ -108,12 +108,12 @@ export class MatchRules {
     this.refreshProjections();
   }
 
-  static fromContentPack(pack: ContentPack, modifier: ModifierId): MatchRules {
-    const mode = pack.getMode(pack.modeId);
+  static fromContentPack(pack: ContentPack, modifier: ModifierId, modeId = pack.modeId): MatchRules {
+    const mode = pack.getMode(modeId);
     const difficultyId = modifier === 'none' ? mode.difficulty : `difficulty.${modifier}`;
     const difficulty = pack.getDifficulty(difficultyId);
-    const baseConfig = legacyGameConfigFromContent(pack);
-    const baseMatchConfig = legacyMatchConfigFromContent(pack, 'none');
+    const baseConfig = legacyGameConfigFromContent(pack, modeId);
+    const baseMatchConfig = legacyMatchConfigFromContent(pack, 'none', modeId);
     const difficultyModifiers: StatModifier[] = [];
     if (difficulty.overrides) {
       for (const [stat, value] of Object.entries(difficulty.overrides)) {
@@ -132,7 +132,7 @@ export class MatchRules {
       packId: pack.id,
       packVersion: pack.version,
       contentHash: pack.hash,
-      modeId: pack.modeId,
+      modeId,
       modifier,
       difficultyId,
       difficultyLabel: difficulty.label ?? difficulty.id,

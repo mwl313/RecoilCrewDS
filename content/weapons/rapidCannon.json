@@ -1,0 +1,27 @@
+{
+  "id": "weapon.rapidCannon",
+  "label": "Rapid Cannon",
+  "behaviors": [],
+  "behaviorId": "weapon.projectile",
+  "fireMode": "semi",
+  "cooldownSeconds": 0.5,
+  "statBlock": {
+    "weapon.cannonDamage": 5,
+    "weapon.cannonRadius": 2.2,
+    "weapon.cannonSpeed": 48,
+    "weapon.cannonGravity": 5,
+    "weapon.cannonLife": 1.8,
+    "weapon.cannonRecoilImpulse": 3,
+    "weapon.cannonRecoilSpin": 1,
+    "weapon.burst": 1,
+    "weapon.burstSpacing": 0.12,
+    "weapon.splashInnerRatio": 0.45,
+    "weapon.splashInnerMultiplier": 1,
+    "weapon.splashOuterMultiplier": 0.65
+  },
+  "projectileId": "projectile.cannonShell",
+  "presentation": {
+    "muzzleVfxId": "vfx.cannonMuzzle",
+    "fireAudioId": "audio.cannon"
+  }
+}

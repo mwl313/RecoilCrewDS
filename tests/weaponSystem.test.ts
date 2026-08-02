@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -20,7 +20,7 @@ function step(match: Match, seconds: number, input?: GunnerInput) {
   }
 }
 
-const aim = { aimYaw: 0, aimPitch: 0 };
+const aim = { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false };
 
 describe('loadout resolution', () => {
   it('maps primary/secondary/ability to the Demo weapons on both rule paths', () => {
@@ -38,43 +38,42 @@ describe('loadout resolution', () => {
     expect(content.loadout.ability.id).toBe('weapon.jackpotShell');
   });
 
-  it('resolves generic actions from legacy fields with generic fields taking precedence', () => {
+  it('uses the generic primary/secondary/ability wire actions directly', () => {
     const m = new Match('loadout-actions');
-    const loadout = m.runtime.loadout;
-    expect(loadout.actionsFromInput({ ...aim, mg: true, cannon: false, charge: false })).toEqual({
-      primary: true,
-      secondary: false,
-      ability: false,
-    });
-    expect(loadout.actionsFromInput({ ...aim, mg: false, cannon: true, charge: false, primary: false, secondary: true })).toEqual({
-      primary: false,
-      secondary: true,
-      ability: false,
-    });
-    expect(loadout.actionsFromInput({ ...aim, charge: true, ability: false })).toEqual({
-      primary: false,
-      secondary: false,
-      ability: false,
-    });
+    m.setGunnerInput({ ...aim, primary: true });
+    m.step(DT);
+    m.takeEvents();
+    expect(m.state.turret.mgCooldown).toBeGreaterThan(0); // primary drives the MG
+    m.setGunnerInput({ ...aim, secondary: true });
+    m.step(DT);
+    m.takeEvents();
+    expect(m.state.shells.length).toBe(1); // secondary drives the cannon
+    m.addJackpot(100);
+    m.setGunnerInput({ ...aim, ability: true });
+    for (let i = 0; i < 40; i++) {
+      m.step(DT);
+      m.takeEvents();
+    }
+    expect(m.state.stats.jackpotFired).toBe(1); // ability drives JACKPOT
   });
 });
 
 describe('cooldown authority and duplicate prevention', () => {
   it('cannon fires on the edge and honors the authoritative cooldown', () => {
     const m = new Match('cooldown');
-    m.setGunnerInput({ ...aim, cannon: true });
+    m.setGunnerInput({ ...aim, secondary: true });
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(1);
     expect(m.state.turret.cannonCooldown).toBeCloseTo(BASE_CONFIG.weapons.cannonCooldown, 3);
     // Held cannon must not double-fire.
-    step(m, 1.0, { ...aim, cannon: true });
+    step(m, 1.0, { ...aim, secondary: true });
     expect(m.state.shells.length).toBeLessThanOrEqual(2);
     // Release + immediate re-press still blocked by cooldown.
-    m.setGunnerInput({ ...aim, cannon: false });
+    m.setGunnerInput({ ...aim, secondary: false });
     m.step(DT);
     m.takeEvents();
-    m.setGunnerInput({ ...aim, cannon: true });
+    m.setGunnerInput({ ...aim, secondary: true });
     m.step(DT);
     m.takeEvents();
     expect(m.state.turret.cannonCooldown).toBeGreaterThan(0);
@@ -90,7 +89,7 @@ describe('cooldown authority and duplicate prevention', () => {
 
   it('stale input clearing stops the machine gun and resets latches', () => {
     const m = new Match('stale');
-    m.setGunnerInput({ ...aim, mg: true });
+    m.setGunnerInput({ ...aim, primary: true });
     step(m, 0.3);
     expect(m.state.turret.mgCooldown).toBeGreaterThan(0);
     m.clearGunnerInput();
@@ -113,7 +112,7 @@ describe('weapon behaviors', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    step(m, 0.6, { aimYaw: 0, aimPitch: 0, mg: true });
+    step(m, 0.6, { aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
     expect(bug.hp).toBeLessThan(BASE_CONFIG.enemies.bugHp);
     expect(tower.hp).toBe(BASE_CONFIG.enemies.towerHp); // towers are MG-immune
 
@@ -123,7 +122,7 @@ describe('weapon behaviors', () => {
     barrelMatch.state.tank.z = -12;
     barrelMatch.state.tank.yaw = 0;
     barrelMatch.state.turret.yaw = 0;
-    step(barrelMatch, 0.5, { aimYaw: 0, aimPitch: 0, mg: true });
+    step(barrelMatch, 0.5, { aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
     expect(barrel.hp ?? 0).toBeGreaterThan(0);
   });
 
@@ -134,7 +133,7 @@ describe('weapon behaviors', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, cannon: true });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(1);
@@ -151,7 +150,7 @@ describe('weapon behaviors', () => {
     const m = new Match('charge');
     m.addJackpot(100);
     expect(m.state.turret.jackpotReady).toBe(true);
-    step(m, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, charge: true });
+    step(m, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
     expect(m.state.stats.jackpotFired).toBe(1);
     // Same-step kills (the JACKPOT recoil can ram a bug) add gains back;
     // the meter is reset to 0 at fire time and only re-earned after.
@@ -160,17 +159,17 @@ describe('weapon behaviors', () => {
     expect(m.state.shells.some((sh) => sh.kind === 'jackpot')).toBe(true);
     // Recharge is blocked by the cooldown.
     m.addJackpot(100);
-    step(m, 1.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, charge: true });
+    step(m, 1.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
     expect(m.state.stats.jackpotFired).toBe(1);
   });
 
   it('releasing the charge early decays it instead of firing', () => {
     const m = new Match('charge-decay');
     m.addJackpot(100);
-    step(m, 0.4, { aimYaw: Math.PI / 2, aimPitch: 0.05, charge: true });
+    step(m, 0.4, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
     const charged = m.state.turret.chargeT;
     expect(charged).toBeGreaterThan(0);
-    step(m, 0.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, charge: false });
+    step(m, 0.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: false , primary: false, secondary: false });
     expect(m.state.turret.chargeT).toBeLessThan(charged);
     expect(m.state.stats.jackpotFired).toBe(0);
   });
@@ -202,7 +201,7 @@ describe('damage, kill, and semantic events', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: true });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
     for (let i = 0; i < 60; i++) {
       m.step(DT);
       m.takeEvents();
@@ -227,7 +226,7 @@ describe('damage, kill, and semantic events', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, cannon: true });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     for (let i = 0; i < 120; i++) {
       m.step(DT);
       m.takeEvents();
@@ -240,16 +239,16 @@ describe('damage, kill, and semantic events', () => {
 describe('recoil and brace parity', () => {
   it('bracing reduces cannon recoil by the legacy brace multiplier', () => {
     const unbraced = new Match('recoil-unbraced');
-    step(unbraced, 0.5, { aimYaw: 0, aimPitch: 0, cannon: false });
-    unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, cannon: true });
+    step(unbraced, 0.5, { aimYaw: 0, aimPitch: 0, secondary: false , primary: false, ability: false });
+    unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     unbraced.step(DT);
     unbraced.takeEvents();
     const uv = Math.hypot(unbraced.state.tank.vx, unbraced.state.tank.vz);
 
     const braced = new Match('recoil-braced');
     braced.setDriverInput({ throttle: 0, steer: 0, boost: false, brace: true });
-    step(braced, 0.5, { aimYaw: 0, aimPitch: 0, cannon: false });
-    braced.setGunnerInput({ aimYaw: 0, aimPitch: 0, cannon: true });
+    step(braced, 0.5, { aimYaw: 0, aimPitch: 0, secondary: false , primary: false, ability: false });
+    braced.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     braced.step(DT);
     braced.takeEvents();
     const bv = Math.hypot(braced.state.tank.vx, braced.state.tank.vz);
@@ -262,7 +261,7 @@ describe('recoil and brace parity', () => {
     });
     jackpotBrace.setDriverInput({ throttle: 0, steer: 0, boost: false, brace: true });
     jackpotBrace.addJackpot(100);
-    step(jackpotBrace, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, charge: true });
+    step(jackpotBrace, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
     jackpotBrace.runtime.eventBus.drain(); // deliver queued semantic events
     expect(jackpotBrace.state.stats.jackpotFired).toBe(1);
     expect(recoilImpulse).toBeCloseTo(
@@ -324,7 +323,7 @@ describe('a test weapon using an existing behavior without editing MatchRuntime'
     runtime.state.tank.z = 0;
     runtime.state.tank.yaw = Math.PI / 2;
     runtime.state.turret.yaw = 0;
-    runtime.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true });
+    runtime.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     runtime.step(DT);
     runtime.takeEvents();
     expect(runtime.state.shells.length).toBe(1);
@@ -355,3 +354,6 @@ function loadRealPackRecords(): { manifest: unknown; files: Record<string, unkno
 function deepClone(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
+
+
+

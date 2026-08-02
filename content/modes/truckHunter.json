@@ -1,0 +1,17 @@
+{
+  "id": "mode.truckHunter",
+  "label": "Truck Hunter",
+  "description": "Proof mode: survive the hounds and end the round when the Loot Truck escapes.",
+  "difficulty": "difficulty.standard",
+  "tank": "tank.default",
+  "loadout": "loadout.truckHunter",
+  "objectives": ["objective.truckEscort"],
+  "spawnDirector": "spawn.director.truckHunter",
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.demoScoreAttack",
+  "presentation": "presentation.demoScoreAttack",
+  "rematch": {
+    "modifiers": ["difficulty.doubleBarrel", "difficulty.moonYard"]
+  },
+  "behaviors": ["behavior.mode.demoScoreAttack"]
+}

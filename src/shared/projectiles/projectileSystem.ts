@@ -1,6 +1,5 @@
 import { ARENA, groundHeightAt } from '../arena';
 import { dist, dist2, pointInBox } from '../math';
-import { enemyRadius } from '../sim/enemyRadius';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { ShellState } from '../types';
 import { createBuiltinProjectileBehaviors } from './projectileBehaviors';
@@ -76,7 +75,7 @@ export class ProjectileSystem {
       if (!exploded) {
         for (const e of s.enemies) {
           if (!e.alive || e.type === 'gunTower') continue;
-          const rr = enemyRadius(e.type, this.ctx.rules.config) + 0.7;
+          const rr = this.ctx.enemies.radiusFor(e) + 0.7;
           if (dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
             exploded = true;
             break;
@@ -112,7 +111,7 @@ export class ProjectileSystem {
     for (const e of s.enemies) {
       if (!e.alive) continue;
       const d = dist(sh.x, sh.z, e.x, e.z);
-      const rr = enemyRadius(e.type, this.ctx.rules.config);
+      const rr = this.ctx.enemies.radiusFor(e);
       if (d < radius + rr) {
         const falloff = d < radius * innerRatio ? innerMult : outerMult;
         this.ctx.damage.applyEnemy(e, dmg * falloff, isJackpot ? 'jackpot' : 'cannon');

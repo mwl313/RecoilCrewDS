@@ -2,12 +2,6 @@ import type { GunnerInput } from '../types';
 import type { WeaponDefinition } from '../content/schemas/weapon';
 import { WeaponRuntimeState } from './weaponRuntimeState';
 
-export interface GunnerActions {
-  primary: boolean;
-  secondary: boolean;
-  ability: boolean;
-}
-
 export interface LoadoutSlot {
   readonly id: string;
   readonly definition: WeaponDefinition;
@@ -29,14 +23,6 @@ export class LoadoutRuntime {
     this.primary = this.slot('primary', loadout.primary, definitions);
     this.secondary = this.slot('secondary', loadout.secondary, definitions);
     this.ability = this.slot('ability', loadout.ability, definitions);
-  }
-
-  actionsFromInput(input: GunnerInput): GunnerActions {
-    return {
-      primary: input.primary ?? input.mg ?? false,
-      secondary: input.secondary ?? input.cannon ?? false,
-      ability: input.ability ?? input.charge ?? false,
-    };
   }
 
   clear(): void {

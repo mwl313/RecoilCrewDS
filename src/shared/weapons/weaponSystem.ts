@@ -28,15 +28,14 @@ export class WeaponSystem {
   }
 
   update(dt: number, input: GunnerInput): void {
-    const actions = this.loadout.actionsFromInput(input);
     const s = this.ctx.state;
     const t = s.tank;
     const tur = s.turret;
     const w = this.ctx.rules.config.weapons;
     if (t.deadT > 0) {
-      this.loadout.primary.state.edgeDown = actions.primary;
-      this.loadout.secondary.state.edgeDown = actions.secondary;
-      this.loadout.ability.state.edgeDown = actions.ability;
+      this.loadout.primary.state.edgeDown = input.primary;
+      this.loadout.secondary.state.edgeDown = input.secondary;
+      this.loadout.ability.state.edgeDown = input.ability;
       return;
     }
 
@@ -49,9 +48,9 @@ export class WeaponSystem {
     tur.cannonFlash = Math.max(0, tur.cannonFlash - dt);
     tur.jackpotCooldown = Math.max(0, tur.jackpotCooldown - dt);
 
-    this.updatePrimary(dt, actions.primary);
-    this.updateSecondary(dt, actions.secondary);
-    this.updateAbility(dt, actions.ability);
+    this.updatePrimary(dt, input.primary);
+    this.updateSecondary(dt, input.secondary);
+    this.updateAbility(dt, input.ability);
   }
 
   private updatePrimary(dt: number, held: boolean): void {

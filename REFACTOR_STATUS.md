@@ -1,9 +1,9 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** `4bc3d7c` (Phase 5 completion: "refactor: Phase 5 client coordinator split and complete asset/presentation architecture")
-**Current phase:** 5 — Client/presentation/assets (automated gate passed)
-**Last passing phase:** 5 — Client/presentation/assets
+**Current commit:** (Phase 6 completion, recorded after commit)
+**Current phase:** 6 — Proof/cleanup (automated gate passed)
+**Last passing phase:** 6 — Proof/cleanup
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
 **Content pack:** `demo@1.0.0` — `content/` (validated, frozen; now includes drop tables + pickups; hash regenerated)
 **Rules revision format:** per-match `MatchRules` (ContentPack -> mode -> difficulty); `rulesRevision` + `movementRulesRevision` + compact movement block replicated on snapshots
@@ -19,7 +19,7 @@ npm run test:loop: PASS — 90.4s round, score 14327, grade S, JACKPOT x2,
 npm run test:demo: PASS — deterministic Demo fixture still matches golden
 ```
 
-Current unit test count: 234 (24 files) — includes 7 new Phase 5 tests
+Current unit test count: 238 (24 files) — includes 9 new Phase 6 tests
 Current E2E test count: 14 (unchanged)
 Known baseline limitations:
 
@@ -49,8 +49,8 @@ Known baseline limitations:
 | 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Complete | `720e880` | All four commands PASS |
 | 4 — Enemies/items/effects/spawning | Complete | `b468724` | All four commands PASS |
-| 5 — Client/presentation/assets | Automated gate passed | `4bc3d7c` | All four commands PASS |
-| 6 — Proof/cleanup | Not started | | |
+| 5 — Client/presentation/assets | Complete | `4bc3d7c` | All four commands PASS |
+| 6 — Proof/cleanup | Automated gate passed | (Phase 6 commit) | All four commands PASS |
 
 Allowed status:
 
@@ -272,7 +272,8 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 8. Stat scope is intentionally match/tank/weapon/enemy only; scoring/jackpot/
    arena values still flow through the legacy config projection.
 9. MatchRuntime still owns tank movement, barrel props, and results wiring
-   (~430 lines); Game remains a monolith (Phase 5).
+   (~430 lines) — intentionally thin; remaining engine defaults are
+   documented in ARCHITECTURE.md.
 10. The stat resolver cache is per-stat; whole-config projection refreshes
     on any stat change (cheap at 30 Hz, revisited if profiling demands).
 11. Weapon statBlocks and enemy per-type fields mirror some values in the
@@ -297,12 +298,26 @@ manifest metadata. VFX/audio/themes/icons/camera impulses route through the
 bundled presentation definition; no gameplay dependency on child names.
 E2E, HUD, cameras, PIP, audio, and VFX remain functional (14/14, loop PASS).
 
-Phase 6 (proof content and cleanup) prerequisites:
-- Add one alternate mode, one ordinary new weapon, one composed enemy, and
-  one stat-changing item through validated content (no MatchRuntime edits).
-- Remove the migrated adapters (LegacyConfigAdapter/LegacyContentAdapter/
-  LegacyWeaponInputAdapter) where callers now consume content directly.
-- Produce authoring guides (ARCHITECTURE, CONTENT_AUTHORING,
-  ADDING_A_GAME_MODE/WEAPON/ENEMY/ITEM, NETWORK_RULES).
-- Keep the golden fixture, rules revisions, and movement block passing.
+Phase 6 (proof content and cleanup) — DONE:
+- Proof content: mode.truckHunter (objective.truckEscort with
+  completionOnTruckEscape — different completion rule, no modeId branch),
+  weapon.rapidCannon (projectile behavior + presentation ids),
+  enemy.testHound (composed behaviors, spawn entry, drop table),
+  item.overdriveCannon (non-movement stat modifier). All validated content,
+  zero MatchRuntime/EnemySystem edits.
+- Legacy removal: LegacyConfigAdapter/LegacyContentAdapter folded into the
+  rules layer as content-driven projections and deleted;
+  LegacyWeaponInputAdapter removed — the gunner wire contract is now
+  primary/secondary/ability everywhere (server, client, fixture, scripts,
+  tests). LegacyMatchStateAdapter and LegacyAssetResolver never existed.
+- Dead code removed: enemy radius type switch (definition-driven),
+  globalEnemyId, unused computeResults import, old asset paths.
+- Starter enemy spawns now come from the spawn-director definition.
+- Documentation: ARCHITECTURE, CONTENT_AUTHORING_GUIDE,
+  ADDING_A_GAME_MODE/WEAPON/ENEMY/ITEM_OR_EFFECT, NETWORK_RULES; README,
+  ASSET_GUIDE, DECISIONS, BUILD_STATUS, SMOKE_TEST updated.
+
+All phases complete. Recommended next milestone: content expansion using
+the authoring guides (new modes/weapons/enemies/items), then a dedicated
+matchmaking layer.
 ```

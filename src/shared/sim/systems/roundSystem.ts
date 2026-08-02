@@ -32,7 +32,9 @@ export class RoundSystem {
   /** Returns the computed results the frame the round completes, else null. */
   checkCompletion(): MatchResults | null {
     const s = this.ctx.state;
-    if (s.time >= s.duration) {
+    const objective = this.ctx.rules.objective;
+    const truckDone = objective.completionOnTruckEscape === true && s.truck.escaped;
+    if (s.time >= s.duration || truckDone) {
       s.phase = 'results';
       return this.ctx.results.compute();
     }

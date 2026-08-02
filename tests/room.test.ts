@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { RoomManager, type SocketLike } from '../src/server/room';
 import { GAME } from '../src/shared/config';
 
@@ -148,7 +148,7 @@ describe('input handling', () => {
     manager.tick(1 / 30);
     expect(match.getDriverInput().throttle).toBe(0);
     // But the Gunner's own input is accepted.
-    manager.handle(b, { t: 'input', seq: 2, gunner: { aimYaw: -1.2, aimPitch: 0.2, mg: false, cannon: false, charge: false } });
+    manager.handle(b, { t: 'input', seq: 2, gunner: { aimYaw: -1.2, aimPitch: 0.2, primary: false, secondary: false, ability: false } });
     manager.tick(1 / 30);
     expect(match.getGunnerInput().aimYaw).toBeCloseTo(-1.2);
   });
@@ -191,7 +191,7 @@ describe('input handling', () => {
     manager.handle(b, {
       t: 'input',
       seq: 1,
-      gunner: { aimYaw: 0, aimPitch: 0, mg: true, cannon: false, charge: false },
+      gunner: { aimYaw: 0, aimPitch: 0, primary: true, secondary: false, ability: false },
     });
     stepSeconds(manager, 0.4);
     const shotsBefore = match.events.filter((e) => e.type === 'shot').length + 0;
@@ -219,7 +219,7 @@ describe('input handling', () => {
     manager.handle(b, {
       t: 'input',
       seq: 1,
-      gunner: { aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false },
+      gunner: { aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false },
     });
     stepSeconds(manager, 0.2);
     expect(match.state.shells.length).toBeGreaterThan(0);
@@ -252,7 +252,7 @@ describe('full round and rematch', () => {
         manager.handle(b, {
           t: 'input',
           seq: seq++,
-          gunner: { aimYaw: Math.PI / 2 + Math.sin(i / 30) * 0.4, aimPitch: 0.05, mg: i % 3 < 2, cannon: i % 60 === 0, charge: false },
+          gunner: { aimYaw: Math.PI / 2 + Math.sin(i / 30) * 0.4, aimPitch: 0.05, primary: i % 3 < 2, secondary: i % 60 === 0, ability: false },
         });
       }
       manager.tick(1 / 30);
@@ -291,3 +291,4 @@ describe('full round and rematch', () => {
     expect(b2.last('joined')!.role).toBe('gunner');
   });
 });
+

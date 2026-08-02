@@ -6,8 +6,6 @@ import type { ContentPack } from '../content/contentPack';
 import { GameplayEventBus } from '../core/gameplayEventBus';
 import type { DamageSource, EntityKilledEvent } from '../damage/damageTypes';
 import { MatchRules } from '../rules/matchRules';
-export { enemyRadius } from './enemyRadius';
-import { enemyRadius } from './enemyRadius';
 import { createLegacyDemoModeDefinition } from '../rules/legacyDemoRules';
 import {
   DemoScoreAttackModeDefinition,
@@ -33,12 +31,6 @@ import type {
   SimEvent,
   TruckState,
 } from '../types';
-
-let globalEnemyId = 1;
-
-function nextEnemyId() {
-  return globalEnemyId++;
-}
 
 function makeBarrels(): BarrelState[] {
   return ARENA.barrels.map((b) => ({ id: b.id, x: b.x, z: b.z, exploded: false, fuseT: 0, flash: 0, hp: 0 }));
@@ -135,7 +127,7 @@ export class MatchRuntime {
   }
 
   private driverInput: DriverInput = { throttle: 0, steer: 0, boost: false, brace: false };
-  private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, mg: false, cannon: false, charge: false };
+  private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
   constructor(
     matchId: string,
     modifier: ModifierId = 'none',
@@ -151,16 +143,18 @@ export class MatchRuntime {
     this.loadout = new LoadoutRuntime(this.rules.weapons, this.rules.loadout);
     this.weaponSystem = new WeaponSystem(this.systems, this.loadout);
     this.eventBus.subscribe('entity.killed', (payload) => this.onEntityKilled(payload as EntityKilledEvent));
-    // First two Scrap Bugs are placed directly ahead so the first kill lands
-    // within seconds.
-    this.systems.enemies.spawnEnemy('scrapBug', -7, 6);
-    this.systems.enemies.spawnEnemy('scrapBug', 8, -4);
+    // Starter enemies come from the spawn director definition (content).
+    for (const spawn of this.rules.spawnDirector.initialSpawns) {
+      const def = this.rules.enemies.get(spawn.type);
+      if (def) this.systems.enemies.spawnEnemyDef(def, spawn.x, spawn.z);
+    }
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */
-  static fromContentPack(pack: ContentPack, matchId: string, modifier: ModifierId = 'none'): MatchRuntime {
-    const definition = new DemoScoreAttackModeDefinition(pack.getMode(pack.modeId), pack);
-    return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier), definition);
+  static fromContentPack(pack: ContentPack, matchId: string, modifier: ModifierId = 'none', modeId?: string): MatchRuntime {
+    const selectedModeId = modeId ?? pack.modeId;
+    const definition = new DemoScoreAttackModeDefinition(pack.getMode(selectedModeId), pack);
+    return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier, selectedModeId), definition);
   }
 
   /** Client-safe path: rules resolved from legacy constants (same values). */
@@ -200,7 +194,7 @@ export class MatchRuntime {
 
   clearInputs() {
     this.driverInput = { throttle: 0, steer: 0, boost: false, brace: false };
-    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, mg: false, cannon: false, charge: false };
+    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
     this.weaponSystem.clearActions();
   }
 
@@ -209,7 +203,7 @@ export class MatchRuntime {
   }
 
   clearGunnerInput() {
-    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, mg: false, cannon: false, charge: false };
+    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
     this.weaponSystem.clearActions();
   }
 
@@ -332,7 +326,7 @@ export class MatchRuntime {
     for (const e of s.enemies) {
       if (!e.alive) continue;
       const d = dist(b.x, b.z, e.x, e.z);
-      if (d < radius + enemyRadius(e.type, this.cfg)) {
+      if (d < radius + this.systems.enemies.radiusFor(e)) {
         this.systems.damage.applyEnemy(e, dmg, 'barrel');
       }
     }

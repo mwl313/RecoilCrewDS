@@ -1,5 +1,4 @@
 import { ARENA, groundHeightAt } from '../arena';
-import { contentEnemyIdFromType } from '../legacy/legacyContentAdapter';
 import { dist2 } from '../math';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyDefinition } from '../content/schemas/enemy';
@@ -7,6 +6,14 @@ import type { EnemyState, EnemyType } from '../types';
 import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
+
+/** Wire type -> definition id (documented engine default mapping). */
+const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
+  scrapBug: 'enemy.scrapBug',
+  rammer: 'enemy.rammer',
+  gunTower: 'enemy.gunTower',
+  lootTruck: 'enemy.lootTruck',
+};
 
 /**
  * Authoritative enemy system. Enemies are data: each definition lists an
@@ -25,7 +32,7 @@ export class EnemySystem {
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
-    const def = this.ctx.rules.enemies.get(contentEnemyIdFromType(enemy.type));
+    const def = this.ctx.rules.enemies.get(ENEMY_TYPE_TO_ID[enemy.type]);
     if (!def) throw new Error(`no enemy definition for type '${enemy.type}'`);
     return def;
   }
@@ -51,7 +58,7 @@ export class EnemySystem {
   }
 
   spawnEnemy(type: EnemyType, x?: number, z?: number): EnemyState | null {
-    const def = this.ctx.rules.enemies.get(contentEnemyIdFromType(type));
+    const def = this.ctx.rules.enemies.get(ENEMY_TYPE_TO_ID[type]);
     if (!def) throw new Error(`no enemy definition for type '${type}'`);
     return this.spawnEnemyDef(def, x, z);
   }

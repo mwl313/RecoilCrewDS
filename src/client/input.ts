@@ -133,14 +133,14 @@ export class InputManager {
       this.requestLock();
       return;
     }
-    if (e.button === 0) this.mouse.add('mg');
-    if (e.button === 2) this.mouse.add('cannon');
+    if (e.button === 0) this.mouse.add('primary');
+    if (e.button === 2) this.mouse.add('secondary');
   };
 
   private onMouseUp = (e: MouseEvent) => {
     if (!this.enabled) return;
-    if (e.button === 0) this.mouse.delete('mg');
-    if (e.button === 2) this.mouse.delete('cannon');
+    if (e.button === 0) this.mouse.delete('primary');
+    if (e.button === 2) this.mouse.delete('secondary');
   };
 
   swapPressed = false;

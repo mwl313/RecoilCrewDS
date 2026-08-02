@@ -29,6 +29,15 @@ and cannon (RMB). **Tab** swaps Driver/Gunner views. Esc opens the pause menu.
 
 ## 4. Pointer lock
 
+## 5. Refactor validation (automated)
+
+Run `npm test` and `npm run test:demo`; the deterministic golden Demo must
+be byte-identical. `tests/proofContent.test.ts` validates the alternate
+mode (truck-escape completion), the Rapid Cannon proof weapon, the
+composed Test Hound enemy, and the Overdrive Cannon item; room rules
+isolation, invalid-content failure, and custom-asset replacement
+(manifest GLB via injected loader) are covered by the unit suites.
+
 After GO, click the canvas → cursor locks. Mouse look is immediate for both
 roles. Esc unlocks and opens the pause menu; Resume re-locks.
 

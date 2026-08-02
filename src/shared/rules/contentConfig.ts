@@ -6,14 +6,13 @@ import type { GameConfig } from '../config';
 import type { MatchConfig, ModifierId } from '../types';
 
 /**
- * Phase 1 compatibility adapter: maps validated content definitions back to
- * the current `GameConfig`/`MatchConfig` shapes so parity with
- * `BASE_CONFIG`/`buildMatchConfig` can be proven before any caller migrates.
- *
- * Removal phase: Phase 2 (immutable match rules replace BASE_CONFIG callers).
+ * Content-driven projection: maps validated content definitions into the
+ * legacy `GameConfig`/`MatchConfig` shapes that the simulation still reads
+ * through MatchRules. This is the single content-to-legacy-shape builder
+ * (the old LegacyConfigAdapter was folded here and removed).
  */
-export function legacyGameConfigFromContent(pack: ContentPack): GameConfig {
-  const mode = pack.selectedMode;
+export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.modeId): GameConfig {
+  const mode = pack.getMode(modeId);
   const tank = pack.getTank(mode.tank);
   const loadout = pack.getLoadout(mode.loadout);
   const mg = weaponOfKind(pack, loadout.primary, 'weapon.hitscan');
@@ -174,8 +173,8 @@ export function legacyGameConfigFromContent(pack: ContentPack): GameConfig {
  * content. Includes the label/desc extras buildMatchConfig currently spreads
  * from MODIFIER_OVERRIDES so the two stay deep-equal.
  */
-export function legacyMatchConfigFromContent(pack: ContentPack, modifier: ModifierId): MatchConfig {
-  const mode = pack.selectedMode;
+export function legacyMatchConfigFromContent(pack: ContentPack, modifier: ModifierId, modeId = pack.modeId): MatchConfig {
+  const mode = pack.getMode(modeId);
   const tank = pack.getTank(mode.tank);
   const loadout = pack.getLoadout(mode.loadout);
   const cannon = weaponOfKind(pack, loadout.secondary, 'weapon.projectile');

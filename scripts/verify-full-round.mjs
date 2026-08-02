@@ -110,7 +110,7 @@ const playInterval = setInterval(() => {
   gunner.send({
     t: 'input',
     seq: gunnerSeq++,
-    gunner: { aimYaw, aimPitch: 0.05, mg: t % 3 < 2, cannon, charge: s.turret.jackpotReady },
+    gunner: { aimYaw, aimPitch: 0.05, primary: t % 3 < 2, secondary: cannon, ability: s.turret.jackpotReady },
   });
 }, 100);
 

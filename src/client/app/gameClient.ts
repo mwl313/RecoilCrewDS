@@ -223,9 +223,9 @@ export class GameClient {
     m.setGunnerInput({
       aimYaw: turret.desiredYawLocal,
       aimPitch: turret.desiredPitch,
-      mg: this.mouseDown('mg'),
-      cannon: this.mouseDown('cannon') && !m.state.turret.jackpotReady,
-      charge: this.mouseDown('cannon') && m.state.turret.jackpotReady,
+      primary: this.mouseDown('primary'),
+      secondary: this.mouseDown('secondary') && !m.state.turret.jackpotReady,
+      ability: this.mouseDown('secondary') && m.state.turret.jackpotReady,
     });
     this.practiceAcc += dt;
     const step = 1 / 30;
@@ -314,9 +314,9 @@ export class GameClient {
       this.prediction.sendGunner({
         aimYaw: turret.desiredYawLocal,
         aimPitch: turret.desiredPitch,
-        mg: this.mouseDown('mg'),
-        cannon: this.mouseDown('cannon') && !(latest?.turret.jackpotReady ?? false),
-        charge: this.mouseDown('cannon') && (latest?.turret.jackpotReady ?? false),
+        primary: this.mouseDown('primary'),
+        secondary: this.mouseDown('secondary') && !(latest?.turret.jackpotReady ?? false),
+        ability: this.mouseDown('secondary') && (latest?.turret.jackpotReady ?? false),
       });
     }
   }
@@ -338,6 +338,10 @@ export class GameClient {
     brace?: boolean;
     aimYaw?: number;
     aimPitch?: number;
+    primary?: boolean;
+    secondary?: boolean;
+    ability?: boolean;
+    /** Legacy test-hook aliases (mapped to generic actions). */
     mg?: boolean;
     cannon?: boolean;
     charge?: boolean;
@@ -353,15 +357,19 @@ export class GameClient {
       this.onSendInput({ t: 'input', seq: this.prediction.nextSeq(), driver: input });
     } else {
       const turret = this.prediction.getTurretSpaces();
+      // Test hook compat: legacy mg/cannon/charge keys map to generic actions.
+      const mg = data.mg ?? data.primary;
+      const cannon = data.cannon ?? data.secondary;
+      const charge = data.charge ?? data.ability;
       this.onSendInput({
         t: 'input',
         seq: this.prediction.nextSeq(),
         gunner: {
           aimYaw: data.aimYaw ?? turret.desiredYawLocal,
           aimPitch: data.aimPitch ?? turret.desiredPitch,
-          mg: !!data.mg,
-          cannon: !!data.cannon,
-          charge: !!data.charge,
+          primary: !!mg,
+          secondary: !!cannon && !(this.presenter.latest?.turret.jackpotReady ?? false),
+          ability: !!charge && (this.presenter.latest?.turret.jackpotReady ?? false),
         },
       });
     }
@@ -392,9 +400,9 @@ export class GameClient {
     const m = this.practiceMatch!;
     const state = m.state;
     if (state.tank.deadT > 0) return;
-    const mg = this.mouseDown('mg');
-    const cannon = this.mouseDown('cannon') && !state.turret.jackpotReady;
-    const charge = this.mouseDown('cannon') && state.turret.jackpotReady;
+    const mg = this.mouseDown('primary');
+    const cannon = this.mouseDown('secondary') && !state.turret.jackpotReady;
+    const charge = this.mouseDown('secondary') && state.turret.jackpotReady;
     if (mg && state.turret.mgCooldown <= 0) {
       const muzzle = this.tankRig.barrel.localToWorld(new THREE.Vector3(0, 0.75, 2.9).clone());
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);

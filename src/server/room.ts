@@ -1,6 +1,5 @@
 import { GAME } from '../shared/config';
 import { Match } from '../shared/sim/match';
-import { computeResults } from '../shared/sim/results';
 import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
 
@@ -93,13 +92,10 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
   const gunner: GunnerInput = {
     aimYaw,
     aimPitch,
-    mg: !!r.mg,
-    cannon: !!r.cannon,
-    charge: !!r.charge,
+    primary: !!r.primary,
+    secondary: !!r.secondary,
+    ability: !!r.ability,
   };
-  if (typeof r.primary === 'boolean') gunner.primary = r.primary;
-  if (typeof r.secondary === 'boolean') gunner.secondary = r.secondary;
-  if (typeof r.ability === 'boolean') gunner.ability = r.ability;
   return gunner;
 }
 

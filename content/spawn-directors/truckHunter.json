@@ -1,0 +1,18 @@
+{
+  "id": "spawn.director.truckHunter",
+  "label": "Truck Hunter Spawn Director",
+  "behaviors": ["behavior.spawnDirector.demo"],
+  "initialSpawns": [
+    { "type": "enemy.testHound", "x": 14, "z": 0 },
+    { "type": "enemy.testHound", "x": -14, "z": 0 }
+  ],
+  "bugPacing": { "minActive": 3, "maxActive": 5, "rampPerSecond": 0.1, "cap": 12 },
+  "rammerSpawns": [],
+  "towerSpawns": [],
+  "maxRammers": 0,
+  "maxTowers": 0,
+  "finalChaos": { "start": 80, "rammerProbability": 0.05, "rammerMax": 1, "towerProbability": 0 },
+  "truck": { "spawnTime": 10, "escapeTime": 45, "escapeShortcut": 8 },
+  "arena": { "half": 40, "maxPickups": 26 },
+  "props": { "barrelHp": 3, "barrelRadius": 2.4, "barrelChainRadius": 6 }
+}

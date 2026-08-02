@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Phase 0 characterization tests. These pin down current behavior so later
  * refactor phases can prove parity. They are deliberately descriptive, not
  * aspirational: they record what the code does today.
@@ -12,7 +12,7 @@ import { AssetService } from '../src/client/assets';
 import { DriverPredictor } from '../src/client/predictor';
 import { isValidAssetId, REQUIRED_ASSET_IDS } from '../src/shared/assetRegistry';
 import { BASE_CONFIG, GAME, buildMatchConfig } from '../src/shared/config';
-import { Match, enemyRadius } from '../src/shared/sim/match';
+import { Match } from '../src/shared/sim/match';
 import { RoomManager, type SocketLike } from '../src/server/room';
 import type { DriverInput, ModifierId, TankState } from '../src/shared/types';
 import { canonicalizeState, stepScriptedMatch, withSeededRandom } from './helpers/demoFixture';
@@ -78,7 +78,7 @@ function holdDriver(over: Partial<DriverInput> = {}): DriverInput {
   return { throttle: 0, steer: 0, boost: false, brace: false, ...over };
 }
 
-const neutralGunner = { aimYaw: Math.PI / 2, aimPitch: 0.05, mg: false, cannon: false, charge: false };
+const neutralGunner = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
 
 // ---------------------------------------------------------------- 1. duration
 describe('Demo duration source', () => {
@@ -118,11 +118,9 @@ describe('weapon input fields (wire contract)', () => {
       gunner: {
         aimYaw: 1.2,
         aimPitch: 0.3,
-        mg: true,
-        cannon: false,
-        charge: false,
         primary: true,
-        secondary: 'cannon',
+        secondary: false,
+        ability: false,
         weaponId: 'weapon.mainCannon',
         aimX: 99,
       },
@@ -131,10 +129,9 @@ describe('weapon input fields (wire contract)', () => {
     expect(room.match!.getGunnerInput()).toEqual({
       aimYaw: 1.2,
       aimPitch: 0.3,
-      mg: true,
-      cannon: false,
-      charge: false,
       primary: true,
+      secondary: false,
+      ability: false,
     });
     // Unknown fields must not have triggered a weapon.
     expect(room.match!.state.shells.length).toBe(0);
@@ -147,14 +144,20 @@ describe('weapon input fields (wire contract)', () => {
     manager.handle(b, {
       t: 'input',
       seq: 1,
-      gunner: { aimYaw: 999, aimPitch: 99, mg: 1, cannon: 'yes' as unknown as boolean, charge: null as unknown as boolean },
+      gunner: {
+        aimYaw: 999,
+        aimPitch: 99,
+        primary: 1,
+        secondary: 'yes' as unknown as boolean,
+        ability: null as unknown as boolean,
+      },
     });
     manager.tick(1 / 30);
     const input = room.match!.getGunnerInput();
     expect(input.aimPitch).toBe(1.5); // clamped to [-1.5, 1.5]
-    expect(input.mg).toBe(true);
-    expect(input.cannon).toBe(true);
-    expect(input.charge).toBe(false);
+    expect(input.primary).toBe(true);
+    expect(input.secondary).toBe(true);
+    expect(input.ability).toBe(false);
   });
 
   it('driver input fields are exactly throttle/steer/boost/brace and are clamped', () => {
@@ -179,11 +182,11 @@ describe('weapon input fields (wire contract)', () => {
     const { b, room } = startCrew(manager);
     const match = room.match!;
     // MG hold.
-    manager.handle(b, { t: 'input', seq: 1, gunner: { ...neutralGunner, mg: true } });
+    manager.handle(b, { t: 'input', seq: 1, gunner: { ...neutralGunner, primary: true } });
     manager.tick(1 / 30);
     expect(match.state.turret.mgCooldown).toBeGreaterThan(0);
     // Cannon edge fires exactly one shell.
-    manager.handle(b, { t: 'input', seq: 2, gunner: { ...neutralGunner, cannon: true } });
+    manager.handle(b, { t: 'input', seq: 2, gunner: { ...neutralGunner, secondary: true } });
     manager.tick(1 / 30);
     const shells = match.state.shells.length;
     expect(shells).toBeGreaterThan(0);
@@ -191,7 +194,7 @@ describe('weapon input fields (wire contract)', () => {
     expect(match.state.shells.length).toBe(shells);
     // Charge only matters when the meter is ready.
     match.addJackpot(100);
-    manager.handle(b, { t: 'input', seq: 3, gunner: { ...neutralGunner, cannon: false, charge: true } });
+    manager.handle(b, { t: 'input', seq: 3, gunner: { ...neutralGunner, secondary: false, ability: true } });
     for (let i = 0; i < 40; i++) manager.tick(1 / 30);
     expect(match.state.stats.jackpotFired).toBe(1);
   });
@@ -199,11 +202,13 @@ describe('weapon input fields (wire contract)', () => {
 
 // ----------------------------------------------------------- 3. enemy mapping
 describe('enemy mapping', () => {
-  it('enemyRadius maps each type to its configured arena radius', () => {
-    expect(enemyRadius('scrapBug', BASE_CONFIG)).toBe(BASE_CONFIG.arena.bugRadius);
-    expect(enemyRadius('rammer', BASE_CONFIG)).toBe(BASE_CONFIG.arena.rammerRadius);
-    expect(enemyRadius('gunTower', BASE_CONFIG)).toBe(BASE_CONFIG.arena.towerRadius);
-    expect(enemyRadius('lootTruck', BASE_CONFIG)).toBe(BASE_CONFIG.arena.truckRadius);
+  it('enemy definitions carry the authoritative radii (no type switch)', () => {
+    const m = new Match('radii');
+    const enemies = m.runtime.rules.enemies;
+    expect(enemies.get('enemy.scrapBug')!.radius).toBe(BASE_CONFIG.arena.bugRadius);
+    expect(enemies.get('enemy.rammer')!.radius).toBe(BASE_CONFIG.arena.rammerRadius);
+    expect(enemies.get('enemy.gunTower')!.radius).toBe(BASE_CONFIG.arena.towerRadius);
+    expect(enemies.get('enemy.lootTruck')!.radius).toBe(BASE_CONFIG.arena.truckRadius);
   });
 
   it('spawnEnemy maps each type to its configured hp, maxHp, and initial state', () => {
@@ -479,3 +484,4 @@ describe('Driver predictor config source', () => {
     expect(presenter).toContain('applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier)');
   });
 });
+

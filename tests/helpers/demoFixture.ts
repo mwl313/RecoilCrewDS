@@ -313,7 +313,13 @@ export function scriptedGunner(state: MatchState, t: number, lastCannonSent: boo
   const ready = state.turret.cannonCooldown <= 0;
   const cannon = ready && !lastCannonSent;
   return {
-    input: { aimYaw, aimPitch: 0.05, mg: t % 3 < 2, cannon, charge: state.turret.jackpotReady },
+    input: {
+      aimYaw,
+      aimPitch: 0.05,
+      primary: t % 3 < 2,
+      secondary: cannon,
+      ability: state.turret.jackpotReady,
+    },
     cannonSent: ready,
   };
 }

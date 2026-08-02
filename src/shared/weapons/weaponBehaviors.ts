@@ -57,7 +57,7 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       let bestEnemy: (typeof s.enemies)[number] | null = null;
       for (const e of s.enemies) {
         if (!e.alive || e.type === 'gunTower') continue;
-        const r = enemyRadiusFor(ctx, e.type) + 0.45;
+        const r = ctx.enemies.radiusFor(e) + 0.45;
         const ox = e.x - muzzle.x;
         const oy = e.y + 0.6 - muzzle.y;
         const oz = e.z - muzzle.z;
@@ -163,20 +163,6 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
   });
 
   return registry;
-}
-
-function enemyRadiusFor(ctx: SystemContext, type: string): number {
-  const cfg = ctx.rules.config;
-  switch (type) {
-    case 'scrapBug':
-      return cfg.arena.bugRadius;
-    case 'rammer':
-      return cfg.arena.rammerRadius;
-    case 'gunTower':
-      return cfg.arena.towerRadius;
-    default:
-      return cfg.arena.truckRadius;
-  }
 }
 
 export type { WeaponRuntimeState };

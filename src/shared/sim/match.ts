@@ -15,7 +15,6 @@ import type {
 import { MatchRuntime } from './matchRuntime';
 
 export { MatchRuntime } from './matchRuntime';
-export { enemyRadius } from './matchRuntime';
 
 /**
  * Legacy Match facade. All current callers (server rooms, Practice, tests,

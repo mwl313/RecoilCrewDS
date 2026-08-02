@@ -44,3 +44,23 @@ Cameras are local-only and never network-corrected.
 
 Direction fixes are expressed through the explicit `invertMouseX` /
 `invertMouseY` flags, never hidden inside arbitrary negative signs.
+
+## Refactor decisions (Phases 0-6)
+
+- Data-driven hybrid: JSON content for values/references/schedules;
+  TypeScript for algorithms/behaviors/networking. No executable JSON
+  scripting, no ECS, no microservices.
+- Per-match immutable rules (`ContentPack → mode → difficulty →
+  MatchRules`) with a stat resolver (add/multiply/override, stacking,
+  duration, dirty cache) and rules revisions replicated to clients.
+- Server authority preserved; Driver prediction uses shared kinematics +
+  the replicated movement block; Gunner prediction and cameras are local.
+- Gunner wire actions are generic `primary`/`secondary`/`ability` (the
+  legacy `mg`/`cannon`/`charge` adapter was removed in Phase 6).
+- LegacyConfigAdapter/LegacyContentAdapter were folded into the rules
+  layer as content-driven projections and removed as adapters.
+- Client split into GameClient + focused modules; assets are an awaited
+  semantic service with prototypes/instances and registered fallbacks.
+- Intentional engine defaults: wire enemy type→id table in EnemySystem;
+  client-safe Practice rules mirror the validated Demo pack; arena layout
+  stays in `arena.ts`; one shared dodge-credit flag (legacy parity).

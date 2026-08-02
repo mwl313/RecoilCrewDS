@@ -123,15 +123,15 @@ describe('InputManager', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
     canvas.requestPointerLock();
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
     canvas.dispatch('mousedown', mouseEvent({ button: 2 }));
-    expect(input.button('mg')).toBe(true);
-    expect(input.button('cannon')).toBe(true);
+    expect(input.button('primary')).toBe(true);
+    expect(input.button('secondary')).toBe(true);
     windowTarget.dispatch('mouseup', mouseEvent({ button: 2 }));
-    expect(input.button('cannon')).toBe(false);
-    expect(input.button('mg')).toBe(true);
+    expect(input.button('secondary')).toBe(false);
+    expect(input.button('primary')).toBe(true);
   });
 
   it('requests pointer lock from a canvas click while unlocked', () => {
@@ -142,7 +142,7 @@ describe('InputManager', () => {
     expect(canvas.requestPointerLockCalls).toBe(1);
     expect(input.locked).toBe(true);
     // The click that acquired the lock must not fire a weapon button.
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
   });
 
   it('clears held keys and buttons when pointer lock is lost', () => {
@@ -152,11 +152,11 @@ describe('InputManager', () => {
     canvas.requestPointerLock();
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
     expect(input.key('forward')).toBe(true);
-    expect(input.button('mg')).toBe(true);
+    expect(input.button('primary')).toBe(true);
     documentTarget.pointerLockElement = null;
     documentTarget.dispatch('pointerlockchange', {});
     expect(input.locked).toBe(false);
     expect(input.key('forward')).toBe(false);
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
   });
 });
