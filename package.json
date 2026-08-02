@@ -14,6 +14,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:demo": "tsx scripts/demo-regression.ts",
+    "demo:write": "tsx scripts/demo-regression.ts --write",
     "test:e2e": "playwright test",
     "test:loop": "node scripts/verify-full-round.mjs",
     "start": "npm run build && npm run server"
