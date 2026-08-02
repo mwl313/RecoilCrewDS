@@ -1,6 +1,7 @@
 import { buildMatchConfig, type GameConfig } from '../shared/config';
 import { lerp } from '../shared/math';
 import { stepTankKinematics, type TankKinematicState } from '../shared/sim/tankKinematics';
+import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import type { DriverInput, ModifierId, TankState } from '../shared/types';
 
 const STEP = 1 / 30;
@@ -46,6 +47,7 @@ export class DriverPredictor {
   private cfg: GameConfig;
   private mcfg: ReturnType<typeof buildMatchConfig>;
   private prevDead = 0;
+  private movementRevision = 0;
 
   constructor(cfg: GameConfig, modifier: ModifierId) {
     this.cfg = cfg;
@@ -67,6 +69,27 @@ export class DriverPredictor {
 
   get pendingCount(): number {
     return this.pending.length;
+  }
+
+  /**
+   * Apply the authoritative resolved movement block when the movement rules
+   * revision advances. Prediction afterwards uses the same movement-critical
+   * values as the server (REFACTOR_02 §13).
+   */
+  applyMovementRules(block: MovementRulesBlock, revision: number): void {
+    if (revision <= this.movementRevision) return;
+    this.movementRevision = revision;
+    this.cfg = {
+      ...this.cfg,
+      tank: { ...this.cfg.tank, ...block.tank },
+    };
+    this.mcfg = {
+      ...this.mcfg,
+      timeScale: block.match.timeScale,
+      grip: block.match.grip,
+      boostGrip: block.match.boostGrip,
+      gravity: block.match.gravity,
+    };
   }
 
   /** Sample the current input every frame; simulate at the fixed server rate. */

@@ -1,3 +1,5 @@
+import type { MovementRulesBlock } from './stats/rulesRevision';
+
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
 
@@ -272,6 +274,10 @@ export interface SnapshotMessage {
   lastProcessedDriverInputSeq: number;
   lastProcessedGunnerInputSeq: number;
   state: MatchState;
+  /** Phase 2: reliable rules metadata (additive). */
+  rulesRevision?: number;
+  movementRulesRevision?: number;
+  movement?: MovementRulesBlock;
 }
 
 export interface EventMessage {

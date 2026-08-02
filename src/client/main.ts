@@ -6,6 +6,7 @@ import { NetClient } from './net';
 import { AudioManager } from './audio';
 import { GameAssets } from './assets';
 import type { MatchState, Role } from '../shared/types';
+import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 
 const assets = new GameAssets();
 const audio = new AudioManager();
@@ -142,6 +143,10 @@ net.onMessage = (msg) => {
         state: latestState,
         lastProcessedDriverInputSeq: Number(msg.lastProcessedDriverInputSeq ?? 0),
         lastProcessedGunnerInputSeq: Number(msg.lastProcessedGunnerInputSeq ?? 0),
+        rulesRevision: msg.rulesRevision === undefined ? undefined : Number(msg.rulesRevision),
+        movementRulesRevision:
+          msg.movementRulesRevision === undefined ? undefined : Number(msg.movementRulesRevision),
+        movement: msg.movement as MovementRulesBlock | undefined,
       });
       break;
     case 'event':

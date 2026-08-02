@@ -279,6 +279,12 @@ export class Game {
   setSnapshot(msg: SnapshotEnvelope<MatchState>) {
     this.latest = msg.state;
     this.snapBuffer.push(msg);
+    if (msg.movement && msg.movementRulesRevision !== undefined && this.mode === 'online' && this.role === 'driver') {
+      if (!this.predictor) {
+        this.predictor = new DriverPredictor(BASE_CONFIG, msg.state.modifier);
+      }
+      this.predictor.applyMovementRules(msg.movement, msg.movementRulesRevision);
+    }
     if (!this.renderClockStarted) {
       this.renderClockStarted = true;
       this.renderTime = msg.serverTime - 0.1;

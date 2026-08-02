@@ -4,6 +4,7 @@ import path from 'node:path';
 import { WebSocket, WebSocketServer } from 'ws';
 import { RoomManager, type ContentMetadata, type SocketLike } from './room';
 import { loadContentPackFromFilesystem } from '../shared/content/contentLoader';
+import type { ContentPack } from '../shared/content/contentPack';
 
 const PORT = Number(process.env.PORT || 8080);
 const STATIC_DIR = path.resolve(process.cwd(), process.env.STATIC_DIR || 'dist');
@@ -89,20 +90,21 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 // deployment fallback (server runs without metadata); invalid content fails
 // loudly because it would poison every room.
 let contentMeta: ContentMetadata | null = null;
+let contentPack: ContentPack | null = null;
 if (fs.existsSync(CONTENT_DIR)) {
-  const pack = loadContentPackFromFilesystem(CONTENT_DIR);
+  contentPack = loadContentPackFromFilesystem(CONTENT_DIR);
   contentMeta = {
-    packId: pack.id,
-    version: pack.version,
-    hash: pack.hash,
-    modeId: pack.modeId,
+    packId: contentPack.id,
+    version: contentPack.version,
+    hash: contentPack.hash,
+    modeId: contentPack.modeId,
   };
-  console.log(`[recoil-crew] content pack ${pack.id}@${pack.version} hash=${pack.hash.slice(0, 12)} mode=${pack.modeId}`);
+  console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} mode=${contentPack.modeId}`);
 } else {
   console.warn(`[recoil-crew] content dir not found at ${CONTENT_DIR}; running without content metadata`);
 }
 
-const manager = new RoomManager({ content: contentMeta });
+const manager = new RoomManager({ content: contentMeta, pack: contentPack });
 
 function originAllowed(origin: string | undefined): boolean {
   if (!origin) return true;

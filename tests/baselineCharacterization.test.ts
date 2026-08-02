@@ -415,14 +415,18 @@ describe('per-room config isolation', () => {
     expect(Math.abs(matchB.state.tank.z - zB)).toBeLessThan(0.001);
   });
 
-  it('documents that cfg is currently one shared BASE_CONFIG reference (Phase 2 risk)', () => {
+  it('cfg is a per-match immutable projection of the resolved rules (shared reference removed)', () => {
     const a = new Match('iso-a');
     const b = new Match('iso-b', 'soapTracks');
-    expect(a.cfg).toBe(BASE_CONFIG);
-    expect(b.cfg).toBe(BASE_CONFIG);
+    expect(a.cfg).not.toBe(BASE_CONFIG);
+    expect(a.cfg).toEqual(BASE_CONFIG);
+    expect(a.cfg).not.toBe(b.cfg);
+    expect(Object.isFrozen(a.cfg)).toBe(true);
+    expect(Object.isFrozen(a.cfg.tank)).toBe(true);
     // mcfg is per-match and already isolated.
     expect(a.mcfg).not.toBe(b.mcfg);
-    expect(a.mcfg.grip).not.toBe(b.mcfg.grip);
+    expect(a.mcfg.grip).toBe(BASE_CONFIG.tank.normalGrip);
+    expect(b.mcfg.grip).toBe(0.35);
   });
 });
 

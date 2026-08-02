@@ -1,47 +1,50 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** `5444fe2` (Phase 1 completion: "refactor: Phase 1 core runtime contracts, JSON schemas, registries, and content loading")
-**Current phase:** 1 — Core/content runtime (automated gate passed)
-**Last passing phase:** 1 — Core/content runtime
+**Current commit:** (Phase 2 completion, recorded after commit)
+**Current phase:** 2 — Stats/DemoMode (automated gate passed)
+**Last passing phase:** 2 — Stats/DemoMode
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
 **Content pack:** `demo@1.0.0` — `content/` (validated, frozen, hash `e4afdf7a10b0…`)
-**Rules revision format:** none yet — per-match `MatchConfig` still built in memory by `buildMatchConfig(modifier)`; content difficulty `match.*` overrides are modeled and validated for Phase 2
+**Rules revision format:** per-match `MatchRules` (ContentPack -> mode -> difficulty); `rulesRevision` + `movementRulesRevision` + compact movement block replicated on snapshots
 
 ## Baseline evidence
 
 ```text
 npm run build: PASS (client dist/ + server dist-server/)
-npm test: PASS — 17 files, 163/163 tests (Phase 0 baseline: 13 files, 128 tests)
+npm test: PASS — 21 files, 201/201 tests (Phase 1 baseline: 17 files, 163 tests)
 npm run test:e2e: PASS — 14/14 Playwright tests (4.4m)
-npm run test:loop: PASS — 90.0s round, score 14600, grade S, JACKPOT x2,
+npm run test:loop: PASS — 90.1s round, score 4969, grade B, JACKPOT x2,
   combo x5, rematch ok (moonYard, fresh score 0, same room), 1353 snapshots
 npm run test:demo: PASS — deterministic Demo fixture still matches golden
 ```
 
-Current unit test count: 163 (17 files) — includes 35 new Phase 1 tests
+Current unit test count: 201 (21 files) — includes 38 new Phase 2 tests
 Current E2E test count: 14 (unchanged)
 Known baseline limitations:
 
-- `Match.cfg` defaults to a shared mutable `BASE_CONFIG` reference; only
-  `mcfg` is per-match (documented + pinned by characterization tests).
-- `Match` and `Game` remain monoliths (1331 and 1053 lines).
+- `Match.cfg`/`mcfg` are now per-match frozen projections of resolved stats
+  (shared `BASE_CONFIG` reference removed).
+- `MatchRuntime` remains large (~1270 lines) with legacy weapon/enemy/shell/
+  pickup/spawn/barrel paths (Phase 3/4 extraction targets); `Game` remains
+  a monolith (1053 lines).
 - `Match` consumes global `Math.random`; determinism is achieved by seeding
   in the fixture, not by injection.
 - `REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md` is referenced by the
-  execution guide but is missing from `docs/refractor/`.
-- The sim still reads `BASE_CONFIG`/`MatchConfig`; JSON content is a validated
-  mirror proven equal by the legacy adapters (caller migration is Phase 2+).
+  execution guide and is now present in `docs/refractor/`.
+- The authoritative server path resolves rules from validated JSON; the
+  client Practice path resolves identical values from legacy constants
+  (parity-tested) to keep fs/zod out of the browser bundle.
 - Arena layout (obstacles, barrels, ramps, truck route) is still hardcoded in
-  `arena.ts`; content covers arena constants and spawn schedules only.
+  `arena.ts`.
 
 ## Phase status
 
 | Phase | Status | Commit | Gate |
 |---|---|---|---|
 | 0 — Baseline audit | Complete | `eb5c1e5` | All four commands PASS |
-| 1 — Core/content runtime | Automated gate passed | `5444fe2` | All four commands PASS |
-| 2 — Stats/DemoMode | Not started | | |
+| 1 — Core/content runtime | Complete | `5444fe2` | All four commands PASS |
+| 2 — Stats/DemoMode | Automated gate passed | (Phase 2 commit) | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Not started | | |
 | 4 — Enemies/items/objectives | Not started | | |
 | 5 — Client/assets | Not started | | |
@@ -68,12 +71,21 @@ src/shared/content/ — ContentLoader, ContentPack, DefinitionRegistry,
   BehaviorRegistry, ReferenceValidator, stat-id catalog, deterministic hash
 src/shared/core/ — GameplaySystem, SimulationContext, GameplayEventBus,
   EntityRegistry, SystemScheduler, GameModeRegistry
+src/shared/stats/ — known-stat registry, base blocks, StatResolver
+  (add/multiply/override, priorities, stacking, duration, dirty cache),
+  rulesRevision/movementRulesRevision
+src/shared/rules/ — MatchRules (content + legacy paths), legacy Demo bundle
+src/shared/modes/ — DemoScoreAttackModeDefinition + DemoScoreAttackModeRuntime
+src/shared/sim/systems/ — RoundSystem, ObjectiveSystem, ScoreSystem,
+  ComboSystem, JackpotSystem, ResultSystem
+src/shared/sim/matchRuntime.ts — orchestration; Match is now a thin facade
 ```
 
 ### Compatibility adapters still present
 
 ```text
-LegacyConfigAdapter (maps ContentPack -> GameConfig/MatchConfig; removal: Phase 2)
+LegacyConfigAdapter (maps ContentPack -> GameConfig/MatchConfig; now feeds
+  MatchRules projections; removal: Phase 3+)
 LegacyContentAdapter (content id <-> legacy enum maps; removal: Phase 3)
 ```
 
@@ -86,8 +98,10 @@ None
 ### Hardcoded Demo rules remaining
 
 ```text
-The sim still executes entirely from BASE_CONFIG/MatchConfig and match.ts
-constants; JSON values are mirrored but not yet consumed by the runtime.
+The sim executes from per-match frozen rule projections fed by the stat
+service; duration, assistance, score/combo/JACKPOT mode rules, and results
+selection are content-driven. Still hardcoded in MatchRuntime: weapon/enemy/
+shell/pickup/spawn/barrel algorithms and private spawn schedules (Phase 3/4).
 Arena obstacle/barrel/ramp/route layout remains hardcoded in arena.ts.
 ```
 
@@ -97,7 +111,7 @@ Arena obstacle/barrel/ramp/route layout remains hardcoded in arena.ts.
 Phase 1 JSON now mirrors tank/weapon/projectile/enemy/scoring/jackpot/spawn/
 difficulty/results/presentation data. Still TypeScript-only:
 arena obstacle layout, barrel positions, ramps, truck route, and the
-authoritative algorithms in match.ts.
+authoritative weapon/enemy/spawn algorithms in matchRuntime.ts (Phase 3/4).
 ```
 
 ## Current phase changes
@@ -120,6 +134,17 @@ tests/contentPack.test.ts
 tests/coreContracts.test.ts
 tests/legacyAdapters.test.ts
 tests/roomContentMetadata.test.ts
+src/shared/stats/ (statIds, statBlock, statModifier, statResolver, rulesRevision)
+src/shared/rules/ (matchRules, legacyDemoRules)
+src/shared/modes/ (demoScoreAttack)
+src/shared/sim/systems/ (context + 6 systems)
+src/shared/sim/matchRuntime.ts
+src/shared/sim/match.ts (rewritten as a thin facade)
+tests/stats.test.ts
+tests/matchRules.test.ts
+tests/modeSystems.test.ts
+tests/roomRules.test.ts
+docs/refractor/REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md
 ```
 
 Files modified:
@@ -130,25 +155,35 @@ package.json + package-lock.json (new dependency: zod 4)
 src/server/room.ts (additive content metadata on rooms + start message)
 src/server/index.ts (loads and validates content pack at startup)
 Dockerfile (ships content/ in the production image)
+src/server/room.ts (Phase 2: rooms resolve rules from the content pack;
+  snapshots carry rulesRevision/movementRulesRevision/movement block)
+src/client/predictor.ts (applyMovementRules)
+src/client/game.ts + main.ts (movement block -> predictor)
+src/shared/types.ts + net/interpolation.ts (additive snapshot fields)
+tests/baselineCharacterization.test.ts (cfg shared-reference pin replaced by
+  per-match immutable projection assertions)
 ```
 
 Behavior changes:
 
 ```text
-None — Phase 0 is audit + golden-master protection only. No source files in
-src/ were modified. All pre-existing tests still pass unchanged.
-
-Phase 1 — no gameplay/network behavior change. The `start` message gains an
-additive `content` field only when the server loads a pack; rooms without
-content metadata are byte-for-byte unchanged. The Demo golden fixture is
+Phases 0-1: no gameplay/network behavior change; Demo golden fixture
 unchanged (1641 events, same results).
+
+Phase 2 — gameplay numbers are byte-for-byte unchanged (golden fixture,
+all 163 pre-existing tests, e2e, loop). Structural changes only:
+- Match split into a thin facade + MatchRuntime with immutable MatchRules.
+- Six systems extracted; duration/assistance/score/combo/JACKPOT/results
+  ownership moved out of Match into content-driven systems.
+- Snapshots additively carry rulesRevision/movementRulesRevision and the
+  compact movement block on change; Driver predictor applies it.
 ```
 
 ## Verification
 
 ```text
 npm run build: PASS
-npm test: PASS — 17 files, 163/163
+npm test: PASS — 21 files, 201/201
 npm run test:e2e: PASS — 14/14
 npm run test:loop: PASS — 90.0s full round + rematch
 npm run test:demo: PASS — deterministic fixture matches tests/fixtures/demo-golden.json
@@ -157,7 +192,7 @@ npm run test:demo: PASS — deterministic fixture matches tests/fixtures/demo-go
 Manual tests:
 
 ```text
-Not performed beyond the automated e2e/loop suites (Phases 0-1 change nothing
+Not performed beyond the automated e2e/loop suites (Phases 0-2 change nothing
 in runtime behavior; browser play was verified by e2e + loop gates).
 ```
 
@@ -165,23 +200,25 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 
 ```text
 1. Missing authority doc: REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md
-   is referenced by REFACTOR_00 but absent from docs/refractor/. Phase 1 can
-   proceed, but Phase 2's spec will be unavailable unless it is added.
-2. Shared cfg reference: Match.cfg === BASE_CONFIG for every match; Phase 2
-   must introduce frozen per-room rules before any mutation of cfg.
+   is now present; Phase 2 read it.
+2. Shared cfg reference: removed in Phase 2 — Match.cfg/mcfg are frozen
+   per-match projections; per-room isolation is tested.
 3. Global Math.random: the golden fixture seeds it; production does not.
    Later phases should inject RNG into the sim to harden determinism.
 4. Golden file size: tests/fixtures/demo-golden.json contains a full 1641-
    event canonical trace; regeneration requires deliberate `npm run demo:write`.
 5. E2E remains wall-clock bound (real 90 s rounds); it is intentionally not
    canonicalized.
-6. Phase 1 content is a frozen mirror, not the runtime source: two copies of
-   the truth (JSON + BASE_CONFIG) must be kept in sync until Phase 2 migrates
-   callers; the LegacyConfigAdapter parity tests enforce the invariant.
-7. Content loading is server-side only; the client does not consume the pack
-   yet (Phase 5 asset migration will route presentation through it).
-8. The stat-id catalog is derived from the current config shape and will be
-   replaced by the Phase 2 stat service.
+6. Dual rule paths: the server resolves from validated JSON; the browser
+   Practice path resolves from legacy constants. Both are parity-tested and
+   frozen; the client path intentionally avoids fs/zod.
+7. Client bundle grew ~24 KB with the stats/rules/systems code (no fs/zod).
+8. Stat scope is intentionally match/tank/weapon/enemy only; scoring/jackpot/
+   arena values still flow through the legacy config projection.
+9. MatchRuntime still owns weapon/enemy/shell/pickup/spawn/barrel algorithms
+   (~1270 lines) — extraction targets for Phases 3-4.
+10. The stat resolver cache is per-stat; whole-config projection refreshes
+    on any stat change (cheap at 30 Hz, revisited if profiling demands).
 ```
 
 ## Next phase prerequisites
@@ -190,10 +227,10 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 Apply the recommended tag refactor-baseline to the Phase 0 completion commit
 (recorded here per REFACTOR_03 §2; tag creation is a one-line follow-up).
 
-Phase 2 (rules/stats/mode/objective/round/scoring) prerequisites:
-- Obtain REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md.
-- Start consuming ContentPack through LegacyConfigAdapter (parity-tested).
-- Replace shared Match.cfg with frozen per-room rules; add stat service,
-  rule revisions, and the DemoScoreAttackMode runtime.
-- Keep the content hash/golden fixture passing at every step.
+Phase 3 (weapons/damage/projectiles) prerequisites:
+- Migrate loadout slots to primary/secondary/ability behind a
+  LegacyWeaponInputAdapter while mg/cannon/charge remain on the wire.
+- Resolve weapon/projectile behavior from content definitions with the
+  stat service; keep cooldowns/recoil authoritative.
+- Keep the golden fixture, rules revisions, and movement block passing.
 ```

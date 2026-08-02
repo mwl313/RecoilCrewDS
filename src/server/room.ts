@@ -1,6 +1,7 @@
 import { GAME } from '../shared/config';
 import { Match } from '../shared/sim/match';
 import { computeResults } from '../shared/sim/results';
+import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
 
 export interface SocketLike {
@@ -48,6 +49,7 @@ export interface Room {
   countdownT: number;
   snapshotT: number;
   snapshotSeq: number;
+  lastMovementRulesRevision: number;
   lastCountdownShown: number;
   createdAt: number;
 }
@@ -103,11 +105,18 @@ export class RoomManager {
   private events: ManagerEvents = {};
   private now: () => number;
   private contentMeta: ContentMetadata | null;
+  private pack: ContentPack | null;
 
-  constructor(opts: { events?: ManagerEvents; now?: () => number; content?: ContentMetadata | null } = {}) {
+  constructor(opts: {
+    events?: ManagerEvents;
+    now?: () => number;
+    content?: ContentMetadata | null;
+    pack?: ContentPack | null;
+  } = {}) {
     this.events = opts.events ?? {};
     this.now = opts.now ?? (() => Date.now());
     this.contentMeta = opts.content ?? null;
+    this.pack = opts.pack ?? null;
   }
 
   send(client: Client | null, msg: Record<string, unknown>) {
@@ -156,6 +165,7 @@ export class RoomManager {
       countdownT: 0,
       snapshotT: 0,
       snapshotSeq: 0,
+      lastMovementRulesRevision: -1,
       lastCountdownShown: 3,
       createdAt: this.now(),
     };
@@ -371,7 +381,9 @@ export class RoomManager {
   }
 
   private startMatch(room: Room) {
-    room.match = new Match(room.code + '-' + this.now(), room.rematchModifier);
+    room.match = this.pack
+      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack)
+      : new Match(room.code + '-' + this.now(), room.rematchModifier);
     room.phase = 'running';
     room.snapshotT = 0;
     room.ready = { driver: false, gunner: false };
@@ -402,7 +414,8 @@ export class RoomManager {
   private broadcastSnapshot(room: Room) {
     if (!room.match) return;
     room.snapshotSeq++;
-    this.broadcast(room, {
+    const rules = room.match.rules;
+    const msg: Record<string, unknown> = {
       t: 'snapshot',
       seq: room.snapshotSeq,
       serverTime: room.match.state.time,
@@ -410,7 +423,14 @@ export class RoomManager {
       lastProcessedDriverInputSeq: room.driver?.inputSeq ?? 0,
       lastProcessedGunnerInputSeq: room.gunner?.inputSeq ?? 0,
       state: room.match.state,
-    });
+      rulesRevision: rules.rulesRevision,
+      movementRulesRevision: rules.movementRulesRevision,
+    };
+    if (rules.movementRulesRevision !== room.lastMovementRulesRevision) {
+      room.lastMovementRulesRevision = rules.movementRulesRevision;
+      msg.movement = rules.movementBlock();
+    }
+    this.broadcast(room, msg);
   }
 
   private broadcastLobby(room: Room) {
