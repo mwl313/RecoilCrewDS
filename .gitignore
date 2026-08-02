@@ -6,3 +6,4 @@ dist-server/
 coverage/
 test-results/
 playwright-report/
+server.pid
