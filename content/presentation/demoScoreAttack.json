@@ -1,0 +1,73 @@
+{
+  "id": "presentation.demoScoreAttack",
+  "label": "Demo Score Attack Presentation",
+  "assets": {
+    "models": [
+      "playerTank.chassis",
+      "playerTank.turret",
+      "playerTank.barrel",
+      "enemy.scrapBug",
+      "enemy.rammer",
+      "enemy.gunTower",
+      "enemy.lootTruck",
+      "pickup.normalScrap",
+      "pickup.heavyScrap",
+      "pickup.jackpotScrap",
+      "prop.explosiveBarrel",
+      "prop.barrier",
+      "prop.tire",
+      "prop.container",
+      "arena.ramp",
+      "arena.factory"
+    ],
+    "vfx": [
+      { "id": "vfx.machineGunMuzzle", "color": 16772042, "size": 0.16, "life": 0.05, "count": 8, "speed": 3, "gravity": 0 },
+      { "id": "vfx.cannonMuzzle", "color": 16752455, "size": 0.5, "life": 0.1, "count": 26, "speed": 8, "gravity": 0 },
+      { "id": "vfx.cannonImpact", "color": 16760645, "size": 0.5, "life": 0.5, "count": 40, "speed": 11, "gravity": 12 },
+      { "id": "vfx.enemyDeath", "color": 16724288, "size": 0.5, "life": 0.55, "count": 34, "speed": 9, "gravity": 10 },
+      { "id": "vfx.scrapPickup", "color": 7333999, "size": 0.3, "life": 0.35, "count": 18, "speed": 6, "gravity": 6 },
+      { "id": "vfx.jackpot", "color": 16772746, "size": 0.9, "life": 1.0, "count": 80, "speed": 14, "gravity": 8 }
+    ],
+    "ui": [
+      {
+        "id": "ui.driverTheme",
+        "name": "DRIVER",
+        "primary": "#35d7e8",
+        "accent": "#9ff3ff",
+        "secondary": "#1c7d8a",
+        "panel": "rgba(8,22,26,0.82)",
+        "highlight": "#eaffff"
+      },
+      {
+        "id": "ui.gunnerTheme",
+        "name": "GUNNER",
+        "primary": "#ffa23b",
+        "accent": "#ffd08a",
+        "secondary": "#a85f12",
+        "panel": "rgba(30,16,6,0.82)",
+        "highlight": "#fff2dc"
+      }
+    ],
+    "audio": [
+      { "id": "audio.engine", "kind": "engineLoop", "desc": "audio.engine" },
+      { "id": "audio.boost", "kind": "boost", "desc": "audio.boost" },
+      { "id": "audio.drift", "kind": "drift", "desc": "audio.drift" },
+      { "id": "audio.collision", "kind": "collision", "desc": "audio.collision" },
+      { "id": "audio.machineGun", "kind": "machineGun", "desc": "audio.machineGun" },
+      { "id": "audio.cannon", "kind": "cannon", "desc": "audio.cannon" },
+      { "id": "audio.enemyHit", "kind": "enemyHit", "desc": "audio.enemyHit" },
+      { "id": "audio.enemyDeath", "kind": "enemyDeath", "desc": "audio.enemyDeath" },
+      { "id": "audio.scrapPickup", "kind": "scrapPickup", "desc": "audio.scrapPickup" },
+      { "id": "audio.rammerTelegraph", "kind": "rammerTelegraph", "desc": "audio.rammerTelegraph" },
+      { "id": "audio.towerFire", "kind": "towerFire", "desc": "audio.towerFire" },
+      { "id": "audio.truckSiren", "kind": "truckSiren", "desc": "audio.truckSiren" },
+      { "id": "audio.brace", "kind": "brace", "desc": "audio.brace" },
+      { "id": "audio.wipeout", "kind": "wipeout", "desc": "audio.wipeout" },
+      { "id": "audio.jackpotCharge", "kind": "jackpotCharge", "desc": "audio.jackpotCharge" },
+      { "id": "audio.jackpotRelease", "kind": "jackpotRelease", "desc": "audio.jackpotRelease" },
+      { "id": "audio.ui", "kind": "ui", "desc": "audio.ui" },
+      { "id": "audio.results", "kind": "results", "desc": "audio.results" },
+      { "id": "audio.music", "kind": "music", "desc": "audio.music" }
+    ]
+  }
+}

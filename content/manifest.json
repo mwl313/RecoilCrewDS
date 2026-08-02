@@ -1,0 +1,44 @@
+{
+  "pack": {
+    "id": "demo",
+    "version": "1.0.0",
+    "mode": "mode.demoScoreAttack",
+    "files": {
+      "modes": ["modes/demoScoreAttack.json"],
+      "objectives": ["objectives/highScore.json"],
+      "tanks": ["tanks/default.json"],
+      "loadouts": ["loadouts/default.json"],
+      "weapons": [
+        "weapons/machineGun.json",
+        "weapons/mainCannon.json",
+        "weapons/jackpotShell.json"
+      ],
+      "projectiles": [
+        "projectiles/cannonShell.json",
+        "projectiles/jackpotShell.json",
+        "projectiles/towerShot.json"
+      ],
+      "enemies": [
+        "enemies/scrapBug.json",
+        "enemies/rammer.json",
+        "enemies/gunTower.json",
+        "enemies/lootTruck.json"
+      ],
+      "items": [],
+      "statusEffects": [],
+      "spawnDirectors": ["spawn-directors/demoScoreAttack.json"],
+      "scoring": ["scoring/demoScoreAttack.json"],
+      "results": ["results/demoScoreAttack.json"],
+      "difficulties": [
+        "difficulties/standard.json",
+        "difficulties/doubleBarrel.json",
+        "difficulties/soapTracks.json",
+        "difficulties/moonYard.json",
+        "difficulties/volatileInventory.json",
+        "difficulties/scrapMagnet.json",
+        "difficulties/overclocked.json"
+      ],
+      "presentation": ["presentation/demoScoreAttack.json"]
+    }
+  }
+}

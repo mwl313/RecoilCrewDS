@@ -1,0 +1,11 @@
+{
+  "id": "weapon.machineGun",
+  "label": "Machine Gun",
+  "kind": "mg",
+  "damage": 2,
+  "rate": 11,
+  "range": 45,
+  "spread": 0.018,
+  "speed": 220,
+  "recoilImpulse": 0.07
+}

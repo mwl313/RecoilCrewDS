@@ -1,0 +1,9 @@
+{
+  "id": "projectile.towerShot",
+  "kind": "tower",
+  "speed": 9,
+  "gravity": 0,
+  "life": 6,
+  "hitRadius": 0.9,
+  "tankHitRadius": 1.05
+}

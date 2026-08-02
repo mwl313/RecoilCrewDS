@@ -1,0 +1,11 @@
+{
+  "id": "difficulty.doubleBarrel",
+  "label": "Double Barrel",
+  "description": "Two shells per shot, more recoil, longer cooldown.",
+  "timeScale": 1,
+  "overrides": {
+    "match.cannonBurst": 2,
+    "match.recoilImpulse": 9.5,
+    "match.cannonCooldown": 2.4
+  }
+}

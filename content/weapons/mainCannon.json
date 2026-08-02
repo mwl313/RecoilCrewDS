@@ -1,0 +1,15 @@
+{
+  "id": "weapon.mainCannon",
+  "label": "Main Cannon",
+  "kind": "cannon",
+  "damage": 12,
+  "radius": 3.4,
+  "cooldown": 1.6,
+  "speed": 52,
+  "gravity": 5,
+  "life": 2.4,
+  "burst": 1,
+  "burstSpacing": 0.12,
+  "recoilImpulse": 7.2,
+  "recoilSpin": 1.7
+}

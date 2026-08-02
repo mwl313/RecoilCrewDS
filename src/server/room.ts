@@ -27,12 +27,21 @@ export interface Client {
 
 export type RoomPhase = 'lobby' | 'countdown' | 'running' | 'results';
 
+/** Content pack metadata broadcast to clients (Phase 1, additive). */
+export interface ContentMetadata {
+  packId: string;
+  version: string;
+  hash: string;
+  modeId: string;
+}
+
 export interface Room {
   code: string;
   driver: Client | null;
   gunner: Client | null;
   phase: RoomPhase;
   match: Match | null;
+  content: ContentMetadata | null;
   ready: { driver: boolean; gunner: boolean };
   rematch: { driver: ModifierId | null; gunner: ModifierId | null };
   rematchModifier: ModifierId;
@@ -93,10 +102,12 @@ export class RoomManager {
   clients = new Map<string, Client>();
   private events: ManagerEvents = {};
   private now: () => number;
+  private contentMeta: ContentMetadata | null;
 
-  constructor(opts: { events?: ManagerEvents; now?: () => number } = {}) {
+  constructor(opts: { events?: ManagerEvents; now?: () => number; content?: ContentMetadata | null } = {}) {
     this.events = opts.events ?? {};
     this.now = opts.now ?? (() => Date.now());
+    this.contentMeta = opts.content ?? null;
   }
 
   send(client: Client | null, msg: Record<string, unknown>) {
@@ -138,6 +149,7 @@ export class RoomManager {
       gunner: null,
       phase: 'lobby',
       match: null,
+      content: this.contentMeta,
       ready: { driver: false, gunner: false },
       rematch: { driver: null, gunner: null },
       rematchModifier: 'none',
@@ -363,7 +375,13 @@ export class RoomManager {
     room.phase = 'running';
     room.snapshotT = 0;
     room.ready = { driver: false, gunner: false };
-    this.broadcast(room, { t: 'start', matchId: room.match.state.matchId, modifier: room.rematchModifier });
+    const startMsg: Record<string, unknown> = {
+      t: 'start',
+      matchId: room.match.state.matchId,
+      modifier: room.rematchModifier,
+    };
+    if (room.content) startMsg.content = room.content;
+    this.broadcast(room, startMsg);
     this.broadcastSnapshot(room);
   }
 

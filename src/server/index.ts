@@ -2,11 +2,13 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { WebSocket, WebSocketServer } from 'ws';
-import { RoomManager, type SocketLike } from './room';
+import { RoomManager, type ContentMetadata, type SocketLike } from './room';
+import { loadContentPackFromFilesystem } from '../shared/content/contentLoader';
 
 const PORT = Number(process.env.PORT || 8080);
 const STATIC_DIR = path.resolve(process.cwd(), process.env.STATIC_DIR || 'dist');
 const TIME_SCALE = Number(process.env.RECOIL_TIME_SCALE || 1);
+const CONTENT_DIR = process.env.CONTENT_DIR ? path.resolve(process.cwd(), process.env.CONTENT_DIR) : path.resolve(process.cwd(), 'content');
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
   .split(',')
   .map((s) => s.trim())
@@ -82,7 +84,25 @@ const server = http.createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server, path: '/ws' });
-const manager = new RoomManager();
+
+// Load the authoritative content pack once at startup. Missing content is a
+// deployment fallback (server runs without metadata); invalid content fails
+// loudly because it would poison every room.
+let contentMeta: ContentMetadata | null = null;
+if (fs.existsSync(CONTENT_DIR)) {
+  const pack = loadContentPackFromFilesystem(CONTENT_DIR);
+  contentMeta = {
+    packId: pack.id,
+    version: pack.version,
+    hash: pack.hash,
+    modeId: pack.modeId,
+  };
+  console.log(`[recoil-crew] content pack ${pack.id}@${pack.version} hash=${pack.hash.slice(0, 12)} mode=${pack.modeId}`);
+} else {
+  console.warn(`[recoil-crew] content dir not found at ${CONTENT_DIR}; running without content metadata`);
+}
+
+const manager = new RoomManager({ content: contentMeta });
 
 function originAllowed(origin: string | undefined): boolean {
   if (!origin) return true;

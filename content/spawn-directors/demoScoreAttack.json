@@ -1,0 +1,34 @@
+{
+  "id": "spawn.director.demoScoreAttack",
+  "label": "Demo Score Attack Spawn Director",
+  "behaviors": ["behavior.spawnDirector.demo"],
+  "initialSpawns": [
+    { "type": "enemy.scrapBug", "x": -7, "z": 6 },
+    { "type": "enemy.scrapBug", "x": 8, "z": -4 }
+  ],
+  "bugPacing": {
+    "minActive": 7,
+    "maxActive": 11,
+    "rampPerSecond": 0.22,
+    "cap": 22
+  },
+  "rammerSpawns": [22, 34, 50],
+  "towerSpawns": [26, 58],
+  "maxRammers": 3,
+  "maxTowers": 2,
+  "finalChaos": {
+    "start": 70,
+    "rammerProbability": 0.12,
+    "rammerMax": 3,
+    "towerProbability": 0.08
+  },
+  "arena": {
+    "half": 40,
+    "maxPickups": 26
+  },
+  "props": {
+    "barrelHp": 3,
+    "barrelRadius": 2.4,
+    "barrelChainRadius": 6
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "difficulty.moonYard",
+  "label": "Moon Yard",
+  "description": "Lower gravity and longer airtime.",
+  "timeScale": 1,
+  "overrides": {
+    "match.gravity": 6.5
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "weapon.jackpotShell",
+  "label": "JACKPOT Shell",
+  "kind": "jackpot",
+  "damage": 60,
+  "radius": 9,
+  "speed": 38,
+  "gravity": 3,
+  "chargeTime": 1.0,
+  "life": 3.2,
+  "cooldown": 12,
+  "recoilImpulse": 17,
+  "recoilSpin": 4.5,
+  "braceMult": 0.32
+}

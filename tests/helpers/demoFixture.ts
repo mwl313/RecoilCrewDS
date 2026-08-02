@@ -401,7 +401,7 @@ export function runDemoFixture(options: RunOptions = {}): DemoFixtureOutput {
       match.setGunnerInput(scriptedGunner(match.state, match.state.time, lastCannonSent).input);
       match.step(DEMO_DT);
       for (const ev of match.takeEvents()) eventTrace.push(canonicalizeEvent(ev));
-      if (match.state.phase === 'results') {
+      if ((match.state.phase as string) === 'results') {
         addCheckpoint('completion');
       }
     }
