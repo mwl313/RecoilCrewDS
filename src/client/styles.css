@@ -142,6 +142,16 @@ button {
   color: var(--role-soft);
   text-shadow: 0 0 18px rgba(53, 215, 232, 0.45);
 }
+.btn.copied {
+  background: #1f7a3d;
+  border-color: #52e07c;
+  color: #d9ffe4;
+}
+.btn.failed {
+  background: #7a1f1f;
+  border-color: #ff6b6b;
+  color: #ffd9d9;
+}
 .status-line { text-align: center; color: var(--dim); letter-spacing: 0.12em; animation: blink 1.2s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.45; } }
 

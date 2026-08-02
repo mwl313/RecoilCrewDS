@@ -110,10 +110,11 @@ export interface TankState {
   deadT: number;
   grounded: boolean;
   drift: boolean;
+  prevOnRamp?: boolean;
 }
 
 export interface TurretState {
-  yaw: number; // world
+  yaw: number; // chassis-local yaw (chassis yaw added exactly once at world muzzle)
   pitch: number;
   chargeT: number;
   cannonCooldown: number;
@@ -266,6 +267,10 @@ export interface PeerInfo {
 export interface SnapshotMessage {
   t: 'snapshot';
   seq: number;
+  serverTime: number;
+  serverTick: number;
+  lastProcessedDriverInputSeq: number;
+  lastProcessedGunnerInputSeq: number;
   state: MatchState;
 }
 

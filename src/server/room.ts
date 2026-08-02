@@ -384,7 +384,15 @@ export class RoomManager {
   private broadcastSnapshot(room: Room) {
     if (!room.match) return;
     room.snapshotSeq++;
-    this.broadcast(room, { t: 'snapshot', seq: room.snapshotSeq, state: room.match.state });
+    this.broadcast(room, {
+      t: 'snapshot',
+      seq: room.snapshotSeq,
+      serverTime: room.match.state.time,
+      serverTick: room.snapshotSeq,
+      lastProcessedDriverInputSeq: room.driver?.inputSeq ?? 0,
+      lastProcessedGunnerInputSeq: room.gunner?.inputSeq ?? 0,
+      state: room.match.state,
+    });
   }
 
   private broadcastLobby(room: Room) {

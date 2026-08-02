@@ -23,6 +23,16 @@
 
 ## Verification evidence
 
+- **Final corrective patch (TPS controls, jitter, collision, copy)** —
+  implemented and verified: `npm run build` PASS; `npm test` **97/97 PASS**
+  (11 files); `npm run test:e2e` **14/14 PASS** including the new
+  `e2e/tps.spec.ts` suite (mouse directions, A/D forward/reverse, recenter,
+  camera independence, aim-while-turning, smooth rendering, wall/high-speed
+  collision, copy feedback, pointer capture, pause neutrality, full round,
+  results, rematch, practice); `npm run test:loop` PASS in 91.8 s
+  (score 15465, grade S, JACKPOT ×4, rematch with Moon Yard).
+  Details: `BUGFIX_REPORT_FINAL.md`, `BUGFIX_PLAN_FINAL.md`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

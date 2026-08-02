@@ -26,9 +26,30 @@ describe('math helpers', () => {
     expect(Math.abs(angleDiff(from, mid))).toBeCloseTo(Math.abs(angleDiff(from, to)) / 2, 5);
   });
 
-  it('pushes circles out of axis-aligned boxes', () => {
-    const res = resolveCircleBox(1, 0, 1, 0, 0, 2, 2);
+  it('resolves outside penetration to exact separation', () => {
+    // Box 2×2 centered at origin: edge at x = 1; circle center 1.5 penetrates 0.5.
+    const res = resolveCircleBox(1.5, 0, 1, 0, 0, 2, 2);
     expect(res.hit).toBe(true);
     expect(res.x).toBeCloseTo(2);
+    expect(res.z).toBeCloseTo(0);
+    expect(res.penetration).toBeCloseTo(0.5);
+    expect(res.normalX).toBeCloseTo(1);
+    expect(res.normalZ).toBeCloseTo(0);
+  });
+
+  it('touching the box edge is a zero-penetration contact, not an overshoot', () => {
+    const res = resolveCircleBox(2, 0, 1, 0, 0, 2, 2);
+    expect(res.hit).toBe(true);
+    expect(res.x).toBeCloseTo(2);
+    expect(res.penetration).toBeCloseTo(0);
+  });
+
+  it('returns a valid outward normal when the center is inside the box', () => {
+    const res = resolveCircleBox(0, 0, 1, 0, 0, 2, 2);
+    expect(res.hit).toBe(true);
+    expect(Math.abs(res.x)).toBeCloseTo(2);
+    expect(Math.abs(res.z)).toBeCloseTo(0);
+    expect(Math.hypot(res.normalX, res.normalZ)).toBeCloseTo(1);
+    expect(res.penetration).toBeGreaterThan(0);
   });
 });

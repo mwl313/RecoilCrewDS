@@ -12,6 +12,16 @@ Every round is 90 seconds: kill Scrap Bugs, dodge Rammers, destroy Gun Towers,
 chase the Loot Truck, chain explosive barrels, and fire at least one JACKPOT
 before the final five-second countdown.
 
+## Controls convention
+
+- Mouse right looks right; mouse up looks up (Driver and Gunner).
+- A always turns the chassis left; D always turns it right — including while
+  reversing (reverse may reduce steering strength, never flips it).
+- W is chassis-forward regardless of camera direction.
+- R recenters the camera smoothly behind the chassis.
+- The Driver's mouse never moves the turret; the Gunner's turret follows the
+  centered world aim point while the chassis rotates.
+
 ---
 
 ## Quick start

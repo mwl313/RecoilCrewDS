@@ -158,7 +158,7 @@ export class ArenaView {
       mesh.rotation.y = Math.random() * Math.PI;
       this.group.add(mesh);
       this.barrelMeshes.set(b.id, mesh);
-      this.colliders.push({ box: new BoxAround(b.x, b.z, 0.55, 1.1), type: 'barrel' });
+      this.colliders.push({ box: new BoxAround(b.x, b.z, 0.9, 0.9, 1.1), type: 'barrel' });
     }
 
     // Light poles for industrial character.
@@ -245,15 +245,15 @@ export class ArenaView {
       mesh.position.y = h / 2;
     }
     this.group.add(mesh);
-    this.colliders.push({ box: new BoxAround(x, z, Math.max(w, d), h), type: o.type });
+    this.colliders.push({ box: new BoxAround(x, z, w, d, h), type: o.type });
   }
 }
 
 class BoxAround extends THREE.Box3 {
-  constructor(x: number, z: number, size: number, h: number) {
+  constructor(x: number, z: number, w: number, d: number, h: number) {
     super();
-    this.min.set(x - size / 2, 0, z - size / 2);
-    this.max.set(x + size / 2, h, z + size / 2);
+    this.min.set(x - w / 2, 0, z - d / 2);
+    this.max.set(x + w / 2, h, z + d / 2);
   }
 }
 

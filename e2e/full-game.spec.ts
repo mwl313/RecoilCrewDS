@@ -81,7 +81,14 @@ async function startGunner(page: Page) {
       const s = w.__recoil.state();
       if (!s) return;
       t += 0.1;
-      let aimYaw = s.tank.yaw + Math.PI / 2;
+      // Protocol: gunner aimYaw is chassis-local. Convert from world.
+      const toLocal = (world: number) => {
+        let v = (world - s.tank.yaw) % (Math.PI * 2);
+        if (v > Math.PI) v -= Math.PI * 2;
+        if (v < -Math.PI) v += Math.PI * 2;
+        return v;
+      };
+      let aimYaw = toLocal(s.tank.yaw + Math.PI / 2);
       let target = null as null | { x: number; z: number };
       let bugTarget = null as null | { x: number; z: number };
       for (const e of s.enemies) {
@@ -95,7 +102,7 @@ async function startGunner(page: Page) {
         else if (Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < Math.hypot(bugTarget.x - s.tank.x, bugTarget.z - s.tank.z)) bugTarget = e;
       }
       const best = bugTarget ?? target;
-      if (best) aimYaw = Math.atan2(best.x - s.tank.x, best.z - s.tank.z);
+      if (best) aimYaw = toLocal(Math.atan2(best.x - s.tank.x, best.z - s.tank.z));
       const fire = s.turret.cannonCooldown <= 0;
       const cannon = fire && !lastCannonSent;
       lastCannonSent = fire;

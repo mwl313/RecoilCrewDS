@@ -89,6 +89,8 @@ hud.bind({
   onResume: () => {
     if (!game) return;
     hud.setGameScreen(true);
+    input.setEnabled(true);
+    game.setInputEnabled(true);
     if (flow === 'game') {
       input.requestLock();
     }
@@ -134,7 +136,13 @@ net.onMessage = (msg) => {
       break;
     case 'snapshot':
       latestState = msg.state as MatchState;
-      game?.setSnapshot(latestState);
+      game?.setSnapshot({
+        seq: Number(msg.seq),
+        serverTime: Number(msg.serverTime),
+        state: latestState,
+        lastProcessedDriverInputSeq: Number(msg.lastProcessedDriverInputSeq ?? 0),
+        lastProcessedGunnerInputSeq: Number(msg.lastProcessedGunnerInputSeq ?? 0),
+      });
       break;
     case 'event':
       game?.handleEvent(msg.event as never);
@@ -142,6 +150,8 @@ net.onMessage = (msg) => {
       break;
     case 'results': {
       hud.showResults(msg.results as never, msg.rematch as never);
+      input.setEnabled(false);
+      game?.setInputEnabled(false);
       input.releaseLock();
       flow = 'results';
       break;
@@ -159,6 +169,8 @@ net.onMessage = (msg) => {
 net.onStatus = (connected) => {
   if (!connected && (flow === 'game' || flow === 'results')) {
     hud.showError('Connection lost. Retry to rejoin your crew, or jump into practice.');
+    input.setEnabled(false);
+    game?.setInputEnabled(false);
     input.releaseLock();
     flow = 'main';
   } else if (!connected && flow === 'join') {
@@ -178,6 +190,8 @@ function startOnline(r: Role) {
   hud.setTheme(r);
   inGame = true;
   flow = 'game';
+  input.setEnabled(true);
+  game.setInputEnabled(true);
   input.requestLock();
 }
 
@@ -197,6 +211,8 @@ function startPractice() {
   hud.setGameScreen(true);
   inGame = true;
   flow = 'game';
+  input.setEnabled(true);
+  game.setInputEnabled(true);
   input.requestLock();
 }
 
@@ -210,6 +226,7 @@ function attachGameCallbacks(g: Game) {
 
 function teardownGame() {
   if (game) {
+    game.setInputEnabled(false);
     game.destroy();
     game = null;
   }
@@ -221,11 +238,15 @@ function teardownGame() {
 
 function showPause() {
   if (flow !== 'game') return;
+  input.setEnabled(false);
+  game?.setInputEnabled(false);
   hud.showScreen('pause');
 }
 
 function onLockChange(locked: boolean) {
   if (locked && flow === 'game') {
+    input.setEnabled(true);
+    game?.setInputEnabled(true);
     hud.setGameScreen(true);
   }
 }
@@ -285,5 +306,14 @@ if (TEST_MODE) {
     setAutoInput: (enabled: boolean) => {
       if (game) game.suppressAutoInput = !enabled;
     },
+    renderTank: () => game?.getRenderTank() ?? null,
+    turretSpaces: () => game?.getTurretSpaces() ?? null,
+    cameraState: () => game?.getCameraState() ?? null,
+    composerPasses: () => game?.composerPassCount() ?? 0,
+    setInputEnabled: (enabled: boolean) => {
+      input.setEnabled(enabled);
+      game?.setInputEnabled(enabled);
+    },
+    inputState: () => input.debugState(),
   };
 }

@@ -3,13 +3,17 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ARENA, groundHeightAt } from '../shared/arena';
-import { clamp, lerp, angleDiff } from '../shared/math';
+import { clamp, lerp, angleDiff, wrapAngle } from '../shared/math';
+import { interpolateMatchState, SnapshotBuffer, type SnapshotEnvelope } from '../shared/net/interpolation';
+import { BASE_CONFIG } from '../shared/config';
 import { Match } from '../shared/sim/match';
-import type { EnemyState, MatchState, Role, ShellState, SimEvent } from '../shared/types';
+import type { EnemyState, MatchState, Role, ShellState, SimEvent, TankState } from '../shared/types';
 import { ArenaView } from './arenaView';
 import { GameAssets, buildTankRig, getMuzzleWorld, type TankRig } from './assets';
 import { AudioManager } from './audio';
-import { PipCamera, TpsCamera } from './cameras';
+import { PipCamera } from './cameras';
+import { DriverPredictor } from './predictor';
+import { computeWorldAim, TpsCameraController, worldYawToLocal, type TpsCameraTuning } from './tpsCamera';
 import { VfxSystem } from './vfx';
 
 /** Minimal input surface consumed by the game each frame. */
@@ -17,11 +21,6 @@ export interface InputSource {
   key(name: string): boolean;
   button(name: string): boolean;
   consumeMouse(): { dx: number; dy: number };
-}
-
-interface SnapshotEntry {
-  t: number;
-  state: MatchState;
 }
 
 interface EnemyRig {
@@ -56,21 +55,37 @@ export class Game {
   private audio: AudioManager;
   private assets: GameAssets;
   private tankRig: TankRig;
-  private mainCam: TpsCamera;
+  private driverCam: TpsCameraController;
+  private gunnerCam: TpsCameraController;
+  private activeCam: TpsCameraController;
   private pipCam = new PipCamera();
   private pipRate = 3;
   private pipFrame = 0;
+  private renderPass: RenderPass | null = null;
 
-  private snapshots: SnapshotEntry[] = [];
+  private snapBuffer = new SnapshotBuffer<MatchState>();
   private latest: MatchState | null = null;
+  private interpState: MatchState | null = null;
+  private renderTime = 0;
+  private renderClockStarted = false;
   private practiceMatch: Match | null = null;
   private role: Role = 'driver';
   private mode: 'online' | 'practice' = 'online';
-  private localTurretYaw = Math.PI / 2;
-  private localTurretPitch = 0.05;
+  private desiredTurretYawLocal = Math.PI / 2;
+  private desiredTurretPitch = 0.05;
+  private predictedTurretYawLocal = Math.PI / 2;
+  private predictedTurretPitch = 0.05;
+  private authoritativeTurretYawLocal = Math.PI / 2;
+  private authoritativeTurretPitch = 0.05;
+  private turretReconcileSeq = 0;
   private cannonDown = false;
   private chargeDown = false;
   private mgDown = false;
+  private predictor: DriverPredictor | null = null;
+  private inputEnabled = true;
+  private lastPredictInput: { throttle: number; steer: number; boost: boolean; brace: boolean } = { throttle: 0, steer: 0, boost: false, brace: false };
+  private lastRenderYaw = 0;
+  private lastRenderTank: TankState | null = null;
   private shake = 0;
   private slowMo = 0;
   private time = 0;
@@ -123,14 +138,25 @@ export class Game {
     this.vfx = new VfxSystem(this.scene);
     this.tankRig = buildTankRig(assets);
     this.scene.add(this.tankRig.chassis);
-    this.mainCam = new TpsCamera(w / h, 'driver', {
-      distance: 5.4,
-      height: 2.0,
-      shoulder: 0.75,
+    const driverTuning: Partial<TpsCameraTuning> = {
       fov: 70,
-      minPitch: -0.95,
-      maxPitch: 0.7,
-    });
+      distance: 5.2,
+      shoulderOffset: 0.65,
+      speedFovBonus: 5.5,
+    };
+    const gunnerTuning: Partial<TpsCameraTuning> = {
+      fov: 68,
+      distance: 4.4,
+      shoulderOffset: 0.55,
+      shoulderHeight: 0.3,
+      verticalArm: 0.55,
+      speedFovBonus: 0,
+    };
+    this.driverCam = new TpsCameraController(driverTuning);
+    this.gunnerCam = new TpsCameraController(gunnerTuning);
+    this.activeCam = this.driverCam;
+    this.driverCam.resize(w / h);
+    this.gunnerCam.resize(w / h);
     this.truckRig = new THREE.Group();
     this.truckRig.add(assets.models.resolve('enemy.lootTruck'));
     this.truckRig.visible = false;
@@ -192,37 +218,31 @@ export class Game {
       const size = new THREE.Vector2();
       this.renderer.getSize(size);
       this.composer = new EffectComposer(this.renderer);
-      this.composer.addPass(new RenderPass(this.scene, this.mainCam.camera));
+      this.renderPass = new RenderPass(this.scene, this.activeCam.camera);
+      this.composer.addPass(this.renderPass);
       this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.55, 0.65, 0.82);
       this.composer.addPass(this.bloom);
     } catch {
       this.composer = null;
+      this.renderPass = null;
     }
   }
 
   setRole(role: Role) {
     this.role = role;
-    this.mainCam = new TpsCamera(
-      this.renderer.domElement.clientWidth / Math.max(1, this.renderer.domElement.clientHeight),
-      role,
-      role === 'driver'
-        ? { distance: 5.4, height: 2.0, shoulder: 0.75, fov: 70, minPitch: -0.95, maxPitch: 0.7 }
-        : { distance: 4.4, height: 1.7, shoulder: 0.55, fov: 68, minPitch: -1.05, maxPitch: 0.62 },
-    );
-    if (this.composer) {
-      this.composer.reset();
-      this.composer.addPass(new RenderPass(this.scene, this.mainCam.camera));
-      const size = new THREE.Vector2();
-      this.renderer.getSize(size);
-      this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.55, 0.65, 0.82);
-      this.composer.addPass(this.bloom);
-    }
+    this.activeCam = role === 'driver' ? this.driverCam : this.gunnerCam;
+    // Reuse the composer pass set; only the camera reference changes.
+    if (this.renderPass) this.renderPass.camera = this.activeCam.camera;
   }
 
   startOnline(role: Role) {
     this.mode = 'online';
     this.setRole(role);
     this.resetEntities();
+    this.snapBuffer.clear();
+    this.renderClockStarted = false;
+    this.renderTime = 0;
+    this.predictor = null;
     this.running = true;
     this.loop();
   }
@@ -233,7 +253,9 @@ export class Game {
     this.practiceViewRole = 'driver';
     this.practiceMatch = new Match('practice-' + Date.now(), 'none');
     this.latest = this.practiceMatch.state;
+    this.interpState = this.practiceMatch.state;
     this.resetEntities();
+    this.predictor = null;
     this.running = true;
     this.loop();
   }
@@ -245,18 +267,44 @@ export class Game {
     this.pickupRigs.clear();
     for (const rig of this.shellRigs.values()) this.scene.remove(rig.group);
     this.shellRigs.clear();
-    this.snapshots = [];
+    this.snapBuffer.clear();
+    this.renderClockStarted = false;
+    this.interpState = null;
     this.truckRig.visible = false;
     this.truckMarker.visible = false;
     this.shake = 0;
     this.slowMo = 0;
   }
 
-  setSnapshot(state: MatchState) {
-    this.latest = state;
-    const t = performance.now() / 1000;
-    this.snapshots.push({ t, state });
-    while (this.snapshots.length > 2 && this.snapshots[1].t < t - 0.6) this.snapshots.shift();
+  setSnapshot(msg: SnapshotEnvelope<MatchState>) {
+    this.latest = msg.state;
+    this.snapBuffer.push(msg);
+    if (!this.renderClockStarted) {
+      this.renderClockStarted = true;
+      this.renderTime = msg.serverTime - 0.1;
+    }
+    if (this.role === 'driver' && this.mode === 'online') {
+      if (!this.predictor) {
+        this.predictor = new DriverPredictor(BASE_CONFIG, msg.state.modifier);
+      }
+      this.predictor.reconcile(msg.state.tank, msg.lastProcessedDriverInputSeq);
+    }
+    // Turret reconciliation happens on snapshot arrival (not every frame).
+    if (msg.seq > this.turretReconcileSeq) {
+      this.turretReconcileSeq = msg.seq;
+      this.authoritativeTurretYawLocal = msg.state.turret.yaw;
+      this.authoritativeTurretPitch = msg.state.turret.pitch;
+      if (this.role === 'gunner' && this.mode === 'online') {
+        const diff = angleDiff(this.predictedTurretYawLocal, this.authoritativeTurretYawLocal);
+        if (Math.abs(diff) > 1.2) {
+          this.predictedTurretYawLocal = this.authoritativeTurretYawLocal;
+          this.predictedTurretPitch = this.authoritativeTurretPitch;
+        } else {
+          this.predictedTurretYawLocal += diff * 0.2;
+          this.predictedTurretPitch += (this.authoritativeTurretPitch - this.predictedTurretPitch) * 0.2;
+        }
+      }
+    }
   }
 
   handleEvent(ev: SimEvent) {
@@ -360,20 +408,12 @@ export class Game {
     return g;
   }
 
-  private getRenderState(): { state: MatchState; alpha: number } | null {
-    if (this.mode === 'practice' || this.snapshots.length === 0) {
-      return this.latest ? { state: this.latest, alpha: 0 } : null;
-    }
-    const now = performance.now() / 1000;
-    const delay = 0.1;
-    const targetT = now - delay;
-    let i = this.snapshots.length - 1;
-    while (i > 0 && this.snapshots[i].t > targetT) i--;
-    const prev = this.snapshots[Math.max(0, i - 1)];
-    const curr = this.snapshots[i];
-    if (!prev || prev === curr) return { state: curr.state, alpha: 0 };
-    const span = Math.max(0.001, curr.t - prev.t);
-    return { state: curr.state, alpha: clamp((targetT - prev.t) / span, 0, 1) };
+  private getInterpState(): MatchState | null {
+    if (this.mode === 'practice') return this.practiceMatch?.state ?? this.latest;
+    if (this.snapBuffer.length === 0) return this.latest;
+    const pair = this.snapBuffer.pick(this.renderTime);
+    if (!pair) return this.latest;
+    return interpolateMatchState(pair.a.state, pair.b.state, pair.alpha);
   }
 
   private loop = () => {
@@ -396,9 +436,39 @@ export class Game {
     }
     this.lastFpsT = now;
 
-    const render = this.getRenderState();
-    if (render) {
-      this.syncWorld(render.state, render.alpha, dt);
+    if (this.mode === 'online' && this.renderClockStarted) {
+      this.renderTime += dtRaw;
+      const latestEnv = this.snapBuffer.latest();
+      if (latestEnv && this.renderTime > latestEnv.serverTime - 0.02) {
+        this.renderTime = latestEnv.serverTime - 0.02;
+      }
+    }
+    this.interpState = this.getInterpState();
+    this.lastPredictInput = this.sampleDriverInput();
+    let renderTank: TankState | null = null;
+    if (this.interpState) {
+      if (this.mode === 'practice') {
+        renderTank = this.interpState.tank;
+      } else if (this.role === 'driver') {
+        if (this.predictor) {
+          this.predictor.sampleInput(this.lastPredictInput, dtRaw);
+          this.predictor.smooth(dtRaw);
+          const d = this.predictor.display;
+          renderTank = {
+            ...this.interpState.tank,
+            x: d.x, y: d.y, z: d.z, vx: d.vx, vy: d.vy, vz: d.vz,
+            yaw: d.yaw, yawVel: d.yawVel, pitch: d.pitch, roll: d.roll,
+            grounded: d.grounded, boosting: d.boosting, brace: d.brace, drift: d.drift,
+          };
+        } else {
+          renderTank = this.interpState.tank;
+        }
+      } else {
+        renderTank = this.interpState.tank;
+      }
+    }
+    if (this.interpState && renderTank) {
+      this.syncWorld(this.interpState, renderTank, dt);
     }
     if (this.latest) this.onFrame?.(this.latest);
 
@@ -420,16 +490,13 @@ export class Game {
 
   private stepPractice(dt: number) {
     const m = this.practiceMatch!;
-    if (m.state.phase !== 'running') return;
+    if (m.state.phase !== 'running' || !this.inputEnabled) return;
     m.setDriverInput({
-      throttle: this.keyAxis('forward') - this.keyAxis('back'),
-      steer: this.keyAxis('right') - this.keyAxis('left'),
-      boost: this.keyDown('boost'),
-      brace: this.keyDown('brace'),
+      ...this.sampleDriverInput(),
     });
     m.setGunnerInput({
-      aimYaw: this.localTurretYaw,
-      aimPitch: this.localTurretPitch,
+      aimYaw: this.desiredTurretYawLocal,
+      aimPitch: this.desiredTurretPitch,
       mg: this.mouseDown('mg'),
       cannon: this.mouseDown('cannon') && !m.state.turret.jackpotReady,
       charge: this.mouseDown('cannon') && m.state.turret.jackpotReady,
@@ -478,27 +545,34 @@ export class Game {
   private sendInputs() {
     if (!this.onSendInput) return;
     if (this.suppressAutoInput) return;
-    const msg: Record<string, unknown> = { t: 'input', seq: ++this.inputSeq };
-    const state = this.latest;
-    const tank = state?.tank;
     if (this.role === 'driver') {
-      msg.driver = {
-        throttle: this.keyAxis('forward') - this.keyAxis('back'),
-        steer: this.keyAxis('right') - this.keyAxis('left'),
-        boost: this.keyDown('boost'),
-        brace: this.keyDown('brace'),
-      };
-      void tank;
+      const input = this.sampleDriverInput();
+      const seq = ++this.inputSeq;
+      this.predictor?.pushInput(seq, input);
+      this.onSendInput({ t: 'input', seq, driver: input });
     } else {
-      msg.gunner = {
-        aimYaw: this.localTurretYaw,
-        aimPitch: this.localTurretPitch,
-        mg: this.mouseDown('mg'),
-        cannon: this.mouseDown('cannon') && !(this.latest?.turret.jackpotReady ?? false),
-        charge: this.mouseDown('cannon') && (this.latest?.turret.jackpotReady ?? false),
-      };
+      this.onSendInput({
+        t: 'input',
+        seq: ++this.inputSeq,
+        gunner: {
+          aimYaw: this.desiredTurretYawLocal,
+          aimPitch: this.desiredTurretPitch,
+          mg: this.mouseDown('mg'),
+          cannon: this.mouseDown('cannon') && !(this.latest?.turret.jackpotReady ?? false),
+          charge: this.mouseDown('cannon') && (this.latest?.turret.jackpotReady ?? false),
+        },
+      });
     }
-    this.onSendInput(msg);
+  }
+
+  private sampleDriverInput(): { throttle: number; steer: number; boost: boolean; brace: boolean } {
+    if (!this.inputEnabled) return { throttle: 0, steer: 0, boost: false, brace: false };
+    return {
+      throttle: this.keyAxis('forward') - this.keyAxis('back'),
+      steer: this.keyAxis('right') - this.keyAxis('left'),
+      boost: this.keyDown('boost'),
+      brace: this.keyDown('brace'),
+    };
   }
 
   /** Test automation hook: push authoritative-bound input without local keys. */
@@ -524,8 +598,8 @@ export class Game {
       };
     } else {
       msg.gunner = {
-        aimYaw: data.aimYaw ?? this.localTurretYaw,
-        aimPitch: data.aimPitch ?? this.localTurretPitch,
+        aimYaw: data.aimYaw ?? this.desiredTurretYawLocal,
+        aimPitch: data.aimPitch ?? this.desiredTurretPitch,
         mg: !!data.mg,
         cannon: !!data.cannon,
         charge: !!data.charge,
@@ -535,7 +609,7 @@ export class Game {
   }
 
   recenter() {
-    this.mainCam.recenter();
+    this.activeCam.requestRecenter(this.lastRenderYaw);
   }
 
   togglePracticeView() {
@@ -555,20 +629,21 @@ export class Game {
     return this.input.button(name);
   }
 
-  private syncWorld(state: MatchState, alpha: number, dt: number) {
-    const t = state.tank;
+  private syncWorld(state: MatchState, renderTank: TankState, dt: number) {
+    const t = renderTank;
+    this.lastRenderTank = renderTank;
     const pos = new THREE.Vector3(t.x, t.y, t.z);
     const yaw = t.yaw;
+    this.lastRenderYaw = yaw;
     this.tankRig.chassis.position.copy(pos);
     this.tankRig.chassis.rotation.set(-t.pitch, yaw, t.roll);
-    const turretYaw = t.yaw + state.turret.yaw;
-    this.tankRig.turret.rotation.y = turretYaw;
-    this.tankRig.barrel.rotation.x = -state.turret.pitch;
-    if (this.role === 'gunner' && this.mode === 'online') {
-      // Local turret presentation responds immediately; server snaps back gently.
-      this.localTurretYaw = turretYaw;
-      this.localTurretPitch = state.turret.pitch;
-    }
+    // Authoritative turret arrives chassis-local; chassis yaw is added exactly
+    // once, at world-muzzle computation.
+    this.authoritativeTurretYawLocal = state.turret.yaw;
+    this.authoritativeTurretPitch = state.turret.pitch;
+    const usePredictedTurret = this.mode === 'practice' || this.role === 'gunner';
+    this.tankRig.turret.rotation.y = usePredictedTurret ? this.predictedTurretYawLocal : this.authoritativeTurretYawLocal;
+    this.tankRig.barrel.rotation.x = -(usePredictedTurret ? this.predictedTurretPitch : this.authoritativeTurretPitch);
     this.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
     this.shieldMesh.visible = t.shieldedT > 0;
     this.braceMesh.visible = t.brace;
@@ -682,31 +757,37 @@ export class Game {
       this.truckMarker.visible = false;
     }
 
-    // Cameras.
+    // Cameras: separate Driver and Gunner rigs; local only, never networked.
     const speedRatio = Math.min(1, Math.hypot(t.vx, t.vz) / 18);
-    if (this.mode === 'practice') {
-      // Practice: gunner aim uses mouse-look camera too.
-      const m = this.input.consumeMouse();
-      this.mainCam.addMouse(m.dx, m.dy);
-      this.mainCam.update(dt, pos, yaw, speedRatio, this.arena.colliders);
-      const aim = this.mainCam.computeAim(pos, this.arena.colliders);
+    const m = this.input.consumeMouse();
+    this.activeCam.applyMouseDelta(m.dx, m.dy);
+    this.activeCam.setFollowPose(pos, yaw);
+    this.activeCam.update(dt, this.arena.colliders, this.mode === 'practice' || this.role === 'driver' ? speedRatio : 0);
+    if (this.mode === 'practice' || this.role === 'gunner') {
+      // Final collision-adjusted camera center ray → world aim point →
+      // chassis-local desired turret angles → finite-rate prediction.
+      const groundY = state.tank.y;
+      const aim = computeWorldAim(this.activeCam.camera, this.arena.colliders, groundY);
+      const pivot = pos.clone().add(new THREE.Vector3(0, 1.15, 0));
+      const dx = aim.x - pivot.x;
+      const dz = aim.z - pivot.z;
+      const flat = Math.hypot(dx, dz) || 0.001;
+      const worldYaw = Math.atan2(dx, dz);
+      const chassisYaw = this.mode === 'practice' ? this.practiceMatch!.state.tank.yaw : yaw;
+      this.desiredTurretYawLocal = worldYawToLocal(worldYaw, chassisYaw);
+      this.desiredTurretPitch = clamp(Math.atan2(aim.y - pivot.y, flat), -0.45, 0.5);
       const turnRate = 4.6;
-      this.localTurretYaw += clamp(angleDiff(this.localTurretYaw, aim.yaw), -turnRate * dt, turnRate * dt);
-      this.localTurretPitch += clamp(aim.pitch - this.localTurretPitch, -turnRate * dt, turnRate * dt);
-      this.tankRig.turret.rotation.y = yaw + this.localTurretYaw;
-      this.tankRig.barrel.rotation.x = -this.localTurretPitch;
+      this.predictedTurretYawLocal += clamp(
+        angleDiff(this.predictedTurretYawLocal, this.desiredTurretYawLocal),
+        -turnRate * dt,
+        turnRate * dt,
+      );
+      this.predictedTurretPitch += clamp(this.desiredTurretPitch - this.predictedTurretPitch, -turnRate * dt, turnRate * dt);
+      this.tankRig.turret.rotation.y = this.predictedTurretYawLocal;
+      this.tankRig.barrel.rotation.x = -this.predictedTurretPitch;
+    }
+    if (this.mode === 'practice') {
       this.applyPracticeWeapons(dt);
-    } else {
-      const m = this.input.consumeMouse();
-      this.mainCam.addMouse(m.dx, m.dy);
-      this.mainCam.update(dt, pos, yaw, speedRatio, this.arena.colliders);
-      if (this.role === 'gunner') {
-        const aim = this.mainCam.computeAim(pos, this.arena.colliders);
-        this.localTurretYaw = aim.yaw;
-        this.localTurretPitch = aim.pitch;
-        this.tankRig.turret.rotation.y = yaw + this.localTurretYaw;
-        this.tankRig.barrel.rotation.x = -this.localTurretPitch;
-      }
     }
 
     // Drift/boost dust.
@@ -855,14 +936,14 @@ export class Game {
     // Camera shake.
     if (this.shake > 0.001) {
       const s = this.shake;
-      this.mainCam.camera.position.x += (Math.random() - 0.5) * s * 0.35;
-      this.mainCam.camera.position.y += (Math.random() - 0.5) * s * 0.3;
-      this.mainCam.camera.position.z += (Math.random() - 0.5) * s * 0.35;
+      this.activeCam.camera.position.x += (Math.random() - 0.5) * s * 0.35;
+      this.activeCam.camera.position.y += (Math.random() - 0.5) * s * 0.3;
+      this.activeCam.camera.position.z += (Math.random() - 0.5) * s * 0.35;
     }
     if (this.composer) {
       this.composer.render();
     } else {
-      this.renderer.render(this.scene, this.mainCam.camera);
+      this.renderer.render(this.scene, this.activeCam.camera);
     }
     // PIP in the bottom-right corner.
     this.pipFrame++;
@@ -895,7 +976,8 @@ export class Game {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h);
-    this.mainCam.resize(w / h);
+    this.driverCam.resize(w / h);
+    this.gunnerCam.resize(w / h);
     if (this.composer) this.composer.setSize(w, h);
   };
 
@@ -908,13 +990,54 @@ export class Game {
   }
 
   projectWorld(x: number, y: number, z: number): { x: number; y: number; visible: boolean } {
-    const v = new THREE.Vector3(x, y, z).project(this.mainCam.camera);
+    const v = new THREE.Vector3(x, y, z).project(this.activeCam.camera);
     const w = this.renderer.domElement.clientWidth || window.innerWidth;
     const h = this.renderer.domElement.clientHeight || window.innerHeight;
     return {
       x: ((v.x + 1) / 2) * w,
       y: ((1 - v.y) / 2) * h,
       visible: v.z < 1 && v.x > -1.15 && v.x < 1.15 && v.y > -1.15 && v.y < 1.15,
+    };
+  }
+
+  /** Overlays/teardown disable gameplay input; practice sim pauses. */
+  setInputEnabled(enabled: boolean): void {
+    this.inputEnabled = enabled;
+    if (!enabled) {
+      this.lastPredictInput = { throttle: 0, steer: 0, boost: false, brace: false };
+    }
+  }
+
+  /** Test hook: currently rendered tank pose (predicted for online Driver). */
+  getRenderTank(): { x: number; y: number; z: number; yaw: number; pitch: number; roll: number } | null {
+    const t = this.lastRenderTank;
+    return t ? { x: t.x, y: t.y, z: t.z, yaw: t.yaw, pitch: t.pitch, roll: t.roll } : null;
+  }
+
+  /** Test hook: current EffectComposer pass count (must not accumulate). */
+  composerPassCount(): number {
+    return this.composer?.passes.length ?? 0;
+  }
+
+  /** Test hook: turret spaces for direction/aim assertions. */
+  getTurretSpaces() {
+    return {
+      desiredYawLocal: this.desiredTurretYawLocal,
+      predictedYawLocal: this.predictedTurretYawLocal,
+      authoritativeYawLocal: this.authoritativeTurretYawLocal,
+      desiredPitch: this.desiredTurretPitch,
+      predictedPitch: this.predictedTurretPitch,
+    };
+  }
+
+  /** Test hook: active local camera yaw/pitch (never networked). */
+  getCameraState() {
+    return {
+      yaw: this.activeCam.yaw,
+      pitch: this.activeCam.pitch,
+      recentering: this.activeCam.recentering,
+      recenterTargetYaw: (this.activeCam as unknown as { recenterTargetYaw?: number }).recenterTargetYaw,
+      lastRenderYaw: this.lastRenderYaw,
     };
   }
 

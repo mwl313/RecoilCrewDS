@@ -58,7 +58,8 @@ describe('tank movement and input separation', () => {
     const yaw0 = m.state.tank.yaw;
     step(m, 0.4, holdDriver({ throttle: 1, steer: 1 }));
     const yawRight = m.state.tank.yaw;
-    expect(angleDiff(yaw0, yawRight)).toBeGreaterThan(0);
+    // D (steer +1) turns the nose toward -X = screen-right from behind.
+    expect(angleDiff(yaw0, yawRight)).toBeLessThan(0);
     expect(Math.abs(angleDiff(yaw0, yawRight))).toBeLessThan(1);
   });
 });

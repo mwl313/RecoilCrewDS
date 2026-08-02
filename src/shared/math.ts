@@ -59,7 +59,27 @@ export function pointInBox(
   return Math.abs(x - bx) <= w / 2 && Math.abs(z - bz) <= d / 2;
 }
 
-/** Push a circle out of an axis-aligned box. Returns new x,z. */
+/**
+ * Coordinate convention (single project-wide convention):
+ *   +Y world up, +Z chassis forward at yaw 0, +X chassis right at yaw 0.
+ *   forward = (sin yaw, 0, cos yaw); positive yaw turns +Z toward +X.
+ */
+
+export interface CollisionContact {
+  hit: boolean;
+  x: number;
+  z: number;
+  normalX: number;
+  normalZ: number;
+  penetration: number;
+  obstacleId?: string;
+}
+
+/**
+ * Resolve a circle against an axis-aligned box to exact separation.
+ * Outside case: push the circle center out along the outward normal by the
+ * penetration depth. Inside case: push along the smallest penetration axis.
+ */
 export function resolveCircleBox(
   x: number,
   z: number,
@@ -68,30 +88,55 @@ export function resolveCircleBox(
   bz: number,
   w: number,
   d: number,
-): { x: number; z: number; hit: boolean } {
+  obstacleId?: string,
+): CollisionContact {
   const halfW = w / 2;
   const halfD = d / 2;
-  const nx = clamp(x, bx - halfW, bx + halfW);
-  const nz = clamp(z, bz - halfD, bz + halfD);
-  let dx = x - nx;
-  let dz = z - nz;
+  const minX = bx - halfW;
+  const maxX = bx + halfW;
+  const minZ = bz - halfD;
+  const maxZ = bz + halfD;
+  const nx = clamp(x, minX, maxX);
+  const nz = clamp(z, minZ, maxZ);
+  const dx = x - nx;
+  const dz = z - nz;
   const d2 = dx * dx + dz * dz;
-  if (d2 > r * r) return { x, z, hit: false };
-  if (d2 > 1e-9) {
+  if (d2 > r * r + 1e-12) {
+    return { hit: false, x, z, normalX: 0, normalZ: 0, penetration: 0, obstacleId };
+  }
+  if (d2 > 1e-12) {
+    // Outside (or touching): move from the current center along the outward
+    // normal by the penetration depth.
     const dLen = Math.sqrt(d2);
-    const push = (r - dLen) / dLen;
-    return { x: nx + dx * push, z: nz + dz * push, hit: true };
+    const normalX = dx / dLen;
+    const normalZ = dz / dLen;
+    const penetration = r - dLen;
+    return {
+      hit: true,
+      x: x + normalX * penetration,
+      z: z + normalZ * penetration,
+      normalX,
+      normalZ,
+      penetration: Math.max(0, penetration),
+      obstacleId,
+    };
   }
   // Center inside the box: push out along the smallest penetration axis.
-  const left = x - (bx - halfW);
-  const right = bx + halfW - x;
-  const top = z - (bz - halfD);
-  const bottom = bz + halfD - z;
+  const left = x - minX;
+  const right = maxX - x;
+  const top = z - minZ;
+  const bottom = maxZ - z;
   const minPen = Math.min(left, right, top, bottom);
-  if (minPen === left) return { x: bx - halfW - r, z, hit: true };
-  if (minPen === right) return { x: bx + halfW + r, z, hit: true };
-  if (minPen === top) return { x, z: bz - halfD - r, hit: true };
-  return { x, z: bz + halfD + r, hit: true };
+  if (minPen === left) {
+    return { hit: true, x: minX - r, z, normalX: -1, normalZ: 0, penetration: r + left, obstacleId };
+  }
+  if (minPen === right) {
+    return { hit: true, x: maxX + r, z, normalX: 1, normalZ: 0, penetration: r + right, obstacleId };
+  }
+  if (minPen === top) {
+    return { hit: true, x, z: minZ - r, normalX: 0, normalZ: -1, penetration: r + top, obstacleId };
+  }
+  return { hit: true, x, z: maxZ + r, normalX: 0, normalZ: 1, penetration: r + bottom, obstacleId };
 }
 
 export function hashString(s: string): number {

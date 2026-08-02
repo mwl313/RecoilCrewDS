@@ -1,4 +1,4 @@
-import { clamp, pointInBox, resolveCircleBox } from './math';
+import { clamp, pointInBox, resolveCircleBox, type CollisionContact } from './math';
 
 export interface Obstacle {
   id: string;
@@ -134,22 +134,31 @@ export function obstacleAt(x: number, z: number): Obstacle | undefined {
   return undefined;
 }
 
-export function resolveCircle(x: number, z: number, r: number): { x: number; z: number; hit: boolean } {
+/**
+ * Resolve a circle against every exact obstacle rectangle, returning the
+ * final separated position plus all contacts (normal + penetration).
+ */
+export function resolveCircleContacts(x: number, z: number, r: number): { x: number; z: number; contacts: CollisionContact[] } {
   let outX = x;
   let outZ = z;
-  let hit = false;
+  const contacts: CollisionContact[] = [];
   for (const o of ARENA.obstacles) {
-    const res = resolveCircleBox(outX, outZ, r, o.x, o.z, o.w, o.d);
+    const res = resolveCircleBox(outX, outZ, r, o.x, o.z, o.w, o.d, o.id);
     if (res.hit) {
       outX = res.x;
       outZ = res.z;
-      hit = true;
+      contacts.push(res);
     }
   }
   const half = ARENA.half - 0.5;
   outX = clamp(outX, -half, half);
   outZ = clamp(outZ, -half, half);
-  return { x: outX, z: outZ, hit };
+  return { x: outX, z: outZ, contacts };
+}
+
+export function resolveCircle(x: number, z: number, r: number): { x: number; z: number; hit: boolean } {
+  const res = resolveCircleContacts(x, z, r);
+  return { x: res.x, z: res.z, hit: res.contacts.length > 0 };
 }
 
 export function rampAt(x: number, z: number): RampDef | undefined {

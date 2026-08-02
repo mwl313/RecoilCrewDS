@@ -29,6 +29,14 @@ export interface GameConfig {
     gravity: number;
     jumpImpulse: number;
     collisionRadius: number;
+    /** Chassis footprint: circle offsets along forward and radii (metres). */
+    footprint: { offset: number; radius: number }[];
+    /** Maximum horizontal displacement per collision substep (metres). */
+    maxSafeStep: number;
+    /** Maximum number of collision substeps per simulation step. */
+    maxSubsteps: number;
+    /** Reverse steering strength multiplier (direction never flips). */
+    reverseSteerMult: number;
     maxIntegrity: number;
     respawnTime: number;
     shieldTime: number;
@@ -166,6 +174,14 @@ export const BASE_CONFIG: GameConfig = {
     gravity: 16,
     jumpImpulse: 4.5,
     collisionRadius: 1.35,
+    footprint: [
+      { offset: -1.0, radius: 0.9 },
+      { offset: 0, radius: 1.15 },
+      { offset: 1.0, radius: 0.9 },
+    ],
+    maxSafeStep: 0.45,
+    maxSubsteps: 8,
+    reverseSteerMult: 0.7,
     maxIntegrity: 100,
     respawnTime: 3,
     shieldTime: 2,
@@ -332,6 +348,29 @@ export const MODIFIER_OVERRIDES: Record<ModifierId, Partial<MatchConfig> & { lab
     maxTowers: 1.5,
   },
 };
+
+export function buildMatchConfig(modifier: ModifierId): MatchConfig {
+  const over = MODIFIER_OVERRIDES[modifier];
+  return {
+    timeScale: 1,
+    modifier,
+    cannonCooldown: BASE_CONFIG.weapons.cannonCooldown,
+    cannonBurst: 1,
+    recoilImpulse: BASE_CONFIG.tank.recoilImpulse,
+    grip: BASE_CONFIG.tank.normalGrip,
+    boostGrip: BASE_CONFIG.tank.boostGrip,
+    gravity: BASE_CONFIG.tank.gravity,
+    barrelRadius: BASE_CONFIG.weapons.barrelRadius,
+    pickupMagnet: 1,
+    pickupLife: 1,
+    mgRate: 1,
+    maxBugs: 1,
+    maxRammers: 1,
+    maxTowers: 1,
+    jackpotGainMult: 1,
+    ...over,
+  };
+}
 
 export const MODIFIER_LABELS: Record<ModifierId, string> = Object.fromEntries(
   (Object.keys(MODIFIER_OVERRIDES) as ModifierId[]).map((k) => [k, MODIFIER_OVERRIDES[k].label]),

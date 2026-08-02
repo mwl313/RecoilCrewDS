@@ -1,7 +1,8 @@
-import { ARENA, groundHeightAt, groundNormalAt, nearestSpawn, obstacleAt, pitchFromNormal, resolveCircle } from '../arena';
-import { BASE_CONFIG, GAME, MODIFIER_OVERRIDES, type GameConfig } from '../config';
+import { ARENA, groundHeightAt, nearestSpawn, obstacleAt, resolveCircle } from '../arena';
+import { BASE_CONFIG, buildMatchConfig, GAME, type GameConfig } from '../config';
 import { angleDiff, angleLerp, clamp, dist, dist2, lerp, pointInBox, wrapAngle } from '../math';
 import { computeResults } from './results';
+import { stepTankKinematics, type TankKinematicState } from './tankKinematics';
 import type {
   BarrelState,
   DriverInput,
@@ -37,29 +38,6 @@ export function enemyRadius(type: EnemyType, cfg: GameConfig): number {
     case 'lootTruck':
       return cfg.arena.truckRadius;
   }
-}
-
-export function buildMatchConfig(modifier: ModifierId): MatchConfig {
-  const over = MODIFIER_OVERRIDES[modifier];
-  return {
-    timeScale: 1,
-    modifier,
-    cannonCooldown: BASE_CONFIG.weapons.cannonCooldown,
-    cannonBurst: 1,
-    recoilImpulse: BASE_CONFIG.tank.recoilImpulse,
-    grip: BASE_CONFIG.tank.normalGrip,
-    boostGrip: BASE_CONFIG.tank.boostGrip,
-    gravity: BASE_CONFIG.tank.gravity,
-    barrelRadius: BASE_CONFIG.weapons.barrelRadius,
-    pickupMagnet: 1,
-    pickupLife: 1,
-    mgRate: 1,
-    maxBugs: 1,
-    maxRammers: 1,
-    maxTowers: 1,
-    jackpotGainMult: 1,
-    ...over,
-  };
 }
 
 function makeBarrels(): BarrelState[] {
@@ -157,10 +135,6 @@ export class Match {
   private lastKillAt = -99;
   private lastKillKind: ScrapKind | null = null;
   private dodgeAwarded = false;
-  private prevOnGround = true;
-  private prevRamp = false;
-  private fallSpeed = 0;
-  private rollTimer = 0;
 
   constructor(matchId: string, modifier: ModifierId = 'none') {
     this.mcfg = buildMatchConfig(modifier);
@@ -251,116 +225,25 @@ export class Match {
       return;
     }
     if (t.shieldedT > 0) t.shieldedT -= dt;
-
-    const inp = this.driverInput;
-    const forward = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
     const speed = Math.hypot(t.vx, t.vz);
-    const fwdSpeed = t.vx * forward.x + t.vz * forward.z;
-    const boosting = inp.boost && Math.abs(inp.throttle) > 0.05 && t.grounded;
-    const bracing = inp.brace && t.grounded;
-    t.boosting = boosting;
-    t.brace = bracing;
-
-    const maxSpeed = boosting ? tankCfg.forwardSpeed * tankCfg.boostMult : tankCfg.forwardSpeed;
-    const targetSpeed = inp.throttle >= 0
-      ? inp.throttle * maxSpeed
-      : inp.throttle * tankCfg.reverseSpeed;
-    const accel = (inp.throttle >= 0 ? tankCfg.accel : tankCfg.reverseAccel) * (bracing ? tankCfg.braceAccelMult : 1);
-    let newFwd = approach(fwdSpeed, targetSpeed, accel * dt);
-    newFwd = Math.max(-tankCfg.reverseSpeed, Math.min(maxSpeed, newFwd));
-
-    // Steering: chassis-relative, less effective at high speed, stronger in boost.
-    const speedRatio = Math.abs(newFwd) / tankCfg.forwardSpeed;
-    let steerRate = lerp(tankCfg.steerLow, tankCfg.steerHigh, speedRatio);
-    if (boosting) steerRate *= 1.3;
-    if (bracing) steerRate *= tankCfg.braceSteerMult;
-    if (!t.grounded) steerRate *= tankCfg.airControl;
-    const reverseSign = newFwd < -0.1 ? -0.7 : 1;
-    t.yaw += inp.steer * steerRate * dt * reverseSign;
-    t.yaw += t.yawVel * dt;
-
-    // Grip: kill lateral velocity.
-    const lateralX = t.vx - forward.x * fwdSpeed;
-    const lateralZ = t.vz - forward.z * fwdSpeed;
-    const grip = bracing ? tankCfg.braceGrip : boosting ? this.mcfg.boostGrip : this.mcfg.grip;
-    const gripF = Math.exp(-grip * dt);
-    const latX = lateralX * gripF;
-    const latZ = lateralZ * gripF;
-    t.vx = forward.x * newFwd + latX;
-    t.vz = forward.z * newFwd + latZ;
-    t.yawVel *= Math.exp(-3.2 * dt);
-
-    // Integrate.
-    t.x += t.vx * dt;
-    t.y += t.vy * dt;
-    t.z += t.vz * dt;
-
-    // Obstacle collision.
-    const col = resolveCircle(t.x, t.z, tankCfg.collisionRadius);
-    if (col.hit) {
-      const nx = col.x - t.x;
-      const nz = col.z - t.z;
-      const nl = Math.hypot(nx, nz) || 1;
-      const dot = (t.vx * nx + t.vz * nz) / nl;
-      if (dot < 0) {
-        t.vx -= (nx / nl) * dot * 1.15;
-        t.vz -= (nz / nl) * dot * 1.15;
-      }
-      t.x = col.x;
-      t.z = col.z;
-      const ob = obstacleAt(t.x, t.z);
-      if (ob && speed > 10 && (ob.type === 'crusher' || ob.type === 'factory' || ob.type === 'wall')) {
+    const hits = stepTankKinematics(t as unknown as TankKinematicState, this.driverInput, this.cfg, this.mcfg, dt, {
+      onRampLaunch: () => this.push('assist', t.x, t.y, t.z, { label: 'LAUNCHED' }),
+      onHardFall: () => {
+        this.damageTank(tankCfg.fallDamage, 'fall');
+        this.push('crash', t.x, t.y, t.z, { value: tankCfg.fallDamage });
+      },
+    });
+    // Hard obstacle crash damage (crusher/factory/wall) at speed.
+    if (speed > 10 && hits.length > 0) {
+      const hardHit = hits.some((hit) => {
+        const ob = hit.obstacleId ? ARENA.obstacles.find((o) => o.id === hit.obstacleId) : undefined;
+        return !!ob && (ob.type === 'crusher' || ob.type === 'factory' || ob.type === 'wall');
+      });
+      if (hardHit) {
         this.damageTank(4, 'crash');
         this.push('crash', t.x, t.y, t.z, { value: 4 });
       }
     }
-
-    // Ground / air.
-    const h = groundHeightAt(t.x, t.z);
-    const wasGrounded = t.grounded;
-    const onRamp = !!ARENA.ramps.some((r) => pointInBox(t.x, t.z, r.x, r.z, r.w, r.d));
-    if (t.y <= h + 0.08) {
-      if (!wasGrounded && this.fallSpeed > tankCfg.fallDamageSpeed) {
-        this.damageTank(tankCfg.fallDamage, 'fall');
-        this.push('crash', t.x, t.y, t.z, { value: tankCfg.fallDamage });
-      }
-      t.y = h;
-      t.vy = 0;
-      t.grounded = true;
-      this.fallSpeed = 0;
-      // Ramp launch: leaving a ramp at speed launches the tank.
-      if (this.prevRamp && !onRamp && Math.abs(fwdSpeed) > 7) {
-        t.vy = Math.min(tankCfg.jumpImpulse, tankCfg.jumpImpulse * (Math.abs(fwdSpeed) / tankCfg.forwardSpeed));
-        t.grounded = false;
-        this.push('assist', t.x, t.y, t.z, { label: 'LAUNCHED' });
-      }
-    } else {
-      t.vy -= this.mcfg.gravity * dt;
-      t.grounded = false;
-      this.fallSpeed = Math.min(this.fallSpeed + this.mcfg.gravity * dt, 40);
-    }
-    this.prevRamp = onRamp;
-    this.prevOnGround = t.grounded;
-
-    // Auto-right / stability.
-    const targetRoll = clamp(-inp.steer * speedRatio * 0.16 - t.yawVel * 0.04, -0.55, 0.55);
-    if (t.grounded) {
-      t.roll = lerp(t.roll, targetRoll, clamp(dt * 5, 0, 1));
-      if (Math.abs(t.roll) > tankCfg.autoRightRoll) {
-        this.rollTimer += dt;
-        if (this.rollTimer > tankCfg.autoRightTime) {
-          t.roll = 0;
-          t.yawVel = 0;
-          this.push('assist', t.x, t.y, t.z, { label: 'AUTO-RIGHTED' });
-        }
-      } else {
-        this.rollTimer = 0;
-      }
-    }
-    const normal = groundNormalAt(t.x, t.z);
-    const targetPitch = t.grounded ? pitchFromNormal(normal, t.yaw) : t.pitch;
-    t.pitch = lerp(t.pitch, targetPitch, clamp(dt * 8, 0, 1));
-    t.drift = boosting && Math.abs(inp.steer) > 0.4;
   }
 
   private applyRecoil(dirX: number, dirZ: number, impulse: number, spin: number) {
@@ -1445,9 +1328,4 @@ export class Match {
   private push(type: SimEvent['type'], x?: number, y?: number, z?: number, extra?: Partial<SimEvent>) {
     this.events.push({ type, t: this.state.time, x, y, z, ...extra });
   }
-}
-
-function approach(v: number, target: number, delta: number): number {
-  if (v < target) return Math.min(v + delta, target);
-  return Math.max(v - delta, target);
 }

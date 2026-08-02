@@ -1,4 +1,5 @@
 import type { MatchState, ModifierId, Role } from '../shared/types';
+import { copyText, isValidRoomCode } from './clipboard';
 
 export interface HudHandlers {
   onBoot(): void;
@@ -74,6 +75,8 @@ export class Hud {
   private practiceTag!: HTMLElement;
   private resultsScore!: HTMLElement;
   private braceInd!: HTMLElement;
+  private copyBtn!: HTMLButtonElement;
+  private copyFeedbackT = 0;
   private menuClick = (fn: () => void) => (e: Event) => {
     e.preventDefault();
     this.sound();
@@ -246,9 +249,9 @@ export class Hud {
     const ACT_MAP: Record<string, keyof HudHandlers> = {
       back: 'onBack',
       main: 'onMainMenu',
-      practice: 'onPractice',
-      howto: 'onHowTo',
     };
+    // practice/howto are bound once in bind() below; binding them here too
+    // would fire each action twice.
     root.querySelectorAll('[data-act]').forEach((node) => {
       const act = node.getAttribute('data-act');
       if (!act) return;
@@ -271,9 +274,10 @@ export class Hud {
     document.getElementById('screen-main')!.querySelector('[data-act="join"]')!.addEventListener('click', this.menuClick(h.onJoin.bind(null, '')));
     document.getElementById('screen-main')!.querySelector('[data-act="practice"]')!.addEventListener('click', this.menuClick(h.onPractice));
     document.getElementById('screen-main')!.querySelector('[data-act="howto"]')!.addEventListener('click', this.menuClick(h.onHowTo));
-    document.getElementById('copy-code')!.addEventListener('click', this.menuClick(() => {
-      const code = this.createCode.textContent ?? '';
-      void navigator.clipboard?.writeText(code);
+    this.copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
+    this.copyBtn.disabled = true;
+    this.copyBtn.addEventListener('click', this.menuClick(() => {
+      void this.copyRoomCode();
     }));
     document.getElementById('create-ready')!.addEventListener('click', this.menuClick(h.onReady));
     document.getElementById('ready-go')!.addEventListener('click', this.menuClick(h.onReady));
@@ -400,6 +404,30 @@ export class Hud {
   setCreateCode(code: string) {
     this.createCode.textContent = code;
     document.getElementById('ready-code')!.textContent = code;
+    const valid = isValidRoomCode(code);
+    this.copyBtn.disabled = !valid;
+    this.copyBtn.textContent = 'COPY';
+    this.copyBtn.title = valid ? 'Copy the room code' : 'Waiting for a valid room code';
+  }
+
+  private async copyRoomCode(): Promise<void> {
+    const code = this.createCode.textContent ?? '';
+    if (!isValidRoomCode(code)) {
+      this.copyBtn.textContent = 'COPY FAILED — SELECT CODE';
+      this.copyBtn.disabled = true;
+      return;
+    }
+    const ok = await copyText(code);
+    this.copyBtn.textContent = ok ? 'COPIED' : 'COPY FAILED — SELECT CODE';
+    this.copyBtn.classList.toggle('copied', ok);
+    this.copyBtn.classList.toggle('failed', !ok);
+    const token = ++this.copyFeedbackT;
+    setTimeout(() => {
+      if (token === this.copyFeedbackT) {
+        this.copyBtn.textContent = 'COPY';
+        this.copyBtn.classList.remove('copied', 'failed');
+      }
+    }, 1600);
   }
 
   updateLobby(driverReady: boolean, gunnerReady: boolean, myRole: Role) {
