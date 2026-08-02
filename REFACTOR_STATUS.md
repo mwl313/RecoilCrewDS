@@ -1,7 +1,7 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** (Phase 4 completion, recorded after commit)
+**Current commit:** `b468724` (Phase 4 completion: "refactor: Phase 4 modular enemies, behavior composition, items, effects, drops, spawning, and objectives")
 **Current phase:** 4 — Enemies/items/effects/spawning (automated gate passed)
 **Last passing phase:** 4 — Enemies/items/effects/spawning
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
@@ -48,7 +48,7 @@ Known baseline limitations:
 | 1 — Core/content runtime | Complete | `5444fe2` | All four commands PASS |
 | 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Complete | `720e880` | All four commands PASS |
-| 4 — Enemies/items/effects/spawning | Automated gate passed | (Phase 4 commit) | All four commands PASS |
+| 4 — Enemies/items/effects/spawning | Automated gate passed | `b468724` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Not started | | |
 | 4 — Enemies/items/objectives | Not started | | |
 | 5 — Client/assets | Not started | | |
