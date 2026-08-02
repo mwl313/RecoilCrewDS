@@ -1,7 +1,7 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** (Phase 5 completion, recorded after commit)
+**Current commit:** `4bc3d7c` (Phase 5 completion: "refactor: Phase 5 client coordinator split and complete asset/presentation architecture")
 **Current phase:** 5 — Client/presentation/assets (automated gate passed)
 **Last passing phase:** 5 — Client/presentation/assets
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
@@ -49,7 +49,7 @@ Known baseline limitations:
 | 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Complete | `720e880` | All four commands PASS |
 | 4 — Enemies/items/effects/spawning | Complete | `b468724` | All four commands PASS |
-| 5 — Client/presentation/assets | Automated gate passed | (Phase 5 commit) | All four commands PASS |
+| 5 — Client/presentation/assets | Automated gate passed | `4bc3d7c` | All four commands PASS |
 | 6 — Proof/cleanup | Not started | | |
 
 Allowed status:
