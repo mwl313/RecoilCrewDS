@@ -1,7 +1,7 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** (Phase 3 completion, recorded after commit)
+**Current commit:** `720e880` (Phase 3 completion: "refactor: Phase 3 modular loadouts, weapons, projectiles, damage, and recoil")
 **Current phase:** 3 — Weapons/damage/projectiles (automated gate passed)
 **Last passing phase:** 3 — Weapons/damage/projectiles
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
@@ -47,7 +47,7 @@ Known baseline limitations:
 | 0 — Baseline audit | Complete | `eb5c1e5` | All four commands PASS |
 | 1 — Core/content runtime | Complete | `5444fe2` | All four commands PASS |
 | 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
-| 3 — Weapons/damage/projectiles | Automated gate passed | (Phase 3 commit) | All four commands PASS |
+| 3 — Weapons/damage/projectiles | Automated gate passed | `720e880` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Not started | | |
 | 4 — Enemies/items/objectives | Not started | | |
 | 5 — Client/assets | Not started | | |
