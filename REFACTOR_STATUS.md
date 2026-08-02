@@ -1,7 +1,7 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** (Phase 0 completion commit — recorded after commit)
+**Current commit:** `eb5c1e5` (Phase 0 completion: "refactor: Phase 0 baseline audit and golden-master protection")
 **Current phase:** 0 — Baseline audit (automated gate passed)
 **Last passing phase:** 0 — Baseline audit
 **Content schema version:** none yet (no JSON content in the codebase)
@@ -36,7 +36,7 @@ Known baseline limitations:
 
 | Phase | Status | Commit | Gate |
 |---|---|---|---|
-| 0 — Baseline audit | Automated gate passed | (Phase 0 commit) | All four commands PASS |
+| 0 — Baseline audit | Automated gate passed | `eb5c1e5` | All four commands PASS |
 | 1 — Core/content runtime | Not started | | |
 | 2 — Stats/DemoMode | Not started | | |
 | 3 — Weapons/damage/projectiles | Not started | | |
