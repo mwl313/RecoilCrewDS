@@ -214,7 +214,7 @@ export const BASE_CONFIG: GameConfig = {
     jackpotSpeed: 38,
     jackpotChargeTime: 1.0,
     jackpotLife: 3.2,
-    turretTurnRate: 4.6,
+  turretTurnRate: 60,
     turretMaxPitch: 0.42,
     turretMinPitch: -0.12,
     barrelHp: 3,

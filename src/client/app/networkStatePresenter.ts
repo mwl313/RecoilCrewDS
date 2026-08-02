@@ -51,7 +51,7 @@ export class NetworkStatePresenter {
   setSnapshot(msg: SnapshotEnvelope<MatchState>): void {
     this.latest = msg.state;
     this.snapBuffer.push(msg);
-    if (this.deps.mode() === 'online' && this.deps.role() === 'driver') {
+    if (this.deps.mode() === 'online') {
       this.deps.prediction.applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier);
     }
     if (!this.renderClockStarted) {

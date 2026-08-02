@@ -9,6 +9,7 @@ export const loadoutSchema = z.object({
   ability: z.string().regex(/^weapon\./, 'ability must reference a weapon'),
   turret: z.object({
     turnRate: positiveNumber,
+    pitchFollowRate: positiveNumber.optional(),
     maxPitch: z.number().finite(),
     minPitch: z.number().finite(),
   }),

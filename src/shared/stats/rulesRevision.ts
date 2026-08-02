@@ -9,6 +9,8 @@ import type { MatchConfig } from '../types';
 export interface MovementRulesBlock {
   tank: GameConfig['tank'];
   match: Pick<MatchConfig, 'timeScale' | 'grip' | 'boostGrip' | 'gravity'>;
+  /** Turret tracking rates (gunner prediction must mirror authority). */
+  turret: { turnRate: number; pitchFollowRate: number };
 }
 
 /** Reliable metadata attached to snapshots/events (REFACTOR_02 §13). */

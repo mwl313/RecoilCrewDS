@@ -188,6 +188,8 @@ export class GameClient {
     this.mode = 'practice';
     this.practiceViewRole = 'driver';
     this.practiceMatch = new Match('practice-' + Date.now(), 'none');
+    const turret = this.practiceMatch.runtime.rules.loadout.turret;
+    this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
     this.presenter.latest = this.practiceMatch.state;
     this.presenter.interpState = this.practiceMatch.state;
     this.setRole('driver');

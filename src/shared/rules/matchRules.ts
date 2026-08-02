@@ -255,6 +255,10 @@ export class MatchRules {
         boostGrip: this.resolver.resolve('match.boostGrip'),
         gravity: this.resolver.resolve('match.gravity'),
       },
+      turret: {
+        turnRate: this.resolver.resolve('weapon.turretTurnRate'),
+        pitchFollowRate: this.loadout.turret.pitchFollowRate ?? 8,
+      },
     });
   }
 

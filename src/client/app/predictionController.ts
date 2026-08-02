@@ -26,6 +26,8 @@ export class PredictionController {
   private authoritativeTurretPitch = 0.05;
   private turretReconcileSeq = 0;
   private inputSeq = 0;
+  private turretTurnRate = 4.6;
+  private pitchFollowRate = 8;
 
   constructor(
     role: Role,
@@ -39,10 +41,22 @@ export class PredictionController {
   }
 
   applyMovementRules(movement: MovementRulesBlock | undefined, revision: number | undefined, modifier: string): void {
-    if (this.role !== 'driver' || !movement || revision === undefined) return;
-    this.ensurePredictor(modifier);
-    this.predictor!.applyMovementRules(movement, revision);
-    this.movementRevision = revision;
+    if (!movement || revision === undefined) return;
+    if (movement.turret) {
+      this.turretTurnRate = movement.turret.turnRate;
+      this.pitchFollowRate = movement.turret.pitchFollowRate;
+    }
+    if (this.role === 'driver') {
+      this.ensurePredictor(modifier);
+      this.predictor!.applyMovementRules(movement, revision);
+      this.movementRevision = revision;
+    }
+  }
+
+  /** Practice path: mirror the local match's turret rates directly. */
+  setTurretRates(turnRate: number, pitchFollowRate: number): void {
+    this.turretTurnRate = turnRate;
+    this.pitchFollowRate = pitchFollowRate;
   }
 
   ensurePredictor(modifier: string): void {
@@ -101,13 +115,16 @@ export class PredictionController {
   updateTurretTarget(worldYaw: number, pitch: number, chassisYaw: number, dt: number): void {
     this.desiredTurretYawLocal = wrapAngle(worldYaw - chassisYaw);
     this.desiredTurretPitch = clamp(pitch, -0.45, 0.5);
-    const turnRate = 4.6;
     this.predictedTurretYawLocal += clamp(
       angleDiff(this.predictedTurretYawLocal, this.desiredTurretYawLocal),
-      -turnRate * dt,
-      turnRate * dt,
+      -this.turretTurnRate * dt,
+      this.turretTurnRate * dt,
     );
-    this.predictedTurretPitch += clamp(this.desiredTurretPitch - this.predictedTurretPitch, -turnRate * dt, turnRate * dt);
+    this.predictedTurretPitch += clamp(
+      this.desiredTurretPitch - this.predictedTurretPitch,
+      -this.pitchFollowRate * dt,
+      this.pitchFollowRate * dt,
+    );
   }
 
   reconcileTurret(seq: number, state: MatchState): void {
@@ -138,5 +155,7 @@ export class PredictionController {
     this.authoritativeTurretPitch = 0.05;
     this.turretReconcileSeq = 0;
     this.inputSeq = 0;
+    this.turretTurnRate = 4.6;
+    this.pitchFollowRate = 8;
   }
 }

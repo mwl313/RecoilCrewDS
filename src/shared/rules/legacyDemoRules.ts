@@ -185,6 +185,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     ability: 'weapon.jackpotShell',
     turret: {
       turnRate: BASE_CONFIG.weapons.turretTurnRate,
+      pitchFollowRate: 40,
       maxPitch: BASE_CONFIG.weapons.turretMaxPitch,
       minPitch: BASE_CONFIG.weapons.turretMinPitch,
     },

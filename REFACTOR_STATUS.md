@@ -282,6 +282,18 @@ in runtime behavior; browser play was verified by e2e + loop gates).
     parity even though per-enemy would be more correct.
 ```
 
+## Post-refactor tuning (2026-08-02)
+
+- Gunner turret now tracks the mouse near-instantly: `turretTurnRate` 4.6 →
+  60 rad/s and a new `pitchFollowRate` 40 in loadout definitions (Demo +
+  Truck Hunter + legacy mirror). The authoritative server, the client's
+  local turret prediction, and Practice all use the same rates; the rates
+  are replicated in the movement rules block so prediction can never
+  desync from authority. `weapon.turretTurnRate` is now movement-critical.
+- Because this is a deliberate gameplay change, the golden Demo fixture was
+  consciously regenerated (`npm run demo:write`): score 10830/A → 14633/S,
+  kills 41 → 36, 1641 → 1647 canonical events. All other gates pass.
+
 ## Next phase prerequisites
 
 ```text

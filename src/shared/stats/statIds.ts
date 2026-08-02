@@ -153,4 +153,5 @@ export const MOVEMENT_STAT_IDS = new Set<string>([
   'match.grip',
   'match.boostGrip',
   'match.gravity',
+  'weapon.turretTurnRate',
 ]);
