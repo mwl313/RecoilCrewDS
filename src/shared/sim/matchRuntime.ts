@@ -1,15 +1,21 @@
-import { ARENA, groundHeightAt, nearestSpawn, obstacleAt, resolveCircle } from '../arena';
+﻿import { ARENA, groundHeightAt, nearestSpawn, obstacleAt, resolveCircle } from '../arena';
 import type { GameConfig } from '../config';
 import { angleDiff, angleLerp, clamp, dist, dist2, lerp, pointInBox, wrapAngle } from '../math';
 import { stepTankKinematics, type TankKinematicState } from './tankKinematics';
 import type { ContentPack } from '../content/contentPack';
+import { GameplayEventBus } from '../core/gameplayEventBus';
+import type { DamageSource, EntityKilledEvent } from '../damage/damageTypes';
 import { MatchRules } from '../rules/matchRules';
+export { enemyRadius } from './enemyRadius';
+import { enemyRadius } from './enemyRadius';
 import { createLegacyDemoModeDefinition } from '../rules/legacyDemoRules';
 import {
   DemoScoreAttackModeDefinition,
   DemoScoreAttackModeRuntime,
 } from '../modes/demoScoreAttack';
 import { createSystemContext, type SystemContext } from './systems/systemContext';
+import { LoadoutRuntime } from '../weapons/loadoutRuntime';
+import { WeaponSystem } from '../weapons/weaponSystem';
 import type {
   BarrelState,
   DriverInput,
@@ -32,19 +38,6 @@ let globalEnemyId = 1;
 
 function nextEnemyId() {
   return globalEnemyId++;
-}
-
-export function enemyRadius(type: EnemyType, cfg: GameConfig): number {
-  switch (type) {
-    case 'scrapBug':
-      return cfg.arena.bugRadius;
-    case 'rammer':
-      return cfg.arena.rammerRadius;
-    case 'gunTower':
-      return cfg.arena.towerRadius;
-    case 'lootTruck':
-      return cfg.arena.truckRadius;
-  }
 }
 
 function makeBarrels(): BarrelState[] {
@@ -127,6 +120,9 @@ export class MatchRuntime {
   results: MatchResults | null = null;
   readonly systems: SystemContext;
   readonly mode: DemoScoreAttackModeRuntime;
+  readonly eventBus: GameplayEventBus;
+  readonly loadout: LoadoutRuntime;
+  readonly weaponSystem: WeaponSystem;
   private modeDefinition: DemoScoreAttackModeDefinition | null = null;
 
   /** Legacy projections of the resolved match rules (frozen, per-match). */
@@ -140,11 +136,6 @@ export class MatchRuntime {
 
   private driverInput: DriverInput = { throttle: 0, steer: 0, boost: false, brace: false };
   private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, mg: false, cannon: false, charge: false };
-  private lastCannonDown = false;
-  private lastChargeDown = false;
-  private lastMgDown = false;
-  private pendingBursts = 0;
-  private pendingBurstT = 0;
   private rammerSpawns = [22, 34, 50];
   private rammerSpawnIdx = 0;
   private towerSpawns = [26, 58];
@@ -162,9 +153,13 @@ export class MatchRuntime {
   ) {
     this.rules = rules ?? MatchRules.fromLegacyConfig(modifier);
     this.state = initialState(matchId, this.rules);
-    this.systems = createSystemContext(this.state, this.rules, this.events);
+    this.eventBus = new GameplayEventBus();
+    this.systems = createSystemContext(this.state, this.rules, this.events, this.eventBus);
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
+    this.loadout = new LoadoutRuntime(this.rules.weapons, this.rules.loadout);
+    this.weaponSystem = new WeaponSystem(this.systems, this.loadout);
+    this.eventBus.subscribe('entity.killed', (payload) => this.onEntityKilled(payload as EntityKilledEvent));
     // First two Scrap Bugs are placed directly ahead so the first kill lands
     // within seconds.
     this.spawnEnemy('scrapBug', -7, 6);
@@ -215,9 +210,7 @@ export class MatchRuntime {
   clearInputs() {
     this.driverInput = { throttle: 0, steer: 0, boost: false, brace: false };
     this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, mg: false, cannon: false, charge: false };
-    this.lastCannonDown = false;
-    this.lastChargeDown = false;
-    this.lastMgDown = false;
+    this.weaponSystem.clearActions();
   }
 
   clearDriverInput() {
@@ -226,9 +219,7 @@ export class MatchRuntime {
 
   clearGunnerInput() {
     this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, mg: false, cannon: false, charge: false };
-    this.lastCannonDown = false;
-    this.lastChargeDown = false;
-    this.lastMgDown = false;
+    this.weaponSystem.clearActions();
   }
 
   step(dtRaw: number) {
@@ -237,9 +228,9 @@ export class MatchRuntime {
     if (dt === 0) return;
     const s = this.state;
     this.stepTank(dt);
-    this.stepWeapons(dt);
+    this.weaponSystem.update(dt, this.gunnerInput);
     this.stepEnemies(dt);
-    this.stepShells(dt);
+    this.systems.projectiles.update(dt);
     this.stepPickups(dt);
     this.stepSpawns(dt);
     this.mode.stepAssistance();
@@ -282,20 +273,6 @@ export class MatchRuntime {
     }
   }
 
-  private applyRecoil(dirX: number, dirZ: number, impulse: number, spin: number) {
-    const t = this.state.tank;
-    const bracing = t.brace;
-    const mult = bracing ? this.cfg.tank.braceRecoilMult : 1;
-    t.vx += dirX * impulse * mult;
-    t.vz += dirZ * impulse * mult;
-    t.yawVel += (Math.random() - 0.5) * 2 * spin * mult;
-    if (!t.grounded) {
-      t.vy += 1.8 * mult * clamp(impulse / 7, 0, 1.4);
-    }
-    t.roll = clamp(t.roll + (Math.random() - 0.5) * 0.35 * mult, -1.4, 1.4);
-    this.push('recoil', t.x, t.y, t.z, { value: impulse * mult });
-  }
-
   private respawn() {
     const t = this.state.tank;
     const spawn = nearestSpawn(t.x, t.z);
@@ -326,317 +303,7 @@ export class MatchRuntime {
   }
 
   damageTank(amount: number, source: string) {
-    const t = this.state.tank;
-    if (t.deadT > 0 || t.shieldedT > 0) return;
-    t.integrity = Math.max(0, t.integrity - amount);
-    this.push('hit', t.x, t.y, t.z, { value: amount, kind: source });
-    if (t.integrity <= 0) {
-      t.integrity = 0;
-      t.deadT = this.cfg.tank.respawnTime;
-      const s = this.state.stats;
-      s.wipeouts++;
-      this.systems.score.applyWipeoutPenalty();
-      this.push('wipeout', t.x, t.y, t.z);
-    }
-  }
-
-  // -------------------------------------------------------------- weapons
-  private muzzleWorld(): { x: number; y: number; z: number; dx: number; dy: number; dz: number } {
-    const t = this.state.tank;
-    const tur = this.state.turret;
-    const yaw = t.yaw + tur.yaw;
-    const pitch = tur.pitch;
-    const dx = Math.cos(pitch) * Math.sin(yaw);
-    const dy = Math.sin(pitch);
-    const dz = Math.cos(pitch) * Math.cos(yaw);
-    return {
-      x: t.x + dx * 2.7,
-      y: t.y + 1.55 + dy * 1.4,
-      z: t.z + dz * 2.7,
-      dx,
-      dy,
-      dz,
-    };
-  }
-
-  private stepWeapons(dt: number) {
-    const s = this.state;
-    const t = s.tank;
-    const tur = s.turret;
-    const inp = this.gunnerInput;
-    const w = this.cfg.weapons;
-    if (t.deadT > 0) {
-      this.lastCannonDown = inp.cannon;
-      this.lastChargeDown = inp.charge;
-      this.lastMgDown = inp.mg;
-      return;
-    }
-
-    // Turret movement is validated/limited by the server at all times.
-    tur.yaw = tur.yaw + clamp(angleDiff(tur.yaw, inp.aimYaw), -w.turretTurnRate * dt, w.turretTurnRate * dt);
-    tur.yaw = wrapAngle(tur.yaw);
-    tur.pitch = clamp(
-      lerp(tur.pitch, inp.aimPitch, clamp(dt * 8, 0, 1)),
-      w.turretMinPitch,
-      w.turretMaxPitch,
-    );
-    tur.cannonCooldown = Math.max(0, tur.cannonCooldown - dt);
-    tur.mgCooldown = Math.max(0, tur.mgCooldown - dt);
-    tur.cannonFlash = Math.max(0, tur.cannonFlash - dt);
-    tur.jackpotCooldown = Math.max(0, tur.jackpotCooldown - dt);
-
-    // Machine gun.
-    if (inp.mg && !this.lastMgDown) this.push('shot', t.x, t.y + 1.5, t.z, { kind: 'mgStart' });
-    if (inp.mg && tur.mgCooldown <= 0) {
-      tur.mgCooldown = 1 / (w.mgRate * this.mcfg.mgRate);
-      this.fireMachineGun();
-      tur.mgFiring = true;
-    } else if (!inp.mg) {
-      tur.mgFiring = false;
-    }
-    this.lastMgDown = inp.mg;
-
-    // Main cannon (edge-triggered, duplicate-proof via server validation).
-    if (inp.cannon && !this.lastCannonDown && tur.cannonCooldown <= 0) {
-      tur.cannonCooldown = this.mcfg.cannonCooldown;
-      this.pendingBursts = this.mcfg.cannonBurst - 1;
-      this.pendingBurstT = 0;
-      this.fireCannon();
-    }
-    if (this.pendingBursts > 0) {
-      this.pendingBurstT += dt;
-      if (this.pendingBurstT >= 0.12) {
-        this.pendingBurstT = 0;
-        this.pendingBursts--;
-        this.fireCannon();
-      }
-    }
-    this.lastCannonDown = inp.cannon;
-
-    // JACKPOT charge.
-    if (inp.charge && tur.jackpotReady) {
-      tur.chargeT += dt;
-      if (tur.chargeT >= w.jackpotChargeTime) {
-        this.fireJackpot();
-        tur.chargeT = 0;
-        s.stats.jackpotMeter = 0;
-        tur.jackpotReady = false;
-      }
-    } else if (!inp.charge && tur.chargeT > 0) {
-      tur.chargeT = Math.max(0, tur.chargeT - dt * 2);
-    }
-    this.lastChargeDown = inp.charge;
-  }
-
-  private fireMachineGun() {
-    const s = this.state;
-    const t = s.tank;
-    const muzzle = this.muzzleWorld();
-    const w = this.cfg.weapons;
-    const spread = w.mgSpread;
-    const dx = muzzle.dx + (Math.random() - 0.5) * spread;
-    const dy = muzzle.dy + (Math.random() - 0.5) * spread;
-    const dz = muzzle.dz + (Math.random() - 0.5) * spread;
-    const dl = Math.hypot(dx, dy, dz);
-    const nx = dx / dl;
-    const ny = dy / dl;
-    const nz = dz / dl;
-    this.applyRecoil(-nx, -nz, this.cfg.tank.mgRecoilImpulse, 0.05);
-    this.push('shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'mg', tx: nx, ty: ny, tz: nz });
-
-    // Hitscan against enemies and barrels.
-    let bestT = w.mgRange;
-    let bestEnemy: EnemyState | null = null;
-    for (const e of s.enemies) {
-      if (!e.alive || e.type === 'gunTower') continue;
-      const r = enemyRadius(e.type, this.cfg) + 0.45;
-      const ox = e.x - muzzle.x;
-      const oy = e.y + 0.6 - muzzle.y;
-      const oz = e.z - muzzle.z;
-      const b = ox * nx + oy * ny + oz * nz;
-      if (b < 0 || b > bestT) continue;
-      const c = ox * ox + oy * oy + oz * oz - b * b;
-      if (c <= r * r && b < bestT) {
-        bestT = b;
-        bestEnemy = e;
-      }
-    }
-    let bestBarrel: BarrelState | null = null;
-    let bestBarrelT = w.mgRange;
-    for (const b of s.barrels) {
-      if (b.exploded) continue;
-      const ox = b.x - muzzle.x;
-      const oy = 0.7 - muzzle.y;
-      const oz = b.z - muzzle.z;
-      const bt = ox * nx + oy * ny + oz * nz;
-      if (bt < 0 || bt > bestBarrelT) continue;
-      const c = ox * ox + oy * oy + oz * oz - bt * bt;
-      if (c <= 1.0 * 1.0 && bt < bestBarrelT) {
-        bestBarrelT = bt;
-        bestBarrel = b;
-      }
-    }
-    if (bestEnemy && (!bestBarrel || bestT <= bestBarrelT)) {
-      const hitX = muzzle.x + nx * bestT;
-      const hitY = muzzle.y + ny * bestT;
-      const hitZ = muzzle.z + nz * bestT;
-      this.push('mgHit', hitX, hitY, hitZ);
-      this.damageEnemy(bestEnemy, w.mgDamage, 'mg');
-      return;
-    }
-    if (bestBarrel) {
-      const hitX = muzzle.x + nx * bestBarrelT;
-      const hitY = muzzle.y + ny * bestBarrelT;
-      const hitZ = muzzle.z + nz * bestBarrelT;
-      this.push('mgHit', hitX, hitY, hitZ);
-      this.damageBarrel(bestBarrel, w.mgDamage);
-    }
-  }
-
-  private fireCannon() {
-    const s = this.state;
-    const t = s.tank;
-    const tur = s.turret;
-    const muzzle = this.muzzleWorld();
-    const w = this.cfg.weapons;
-    tur.cannonFlash = 0.12;
-    // Recoil: opposite the barrel, strongest normal force in the game.
-    this.applyRecoil(-muzzle.dx, -muzzle.dz, this.mcfg.recoilImpulse, this.cfg.tank.recoilSpin);
-    this.push('shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'cannon', tx: muzzle.dx, ty: muzzle.dy, tz: muzzle.dz });
-    this.spawnShell(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, w.cannonSpeed, 'cannon', w.cannonGravity, w.cannonLife);
-    // Gunner contribution for the cannon blast.
-    this.systems.combo.addContribution('gunner', 1);
-    if (t.brace) {
-      this.systems.score.addLink('braceShot');
-    }
-  }
-
-  private fireJackpot() {
-    const s = this.state;
-    const t = s.tank;
-    const tur = s.turret;
-    const muzzle = this.muzzleWorld();
-    const w = this.cfg.weapons;
-    s.stats.jackpotFired++;
-    tur.cannonFlash = 0.3;
-    tur.jackpotCooldown = this.cfg.jackpot.jackpotCooldown;
-    this.applyRecoil(-muzzle.dx, -muzzle.dz, this.cfg.tank.jackpotRecoilImpulse * (t.brace ? this.cfg.tank.jackpotBraceMult : 1), this.cfg.tank.jackpotSpin);
-    this.push('jackpotFire', muzzle.x, muzzle.y, muzzle.z, { tx: muzzle.dx, ty: muzzle.dy, tz: muzzle.dz });
-    this.spawnShell(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, w.jackpotSpeed, 'jackpot', w.cannonGravity * 0.6, w.jackpotLife);
-    if (t.brace) {
-      this.systems.score.addLink('braceShot');
-      this.systems.score.addScore(this.rules.scoring.jackpotBraceBonus, 'JACKPOT BRACE BONUS');
-    }
-    this.systems.combo.addContribution('gunner', 4);
-  }
-
-  private spawnShell(x: number, y: number, z: number, dx: number, dy: number, dz: number, speed: number, kind: ShellState['kind'], gravity: number, life: number) {
-    const s = this.state;
-    s.shells.push({
-      id: s.nextShellId++,
-      kind,
-      x,
-      y,
-      z,
-      vx: dx * speed,
-      vy: dy * speed,
-      vz: dz * speed,
-      life,
-    });
-  }
-
-  private stepShells(dt: number) {
-    const s = this.state;
-    const w = this.cfg.weapons;
-    const keep: ShellState[] = [];
-    for (const sh of s.shells) {
-      sh.life -= dt;
-      sh.x += sh.vx * dt;
-      sh.y += sh.vy * dt;
-      sh.z += sh.vz * dt;
-      if (sh.kind === 'cannon' || sh.kind === 'jackpot') {
-        sh.vy -= w.cannonGravity * dt;
-      }
-      if (sh.kind === 'tower') {
-        const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
-        if (td < 1.05 && s.tank.deadT <= 0) {
-          this.damageTank(this.cfg.enemies.towerShotDamage, 'tower');
-          this.push('hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
-            value: this.cfg.enemies.towerShotDamage,
-            kind: 'tower',
-          });
-          continue;
-        }
-      }
-      const h = groundHeightAt(sh.x, sh.z);
-      let exploded = false;
-      if (sh.y <= h + 0.05) {
-        sh.y = h + 0.05;
-        exploded = true;
-      }
-      if (!exploded) {
-        const r = sh.kind === 'jackpot' ? 1.4 : 0.9;
-        for (const o of ARENA.obstacles) {
-          if (pointInBox(sh.x, sh.z, o.x, o.z, o.w + r * 2, o.d + r * 2)) {
-            exploded = true;
-            break;
-          }
-        }
-      }
-      if (!exploded) {
-        for (const e of s.enemies) {
-          if (!e.alive || e.type === 'gunTower') continue;
-          const rr = enemyRadius(e.type, this.cfg) + 0.7;
-          if (dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
-            exploded = true;
-            break;
-          }
-        }
-      }
-      if (exploded || sh.life <= 0) {
-        this.explodeShell(sh);
-        continue;
-      }
-      keep.push(sh);
-    }
-    s.shells = keep;
-  }
-
-  private explodeShell(sh: ShellState) {
-    const s = this.state;
-    const w = this.cfg.weapons;
-    const isJackpot = sh.kind === 'jackpot';
-    const radius = isJackpot ? w.jackpotRadius : w.cannonRadius;
-    const dmg = isJackpot ? w.jackpotDamage : w.cannonDamage;
-    if (isJackpot) {
-      this.push('jackpotImpact', sh.x, sh.y, sh.z, { value: radius });
-      this.addContribution('gunner', 2, 0);
-    } else {
-      this.push('enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon' });
-    }
-    // Damage enemies.
-    for (const e of s.enemies) {
-      if (!e.alive) continue;
-      const d = dist(sh.x, sh.z, e.x, e.z);
-      const rr = enemyRadius(e.type, this.cfg);
-      if (d < radius + rr) {
-        const falloff = d < radius * 0.45 ? 1 : 0.65;
-        this.damageEnemy(e, dmg * falloff, isJackpot ? 'jackpot' : 'cannon');
-      }
-    }
-    // Chain barrels.
-    for (const b of s.barrels) {
-      if (b.exploded) continue;
-      const d = dist(sh.x, sh.z, b.x, b.z);
-      if (d < (isJackpot ? w.barrelChainRadius * 2 : this.mcfg.barrelRadius) + 0.8) {
-        this.damageBarrel(b, 999);
-      }
-    }
-    // Tank splash (modest, keeps failures funny not brutal).
-    const tankD = dist(sh.x, sh.z, s.tank.x, s.tank.z);
-    if (tankD < radius + 1.5) {
-      this.damageTank(isJackpot ? 12 : 5, 'splash');
-    }
+    this.systems.damage.applyTank(amount, source as DamageSource);
   }
 
   // -------------------------------------------------------------- enemies
@@ -1042,12 +709,7 @@ export class MatchRuntime {
 
   // -------------------------------------------------------------- barrels
   private damageBarrel(b: BarrelState, dmg: number) {
-    if (b.exploded) return;
-    b.hp = (b.hp ?? 0) + dmg;
-    if (b.hp >= this.cfg.weapons.barrelHp) {
-      b.exploded = true;
-      b.fuseT = 0.14;
-    }
+    this.systems.damage.applyBarrel(b, dmg);
   }
 
   private stepBarrels(dt: number) {
@@ -1076,18 +738,18 @@ export class MatchRuntime {
       if (!e.alive) continue;
       const d = dist(b.x, b.z, e.x, e.z);
       if (d < radius + enemyRadius(e.type, this.cfg)) {
-        this.damageEnemy(e, dmg, 'barrel');
+        this.systems.damage.applyEnemy(e, dmg, 'barrel');
       }
     }
     const tankD = dist(b.x, b.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.6) {
-      this.damageTank(10, 'barrel');
+      this.systems.damage.applyTank(10, 'barrel');
     }
     // Chain reaction.
     for (const other of s.barrels) {
       if (other.exploded || other === b) continue;
       if (dist(b.x, b.z, other.x, other.z) < w.barrelChainRadius) {
-        this.damageBarrel(other, 999);
+        this.systems.damage.applyBarrel(other, 999);
         this.push('chainExplode', other.x, 0.8, other.z, { id: other.id });
       }
     }
@@ -1095,19 +757,14 @@ export class MatchRuntime {
 
   // --------------------------------------------------------------- damage
   damageEnemy(e: EnemyState, dmg: number, source: string) {
-    if (!e.alive) return;
-    if (source === 'mg') this.addContribution('gunner', 0.2, 0);
-    e.hp -= dmg;
-    e.flash = 0.12;
-    const rearBonus = e.type === 'rammer' && e.state === 'recovery' ? 1.5 : 1;
-    e.hp -= dmg * (rearBonus - 1);
-    this.push('hit', e.x, e.y + 0.8, e.z, { value: dmg, id: e.id, kind: e.type });
-    if (e.hp <= 0) {
-      this.killEnemy(e, source);
-    }
+    this.systems.damage.applyEnemy(e, dmg, source as DamageSource);
   }
 
-  private killEnemy(e: EnemyState, source: string) {
+  /** Scoring/drops react to the entity.killed bus event (legacy kill flow). */
+  private onEntityKilled(payload: EntityKilledEvent) {
+    const e = this.state.enemies.find((candidate) => candidate.id === payload.enemy.id);
+    if (!e) return;
+    const source = payload.source;
     const s = this.state;
     e.alive = false;
     e.state = 'dead';

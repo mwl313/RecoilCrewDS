@@ -1,50 +1,21 @@
 import { z } from 'zod';
-import { commonDefinition, nonNegativeNumber, positiveInt, positiveNumber } from './common';
+import { commonDefinition, finiteNumber, nonNegativeNumber, positiveNumber } from './common';
 
-const base = {
+export const weaponSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^weapon\./, 'weapon id must start with weapon.'),
-};
-
-export const weaponSchema = z.discriminatedUnion('kind', [
-  z.object({
-    ...base,
-    kind: z.literal('mg'),
-    damage: positiveNumber,
-    rate: positiveNumber,
-    range: positiveNumber,
-    spread: nonNegativeNumber,
-    speed: positiveNumber,
-    recoilImpulse: nonNegativeNumber,
-  }),
-  z.object({
-    ...base,
-    kind: z.literal('cannon'),
-    damage: positiveNumber,
-    radius: positiveNumber,
-    cooldown: nonNegativeNumber,
-    speed: positiveNumber,
-    gravity: nonNegativeNumber,
-    life: positiveNumber,
-    burst: positiveInt,
-    burstSpacing: positiveNumber,
-    recoilImpulse: nonNegativeNumber,
-    recoilSpin: nonNegativeNumber,
-  }),
-  z.object({
-    ...base,
-    kind: z.literal('jackpot'),
-    damage: positiveNumber,
-    radius: positiveNumber,
-    cooldown: nonNegativeNumber,
-    speed: positiveNumber,
-    gravity: nonNegativeNumber,
-    chargeTime: positiveNumber,
-    life: positiveNumber,
-    recoilImpulse: nonNegativeNumber,
-    recoilSpin: nonNegativeNumber,
-    braceMult: nonNegativeNumber,
-  }),
-]);
+  behaviorId: z.enum(['weapon.hitscan', 'weapon.projectile', 'weapon.chargeProjectile']),
+  fireMode: z.enum(['auto', 'semi', 'charge']),
+  cooldownSeconds: nonNegativeNumber,
+  chargeSeconds: positiveNumber.optional(),
+  statBlock: z.record(z.string().regex(/^weapon\./, 'statBlock keys must be weapon.* stat ids'), finiteNumber),
+  projectileId: z.string().regex(/^projectile\./, 'projectileId must reference a projectile').optional(),
+  presentation: z
+    .object({
+      muzzleVfxId: z.string().optional(),
+      fireAudioId: z.string().optional(),
+    })
+    .optional(),
+});
 
 export type WeaponDefinition = z.infer<typeof weaponSchema>;

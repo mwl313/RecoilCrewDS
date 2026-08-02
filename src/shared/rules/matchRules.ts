@@ -1,9 +1,11 @@
 import { BASE_CONFIG, MODIFIER_OVERRIDES, buildMatchConfig, type GameConfig } from '../config';
 import type { ContentPack } from '../content/contentPack';
+import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
 import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
+import type { WeaponDefinition } from '../content/schemas/weapon';
 import { legacyGameConfigFromContent, legacyMatchConfigFromContent } from '../legacy/legacyConfigAdapter';
 import { baseStatBlocksFromConfig, type StatBlock } from '../stats/statBlock';
 import { ENEMY_STAT_IDS, MATCH_STAT_IDS, MOVEMENT_STAT_IDS, TANK_STAT_IDS, WEAPON_STAT_IDS } from '../stats/statIds';
@@ -37,6 +39,8 @@ export class MatchRules {
   readonly scoring: ScoringDefinition;
   readonly results: ResultsDefinition;
   readonly spawnDirector: SpawnDirectorDefinition;
+  readonly loadout: LoadoutDefinition;
+  readonly weapons: ReadonlyMap<string, WeaponDefinition>;
   readonly resolver: StatResolver;
 
   private readonly baseConfig: GameConfig;
@@ -77,8 +81,11 @@ export class MatchRules {
     this.scoring = deepFreeze(options.bundle.scoring);
     this.results = deepFreeze(options.bundle.results);
     this.spawnDirector = deepFreeze(options.bundle.spawnDirector);
+    this.loadout = deepFreeze(options.bundle.loadout);
+    this.weapons = deepFreeze(new Map(Object.entries(options.bundle.weapons)));
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
+    blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
     const flat: StatBlock = { ...blocks.match, ...blocks.tank, ...blocks.weapon, ...blocks.enemy };
     this.resolver = new StatResolver(flat);
     this.resolver.onChange = (stat) => {
@@ -129,6 +136,9 @@ export class MatchRules {
         scoring: pack.getScoring(mode.scoring),
         results: pack.getResults(mode.results),
         spawnDirector: pack.getSpawnDirector(mode.spawnDirector),
+        weaponStatBlocks: loadoutWeaponStatBlocks(pack, pack.getLoadout(mode.loadout)),
+        loadout: pack.getLoadout(mode.loadout),
+        weapons: packWeapons(pack),
       },
       difficultyModifiers,
     });
@@ -252,14 +262,17 @@ export class MatchRules {
     const config: GameConfig = { ...this.baseConfig };
     config.tank = { ...this.baseConfig.tank };
     for (const id of TANK_STAT_IDS) {
+      if (!(id.slice('tank.'.length) in config.tank)) continue;
       (config.tank as unknown as Record<string, number>)[id.slice('tank.'.length)] = resolver.resolve(id);
     }
     config.weapons = { ...this.baseConfig.weapons };
     for (const id of WEAPON_STAT_IDS) {
+      if (!(id.slice('weapon.'.length) in config.weapons)) continue;
       (config.weapons as Record<string, number>)[id.slice('weapon.'.length)] = resolver.resolve(id);
     }
     config.enemies = { ...this.baseConfig.enemies };
     for (const id of ENEMY_STAT_IDS) {
+      if (!(id.slice('enemy.'.length) in config.enemies)) continue;
       (config.enemies as Record<string, number>)[id.slice('enemy.'.length)] = resolver.resolve(id);
     }
 
@@ -267,6 +280,7 @@ export class MatchRules {
     for (const id of MATCH_STAT_IDS) {
       const key = id.slice('match.'.length);
       if (key === 'timeScale') continue;
+      if (!(key in matchConfig)) continue;
       (matchConfig as unknown as Record<string, number>)[key] = resolver.resolve(id);
     }
     matchConfig.timeScale = this.timeScale;
@@ -278,4 +292,21 @@ export class MatchRules {
     this.matchConfigCache = deepFreeze(matchConfig);
     this.dirty = false;
   }
+}
+
+function loadoutWeaponStatBlocks(
+  pack: ContentPack,
+  loadout: { primary: string; secondary: string; ability: string },
+): StatBlock {
+  const merged: StatBlock = {};
+  for (const id of [loadout.primary, loadout.secondary, loadout.ability]) {
+    Object.assign(merged, pack.getWeapon(id).statBlock);
+  }
+  return merged;
+}
+
+function packWeapons(pack: ContentPack): Record<string, WeaponDefinition> {
+  const out: Record<string, WeaponDefinition> = {};
+  for (const id of pack.ids('weapons')) out[id] = pack.getWeapon(id);
+  return out;
 }

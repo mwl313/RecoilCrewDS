@@ -1,15 +1,25 @@
 {
   "id": "weapon.jackpotShell",
   "label": "JACKPOT Shell",
-  "kind": "jackpot",
-  "damage": 60,
-  "radius": 9,
-  "speed": 38,
-  "gravity": 3,
-  "chargeTime": 1.0,
-  "life": 3.2,
-  "cooldown": 12,
-  "recoilImpulse": 17,
-  "recoilSpin": 4.5,
-  "braceMult": 0.32
+  "behaviorId": "weapon.chargeProjectile",
+  "fireMode": "charge",
+  "cooldownSeconds": 12,
+  "chargeSeconds": 1.0,
+  "statBlock": {
+    "weapon.jackpotDamage": 60,
+    "weapon.jackpotRadius": 9,
+    "weapon.jackpotSpeed": 38,
+    "weapon.jackpotLife": 3.2,
+    "weapon.splashInnerRatio": 0.45,
+    "weapon.splashInnerMultiplier": 1,
+    "weapon.splashOuterMultiplier": 0.65,
+    "weapon.jackpotRecoilImpulse": 17,
+    "weapon.jackpotRecoilSpin": 4.5,
+    "weapon.jackpotBraceMultiplier": 0.32
+  },
+  "projectileId": "projectile.jackpotShell",
+  "presentation": {
+    "muzzleVfxId": "vfx.jackpot",
+    "fireAudioId": "audio.jackpotRelease"
+  }
 }

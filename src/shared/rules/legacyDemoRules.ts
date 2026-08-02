@@ -1,10 +1,13 @@
 import { BASE_CONFIG, GAME } from '../config';
 import { DEMO_GRADE_RULES, DEMO_TITLE_RULES } from '../sim/results';
+import type { LoadoutDefinition } from '../content/schemas/loadout';
+import type { ModeDefinition } from '../content/schemas/mode';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
 import type { ResultsDefinition } from '../content/schemas/results';
-import type { ModeDefinition } from '../content/schemas/mode';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
+import type { WeaponDefinition } from '../content/schemas/weapon';
+import type { StatBlock } from '../stats/statBlock';
 
 /**
  * Client-safe Demo rules bundle synthesized from the legacy constants.
@@ -17,6 +20,9 @@ export interface DemoRulesBundle {
   scoring: ScoringDefinition;
   results: ResultsDefinition;
   spawnDirector: SpawnDirectorDefinition;
+  weaponStatBlocks: StatBlock;
+  loadout: LoadoutDefinition;
+  weapons: Record<string, WeaponDefinition>;
 }
 
 export const LEGACY_DEMO_CONSTANTS = {
@@ -128,7 +134,117 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     },
   };
 
-  return { objective, scoring, results, spawnDirector };
+  // Per-kind weapon behavior stats mirroring the Demo content statBlocks
+  // (values from BASE_CONFIG + the legacy hardcoded weapon parameters).
+  const weaponStatBlocks: StatBlock = {
+    'weapon.mgDamage': BASE_CONFIG.weapons.mgDamage,
+    'weapon.mgRate': BASE_CONFIG.weapons.mgRate,
+    'weapon.mgRange': BASE_CONFIG.weapons.mgRange,
+    'weapon.mgSpread': BASE_CONFIG.weapons.mgSpread,
+    'weapon.mgSpeed': BASE_CONFIG.weapons.mgSpeed,
+    'weapon.mgRecoilImpulse': BASE_CONFIG.tank.mgRecoilImpulse,
+    'weapon.mgRecoilSpin': 0.05,
+    'weapon.cannonDamage': BASE_CONFIG.weapons.cannonDamage,
+    'weapon.cannonRadius': BASE_CONFIG.weapons.cannonRadius,
+    'weapon.cannonSpeed': BASE_CONFIG.weapons.cannonSpeed,
+    'weapon.cannonGravity': BASE_CONFIG.weapons.cannonGravity,
+    'weapon.cannonLife': BASE_CONFIG.weapons.cannonLife,
+    'weapon.cannonRecoilImpulse': BASE_CONFIG.tank.recoilImpulse,
+    'weapon.cannonRecoilSpin': BASE_CONFIG.tank.recoilSpin,
+    'weapon.burst': 1,
+    'weapon.burstSpacing': 0.12,
+    'weapon.splashInnerRatio': 0.45,
+    'weapon.splashInnerMultiplier': 1,
+    'weapon.splashOuterMultiplier': 0.65,
+    'weapon.jackpotDamage': BASE_CONFIG.weapons.jackpotDamage,
+    'weapon.jackpotRadius': BASE_CONFIG.weapons.jackpotRadius,
+    'weapon.jackpotSpeed': BASE_CONFIG.weapons.jackpotSpeed,
+    'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
+    'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
+    'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
+    'weapon.jackpotBraceMultiplier': BASE_CONFIG.tank.jackpotBraceMult,
+  };
+
+  const loadout: LoadoutDefinition = {
+    id: 'loadout.default',
+    label: 'Default Crew Loadout',
+    behaviors: [],
+    primary: 'weapon.machineGun',
+    secondary: 'weapon.mainCannon',
+    ability: 'weapon.jackpotShell',
+    turret: {
+      turnRate: BASE_CONFIG.weapons.turretTurnRate,
+      maxPitch: BASE_CONFIG.weapons.turretMaxPitch,
+      minPitch: BASE_CONFIG.weapons.turretMinPitch,
+    },
+  };
+
+  const weapons: Record<string, WeaponDefinition> = {
+    'weapon.machineGun': {
+      id: 'weapon.machineGun',
+      label: 'Machine Gun',
+      behaviors: [],
+      behaviorId: 'weapon.hitscan',
+      fireMode: 'auto',
+      cooldownSeconds: 1 / BASE_CONFIG.weapons.mgRate,
+      statBlock: {
+        'weapon.mgDamage': BASE_CONFIG.weapons.mgDamage,
+        'weapon.mgRate': BASE_CONFIG.weapons.mgRate,
+        'weapon.mgRange': BASE_CONFIG.weapons.mgRange,
+        'weapon.mgSpread': BASE_CONFIG.weapons.mgSpread,
+        'weapon.mgSpeed': BASE_CONFIG.weapons.mgSpeed,
+        'weapon.mgRecoilImpulse': BASE_CONFIG.tank.mgRecoilImpulse,
+        'weapon.mgRecoilSpin': 0.05,
+      },
+    },
+    'weapon.mainCannon': {
+      id: 'weapon.mainCannon',
+      label: 'Main Cannon',
+      behaviors: [],
+      behaviorId: 'weapon.projectile',
+      fireMode: 'semi',
+      cooldownSeconds: BASE_CONFIG.weapons.cannonCooldown,
+      statBlock: {
+        'weapon.cannonDamage': BASE_CONFIG.weapons.cannonDamage,
+        'weapon.cannonRadius': BASE_CONFIG.weapons.cannonRadius,
+        'weapon.cannonSpeed': BASE_CONFIG.weapons.cannonSpeed,
+        'weapon.cannonGravity': BASE_CONFIG.weapons.cannonGravity,
+        'weapon.cannonLife': BASE_CONFIG.weapons.cannonLife,
+        'weapon.cannonRecoilImpulse': BASE_CONFIG.tank.recoilImpulse,
+        'weapon.cannonRecoilSpin': BASE_CONFIG.tank.recoilSpin,
+        'weapon.burst': 1,
+        'weapon.burstSpacing': 0.12,
+        'weapon.splashInnerRatio': 0.45,
+        'weapon.splashInnerMultiplier': 1,
+        'weapon.splashOuterMultiplier': 0.65,
+      },
+      projectileId: 'projectile.cannonShell',
+    },
+    'weapon.jackpotShell': {
+      id: 'weapon.jackpotShell',
+      label: 'JACKPOT Shell',
+      behaviors: [],
+      behaviorId: 'weapon.chargeProjectile',
+      fireMode: 'charge',
+      cooldownSeconds: BASE_CONFIG.jackpot.jackpotCooldown,
+      chargeSeconds: BASE_CONFIG.weapons.jackpotChargeTime,
+      statBlock: {
+        'weapon.jackpotDamage': BASE_CONFIG.weapons.jackpotDamage,
+        'weapon.jackpotRadius': BASE_CONFIG.weapons.jackpotRadius,
+        'weapon.jackpotSpeed': BASE_CONFIG.weapons.jackpotSpeed,
+        'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
+        'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
+        'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
+        'weapon.jackpotBraceMultiplier': BASE_CONFIG.tank.jackpotBraceMult,
+        'weapon.splashInnerRatio': 0.45,
+        'weapon.splashInnerMultiplier': 1,
+        'weapon.splashOuterMultiplier': 0.65,
+      },
+      projectileId: 'projectile.jackpotShell',
+    },
+  };
+
+  return { objective, scoring, results, spawnDirector, weaponStatBlocks, loadout, weapons };
 }
 
 /** Mode definition for the client-safe path (mirrors content/modes). */

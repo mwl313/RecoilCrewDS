@@ -1,15 +1,26 @@
 {
   "id": "weapon.mainCannon",
   "label": "Main Cannon",
-  "kind": "cannon",
-  "damage": 12,
-  "radius": 3.4,
-  "cooldown": 1.6,
-  "speed": 52,
-  "gravity": 5,
-  "life": 2.4,
-  "burst": 1,
-  "burstSpacing": 0.12,
-  "recoilImpulse": 7.2,
-  "recoilSpin": 1.7
+  "behaviorId": "weapon.projectile",
+  "fireMode": "semi",
+  "cooldownSeconds": 1.6,
+  "statBlock": {
+    "weapon.cannonDamage": 12,
+    "weapon.cannonRadius": 3.4,
+    "weapon.cannonSpeed": 52,
+    "weapon.cannonGravity": 5,
+    "weapon.cannonLife": 2.4,
+    "weapon.burst": 1,
+    "weapon.burstSpacing": 0.12,
+    "weapon.splashInnerRatio": 0.45,
+    "weapon.splashInnerMultiplier": 1,
+    "weapon.splashOuterMultiplier": 0.65,
+    "weapon.cannonRecoilImpulse": 7.2,
+    "weapon.cannonRecoilSpin": 1.7
+  },
+  "projectileId": "projectile.cannonShell",
+  "presentation": {
+    "muzzleVfxId": "vfx.cannonMuzzle",
+    "fireAudioId": "audio.cannon"
+  }
 }

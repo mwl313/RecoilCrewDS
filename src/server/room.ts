@@ -90,13 +90,17 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
   const r = raw as Record<string, unknown>;
   const aimYaw = typeof r.aimYaw === 'number' && Number.isFinite(r.aimYaw) ? r.aimYaw : 0;
   const aimPitch = typeof r.aimPitch === 'number' && Number.isFinite(r.aimPitch) ? Math.max(-1.5, Math.min(1.5, r.aimPitch)) : 0;
-  return {
+  const gunner: GunnerInput = {
     aimYaw,
     aimPitch,
     mg: !!r.mg,
     cannon: !!r.cannon,
     charge: !!r.charge,
   };
+  if (typeof r.primary === 'boolean') gunner.primary = r.primary;
+  if (typeof r.secondary === 'boolean') gunner.secondary = r.secondary;
+  if (typeof r.ability === 'boolean') gunner.ability = r.ability;
+  return gunner;
 }
 
 export class RoomManager {

@@ -13,9 +13,14 @@ export interface DriverInput {
 export interface GunnerInput {
   aimYaw: number; // desired turret yaw, world radians
   aimPitch: number; // desired pitch, radians
-  mg: boolean;
-  cannon: boolean;
-  charge: boolean; // held while JACKPOT ready
+  /** Legacy wire fields (additive adapter: mg -> primary, cannon -> secondary, charge -> ability). */
+  mg?: boolean;
+  cannon?: boolean;
+  charge?: boolean; // held while JACKPOT ready
+  /** Generic actions. */
+  primary?: boolean;
+  secondary?: boolean;
+  ability?: boolean;
 }
 
 export interface PlayerInput {

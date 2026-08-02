@@ -131,7 +131,14 @@ export class ReferenceValidator {
       this.checkCommon(issues, effect, this.fileOf(effect.id, this.registries.statusEffects));
     }
     for (const weapon of this.registries.weapons.all()) {
-      this.checkCommon(issues, weapon, this.fileOf(weapon.id, this.registries.weapons));
+      const weaponFile = this.fileOf(weapon.id, this.registries.weapons);
+      this.checkCommon(issues, weapon, weaponFile);
+      if (!this.behaviors.has(weapon.behaviorId)) {
+        issues.push(`${weaponFile}: behaviorId — unknown weapon behavior '${weapon.behaviorId}'`);
+      }
+      if (weapon.projectileId && !this.registries.projectiles.has(weapon.projectileId)) {
+        issues.push(`${weaponFile}: projectileId — unknown projectile reference '${weapon.projectileId}'`);
+      }
     }
     for (const projectile of this.registries.projectiles.all()) {
       this.checkCommon(issues, projectile, this.fileOf(projectile.id, this.registries.projectiles));

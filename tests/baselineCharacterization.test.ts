@@ -108,7 +108,7 @@ describe('Demo duration source', () => {
 
 // ------------------------------------------------------------ 2. weapon input
 describe('weapon input fields (wire contract)', () => {
-  it('the server reads exactly aimYaw/aimPitch/mg/cannon/charge and ignores unknown gunner fields', () => {
+  it('the server reads aimYaw/aimPitch + legacy and generic action fields and ignores unknown gunner fields', () => {
     const { manager } = makeManager();
     const { a, b, room } = startCrew(manager);
     manager.handle(b, {
@@ -133,6 +133,7 @@ describe('weapon input fields (wire contract)', () => {
       mg: true,
       cannon: false,
       charge: false,
+      primary: true,
     });
     // Unknown fields must not have triggered a weapon.
     expect(room.match!.state.shells.length).toBe(0);

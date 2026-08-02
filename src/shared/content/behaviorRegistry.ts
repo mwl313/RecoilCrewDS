@@ -9,7 +9,9 @@ export type BehaviorKind =
   | 'mode'
   | 'objective'
   | 'item'
-  | 'effect';
+  | 'effect'
+  | 'weapon'
+  | 'projectile';
 
 export interface BehaviorBinding {
   readonly id: string;
@@ -73,5 +75,9 @@ export function createBuiltinBehaviorRegistry(): BehaviorRegistry {
   registry.register({ id: 'behavior.results.demo', kind: 'results', description: 'Demo grade/title rules' });
   registry.register({ id: 'behavior.mode.demoScoreAttack', kind: 'mode', description: 'Demo Score Attack mode loop' });
   registry.register({ id: 'behavior.objective.scoreAttack', kind: 'objective', description: 'High-score timed objective' });
+  registry.register({ id: 'weapon.hitscan', kind: 'weapon', description: 'Hitscan weapon behavior (machine gun)' });
+  registry.register({ id: 'weapon.projectile', kind: 'weapon', description: 'Semi-auto projectile weapon (main cannon)' });
+  registry.register({ id: 'weapon.chargeProjectile', kind: 'weapon', description: 'Charge-to-fire projectile weapon (JACKPOT)' });
+  registry.register({ id: 'projectile.shell', kind: 'projectile', description: 'Shared ballistic shell behavior' });
   return registry;
 }

@@ -16,9 +16,9 @@ export function legacyGameConfigFromContent(pack: ContentPack): GameConfig {
   const mode = pack.selectedMode;
   const tank = pack.getTank(mode.tank);
   const loadout = pack.getLoadout(mode.loadout);
-  const mg = weaponOfKind(pack, loadout.primary, 'mg');
-  const cannon = weaponOfKind(pack, loadout.secondary, 'cannon');
-  const jackpot = weaponOfKind(pack, loadout.ability, 'jackpot');
+  const mg = weaponOfKind(pack, loadout.primary, 'weapon.hitscan');
+  const cannon = weaponOfKind(pack, loadout.secondary, 'weapon.projectile');
+  const jackpot = weaponOfKind(pack, loadout.ability, 'weapon.chargeProjectile');
   const bug = enemyOfType(pack, 'enemy.scrapBug', 'scrapBug');
   const rammer = enemyOfType(pack, 'enemy.rammer', 'rammer');
   const tower = enemyOfType(pack, 'enemy.gunTower', 'gunTower');
@@ -65,22 +65,22 @@ export function legacyGameConfigFromContent(pack: ContentPack): GameConfig {
       mgRecoilImpulse: tank.mgRecoilImpulse,
     },
     weapons: {
-      mgDamage: mg.damage,
-      mgRate: mg.rate,
-      mgRange: mg.range,
-      mgSpread: mg.spread,
-      mgSpeed: mg.speed,
-      cannonDamage: cannon.damage,
-      cannonRadius: cannon.radius,
-      cannonCooldown: cannon.cooldown,
-      cannonSpeed: cannon.speed,
-      cannonGravity: cannon.gravity,
-      cannonLife: cannon.life,
-      jackpotDamage: jackpot.damage,
-      jackpotRadius: jackpot.radius,
-      jackpotSpeed: jackpot.speed,
-      jackpotChargeTime: jackpot.chargeTime,
-      jackpotLife: jackpot.life,
+      mgDamage: stat(mg, 'weapon.mgDamage'),
+      mgRate: stat(mg, 'weapon.mgRate'),
+      mgRange: stat(mg, 'weapon.mgRange'),
+      mgSpread: stat(mg, 'weapon.mgSpread'),
+      mgSpeed: stat(mg, 'weapon.mgSpeed'),
+      cannonDamage: stat(cannon, 'weapon.cannonDamage'),
+      cannonRadius: stat(cannon, 'weapon.cannonRadius'),
+      cannonCooldown: cannon.cooldownSeconds,
+      cannonSpeed: stat(cannon, 'weapon.cannonSpeed'),
+      cannonGravity: stat(cannon, 'weapon.cannonGravity'),
+      cannonLife: stat(cannon, 'weapon.cannonLife'),
+      jackpotDamage: stat(jackpot, 'weapon.jackpotDamage'),
+      jackpotRadius: stat(jackpot, 'weapon.jackpotRadius'),
+      jackpotSpeed: stat(jackpot, 'weapon.jackpotSpeed'),
+      jackpotChargeTime: jackpot.chargeSeconds ?? 1,
+      jackpotLife: stat(jackpot, 'weapon.jackpotLife'),
       turretTurnRate: loadout.turret.turnRate,
       turretMaxPitch: loadout.turret.maxPitch,
       turretMinPitch: loadout.turret.minPitch,
@@ -138,7 +138,7 @@ export function legacyGameConfigFromContent(pack: ContentPack): GameConfig {
       normalScrapGain: scoring.jackpotGains.normalScrap,
       heavyScrapGain: scoring.jackpotGains.heavyScrap,
       jackpotScrapGain: scoring.jackpotGains.jackpotScrap,
-      jackpotCooldown: scoring.jackpotCooldown,
+      jackpotCooldown: pack.getWeapon(loadout.ability).cooldownSeconds,
       speedCollectGain: scoring.jackpotGains.speedCollect,
       ramGain: scoring.jackpotGains.ram,
       dodgeGain: scoring.jackpotGains.dodge,
@@ -178,14 +178,14 @@ export function legacyMatchConfigFromContent(pack: ContentPack, modifier: Modifi
   const mode = pack.selectedMode;
   const tank = pack.getTank(mode.tank);
   const loadout = pack.getLoadout(mode.loadout);
-  const cannon = weaponOfKind(pack, loadout.secondary, 'cannon');
+  const cannon = weaponOfKind(pack, loadout.secondary, 'weapon.projectile');
   const spawn = pack.getSpawnDirector(mode.spawnDirector);
   const difficulty = pack.getDifficulty(modifier === 'none' ? mode.difficulty : `difficulty.${modifier}`);
   const base: MatchConfig & { label?: string; desc?: string } = {
     timeScale: difficulty.timeScale,
     modifier,
-    cannonCooldown: cannon.cooldown,
-    cannonBurst: cannon.burst,
+    cannonCooldown: cannon.cooldownSeconds,
+    cannonBurst: stat(cannon, 'weapon.burst'),
     recoilImpulse: tank.recoilImpulse,
     grip: tank.normalGrip,
     boostGrip: tank.boostGrip,
@@ -221,15 +221,26 @@ function legacyModifier(difficultyId: string): ModifierId {
   return difficultyId.replace(/^difficulty\./, '') as ModifierId;
 }
 
-type WeaponOfKind<K extends 'mg' | 'cannon' | 'jackpot'> = Extract<WeaponDefinition, { kind: K }>;
 type EnemyOfType<T extends 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck'> = Extract<EnemyDefinition, { type: T }>;
 
-function weaponOfKind<K extends 'mg' | 'cannon' | 'jackpot'>(pack: ContentPack, id: string, kind: K): WeaponOfKind<K> {
+function weaponOfKind<K extends 'weapon.hitscan' | 'weapon.projectile' | 'weapon.chargeProjectile'>(
+  pack: ContentPack,
+  id: string,
+  kind: K,
+): WeaponDefinition {
   const weapon = pack.getWeapon(id);
-  if (weapon.kind !== kind) {
-    throw new Error(`content mismatch: expected weapon '${id}' to be kind '${kind}', got '${weapon.kind}'`);
+  if (weapon.behaviorId !== kind) {
+    throw new Error(`content mismatch: expected weapon '${id}' behavior '${kind}', got '${weapon.behaviorId}'`);
   }
-  return weapon as WeaponOfKind<K>;
+  return weapon;
+}
+
+function stat(weapon: WeaponDefinition, id: string): number {
+  const value = weapon.statBlock[id];
+  if (value === undefined) {
+    throw new Error(`content mismatch: weapon '${weapon.id}' statBlock is missing '${id}'`);
+  }
+  return value;
 }
 
 function enemyOfType<T extends 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck'>(pack: ContentPack, id: string, type: T): EnemyOfType<T> {

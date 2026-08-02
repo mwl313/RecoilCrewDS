@@ -1,9 +1,9 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** `8cb15af` (Phase 2 completion: "refactor: Phase 2 immutable match rules, runtime stats, DemoMode, and extracted systems")
-**Current phase:** 2 — Stats/DemoMode (automated gate passed)
-**Last passing phase:** 2 — Stats/DemoMode
+**Current commit:** (Phase 3 completion, recorded after commit)
+**Current phase:** 3 — Weapons/damage/projectiles (automated gate passed)
+**Last passing phase:** 3 — Weapons/damage/projectiles
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
 **Content pack:** `demo@1.0.0` — `content/` (validated, frozen, hash `e4afdf7a10b0…`)
 **Rules revision format:** per-match `MatchRules` (ContentPack -> mode -> difficulty); `rulesRevision` + `movementRulesRevision` + compact movement block replicated on snapshots
@@ -12,22 +12,24 @@
 
 ```text
 npm run build: PASS (client dist/ + server dist-server/)
-npm test: PASS — 21 files, 201/201 tests (Phase 1 baseline: 17 files, 163 tests)
+npm test: PASS — 22 files, 215/215 tests (Phase 2 baseline: 21 files, 201 tests)
 npm run test:e2e: PASS — 14/14 Playwright tests (4.4m)
-npm run test:loop: PASS — 90.1s round, score 4969, grade B, JACKPOT x2,
+npm run test:loop: PASS — 90.4s round, score 11504, grade A, JACKPOT x2,
   combo x5, rematch ok (moonYard, fresh score 0, same room), 1353 snapshots
 npm run test:demo: PASS — deterministic Demo fixture still matches golden
 ```
 
-Current unit test count: 201 (21 files) — includes 38 new Phase 2 tests
+Current unit test count: 215 (22 files) — includes 14 new Phase 3 tests
 Current E2E test count: 14 (unchanged)
 Known baseline limitations:
 
-- `Match.cfg`/`mcfg` are now per-match frozen projections of resolved stats
-  (shared `BASE_CONFIG` reference removed).
-- `MatchRuntime` remains large (~1270 lines) with legacy weapon/enemy/shell/
-  pickup/spawn/barrel paths (Phase 3/4 extraction targets); `Game` remains
-  a monolith (1053 lines).
+- `MatchRuntime` (~940 lines) still owns enemy AI, pickups, spawn pacing,
+  and barrels (Phase 4 extraction targets); `Game` remains a monolith.
+- Weapon behavior parameters are read from per-weapon statBlocks (resolver
+  merged) with a few legacy-precedence reads (cannon recoil uses
+  match.recoilImpulse so difficulty overrides keep working).
+- Semantic bus events are consumed by synchronous drains (the kill reaction
+  drains at emit); future presentation consumers must subscribe, not drain.
 - `Match` consumes global `Math.random`; determinism is achieved by seeding
   in the fixture, not by injection.
 - `REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md` is referenced by the
@@ -44,7 +46,8 @@ Known baseline limitations:
 |---|---|---|---|
 | 0 — Baseline audit | Complete | `eb5c1e5` | All four commands PASS |
 | 1 — Core/content runtime | Complete | `5444fe2` | All four commands PASS |
-| 2 — Stats/DemoMode | Automated gate passed | `8cb15af` | All four commands PASS |
+| 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
+| 3 — Weapons/damage/projectiles | Automated gate passed | (Phase 3 commit) | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Not started | | |
 | 4 — Enemies/items/objectives | Not started | | |
 | 5 — Client/assets | Not started | | |
@@ -79,6 +82,13 @@ src/shared/modes/ — DemoScoreAttackModeDefinition + DemoScoreAttackModeRuntime
 src/shared/sim/systems/ — RoundSystem, ObjectiveSystem, ScoreSystem,
   ComboSystem, JackpotSystem, ResultSystem
 src/shared/sim/matchRuntime.ts — orchestration; Match is now a thin facade
+src/shared/weapons/ — WeaponSystem, LoadoutRuntime (primary/secondary/ability),
+  WeaponRegistry, WeaponBehaviorRegistry, WeaponRuntimeState,
+  hitscan/projectile/chargeProjectile behaviors
+src/shared/projectiles/ — ProjectileSystem, ProjectileBehaviorRegistry
+src/shared/damage/ — DamageRequest/Result/Source/Tags, DamageSystem
+src/shared/effects/ — RecoilEffect (reusable authoritative recoil)
+src/shared/sim/enemyRadius.ts — shared radius resolver
 ```
 
 ### Compatibility adapters still present
@@ -87,6 +97,9 @@ src/shared/sim/matchRuntime.ts — orchestration; Match is now a thin facade
 LegacyConfigAdapter (maps ContentPack -> GameConfig/MatchConfig; now feeds
   MatchRules projections; removal: Phase 3+)
 LegacyContentAdapter (content id <-> legacy enum maps; removal: Phase 3)
+LegacyWeaponInputAdapter (mg/cannon/charge -> primary/secondary/ability in
+  LoadoutRuntime.actionsFromInput; generic fields win when both are sent;
+  removal: when the client migrates to generic fields)
 ```
 
 ### Compatibility adapters removed
@@ -98,11 +111,11 @@ None
 ### Hardcoded Demo rules remaining
 
 ```text
-The sim executes from per-match frozen rule projections fed by the stat
-service; duration, assistance, score/combo/JACKPOT mode rules, and results
-selection are content-driven. Still hardcoded in MatchRuntime: weapon/enemy/
-shell/pickup/spawn/barrel algorithms and private spawn schedules (Phase 3/4).
-Arena obstacle/barrel/ramp/route layout remains hardcoded in arena.ts.
+The Demo loop now executes weapons/projectiles/damage/recoil through
+content-defined behaviors (hitscan/projectile/chargeProjectile) with the
+stat service. Still hardcoded in MatchRuntime: enemy AI, pickups, spawn
+pacing, and private spawn schedules (Phase 4). Arena obstacle/barrel/ramp/
+route layout remains hardcoded in arena.ts.
 ```
 
 ### Data not yet migrated to JSON
@@ -111,7 +124,7 @@ Arena obstacle/barrel/ramp/route layout remains hardcoded in arena.ts.
 Phase 1 JSON now mirrors tank/weapon/projectile/enemy/scoring/jackpot/spawn/
 difficulty/results/presentation data. Still TypeScript-only:
 arena obstacle layout, barrel positions, ramps, truck route, and the
-authoritative weapon/enemy/spawn algorithms in matchRuntime.ts (Phase 3/4).
+authoritative enemy/pickup/spawn algorithms in matchRuntime.ts (Phase 4).
 ```
 
 ## Current phase changes
@@ -145,6 +158,12 @@ tests/matchRules.test.ts
 tests/modeSystems.test.ts
 tests/roomRules.test.ts
 docs/refractor/REFACTOR_02_DATA_DRIVEN_CONTENT_AND_STATS_SPEC.md
+src/shared/weapons/ (system, loadout, registries, behaviors, runtime state)
+src/shared/projectiles/ (system + behavior registry)
+src/shared/damage/ (types + system)
+src/shared/effects/ (recoil)
+src/shared/sim/enemyRadius.ts
+tests/weaponSystem.test.ts
 ```
 
 Files modified:
@@ -162,28 +181,35 @@ src/client/game.ts + main.ts (movement block -> predictor)
 src/shared/types.ts + net/interpolation.ts (additive snapshot fields)
 tests/baselineCharacterization.test.ts (cfg shared-reference pin replaced by
   per-match immutable projection assertions)
+content/weapons/*.json (spec format: behaviorId, fireMode, cooldownSeconds,
+  statBlock, projectileId, presentation)
+src/shared/content/schemas/weapon.ts (spec-format schema)
+src/shared/stats/statIds.ts (per-kind weapon behavior stat ids)
+src/shared/server/room.ts (additive primary/secondary/ability gunner fields)
+src/shared/sim/matchRuntime.ts (weapon/shell/recoil/kill paths migrated)
 ```
 
 Behavior changes:
 
 ```text
-Phases 0-1: no gameplay/network behavior change; Demo golden fixture
+Phases 0-2: no gameplay/network behavior change; Demo golden fixture
 unchanged (1641 events, same results).
 
-Phase 2 — gameplay numbers are byte-for-byte unchanged (golden fixture,
-all 163 pre-existing tests, e2e, loop). Structural changes only:
-- Match split into a thin facade + MatchRuntime with immutable MatchRules.
-- Six systems extracted; duration/assistance/score/combo/JACKPOT/results
-  ownership moved out of Match into content-driven systems.
-- Snapshots additively carry rulesRevision/movementRulesRevision and the
-  compact movement block on change; Driver predictor applies it.
+Phase 3 — gameplay numbers are byte-for-byte unchanged (golden fixture,
+all pre-existing tests, e2e, loop). Structural changes only:
+- Weapons/projectiles/damage/recoil run through content-driven systems;
+  MatchRuntime no longer owns stepWeapons/stepShells/recoil/killEnemy.
+- Gunner input gains additive generic actions (primary/secondary/ability);
+  mg/cannon/charge map through the input adapter.
+- Semantic bus events (weapon.fired, projectile.impacted, damage.applied,
+  entity.killed, recoil.applied) emitted internally; wire events unchanged.
 ```
 
 ## Verification
 
 ```text
 npm run build: PASS
-npm test: PASS — 21 files, 201/201
+npm test: PASS — 22 files, 215/215
 npm run test:e2e: PASS — 14/14
 npm run test:loop: PASS — 90.0s full round + rematch
 npm run test:demo: PASS — deterministic fixture matches tests/fixtures/demo-golden.json
@@ -192,7 +218,7 @@ npm run test:demo: PASS — deterministic fixture matches tests/fixtures/demo-go
 Manual tests:
 
 ```text
-Not performed beyond the automated e2e/loop suites (Phases 0-2 change nothing
+Not performed beyond the automated e2e/loop suites (Phases 0-3 change nothing
 in runtime behavior; browser play was verified by e2e + loop gates).
 ```
 
@@ -215,10 +241,12 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 7. Client bundle grew ~24 KB with the stats/rules/systems code (no fs/zod).
 8. Stat scope is intentionally match/tank/weapon/enemy only; scoring/jackpot/
    arena values still flow through the legacy config projection.
-9. MatchRuntime still owns weapon/enemy/shell/pickup/spawn/barrel algorithms
-   (~1270 lines) — extraction targets for Phases 3-4.
+9. MatchRuntime still owns enemy/pickup/spawn/barrel algorithms (~940 lines)
+   — extraction target for Phase 4.
 10. The stat resolver cache is per-stat; whole-config projection refreshes
     on any stat change (cheap at 30 Hz, revisited if profiling demands).
+11. Weapon statBlocks mirror some values that also live in the legacy config
+    projection (e.g. cannon recoil base); parity tests enforce sync.
 ```
 
 ## Next phase prerequisites
@@ -227,10 +255,10 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 Apply the recommended tag refactor-baseline to the Phase 0 completion commit
 (recorded here per REFACTOR_03 §2; tag creation is a one-line follow-up).
 
-Phase 3 (weapons/damage/projectiles) prerequisites:
-- Migrate loadout slots to primary/secondary/ability behind a
-  LegacyWeaponInputAdapter while mg/cannon/charge remain on the wire.
-- Resolve weapon/projectile behavior from content definitions with the
-  stat service; keep cooldowns/recoil authoritative.
+Phase 4 (enemies/items/effects/spawning) prerequisites:
+- Compose enemy behaviors from definitions (hunt/charge/burst/route) with
+  drop tables; route all enemy damage through DamageSystem (already adapted).
+- Add item/status-effect runtime with stat modifiers (stacking/expiration
+  exist in StatResolver); consume spawn-director definitions for pacing.
 - Keep the golden fixture, rules revisions, and movement block passing.
 ```

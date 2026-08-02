@@ -73,6 +73,7 @@ export const WEAPON_STAT_IDS = [
   'weapon.cannonSpeed',
   'weapon.cannonGravity',
   'weapon.cannonLife',
+  'weapon.burst',
   'weapon.jackpotDamage',
   'weapon.jackpotRadius',
   'weapon.jackpotSpeed',
@@ -84,6 +85,19 @@ export const WEAPON_STAT_IDS = [
   'weapon.barrelHp',
   'weapon.barrelRadius',
   'weapon.barrelChainRadius',
+  // Phase 3 weapon behavior parameters (per-kind so the flat weapon stat
+  // block can carry all Demo weapons without collisions).
+  'weapon.mgRecoilImpulse',
+  'weapon.mgRecoilSpin',
+  'weapon.cannonRecoilImpulse',
+  'weapon.cannonRecoilSpin',
+  'weapon.jackpotRecoilImpulse',
+  'weapon.jackpotRecoilSpin',
+  'weapon.jackpotBraceMultiplier',
+  'weapon.burstSpacing',
+  'weapon.splashInnerRatio',
+  'weapon.splashInnerMultiplier',
+  'weapon.splashOuterMultiplier',
 ] as const;
 
 export const ENEMY_STAT_IDS = [
