@@ -7,7 +7,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { GameAssets } from '../src/client/assets';
+import * as THREE from 'three';
+import { AssetService } from '../src/client/assets';
 import { DriverPredictor } from '../src/client/predictor';
 import { isValidAssetId, REQUIRED_ASSET_IDS } from '../src/shared/assetRegistry';
 import { BASE_CONFIG, GAME, buildMatchConfig } from '../src/shared/config';
@@ -280,33 +281,48 @@ describe('asset manifest behavior', () => {
     expect(REQUIRED_ASSET_IDS.length).toBeGreaterThanOrEqual(43);
   });
 
-  it('GameAssets applies manifest overrides for models/vfx/ui and ignores unknown ids', async () => {
+  it('AssetService awaits the manifest, registers model files, and ignores unknown ids', async () => {
     const originalFetch = globalThis.fetch;
+    const loadedUrls: string[] = [];
+    const fakeGltfLoader = async () => ({
+      load(url: string, onLoad: (gltf: { scene: unknown }) => void) {
+        loadedUrls.push(url);
+        const scene = new THREE.Object3D();
+        (scene as unknown as { isFake: boolean }).isFake = true;
+        onLoad({ scene });
+      },
+    });
     globalThis.fetch = (async () => ({
       ok: true,
       json: async () => ({
         assets: [
           { id: 'playerTank.chassis', category: 'model', file: '/assets/models/tank-chassis.glb' },
-          { id: 'vfx.cannonImpact', category: 'vfx', color: 16748288, size: 0.8, count: 60 },
-          { id: 'ui.driverTheme', category: 'ui', primary: '#123456' },
           { id: 'bogus.id', category: 'model', file: '/assets/models/bogus.glb' },
         ],
       }),
     })) as unknown as typeof fetch;
     try {
-      const assets = new GameAssets();
-      await flush();
+      const assets = await AssetService.load({ gltfLoaderFactory: fakeGltfLoader as never });
+      expect(assets.manifestLoaded).toBe(true);
       expect(assets.models.getFile('playerTank.chassis')).toBe('/assets/models/tank-chassis.glb');
-      const vfx = assets.vfx.resolve('vfx.cannonImpact');
-      expect(vfx.color).toBe(16748288);
-      expect(vfx.size).toBe(0.8);
-      expect(vfx.count).toBe(60);
-      const ui = assets.ui.resolve('ui.driverTheme');
-      expect(ui.primary).toBe('#123456');
+      expect(loadedUrls).toEqual(['/assets/models/tank-chassis.glb']);
+      // The GLB is cached as a prototype and cloned per instance.
+      const proto = assets.models.getPrototypeSync('playerTank.chassis')!;
+      expect((proto as unknown as { isFake: boolean }).isFake).toBe(true);
+      const instance = assets.model('playerTank.chassis');
+      expect(instance).toBeInstanceOf(THREE.Object3D);
+      expect(instance).not.toBe(assets.model('playerTank.chassis'));
       expect(assets.models.getFile('bogus.id')).toBeNull();
-      // Untouched fallbacks still resolve.
-      expect(assets.models.resolve('playerTank.turret')).toBeDefined();
-      expect(assets.models.resolve('enemy.scrapBug')).toBeDefined();
+      // All presentation models are preloaded and resolvable as instances.
+      expect(assets.model('playerTank.turret')).toBeDefined();
+      expect(assets.model('enemy.scrapBug')).toBeDefined();
+      // Semantic presentation routing resolves through the catalog.
+      expect(assets.vfx('vfx.cannonImpact').count).toBeGreaterThan(0);
+      expect(assets.ui('ui.driverTheme').primary).toBe('#35d7e8');
+      expect(assets.audio('audio.cannon').kind).toBe('cannon');
+      expect(assets.icon('icon.jackpot').color).toBe('#ffe98a');
+      expect(assets.cameraImpulse('cameraImpulse.cannon').shake).toBe(0.45);
+      expect(() => assets.vfx('vfx.bogus')).toThrow(/unknown vfx/);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -316,21 +332,17 @@ describe('asset manifest behavior', () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () => ({ ok: false })) as unknown as typeof fetch;
     try {
-      const assets = new GameAssets();
-      await flush();
+      const assets = await AssetService.load();
+      expect(assets.manifestLoaded).toBe(false);
       expect(assets.models.getFile('audio.cannon')).toBeNull();
-      expect(assets.models.resolve('playerTank.chassis')).toBeDefined();
-      expect(assets.vfx.resolve('vfx.jackpot')).toBeDefined();
-      expect(assets.ui.resolve('ui.gunnerTheme')).toBeDefined();
+      expect(assets.model('playerTank.chassis')).toBeDefined();
+      expect(assets.vfx('vfx.jackpot')).toBeDefined();
+      expect(assets.ui('ui.gunnerTheme').name).toBe('GUNNER');
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 });
-
-async function flush() {
-  for (let i = 0; i < 8; i++) await new Promise((r) => setTimeout(r, 0));
-}
 
 // ---------------------------------------------- 5. practice/online rule parity
 describe('practice/online rule parity', () => {
@@ -460,9 +472,10 @@ describe('Driver predictor config source', () => {
     expect((p as unknown as { mcfg: ReturnType<typeof buildMatchConfig> }).mcfg).toEqual(buildMatchConfig('moonYard'));
   });
 
-  it('game.ts wires the predictor config from the shared BASE_CONFIG and the snapshot modifier', () => {
-    const src = readFileSync(path.join(ROOT, 'src/client/game.ts'), 'utf8');
-    expect(src).toContain("import { BASE_CONFIG } from '../shared/config'");
-    expect(src).toContain('new DriverPredictor(BASE_CONFIG, msg.state.modifier)');
+  it('the predictor is wired from BASE_CONFIG and the snapshot movement block', () => {
+    const controller = readFileSync(path.join(ROOT, 'src/client/app/predictionController.ts'), 'utf8');
+    expect(controller).toContain('new DriverPredictor(BASE_CONFIG, modifier');
+    const presenter = readFileSync(path.join(ROOT, 'src/client/app/networkStatePresenter.ts'), 'utf8');
+    expect(presenter).toContain('applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier)');
   });
 });

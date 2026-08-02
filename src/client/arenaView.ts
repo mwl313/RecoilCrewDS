@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ARENA, type Obstacle } from '../shared/arena';
-import type { GameAssets } from './assets';
+import type { AssetService } from './assets';
 
 export interface Collider {
   box: THREE.Box3;
@@ -70,8 +70,8 @@ function hazardTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-function cloneScaled(assets: GameAssets, id: string, sx: number, sy: number, sz: number, x: number, z: number, y = 0, ry = 0): THREE.Object3D {
-  const m = assets.models.resolve(id).clone(true);
+function cloneScaled(assets: AssetService, id: string, sx: number, sy: number, sz: number, x: number, z: number, y = 0, ry = 0): THREE.Object3D {
+  const m = assets.model(id).clone(true);
   m.scale.set(sx, sy, sz);
   m.position.set(x, y, z);
   m.rotation.y = ry;
@@ -95,7 +95,7 @@ export class ArenaView {
   colliders: Collider[] = [];
   barrelMeshes = new Map<number, THREE.Object3D>();
 
-  constructor(private assets: GameAssets) {
+  constructor(private assets: AssetService) {
     this.build();
   }
 
@@ -130,7 +130,7 @@ export class ArenaView {
 
     // Ramps.
     for (const ramp of ARENA.ramps) {
-      const model = this.assets.models.resolve('arena.ramp');
+    const model = this.assets.model('arena.ramp');
       model.scale.set(ramp.w, ramp.rise, ramp.d);
       model.position.set(ramp.x, ramp.baseY, ramp.z);
       model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
@@ -153,7 +153,7 @@ export class ArenaView {
 
     // Barrels.
     for (const b of ARENA.barrels) {
-      const mesh = this.assets.models.resolve('prop.explosiveBarrel').clone(true);
+    const mesh = this.assets.model('prop.explosiveBarrel').clone(true);
       mesh.position.set(b.x, 0, b.z);
       mesh.rotation.y = Math.random() * Math.PI;
       this.group.add(mesh);

@@ -22,7 +22,7 @@
     ],
     "vfx": [
       { "id": "vfx.machineGunMuzzle", "color": 16772042, "size": 0.16, "life": 0.05, "count": 8, "speed": 3, "gravity": 0 },
-      { "id": "vfx.cannonMuzzle", "color": 16752455, "size": 0.5, "life": 0.1, "count": 26, "speed": 8, "gravity": 0 },
+      { "id": "vfx.cannonMuzzle", "color": 16757575, "size": 0.5, "life": 0.1, "count": 26, "speed": 8, "gravity": 0 },
       { "id": "vfx.cannonImpact", "color": 16760645, "size": 0.5, "life": 0.5, "count": 40, "speed": 11, "gravity": 12 },
       { "id": "vfx.enemyDeath", "color": 16724288, "size": 0.5, "life": 0.55, "count": 34, "speed": 9, "gravity": 10 },
       { "id": "vfx.scrapPickup", "color": 7333999, "size": 0.3, "life": 0.35, "count": 18, "speed": 6, "gravity": 6 },
@@ -68,6 +68,21 @@
       { "id": "audio.ui", "kind": "ui", "desc": "audio.ui" },
       { "id": "audio.results", "kind": "results", "desc": "audio.results" },
       { "id": "audio.music", "kind": "music", "desc": "audio.music" }
+    ],
+    "icons": [
+      { "id": "icon.scrap", "color": "#4ddb6e", "label": "SCRAP" },
+      { "id": "icon.heavyScrap", "color": "#7de05a", "label": "HEAVY" },
+      { "id": "icon.jackpot", "color": "#ffe98a", "label": "JACKPOT" },
+      { "id": "icon.crewLink", "color": "#ffd94d", "label": "CREW LINK" }
+    ],
+    "cameraImpulses": [
+      { "id": "cameraImpulse.cannon", "shake": 0.45 },
+      { "id": "cameraImpulse.jackpot", "shake": 1.1 },
+      { "id": "cameraImpulse.wipeout", "shake": 1.0 },
+      { "id": "cameraImpulse.crash", "shake": 0.3 },
+      { "id": "cameraImpulse.barrelBig", "shake": 0.5 },
+      { "id": "cameraImpulse.barrelSmall", "shake": 0.3 },
+      { "id": "cameraImpulse.towerHit", "shake": 0.25 }
     ]
   }
 }

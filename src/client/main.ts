@@ -1,20 +1,23 @@
 import './styles.css';
-import { Game } from './game';
+import { GameClient } from './app/gameClient';
 import { InputManager } from './input';
 import { Hud } from './hud';
 import { NetClient } from './net';
 import { AudioManager } from './audio';
-import { GameAssets } from './assets';
+import { AssetService } from './assets';
+import { HudController } from './app/hudController';
 import type { MatchState, Role } from '../shared/types';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 
-const assets = new GameAssets();
+const assetsPromise = AssetService.load();
 const audio = new AudioManager();
 const hud = new Hud();
+const hudController = new HudController(hud);
 const net = new NetClient();
 const input = new InputManager();
 
-let game: Game | null = null;
+let assets: AssetService | null = null;
+let game: GameClient | null = null;
 let role: Role = 'driver';
 let sessionId = '';
 let roomCode = '';
@@ -183,12 +186,10 @@ net.onStatus = (connected) => {
   }
 };
 
-function startOnline(r: Role) {
+async function startOnline(r: Role) {
   practice = false;
-  if (!game) {
-    game = new Game(document.getElementById('app')!, assets, audio, input, () => undefined);
-    attachGameCallbacks(game);
-  }
+  if (!game) game = await createGame();
+  attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
   game.startOnline(r);
   hud.setGameScreen(true);
@@ -200,10 +201,10 @@ function startOnline(r: Role) {
   input.requestLock();
 }
 
-function startPractice() {
+async function startPractice() {
   teardownGame();
   practice = true;
-  game = new Game(document.getElementById('app')!, assets, audio, input, () => undefined);
+  game = await createGame();
   attachGameCallbacks(game);
   game.onPracticeResults = (results) => {
     hud.showResults(results as never, { driver: true, gunner: true, modifier: 'none' });
@@ -221,12 +222,20 @@ function startPractice() {
   input.requestLock();
 }
 
-function attachGameCallbacks(g: Game) {
+async function createGame(): Promise<GameClient> {
+  const loaded = assets ?? (await assetsPromise);
+  assets = loaded;
+  const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined);
+  created.onHudEvent = (ev) => hud.onEvent(ev as never);
+  return created;
+}
+
+function attachGameCallbacks(g: GameClient) {
   input.attach(g.getCanvas());
   input.onLockChange = onLockChange;
   g.onSendInput = (m) => net.send(m);
   g.onPauseRequest = () => showPause();
-  g.onFrame = onFrame;
+  g.onFrame = (state) => onFrame(g, state);
 }
 
 function teardownGame() {
@@ -256,15 +265,10 @@ function onLockChange(locked: boolean) {
   }
 }
 
-function onFrame(state: MatchState) {
-  if (!game) return;
+function onFrame(g: GameClient, state: MatchState) {
   latestState = state;
-  const truck = state.truck;
-  let objective: { x: number; y: number; visible: boolean } | null = null;
-  if (truck.active) {
-    objective = game.projectWorld(truck.x, truck.y + 2.4, truck.z);
-  }
-  hud.update(state, {
+  const objective = hudController.projectObjective(state, (x, y, z) => g.projectWorld(x, y, z));
+  hudController.update(state, {
     role,
     peerConnected,
     ping: pingMs,
@@ -273,8 +277,8 @@ function onFrame(state: MatchState) {
     practice,
     objective,
   });
-  if (input.consumeSwap() && practice) game.togglePracticeView();
-  if (input.consumeRecenter()) game.recenter();
+  if (input.consumeSwap() && practice) g.togglePracticeView();
+  if (input.consumeRecenter()) g.recenter();
   if (input.consumeEscape()) {
     if (input.locked) input.releaseLock();
     else showPause();
@@ -288,8 +292,8 @@ function onFrame(state: MatchState) {
 
 setInterval(() => {
   if (game) {
-    const fps = (game as unknown as { fps: number }).fps;
-    if (fps) lastFps = fps;
+    const value = (game as unknown as { quality: { currentFps: number } }).quality?.currentFps ?? 0;
+    if (value) lastFps = value;
   }
 }, 500);
 

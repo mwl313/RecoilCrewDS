@@ -1,9 +1,9 @@
 # Recoil Crew DS — Refactor Status
 
 **Baseline commit:** `2fff386` (pre-Phase-0 HEAD: "Fix TPS controls, turret spaces, prediction, interpolation, collision, and copy")
-**Current commit:** `b468724` (Phase 4 completion: "refactor: Phase 4 modular enemies, behavior composition, items, effects, drops, spawning, and objectives")
-**Current phase:** 4 — Enemies/items/effects/spawning (automated gate passed)
-**Last passing phase:** 4 — Enemies/items/effects/spawning
+**Current commit:** (Phase 5 completion, recorded after commit)
+**Current phase:** 5 — Client/presentation/assets (automated gate passed)
+**Last passing phase:** 5 — Client/presentation/assets
 **Content schema version:** 1 (Zod 4 schema set in `src/shared/content/schemas/`)
 **Content pack:** `demo@1.0.0` — `content/` (validated, frozen; now includes drop tables + pickups; hash regenerated)
 **Rules revision format:** per-match `MatchRules` (ContentPack -> mode -> difficulty); `rulesRevision` + `movementRulesRevision` + compact movement block replicated on snapshots
@@ -19,7 +19,7 @@ npm run test:loop: PASS — 90.4s round, score 14327, grade S, JACKPOT x2,
 npm run test:demo: PASS — deterministic Demo fixture still matches golden
 ```
 
-Current unit test count: 227 (23 files) — includes 12 new Phase 4 tests
+Current unit test count: 234 (24 files) — includes 7 new Phase 5 tests
 Current E2E test count: 14 (unchanged)
 Known baseline limitations:
 
@@ -48,10 +48,8 @@ Known baseline limitations:
 | 1 — Core/content runtime | Complete | `5444fe2` | All four commands PASS |
 | 2 — Stats/DemoMode | Complete | `8cb15af` | All four commands PASS |
 | 3 — Weapons/damage/projectiles | Complete | `720e880` | All four commands PASS |
-| 4 — Enemies/items/effects/spawning | Automated gate passed | `b468724` | All four commands PASS |
-| 3 — Weapons/damage/projectiles | Not started | | |
-| 4 — Enemies/items/objectives | Not started | | |
-| 5 — Client/assets | Not started | | |
+| 4 — Enemies/items/effects/spawning | Complete | `b468724` | All four commands PASS |
+| 5 — Client/presentation/assets | Automated gate passed | (Phase 5 commit) | All four commands PASS |
 | 6 — Proof/cleanup | Not started | | |
 
 Allowed status:
@@ -289,11 +287,22 @@ in runtime behavior; browser play was verified by e2e + loop gates).
 Apply the recommended tag refactor-baseline to the Phase 0 completion commit
 (recorded here per REFACTOR_03 §2; tag creation is a one-line follow-up).
 
-Phase 5 (client/presentation/assets) prerequisites:
-- Route the client through the semantic content: await the asset manifest,
-  instantiate custom GLBs, and consume presentation definitions.
-- Split Game into GameClient + focused modules (asset readiness, entity view
-  registry, presentation event router, camera manager, prediction
-  controller); route VFX/audio/theme through registries.
+Phase 5 (client/presentation/assets) — DONE. Client split complete:
+GameClient coordinates RenderWorld, EntityViewRegistry/Factory,
+NetworkStatePresenter, CameraManager, PredictionController,
+PresentationEventRouter, HudController, PipRenderer, and QualityManager.
+AssetService.load() is awaited; models are cached prototypes (custom GLBs or
+registered procedural fallbacks), cloned per instance, and transformed by
+manifest metadata. VFX/audio/themes/icons/camera impulses route through the
+bundled presentation definition; no gameplay dependency on child names.
+E2E, HUD, cameras, PIP, audio, and VFX remain functional (14/14, loop PASS).
+
+Phase 6 (proof content and cleanup) prerequisites:
+- Add one alternate mode, one ordinary new weapon, one composed enemy, and
+  one stat-changing item through validated content (no MatchRuntime edits).
+- Remove the migrated adapters (LegacyConfigAdapter/LegacyContentAdapter/
+  LegacyWeaponInputAdapter) where callers now consume content directly.
+- Produce authoring guides (ARCHITECTURE, CONTENT_AUTHORING,
+  ADDING_A_GAME_MODE/WEAPON/ENEMY/ITEM, NETWORK_RULES).
 - Keep the golden fixture, rules revisions, and movement block passing.
 ```
