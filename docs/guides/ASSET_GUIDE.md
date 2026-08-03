@@ -1,5 +1,11 @@
 # Asset Replacement Guide
 
+Refractor 02 adds a project asset catalog on top of the built-in semantic
+ids. See `docs/refractor02/PROJECT_ASSET_AUTHORING_GUIDE.md` for registering
+custom models and scene assets. Built-in required assets always keep their
+procedural fallbacks; project assets use namespaces and may replace a
+built-in only through an explicit `replacesBuiltIn` field.
+
 Every visual, effect, UI theme, and audio event is referenced by a **semantic
 asset ID**. Gameplay code never references model child names, file paths, or
 mesh names — it asks the registry for an ID, so you can replace art without

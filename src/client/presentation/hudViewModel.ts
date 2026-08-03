@@ -1,0 +1,205 @@
+import type { MatchState, Role } from '../../shared/types';
+
+/**
+ * Safe, typed projection of authoritative/interpolated state + client
+ * context for the gameplay HUD. Content bindings may only read these fields
+ * (HUD_BINDING_PATHS enforces it at generation time).
+ */
+export interface HudViewModel {
+  role: Role;
+  practice: boolean;
+  pointerLocked: boolean;
+  connection: {
+    peerConnected: boolean;
+    pingMs: number;
+    fps: number;
+  };
+  match: {
+    timeRemaining: number;
+    timeUrgent: boolean;
+    score: number;
+    scoreText: string;
+    combo: number;
+    comboHot: boolean;
+  };
+  tank: {
+    integrity: number;
+    integrityMax: number;
+    integrityLow: boolean;
+    speed: number;
+    grounded: boolean;
+    dashReady: boolean;
+    dashActive: boolean;
+    dashCooling: boolean;
+  };
+  gunner: {
+    jackpot: number;
+    jackpotMax: number;
+    jackpotReady: boolean;
+    chargeRatio: number;
+    cannonCooldown: number;
+    cooldownRatio: number;
+  };
+  prompt: string;
+  promptSub: string;
+  crosshairVisible: boolean;
+  chargeVisible: boolean;
+  objective: {
+    visible: boolean;
+    screenX: number;
+    screenY: number;
+    label: string;
+  };
+  pip: {
+    visible: boolean;
+    roleLabel: string;
+    status: string;
+    connected: boolean;
+    jackpot: boolean;
+  };
+}
+
+export interface HudProjectionContext {
+  role: Role;
+  peerConnected: boolean;
+  ping: number;
+  fps: number;
+  pointerLocked: boolean;
+  practice: boolean;
+  objective: { x: number; y: number; visible: boolean } | null;
+}
+
+export function emptyHudViewModel(): HudViewModel {
+  return {
+    role: 'driver',
+    practice: false,
+    pointerLocked: false,
+    connection: { peerConnected: false, pingMs: 0, fps: 60 },
+    match: { timeRemaining: 90, timeUrgent: false, score: 0, scoreText: '0', combo: 1, comboHot: false },
+    tank: {
+      integrity: 100,
+      integrityMax: 100,
+      integrityLow: false,
+      speed: 0,
+      grounded: true,
+      dashReady: true,
+      dashActive: false,
+      dashCooling: false,
+    },
+    gunner: {
+      jackpot: 0,
+      jackpotMax: 100,
+      jackpotReady: false,
+      chargeRatio: 0,
+      cannonCooldown: 0,
+      cooldownRatio: 0,
+    },
+    prompt: '',
+    promptSub: '',
+    crosshairVisible: false,
+    chargeVisible: false,
+    objective: { visible: false, screenX: 0, screenY: 0, label: '' },
+    pip: { visible: true, roleLabel: 'GUNNER FEED', status: '--', connected: false, jackpot: false },
+  };
+}
+
+/**
+ * HudProjector converts authoritative state + client context into the safe
+ * view model. It is the ONLY place HUD content learns about MatchState.
+ */
+export class HudProjector {
+  project(state: MatchState, opts: HudProjectionContext): HudViewModel {
+    const t = state.tank;
+    const remaining = Math.max(0, Math.ceil(state.duration - state.time));
+    const jp = state.turret.jackpotReady;
+    const pipRole: Role = opts.role === 'driver' ? 'gunner' : 'driver';
+    let prompt = '';
+    let promptSub = '';
+    if (jp) {
+      prompt = 'JACKPOT READY';
+      promptSub = opts.role === 'driver' ? 'GUNNER — HOLD RIGHT MOUSE TO CHARGE' : 'HOLD RIGHT MOUSE TO CHARGE';
+    } else if (state.time < 8) {
+      prompt = opts.role === 'driver' ? 'DRIVE · COLLECT SCRAP' : 'FIRE · KILL ENEMIES';
+      promptSub = opts.role === 'driver' ? 'WASD + SHIFT + SPACE' : 'LMB MG · RMB CANNON';
+    } else if (state.time > 40 && state.truck.active) {
+      prompt = 'LOOT TRUCK';
+      promptSub = 'DESTROY IT FOR JACKPOT SCRAP';
+    }
+    if (!opts.pointerLocked && !opts.practice) {
+      prompt = 'CLICK TO AIM';
+      promptSub = '';
+    }
+    const objectiveVisible = Boolean(opts.objective?.visible && state.truck.active);
+    return {
+      role: opts.role,
+      practice: opts.practice,
+      pointerLocked: opts.pointerLocked,
+      connection: {
+        peerConnected: opts.peerConnected,
+        pingMs: Math.round(opts.ping),
+        fps: Math.round(opts.fps),
+      },
+      match: {
+        timeRemaining: remaining,
+        timeUrgent: remaining <= 5,
+        score: Math.floor(state.stats.score),
+        scoreText: Math.floor(state.stats.score).toLocaleString(),
+        combo: state.combo.multiplier,
+        comboHot: state.combo.multiplier >= 3,
+      },
+      tank: {
+        integrity: t.integrity,
+        integrityMax: 100,
+        integrityLow: t.integrity < 35,
+        speed: Math.round(Math.hypot(t.vx, t.vz) * 3.6),
+        grounded: t.grounded,
+        dashReady: t.dashCooldown <= 0,
+        dashActive: t.dashPresentationT > 0,
+        dashCooling: t.dashCooldown > 0,
+      },
+      gunner: {
+        jackpot: state.stats.jackpotMeter,
+        jackpotMax: 100,
+        jackpotReady: jp,
+        chargeRatio: Math.min(1, state.turret.chargeT / 1.0),
+        cannonCooldown: state.turret.cannonCooldown,
+        cooldownRatio: Math.max(0, state.turret.cannonCooldown / 1.6),
+      },
+      prompt,
+      promptSub,
+      crosshairVisible: opts.role === 'gunner' || opts.practice,
+      chargeVisible: state.turret.chargeT > 0,
+      objective: {
+        visible: objectiveVisible,
+        screenX: opts.objective?.x ?? 0,
+        screenY: opts.objective?.y ?? 0,
+        label: 'LOOT TRUCK',
+      },
+      pip: {
+        visible: true,
+        roleLabel: `${pipRole.toUpperCase()} FEED`,
+        status: this.partnerAction(state, pipRole),
+        connected: opts.peerConnected,
+        jackpot: jp,
+      },
+    };
+  }
+
+  private partnerAction(state: MatchState, role: Role): string {
+    const t = state.tank;
+    if (role === 'driver') {
+      if (t.deadT > 0) return 'WIPED OUT';
+      if (!t.grounded && t.vy > 0) return 'JUMPING';
+      if (t.dashPresentationT > 0) return 'DASHING';
+      if (t.drift) return 'DRIFTING';
+      if (Math.hypot(t.vx, t.vz) > 2) return 'DRIVING';
+      return 'STATIONARY';
+    }
+    if (t.deadT > 0) return 'WIPED OUT';
+    if (state.turret.chargeT > 0) return 'CHARGING';
+    if (state.turret.jackpotReady) return 'CANNON READY';
+    if (state.turret.cannonCooldown > 1.2) return 'RELOADING';
+    if (state.turret.mgCooldown < 0.05 && state.turret.mgFiring) return 'FIRING';
+    return 'AIMING';
+  }
+}

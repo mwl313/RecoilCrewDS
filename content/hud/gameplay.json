@@ -1,0 +1,207 @@
+{
+  "id": "hud.gameplay",
+  "label": "Gameplay HUD",
+  "role": "shared",
+  "themeId": "theme.base",
+  "root": {
+    "id": "hud",
+    "type": "container",
+    "class": "hud hidden",
+    "children": [
+      {
+        "id": "hud-top",
+        "type": "horizontal",
+        "class": "hud-top",
+        "children": [
+          {
+            "id": "hud-left",
+            "type": "horizontal",
+            "class": "hud-left",
+            "children": [
+              { "id": "role-chip", "type": "roleChip", "text": "DRIVER", "bindings": [{ "target": "text", "source": "role", "transform": "roleLabel" }] },
+              { "id": "conn-dot", "type": "connectionIndicator", "bindings": [{ "target": "class", "source": "connection.peerConnected", "transform": "booleanClass", "attribute": "off", "fallback": true }] },
+              { "id": "ping", "type": "statText", "class": "ping", "text": "--ms", "bindings": [{ "target": "text", "source": "connection.pingMs", "format": "{0}ms", "fallback": "--ms" }] },
+              { "id": "practice-tag", "type": "practiceTag", "class": "practice-tag hidden", "text": "PRACTICE", "bindings": [{ "target": "visible", "source": "practice" }] }
+            ]
+          },
+          {
+            "id": "hud-timer",
+            "type": "container",
+            "class": "hud-timer",
+            "children": [
+              { "id": "timer", "type": "statText", "text": "90", "bindings": [
+                { "target": "text", "source": "match.timeRemaining", "transform": "integer" },
+                { "target": "class", "source": "match.timeUrgent", "transform": "booleanClass", "attribute": "urgent" }
+              ] }
+            ]
+          },
+          {
+            "id": "hud-right",
+            "type": "horizontal",
+            "class": "hud-right",
+            "children": [
+              { "id": "score", "type": "statText", "class": "score", "text": "0", "bindings": [{ "target": "text", "source": "match.scoreText" }] },
+              { "id": "combo", "type": "statText", "class": "combo", "text": "×1", "bindings": [
+                { "target": "text", "source": "match.combo", "format": "×{0}" },
+                { "target": "class", "source": "combo.hot", "transform": "booleanClass", "attribute": "hot" }
+              ] }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hud-bottom",
+        "type": "horizontal",
+        "class": "hud-bottom",
+        "children": [
+          {
+            "id": "hud-bars",
+            "type": "vertical",
+            "class": "hud-bars",
+            "children": [
+              {
+                "id": "integrity-row",
+                "type": "horizontal",
+                "class": "bar-row",
+                "children": [
+                  { "id": "integrity-label", "type": "text", "class": "bar-label", "text": "INTEGRITY" },
+                  { "id": "integrity-wrap", "type": "container", "class": "bar", "children": [
+                    { "id": "integrity", "type": "progressBar", "class": "bar-fill integrity", "props": { "valueSource": "tank.integrity", "maxSource": "tank.integrityMax" }, "bindings": [{ "target": "class", "source": "tank.integrityLow", "transform": "booleanClass", "attribute": "low" }] }
+                  ] }
+                ]
+              },
+              {
+                "id": "jackpot-row",
+                "type": "horizontal",
+                "class": "bar-row",
+                "children": [
+                  { "id": "jackpot-label", "type": "text", "class": "bar-label", "text": "JACKPOT" },
+                  { "id": "jackpot-bar", "type": "container", "class": "bar jackpot-bar", "bindings": [{ "target": "class", "source": "gunner.jackpotReady", "transform": "booleanClass", "attribute": "ready" }], "children": [
+                    { "id": "jackpot", "type": "progressBar", "class": "bar-fill jackpot", "props": { "valueSource": "gunner.jackpot", "maxSource": "gunner.jackpotMax" } }
+                  ] }
+                ]
+              },
+              {
+                "id": "charge-row",
+                "type": "horizontal",
+                "class": "charge-row hidden",
+                "bindings": [{ "target": "visible", "source": "chargeVisible" }],
+                "children": [
+                  { "id": "charge-label", "type": "text", "class": "charge-label", "text": "CHARGING" },
+                  { "id": "charge-wrap", "type": "container", "class": "bar", "children": [
+                    { "id": "charge-fill", "type": "progressBar", "class": "bar-fill charge", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeRatio" } }
+                  ] }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "hud-speed",
+            "type": "vertical",
+            "class": "hud-speed",
+            "children": [
+              {
+                "id": "speed-num",
+                "type": "horizontal",
+                "class": "speed-num",
+                "children": [
+                  { "id": "speed", "type": "statText", "text": "0", "bindings": [{ "target": "text", "source": "tank.speed", "transform": "integer" }] },
+                  { "id": "speed-unit", "type": "text", "props": { "tag": "small" }, "text": "KM/H" }
+                ]
+              },
+              { "id": "dash-ind", "type": "text", "class": "dash-ind", "text": "DASH", "bindings": [
+                { "target": "class", "source": "tank.dashActive", "transform": "booleanClass", "attribute": "on" },
+                { "target": "class", "source": "tank.dashCooling", "transform": "booleanClass", "attribute": "cool" }
+              ] }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hud-center",
+        "type": "container",
+        "class": "hud-center",
+        "children": [
+          {
+            "id": "crosshair",
+            "type": "crosshair",
+            "class": "crosshair hidden",
+            "bindings": [{ "target": "visible", "source": "crosshairVisible" }],
+            "children": [
+              { "id": "ch-dot", "type": "container", "class": "ch-dot" },
+              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "cooldownRatio" } }
+            ]
+          },
+          { "id": "prompt", "type": "text", "class": "prompt", "bindings": [{ "target": "text", "source": "prompt" }] },
+          { "id": "prompt-sub", "type": "text", "class": "prompt-sub", "bindings": [{ "target": "text", "source": "promptSub" }] }
+        ]
+      },
+      {
+        "id": "objective-arrow",
+        "type": "text",
+        "class": "objective hidden",
+        "text": "▼",
+        "bindings": [
+          { "target": "visible", "source": "objective.visible" },
+          { "target": "style", "source": "objective.screenX", "attribute": "left", "format": "{0}px" },
+          { "target": "style", "source": "objective.screenY", "attribute": "top", "format": "{0}px" }
+        ]
+      },
+      {
+        "id": "pip",
+        "type": "pipFrame",
+        "class": "pip",
+        "bindings": [{ "target": "visible", "source": "pip.visible" }, { "target": "class", "source": "pip.jackpot", "transform": "booleanClass", "attribute": "jackpot" }],
+        "children": [
+          { "id": "pip-label", "type": "text", "class": "pip-label", "text": "GUNNER FEED", "bindings": [{ "target": "text", "source": "pip.roleLabel" }] },
+          { "id": "pip-status", "type": "text", "class": "pip-status", "text": "--", "bindings": [{ "target": "text", "source": "pip.status", "fallback": "--" }] }
+        ]
+      },
+      { "id": "fps", "type": "statText", "class": "fps", "text": "", "bindings": [{ "target": "text", "source": "connection.fps", "format": "{0} FPS", "fallback": "" }] },
+      { "id": "popups", "type": "popupLayer", "class": "popups" },
+      { "id": "pause-btn", "type": "pauseButton", "class": "pause-btn", "text": "☰", "props": { "title": "menu" }, "actions": [{ "event": "click", "action": "app.resume" }] }
+    ]
+  },
+  "previewStates": [
+    {
+      "id": "driver",
+      "label": "Driver",
+      "context": {
+        "role": "driver",
+        "practice": false,
+        "connection": { "peerConnected": true, "pingMs": 24, "fps": 60 },
+        "match": { "timeRemaining": 72, "timeUrgent": false, "score": 3200, "scoreText": "3,200", "combo": 3, "comboHot": true },
+        "tank": { "integrity": 84, "integrityMax": 100, "integrityLow": false, "speed": 42, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
+        "gunner": { "jackpot": 64, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "cannonCooldown": 0, "cooldownRatio": 0 },
+        "prompt": "DRIVE · COLLECT SCRAP",
+        "promptSub": "WASD + SHIFT + SPACE",
+        "crosshairVisible": false,
+        "chargeVisible": false,
+        "cooldownRatio": 0,
+        "pointerLocked": true,
+        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
+        "pip": { "visible": true, "roleLabel": "GUNNER FEED", "status": "AIMING", "connected": true, "jackpot": false }
+      }
+    },
+    {
+      "id": "gunner",
+      "label": "Gunner",
+      "context": {
+        "role": "gunner",
+        "practice": true,
+        "connection": { "peerConnected": true, "pingMs": 31, "fps": 58 },
+        "match": { "timeRemaining": 5, "timeUrgent": true, "score": 5210, "scoreText": "5,210", "combo": 5, "comboHot": true },
+        "tank": { "integrity": 22, "integrityMax": 100, "integrityLow": true, "speed": 0, "grounded": true, "dashReady": false, "dashActive": false, "dashCooling": true },
+        "gunner": { "jackpot": 100, "jackpotMax": 100, "jackpotReady": true, "chargeRatio": 0.5, "cannonCooldown": 1.0, "cooldownRatio": 0.625 },
+        "prompt": "JACKPOT READY",
+        "promptSub": "HOLD RIGHT MOUSE TO CHARGE",
+        "crosshairVisible": true,
+        "chargeVisible": true,
+        "cooldownRatio": 0.625,
+        "pointerLocked": true,
+        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
+        "pip": { "visible": true, "roleLabel": "DRIVER FEED", "status": "DRIVING", "connected": true, "jackpot": true }
+      }
+    }
+  ]
+}

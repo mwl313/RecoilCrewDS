@@ -1,0 +1,25 @@
+{
+  "id": "scene.pause",
+  "label": "Pause",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 120 },
+  "root": {
+    "id": "screen-pause",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "pause-panel",
+        "type": "panel",
+        "class": "panel",
+        "children": [
+          { "id": "pause-title", "type": "text", "props": { "tag": "h2" }, "text": "PAUSED" },
+          { "id": "resume-btn", "type": "button", "class": "btn primary", "text": "RESUME", "actions": [{ "event": "click", "action": "app.resume" }] },
+          { "id": "pause-practice", "type": "button", "class": "btn", "props": { "dataAct": "practice" }, "text": "PRACTICE", "actions": [{ "event": "click", "action": "app.startPractice" }] },
+          { "id": "pause-main", "type": "button", "class": "btn ghost", "props": { "dataAct": "main" }, "text": "MAIN MENU", "actions": [{ "event": "click", "action": "app.returnToMenu" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [{ "id": "paused", "label": "Paused", "context": {} }]
+}

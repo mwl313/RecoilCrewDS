@@ -92,6 +92,21 @@
   `test:maplab` PASS (32/32). Details:
   `docs/map-generation/DRAMATIC_TERRAIN_CLIFF_IMPLEMENTATION_REPORT.md`.
 
+- **Refractor 02 complete (data-driven scene/HUD/asset authoring)** — all
+  ten non-gameplay screens and the gameplay HUD are content documents
+  (`content/scenes|hud|scene-flows|themes|assets`), validated by Zod and
+  compiled by `npm run generate:presentation-content`; `AppFlowController`
+  owns flow/actions, `SceneRuntime` renders + disposes component trees,
+  `HudProjector` projects a typed `HudViewModel`, `PresentationWorld`
+  renders hybrid 3D menus, and `tools/presentation-preview/` inspects every
+  scene/HUD state. Built-in asset fallbacks preserved; project assets use
+  namespaces. Verified: `npm run build` PASS; `npm test` **411/411 PASS**
+  (40 files); `npm run test:presentation` **24/24 PASS**; `npm run
+  test:demo` PASS (golden unchanged); `npm run test:e2e` **23/23 PASS**;
+  `npm run test:loop` PASS (2 of 3 runs; one seed flake scored 85/JACKPOT 0
+  in the headless bot); `npm run test:maps` + `test:maplab` PASS;
+  `build:presentation-preview` PASS. Details: `docs/refractor02/`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

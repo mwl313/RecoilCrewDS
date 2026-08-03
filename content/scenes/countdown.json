@@ -1,0 +1,25 @@
+{
+  "id": "scene.countdown",
+  "label": "Countdown",
+  "type": "ui",
+  "root": {
+    "id": "screen-countdown",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "countdown-inner",
+        "type": "vertical",
+        "class": "countdown-inner",
+        "children": [
+          { "id": "countdown-n", "type": "text", "class": "countdown-number", "text": "3", "bindings": [{ "target": "text", "source": "value", "fallback": "3" }] },
+          { "id": "countdown-sub", "type": "text", "class": "countdown-sub", "text": "GET READY", "bindings": [{ "target": "text", "source": "sub", "fallback": "GET READY" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [
+    { "id": "three", "label": "3", "context": { "value": "3", "sub": "GET READY" } },
+    { "id": "go", "label": "GO!", "context": { "value": "GO!", "sub": "" } }
+  ]
+}

@@ -1,4 +1,6 @@
 import { isValidAssetId } from '../../shared/assetRegistry';
+import { isProjectAssetId, isBuiltInAssetId } from '../../shared/assetCatalog';
+import type { AssetCatalogDefinition } from '../../shared/presentation/schemas';
 
 export interface ManifestAssetEntry {
   id: string;
@@ -37,7 +39,10 @@ export interface ManifestLoadResult {
 export class AssetManifestLoader {
   constructor(private readonly fetchImpl: (url: string) => Promise<{ ok: boolean; json(): Promise<unknown> }> = (url) => fetch(url)) {}
 
-  async load(url = '/assets/manifest.json'): Promise<ManifestLoadResult> {
+  async load(
+    url = '/assets/manifest.json',
+    catalog?: AssetCatalogDefinition,
+  ): Promise<ManifestLoadResult> {
     let response: { ok: boolean; json(): Promise<unknown> };
     try {
       response = await this.fetchImpl(url);
@@ -62,9 +67,12 @@ export class AssetManifestLoader {
       if (!entry || typeof entry !== 'object') continue;
       const e = entry as Record<string, unknown>;
       const id = typeof e.id === 'string' ? e.id : '';
-      if (!isValidAssetId(id)) {
+      if (!isValidAssetId(id) && !isProjectAssetId(id, catalog)) {
         console.warn(`[assets] manifest entry skipped: unknown semantic id '${id}'`);
         continue;
+      }
+      if (!isBuiltInAssetId(id) && isProjectAssetId(id, catalog)) {
+        // Valid project asset: accepted without weakening built-in fallbacks.
       }
       entries.push(e as unknown as ManifestAssetEntry);
     }

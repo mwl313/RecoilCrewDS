@@ -67,6 +67,26 @@ exactly once, so holding a key never repeats the action.
   version bumped to 2. Map Lab shows per-attempt fallback diagnostics and
   renders invalid Exact Candidates.
 
+## Data-driven presentation (Refractor 02)
+
+- Screens and the gameplay HUD are content documents
+  (`content/scenes/*.json`, `content/hud/gameplay.json`,
+  `content/themes/*.json`, `content/assets/*.json`) validated by Zod and
+  compiled to `src/generated/presentationContent.generated.ts`
+  (`npm run generate:presentation-content`, wired into `build:client`).
+- `AppFlowController` owns flow state, scene selection, safe allowlisted
+  actions, and network-driven transitions; `SceneRuntime` builds component
+  trees once, caches binding handles, and disposes on unload.
+- `HudProjector` projects `MatchState` into a typed `HudViewModel`;
+  `HudRuntime` applies content bindings (text/value/visible/class/style/
+  attribute + registered transforms) with per-binding change caching.
+- `PresentationWorld` renders hybrid 3D menu backgrounds (separate renderer,
+  disposed before gameplay) and `tools/presentation-preview/` inspects every
+  scene/HUD state outside the player bundle.
+- `src/shared/assetCatalog.ts` splits built-in required assets (fallbacks
+  preserved) from namespaced project assets (`custom.*`, `scene.*`,
+  `environment.*`, `ui.*`) with `replacesBuiltIn` for explicit overrides.
+
 ## Map Lab (separate tool)
 
 `tools/maplab/` is a separate Vite application (own entry, own build output

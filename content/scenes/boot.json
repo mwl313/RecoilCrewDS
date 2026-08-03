@@ -1,0 +1,30 @@
+{
+  "id": "scene.boot",
+  "label": "Boot",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 180 },
+  "exitTransition": { "type": "fade", "durationMs": 120 },
+  "root": {
+    "id": "screen-boot",
+    "type": "container",
+    "class": "screen",
+    "actions": [{ "event": "click", "action": "app.enter" }],
+    "children": [
+      {
+        "id": "boot-inner",
+        "type": "vertical",
+        "class": "boot-inner",
+        "children": [
+          { "id": "boot-logo", "type": "container", "class": "logo", "children": [
+            { "id": "boot-logo-bar", "type": "container", "class": "logo-bar" },
+            { "id": "boot-title", "type": "text", "class": "", "props": { "tag": "h1" }, "text": "RECOIL CREW" },
+            { "id": "boot-sub", "type": "text", "class": "logo-sub", "text": "ONE TANK · TWO BRAINS · ZERO BRAKES" }
+          ] },
+          { "id": "boot-hint", "type": "text", "class": "boot-hint", "text": "CLICK TO ENTER" },
+          { "id": "boot-keys", "type": "text", "class": "boot-keys", "text": "WASD DRIVE · MOUSE AIM · RIGHT-CLICK CANNON" }
+        ]
+      }
+    ]
+  },
+  "previewStates": [{ "id": "idle", "label": "Idle", "context": {} }]
+}

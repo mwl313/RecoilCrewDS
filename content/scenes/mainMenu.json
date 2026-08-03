@@ -1,0 +1,53 @@
+{
+  "id": "scene.mainMenu",
+  "label": "Main Menu",
+  "type": "hybrid",
+  "environment": {
+    "background": "#0b1216",
+    "lights": [
+      { "type": "hemisphere", "color": "#7fb2c9", "groundColor": "#1c1512", "intensity": 0.9 },
+      { "type": "directional", "color": "#ffd9a0", "intensity": 1.5, "direction": [0.35, 0.8, 0.4] }
+    ]
+  },
+  "entities": [
+    {
+      "id": "menuTank",
+      "transform": { "position": [0, -1.4, 0], "rotation": [0, 0.6, 0], "scale": [1.2, 1.2, 1.2] },
+      "components": [
+        { "type": "model", "props": { "assetId": "playerTank.chassis" } },
+        { "type": "rotateAnimation", "props": { "speed": 0.12 } },
+        { "type": "floatAnimation", "props": { "amplitude": 0.35, "speed": 0.8 } }
+      ]
+    }
+  ],
+  "cameras": [{ "position": [0, 1.2, 5.5], "rotation": [0, 0, 0] }],
+  "enterTransition": { "type": "fade", "durationMs": 180 },
+  "root": {
+    "id": "screen-main",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "main-panel",
+        "type": "panel",
+        "class": "panel",
+        "children": [
+          {
+            "id": "main-logo",
+            "type": "container",
+            "class": "logo small",
+            "children": [
+              { "id": "main-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOIL CREW" },
+              { "id": "main-sub", "type": "text", "class": "logo-sub", "text": "ONE TANK · TWO BRAINS · ZERO BRAKES" }
+            ]
+          },
+          { "id": "main-create", "type": "button", "class": "btn primary", "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
+          { "id": "main-join", "type": "button", "class": "btn", "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
+          { "id": "main-practice", "type": "button", "class": "btn", "props": { "dataAct": "practice" }, "text": "PRACTICE", "actions": [{ "event": "click", "action": "app.startPractice" }] },
+          { "id": "main-howto", "type": "button", "class": "btn ghost", "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [{ "id": "idle", "label": "Idle", "context": {} }]
+}

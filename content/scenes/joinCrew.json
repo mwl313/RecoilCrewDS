@@ -1,0 +1,29 @@
+{
+  "id": "scene.joinCrew",
+  "label": "Join Crew",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "root": {
+    "id": "screen-join",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "join-panel",
+        "type": "panel",
+        "class": "panel",
+        "children": [
+          { "id": "join-title", "type": "text", "props": { "tag": "h2" }, "text": "JOIN CREW" },
+          { "id": "join-code", "type": "input", "props": { "maxlength": 6, "placeholder": "AB12CD", "autocomplete": "off", "spellcheck": false, "enterAction": "app.joinCrew" } },
+          { "id": "join-error", "type": "text", "class": "error", "bindings": [{ "target": "text", "source": "message", "fallback": "" }] },
+          { "id": "join-go", "type": "button", "class": "btn primary", "text": "JOIN", "actions": [{ "event": "click", "action": "app.joinCrew" }] },
+          { "id": "join-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [
+    { "id": "empty", "label": "Empty", "context": { "message": "" } },
+    { "id": "bad", "label": "Bad code", "context": { "message": "Room not found." } }
+  ]
+}

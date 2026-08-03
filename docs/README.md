@@ -17,6 +17,7 @@ docs/
 ├── design/              design document + stack decisions
 ├── map-generation/      seeded map generation plans/reports (Phases 1-3)
 ├── maplab/              Map Lab plan, user guide, architecture, report
+├── refractor02/         data-driven scene/HUD/asset authoring (Refractor 02)
 ├── bugfix/              bugfix plans/reports
 ├── planning/            build plan, build status, final reports
 └── refractor/           refactor pack: authority docs, phase prompts, status, audit, report

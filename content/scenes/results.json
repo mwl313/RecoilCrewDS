@@ -1,0 +1,85 @@
+{
+  "id": "scene.results",
+  "label": "Results",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 220 },
+  "root": {
+    "id": "screen-results",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "results-panel",
+        "type": "panel",
+        "class": "panel results",
+        "children": [
+          { "id": "results-heading", "type": "text", "props": { "tag": "h2" }, "text": "ROUND COMPLETE" },
+          { "id": "results-grade", "type": "text", "class": "results-grade", "text": "B", "bindings": [{ "target": "text", "source": "grade", "fallback": "B" }] },
+          { "id": "results-title", "type": "text", "class": "results-title", "text": "SCRAP GOBLINS", "bindings": [{ "target": "text", "source": "title", "fallback": "SCRAP GOBLINS" }] },
+          { "id": "results-score", "type": "text", "class": "results-score", "text": "0", "bindings": [{ "target": "text", "source": "score", "fallback": "0" }] },
+          {
+            "id": "results-stats",
+            "type": "repeater",
+            "class": "results-stats",
+            "props": { "listSource": "stats" },
+            "children": [
+              {
+                "id": "results-stat-item",
+                "type": "horizontal",
+                "class": "results-stat",
+                "children": [
+                  { "id": "results-stat-label", "type": "text", "props": { "tag": "span" }, "bindings": [{ "target": "text", "source": "item.label" }] },
+                  { "id": "results-stat-value", "type": "text", "props": { "tag": "b" }, "bindings": [{ "target": "text", "source": "item.value" }] }
+                ]
+              }
+            ]
+          },
+          { "id": "results-mods-title", "type": "text", "class": "mods-title", "text": "REMATCH MODIFIER" },
+          {
+            "id": "mods",
+            "type": "repeater",
+            "class": "mods",
+            "props": { "listSource": "modifiers" },
+            "children": [
+              {
+                "id": "mod-chip",
+                "type": "button",
+                "class": "mod",
+                "bindings": [
+                  { "target": "text", "source": "item.label" },
+                  { "target": "class", "source": "item.selected", "transform": "booleanClass", "attribute": "selected" },
+                  { "target": "attribute", "source": "item.desc", "attribute": "title" },
+                  { "target": "attribute", "source": "item.id", "attribute": "data-mod" }
+                ],
+                "actions": [{ "event": "click", "action": "app.rematch", "payload": { "__itemId": true } }]
+              }
+            ]
+          },
+          { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [{ "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" }] },
+          { "id": "leave-btn", "type": "button", "class": "btn ghost", "text": "LEAVE CREW", "actions": [{ "event": "click", "action": "app.leave" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [
+    {
+      "id": "score",
+      "label": "Score",
+      "context": {
+        "grade": "S",
+        "title": "ONE BRAIN, TWO BROWSERS",
+        "score": "16,264",
+        "stats": [
+          { "label": "BEST COMBO", "value": "×5" },
+          { "label": "JACKPOT", "value": "4" },
+          { "label": "KILLS", "value": "39" }
+        ],
+        "modifiers": [
+          { "id": "none", "label": "STANDARD", "desc": "The classic Recoil Crew experience.", "selected": true },
+          { "id": "moonYard", "label": "MOON YARD", "desc": "Lower gravity and longer airtime.", "selected": false }
+        ],
+        "rematchInfo": "DRIVER READY · GUNNER PICKING"
+      }
+    }
+  ]
+}

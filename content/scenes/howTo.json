@@ -1,0 +1,50 @@
+{
+  "id": "scene.howTo",
+  "label": "How To Play",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "root": {
+    "id": "screen-howto",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "howto-panel",
+        "type": "panel",
+        "class": "panel wide",
+        "children": [
+          { "id": "howto-title", "type": "text", "props": { "tag": "h2" }, "text": "HOW TO PLAY" },
+          {
+            "id": "howto-grid",
+            "type": "grid",
+            "class": "howto-grid",
+            "layout": { "kind": "grid", "columns": 2 },
+            "children": [
+              {
+                "id": "howto-driver",
+                "type": "container",
+                "children": [
+                  { "id": "howto-driver-h", "type": "text", "props": { "tag": "h3" }, "class": "cyan", "text": "DRIVER" },
+                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "text": "WASD drive · Mouse look\nShift dash · Space jump\nR recenter camera" },
+                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "text": "Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Jump obstacles and dash to escape big shots." }
+                ]
+              },
+              {
+                "id": "howto-gunner",
+                "type": "container",
+                "children": [
+                  { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "class": "orange", "text": "GUNNER" },
+                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "text": "Mouse aim · LMB machine gun\nRMB cannon · Hold RMB charge JACKPOT\nR recenter camera" },
+                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "text": "Kill everything. Shoot the Loot Truck. Chain barrels. Coordinate shots with the Driver for Crew Links." }
+                ]
+              }
+            ]
+          },
+          { "id": "howto-foot", "type": "text", "class": "howto-foot", "props": { "tag": "p" }, "text": "Both roles share one tank. The cannon physically throws the Driver around — dash and jump through the chaos." },
+          { "id": "howto-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [{ "id": "howto", "label": "How To Play", "context": {} }]
+}

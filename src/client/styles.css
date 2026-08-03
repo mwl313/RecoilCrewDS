@@ -35,6 +35,11 @@ button {
 
 .hidden { display: none !important; }
 
+.screen.scene-enter { animation: sceneFadeIn 180ms ease; }
+.screen.scene-exit { animation: sceneFadeOut 120ms ease forwards; }
+@keyframes sceneFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes sceneFadeOut { to { opacity: 0; } }
+
 /* ---------------------------------------------------------------- screens */
 .screen {
   position: fixed;

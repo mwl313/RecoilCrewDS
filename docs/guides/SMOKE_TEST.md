@@ -111,6 +111,17 @@ Open `http://localhost:8098`:
   access routes, and terrain cost. If every attempt fails, a red
   **FALLBACK MAP** banner lists each attempt's seed and errors.
 
+## 5c. Refractor 02 presentation
+
+- All screens (boot/main/create/join/ready/countdown/pause/error/results/
+  howto) are content-driven; ids and actions are unchanged.
+- `npm run dev:presentation-preview` (port 5190) previews every scene and
+  HUD state with role/theme selectors, hierarchy, and binding/asset
+  diagnostics; `?stable=1` disables animations.
+- The gameplay HUD reads a typed view model; Driver/Gunner themes come from
+  `content/themes/*.json`. Custom project assets are registered in
+  `content/assets/project.json`; built-in fallbacks remain intact.
+
 ## 6. Gunner controls
 
 - Mouse aims; crosshair is center-screen; the turret follows instantly.

@@ -1,0 +1,16 @@
+{
+  "id": "theme.base",
+  "label": "Base",
+  "colors": {
+    "color.background": "#0b1216",
+    "color.panel": "rgba(10,20,26,0.92)",
+    "color.text": "#d7edf3",
+    "color.muted": "#8fb4bf",
+    "color.warning": "#ffb84a",
+    "color.danger": "#ff5a4a"
+  },
+  "spacing": { "space.xs": 4, "space.sm": 8, "space.md": 16, "space.lg": 28 },
+  "radii": { "radius.sm": "6px", "radius.md": "12px" },
+  "shadows": { "shadow.panel": "0 12px 40px rgba(0,0,0,0.5)" },
+  "motion": { "fast": 120, "normal": 200, "slow": 420 }
+}

@@ -84,6 +84,22 @@ driveable; optional terrain may be steep, blocked, or cliff-like. See
 [DRAMATIC_TERRAIN_PROFILE_AUTHORING.md](DRAMATIC_TERRAIN_PROFILE_AUTHORING.md)
 for tuning, validation semantics, and safe promotion.
 
+### Scenes, HUD, and presentation assets (Refractor 02)
+
+Screens and the gameplay HUD are content-driven:
+
+```text
+content/scenes/*.json       non-gameplay + hybrid scenes
+content/hud/gameplay.json   gameplay HUD document (HudViewModel bindings)
+content/scene-flows/*.json  flow state → scene mapping
+content/themes/*.json       role/base theme tokens
+content/assets/*.json       built-in list + project asset catalog
+```
+
+Run `npm run generate:presentation-content` after edits (also part of
+`npm run build`). See `docs/refractor02/SCENE_AUTHORING_GUIDE.md`,
+`HUD_AUTHORING_GUIDE.md`, and `PROJECT_ASSET_AUTHORING_GUIDE.md`.
+
 ## Rules
 
 - IDs are semantic and dot-namespaced (`weapon.mainCannon`,

@@ -1,0 +1,37 @@
+{
+  "id": "scene.createCrew",
+  "label": "Create Crew",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "root": {
+    "id": "screen-create",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "create-panel",
+        "type": "panel",
+        "class": "panel",
+        "children": [
+          { "id": "create-title", "type": "text", "props": { "tag": "h2" }, "text": "CREATE CREW" },
+          {
+            "id": "create-codebox",
+            "type": "horizontal",
+            "class": "code-box",
+            "children": [
+              { "id": "create-code", "type": "text", "class": "code", "bindings": [{ "target": "text", "source": "code", "fallback": "------" }] },
+              { "id": "copy-code", "type": "button", "class": "btn small", "text": "COPY", "bindings": [{ "target": "text", "source": "copyLabel", "fallback": "COPY" }], "actions": [{ "event": "click", "action": "app.copyRoomCode" }] }
+            ]
+          },
+          { "id": "create-status", "type": "text", "class": "status-line", "text": "WAITING FOR GUNNER…", "bindings": [{ "target": "text", "source": "status", "fallback": "WAITING FOR GUNNER…" }] },
+          { "id": "create-ready", "type": "button", "class": "btn", "text": "READY", "actions": [{ "event": "click", "action": "app.ready" }] },
+          { "id": "create-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [
+    { "id": "waiting", "label": "Waiting", "context": { "code": "AB12CD", "status": "WAITING FOR GUNNER…", "copyLabel": "COPY" } },
+    { "id": "copied", "label": "Copied", "context": { "code": "AB12CD", "status": "WAITING FOR GUNNER…", "copyLabel": "COPIED" } }
+  ]
+}

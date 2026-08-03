@@ -7,6 +7,7 @@ import { AudioManager } from './audio';
 import { AssetService } from './assets';
 import { HudController } from './app/hudController';
 import { DebugOverlay } from './app/debugOverlay';
+import { PresentationWorld } from './presentation/presentationWorld';
 import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
 import {
   reconstructArenaSession,
@@ -23,6 +24,17 @@ const hud = new Hud();
 const hudController = new HudController(hud);
 const net = new NetClient();
 const input = new InputManager();
+
+void assetsPromise.then((loadedAssets) => {
+  const lowQuality =
+    params.has('lowq') ||
+    (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  hud.setPresentationFactory(
+    TEST_MODE || lowQuality
+      ? null
+      : (scene, container) => new PresentationWorld(scene, container, loadedAssets),
+  );
+});
 
 let assets: AssetService | null = null;
 let game: GameClient | null = null;

@@ -7,6 +7,8 @@ import { ModelProvider } from './modelProvider';
 import type { GltfLoaderFactory } from './modelProvider';
 import { PresentationCatalog, type CameraImpulsePresentation, type IconPresentation } from './presentationCatalog';
 import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
+import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.generated';
+import { assertResolvableAssetId, resolveProjectAsset } from '../../shared/assetCatalog';
 
 export { buildTankRig, getMuzzleWorld };
 
@@ -44,7 +46,7 @@ export class AssetService {
 
   static async load(options: { gltfLoaderFactory?: GltfLoaderFactory } = {}): Promise<AssetService> {
     const service = new AssetService(options.gltfLoaderFactory);
-    const manifest = await service.manifestLoader.load();
+    const manifest = await service.manifestLoader.load('/assets/manifest.json', PRESENTATION_ASSET_CATALOG);
     service.manifestLoaded = manifest.loaded;
     for (const entry of manifest.entries) {
       if (entry.category === 'model' && typeof entry.file === 'string') {
@@ -53,7 +55,18 @@ export class AssetService {
       service.instances.registerMetadata(entry);
     }
     await service.instances.preloadModels(service.presentation.models);
+    // Project custom models referenced by scenes resolve with documented
+    // placeholder policy (file → manifest override → built-in fallback).
+    for (const asset of PRESENTATION_ASSET_CATALOG.project) {
+      if (asset.kind === 'model' && asset.file) service.models.registerFile(asset.id, asset.file);
+    }
     return service;
+  }
+
+  /** Assert + resolve a project asset definition (throws for unknowns). */
+  projectAsset(id: string): ReturnType<typeof resolveProjectAsset> {
+    assertResolvableAssetId(id, PRESENTATION_ASSET_CATALOG);
+    return resolveProjectAsset(id, PRESENTATION_ASSET_CATALOG);
   }
 
   model(id: string): THREE.Object3D {

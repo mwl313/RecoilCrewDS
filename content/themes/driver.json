@@ -1,0 +1,7 @@
+{
+  "id": "theme.driver",
+  "label": "Driver",
+  "colors": { "color.role": "#35d7e8", "color.roleSoft": "#9ff3ff" },
+  "spacing": {},
+  "cssVariables": { "--role": "#35d7e8", "--role-soft": "#9ff3ff" }
+}

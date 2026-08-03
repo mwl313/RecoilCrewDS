@@ -1,0 +1,7 @@
+{
+  "id": "theme.gunner",
+  "label": "Gunner",
+  "colors": { "color.role": "#ffa23b", "color.roleSoft": "#ffd08a" },
+  "spacing": {},
+  "cssVariables": { "--role": "#ffa23b", "--role-soft": "#ffd08a" }
+}

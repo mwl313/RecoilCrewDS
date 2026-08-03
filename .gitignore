@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-server/
 dist-maplab/
+dist-presentation-preview/
 .env
 .DS_Store
 coverage/
