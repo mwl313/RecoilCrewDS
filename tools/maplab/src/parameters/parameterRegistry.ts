@@ -10,8 +10,48 @@ import { getPath, setPath } from '../mapLabState';
 export type { ParameterDescriptor, ParameterGroup, ParameterType } from './parameterTypes';
 
 export function buildParameterRegistry(bundle: MapGenerationBundle): ParameterDescriptor[] {
-  const entries = bundle.furnitureSet.entries.map((_, i) => entryParameters(i));
-  return [...mapParameters, ...terrainParameters, ...validationParameters, ...routeParameters, ...furnitureParameters, ...entries.flat()];
+  return [
+    ...mapParameters,
+    ...terrainParameters,
+    ...validationParameters,
+    ...routeParameters,
+    ...furnitureParameters,
+    ...entryDescriptorGroups(bundle),
+  ];
+}
+
+const KIND_LABELS: Record<string, string> = {
+  largeObstacle: 'Large Obstacles',
+  barrel: 'Barrels',
+  crate: 'Crates',
+  medium: 'Medium Props',
+  decoration: 'Decorations',
+  ramp: 'Ramps',
+  lightPole: 'Light Poles',
+};
+
+function assetLabel(assetId: string): string {
+  const short = assetId.split('.').pop() ?? assetId;
+  return short.charAt(0).toUpperCase() + short.slice(1);
+}
+
+/** Group furniture entries by kind, then name each folder by kind + asset. */
+function entryDescriptorGroups(bundle: MapGenerationBundle): ParameterDescriptor[] {
+  const byKind = new Map<string, Array<{ index: number; assetId: string }>>();
+  bundle.furnitureSet.entries.forEach((entry, index) => {
+    const list = byKind.get(entry.kind) ?? [];
+    list.push({ index, assetId: entry.assetId });
+    byKind.set(entry.kind, list);
+  });
+  const out: ParameterDescriptor[] = [];
+  for (const [kind, entries] of byKind) {
+    const base = KIND_LABELS[kind] ?? kind;
+    for (const { index, assetId } of entries) {
+      const folder = entries.length > 1 ? `${base} · ${assetLabel(assetId)}` : base;
+      out.push(...entryParameters(index, folder, assetLabel(assetId)));
+    }
+  }
+  return out;
 }
 
 export function readParameter(bundle: MapGenerationBundle, descriptor: ParameterDescriptor): unknown {

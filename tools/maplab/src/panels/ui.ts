@@ -69,29 +69,111 @@ export class MapLabUI {
     container.appendChild(this.root);
     this.root.innerHTML = `
       <style>
-        .maplab-ui { position:absolute; inset:0; display:grid; grid-template-rows:auto 1fr 160px;
-          grid-template-columns:300px 1fr 320px; font:12px/1.4 system-ui; color:#cfe8ee;
-          background:#101820; }
-        .maplab-toolbar { grid-column:1/4; display:flex; gap:8px; align-items:center; padding:6px 10px;
-          background:#17232b; border-bottom:1px solid #2a3a44; flex-wrap:wrap; position:relative; z-index:2; }
-        .maplab-toolbar input, .maplab-toolbar select, .maplab-toolbar button { background:#0d151b; color:#cfe8ee;
-          border:1px solid #33454f; padding:4px 8px; border-radius:4px; }
-        .maplab-toolbar button:hover { background:#1b2a33; }
-        .maplab-left { grid-column:1; overflow:auto; border-right:1px solid #2a3a44; padding:8px; }
-        .maplab-center { grid-column:2; position:relative; overflow:hidden; }
+        .maplab-ui {
+          position:absolute; inset:0; display:grid;
+          grid-template-rows:auto 1fr 190px;
+          grid-template-columns:320px 1fr 340px;
+          font:12px/1.45 system-ui, 'Segoe UI', sans-serif; color:#cfe8ee;
+          background:#0d151a;
+          --tp-base-background-color:#101a20;
+          --tp-base-shadow-color:rgba(0,0,0,.35);
+          --tp-button-background-color:#1c2c35;
+          --tp-button-background-color-active:#2b4652;
+          --tp-button-background-color-hover:#253944;
+          --tp-button-foreground-color:#d7edf3;
+          --tp-container-background-color:#0f191f;
+          --tp-container-background-color-active:#16242c;
+          --tp-container-foreground-color:#d7edf3;
+          --tp-groove-foreground-color:#2a3f4a;
+          --tp-input-background-color:#0b1318;
+          --tp-input-background-color-active:#15232b;
+          --tp-input-foreground-color:#d7edf3;
+          --tp-label-foreground-color:#a9c9d3;
+          --tp-blade-foreground-color:#d7edf3;
+          --tp-focus-shadow-color:rgba(86,205,235,.35);
+          --tp-font-size:11px;
+          --tp-blade-value-width:52%;
+        }
+        .maplab-toolbar {
+          grid-column:1/4; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+          padding:8px 12px;
+          background:linear-gradient(180deg,#18252d,#142028);
+          border-bottom:1px solid #22333d; position:relative; z-index:2;
+        }
+        .maplab-toolbar input, .maplab-toolbar select, .maplab-toolbar button {
+          background:#0d171d; color:#d7edf3; border:1px solid #2a3f4a; border-radius:6px;
+          padding:5px 9px; font:inherit; outline:none;
+          transition:background .12s, border-color .12s, box-shadow .12s;
+        }
+        .maplab-toolbar button:hover { background:#1b2c35; border-color:#3c5664; }
+        .maplab-toolbar button:active { transform:translateY(1px); }
+        .maplab-toolbar input:focus, .maplab-toolbar select:focus, .maplab-toolbar button:focus-visible {
+          border-color:#56cdeb; box-shadow:0 0 0 2px rgba(86,205,235,.2);
+        }
+        .maplab-sep { width:1px; height:22px; background:#2a3f4a; margin:0 2px; }
+        .maplab-toolbar label { display:flex; align-items:center; gap:4px; color:#a9c9d3; }
+        .maplab-left {
+          grid-column:1; overflow:auto; border-right:1px solid #22333d;
+          padding:10px 10px 16px; background:#101a20;
+        }
+        .maplab-center { grid-column:2; position:relative; overflow:hidden; background:#0b1216; }
         #maplab-canvas { position:absolute; inset:0; }
-        .maplab-right { grid-column:3; overflow:auto; border-left:1px solid #2a3a44; padding:8px; }
-        .maplab-bottom { grid-column:1/4; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
-          border-top:1px solid #2a3a44; padding:6px 10px; overflow:auto; }
-        .maplab-panel-title { font-weight:700; color:#9ff3ff; margin:6px 0 4px; }
-        .maplab-status-pass { color:#4ddb6e; font-weight:700; }
-        .maplab-status-fail { color:#ff5a4a; font-weight:700; }
-        .maplab-issue { cursor:pointer; padding:2px 4px; border-radius:3px; }
-        .maplab-issue:hover { background:#1b2a33; }
-        .maplab-layer-row { display:flex; gap:6px; align-items:center; padding:1px 0; }
-        .maplab-log { font:11px monospace; color:#8fb4bf; white-space:pre-wrap; max-height:120px; overflow:auto; }
-        textarea { width:100%; box-sizing:border-box; background:#0d151b; color:#cfe8ee; border:1px solid #33454f;
-          border-radius:4px; font:11px monospace; }
+        .maplab-right {
+          grid-column:3; overflow:auto; border-left:1px solid #22333d;
+          padding:10px 12px; background:#101a20;
+        }
+        .maplab-bottom {
+          grid-column:1/4; display:grid; grid-template-columns:1.1fr 1fr .9fr; gap:12px;
+          border-top:1px solid #22333d; padding:8px 12px; overflow:auto; background:#0e181e;
+        }
+        .maplab-panel-title {
+          font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+          color:#7fc9d8; margin:12px 0 6px;
+        }
+        .maplab-panel-title:first-child { margin-top:2px; }
+        .maplab-status-pass, .maplab-status-fail {
+          display:inline-block; padding:3px 12px; border-radius:999px; font-weight:700; font-size:12px;
+        }
+        .maplab-status-pass { background:rgba(77,219,110,.14); color:#4ddb6e; }
+        .maplab-status-fail { background:rgba(255,90,74,.14); color:#ff5a4a; }
+        .maplab-issue {
+          cursor:pointer; padding:4px 8px; border-radius:6px; margin:2px 0;
+          border-left:3px solid transparent; transition:background .12s;
+        }
+        .maplab-issue:hover { background:#1a2a33; }
+        .maplab-issue[data-severity='error'] { border-left-color:#ff5a4a; }
+        .maplab-issue[data-severity='warning'] { border-left-color:#ffb84a; }
+        .maplab-layer-row {
+          display:flex; gap:7px; align-items:center; padding:2px 6px; border-radius:5px;
+          cursor:pointer; transition:background .12s;
+        }
+        .maplab-layer-row:hover { background:#1a2a33; }
+        .maplab-layer-row input { accent-color:#56cdeb; }
+        .maplab-metrics {
+          font:11px/1.55 ui-monospace, Consolas, 'Cascadia Mono', monospace;
+          color:#9fc4cf; white-space:pre-wrap; background:#0b1318;
+          border:1px solid #1c2d36; border-radius:6px; padding:8px;
+        }
+        .maplab-log {
+          font:11px/1.5 ui-monospace, Consolas, monospace;
+          color:#8fb4bf; white-space:pre-wrap; max-height:130px; overflow:auto;
+          background:#0b1318; border:1px solid #1c2d36; border-radius:6px; padding:6px 8px;
+        }
+        textarea {
+          width:100%; box-sizing:border-box; background:#0b1318; color:#d7edf3;
+          border:1px solid #2a3f4a; border-radius:6px; font:11px/1.4 ui-monospace, monospace;
+          padding:6px; outline:none;
+        }
+        textarea:focus { border-color:#56cdeb; box-shadow:0 0 0 2px rgba(86,205,235,.18); }
+        .maplab-left::-webkit-scrollbar, .maplab-right::-webkit-scrollbar,
+        .maplab-bottom::-webkit-scrollbar, .maplab-log::-webkit-scrollbar,
+        .maplab-metrics::-webkit-scrollbar { width:9px; height:9px; }
+        .maplab-left::-webkit-scrollbar-thumb, .maplab-right::-webkit-scrollbar-thumb,
+        .maplab-bottom::-webkit-scrollbar-thumb, .maplab-log::-webkit-scrollbar-thumb,
+        .maplab-metrics::-webkit-scrollbar-thumb { background:#2a3f4a; border-radius:5px; }
+        .maplab-left::-webkit-scrollbar-thumb:hover, .maplab-right::-webkit-scrollbar-thumb:hover {
+          background:#3c5664;
+        }
       </style>
       <div class="maplab-toolbar"></div>
       <div class="maplab-left"><div id="maplab-pane-host"></div></div>
@@ -128,6 +210,7 @@ export class MapLabUI {
 
   private buildToolbar(): void {
     const bar = this.root.querySelector('.maplab-toolbar')!;
+    const sep = (): HTMLElement => el('span', 'maplab-sep');
     const profile = el('select', '') as HTMLSelectElement;
     for (const id of ['map.arena400Primary', 'map.fallbackLegacy']) {
       const option = el('option', '', id);
@@ -135,11 +218,13 @@ export class MapLabUI {
     }
     profile.value = this.state.sourceProfileId;
     profile.addEventListener('change', () => this.callbacks.onProfileChange(profile.value));
+    profile.title = 'Which map profile to generate from.';
 
     const mode = el('select', '') as HTMLSelectElement;
     mode.innerHTML = '<option value="production">Production</option><option value="exactCandidate">Exact Candidate</option>';
     mode.value = this.state.mode;
     mode.addEventListener('change', () => this.callbacks.onModeChange(mode.value as 'production' | 'exactCandidate'));
+    mode.title = 'Production = same flow as a real match. Exact Candidate = rebuild one specific attempt.';
 
     const room = el('input', '') as HTMLInputElement;
     room.value = this.state.roomCode;
@@ -169,6 +254,7 @@ export class MapLabUI {
 
     const regenerate = el('button', '', 'Regenerate');
     regenerate.addEventListener('click', () => this.callbacks.onRegenerate(true));
+    regenerate.title = 'Generate the map again with the current settings.';
     const auto = el('input', '') as HTMLInputElement;
     auto.type = 'checkbox';
     auto.checked = this.state.autoRegenerate;
@@ -183,13 +269,17 @@ export class MapLabUI {
     redo.addEventListener('click', () => this.callbacks.onRedo());
     const reset = el('button', '', 'Reset');
     reset.addEventListener('click', () => this.callbacks.onReset());
+    reset.title = 'Put every setting back to the saved profile.';
 
     const exportProfile = el('button', '', 'Export Profile');
     exportProfile.addEventListener('click', () => this.callbacks.onExportProfile());
+    exportProfile.title = 'Download a profile bundle you can apply to the game with the CLI.';
     const exportArena = el('button', '', 'Export Arena');
     exportArena.addEventListener('click', () => this.callbacks.onExportArena());
+    exportArena.title = 'Download the generated arena (heightfield, layout, checksum).';
     const exportValidation = el('button', '', 'Export Validation');
     exportValidation.addEventListener('click', () => this.callbacks.onExportValidation());
+    exportValidation.title = 'Download the validation report for this arena.';
 
     const exactBox = el('span', '');
     exactBox.style.display = 'flex';
@@ -202,40 +292,65 @@ export class MapLabUI {
     this.seedAttempt.addEventListener('change', () => this.callbacks.onSeedFieldChange('exactAttempt', Number(this.seedAttempt.value || 0)));
     this.seedCandidate.addEventListener('change', () => this.callbacks.onSeedFieldChange('exactCandidateSeed', Number(this.seedCandidate.value || 0)));
 
-    bar.append(profile, mode, label('Room', room), label('Match', matchIndex), label('Ver', version),
-      prev, next, random, regenerate, label('Auto', auto), undo, redo, reset,
-      exportProfile, exportArena, exportValidation, exactBox);
+    bar.append(profile, mode, sep(), label('Room', room), label('Match', matchIndex), label('Ver', version),
+      sep(), prev, next, random, sep(), regenerate, label('Auto', auto), sep(),
+      undo, redo, reset, sep(), exportProfile, exportArena, exportValidation, sep(), exactBox);
 
     const fit = el('button', '', 'Fit Map');
     fit.addEventListener('click', () => (window as unknown as { __maplabFit?: () => void }).__maplabFit?.());
+    fit.title = 'Center the camera on the whole map.';
     const orbit = el('button', '', '3D');
     orbit.addEventListener('click', () => this.callbacks.onCameraMode('orbit3d'));
+    orbit.title = 'Free 3D orbit camera.';
     const top = el('button', '', 'Top Down');
     top.addEventListener('click', () => this.callbacks.onCameraMode('topDown'));
+    top.title = 'Straight-down map view.';
     bar.append(fit, orbit, top);
   }
 
   private buildParameters(): void {
     this.descriptors = buildParameterRegistry(this.state.workingBundle);
     const groups: Record<string, FolderApi> = {};
+    const subfolders = new Map<string, FolderApi>();
+    const folderFor = (descriptor: ParameterDescriptor): FolderApi => {
+      const root = groups[descriptor.group];
+      if (!descriptor.subgroup) return root;
+      const key = `${descriptor.group}/${descriptor.subgroup}`;
+      let sub = subfolders.get(key);
+      if (!sub) {
+        sub = root.addFolder({ title: descriptor.subgroup, expanded: EXPANDED_SUBGROUPS.has(descriptor.subgroup) });
+        subfolders.set(key, sub);
+      }
+      return sub;
+    };
+    const attachTooltip = (binding: unknown, description: string | undefined): void => {
+      if (!description) return;
+      const row = (binding as { element?: HTMLElement }).element;
+      if (row) {
+        row.title = description;
+        row.style.cursor = 'help';
+      }
+    };
     for (const folder of ['basic', 'terrain', 'routes', 'objects', 'validation'] as const) {
       groups[folder] = this.pane.addFolder({ title: folder.toUpperCase(), expanded: folder === 'basic' });
     }
     for (const descriptor of this.descriptors) {
       if (descriptor.macro) {
         this.macroState.terrainDrama = 1;
-        const binding = groups[descriptor.group].addBinding(this.macroState, 'terrainDrama', {
+        const binding = folderFor(descriptor).addBinding(this.macroState, 'terrainDrama', {
           label: descriptor.label,
           min: descriptor.min,
           max: descriptor.max,
           step: descriptor.step,
         });
+        attachTooltip(binding, descriptor.description);
         binding.on('change', (ev) => this.callbacks.onMacroChange(ev.value as number));
         continue;
       }
       if (descriptor.type === 'text' && Array.isArray(getPath(this.state.workingBundle, descriptor.path))) {
         const proxy = { value: (getPath(this.state.workingBundle, descriptor.path) as string[]).join(', ') };
-        const binding = groups[descriptor.group].addBinding(proxy, 'value', { label: descriptor.label });
+        const binding = folderFor(descriptor).addBinding(proxy, 'value', { label: descriptor.label });
+        attachTooltip(binding, descriptor.description);
         binding.on('change', (ev) => {
           const value = String(ev.value)
             .split(',')
@@ -259,7 +374,8 @@ export class MapLabUI {
       // through a per-binding proxy; changes write back via the path.
       const proxy = { value: initial };
       try {
-        const binding = groups[descriptor.group].addBinding(proxy, 'value', options);
+        const binding = folderFor(descriptor).addBinding(proxy, 'value', options);
+        attachTooltip(binding, descriptor.description);
         binding.on('change', (ev) => this.callbacks.onParamChange(descriptor, ev.value));
         this.registry.set(descriptor.path, binding);
       } catch {
@@ -355,6 +471,8 @@ export class MapLabUI {
     this.issueList.textContent = '';
     for (const issue of issues) {
       const row = el('div', 'maplab-issue', `[${issue.severity}] ${issue.category}: ${issue.message}`);
+      row.dataset.severity = issue.severity;
+      row.title = issue.message;
       row.addEventListener('click', () => this.callbacks.onFocusIssue(issue));
       this.issueList.appendChild(row);
     }
@@ -418,6 +536,9 @@ function defaultVisibility(id: string): boolean {
   };
   return defaults[id] ?? false;
 }
+
+/** Sub-folders that start expanded so the most-used settings are visible. */
+const EXPANDED_SUBGROUPS = new Set(['Ground Level', 'Roads', 'Master Switches', 'Height Rules']);
 
 function diffSummary(source: MapGenerationBundle, working: MapGenerationBundle): string {
   const changes: string[] = [];

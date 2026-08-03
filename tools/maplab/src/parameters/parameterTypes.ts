@@ -11,6 +11,8 @@ export interface ParameterDescriptor {
   path: string;
   label: string;
   group: ParameterGroup;
+  /** Optional sub-folder title inside the group (e.g. "Ground Level"). */
+  subgroup?: string;
   type: ParameterType;
   min?: number;
   max?: number;

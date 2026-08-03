@@ -48,6 +48,17 @@ test('Map Lab full flow: generate, edit, toggle, focus, export, draft restore', 
   expect(folderCounts.ROUTES ?? 0).toBeGreaterThan(5);
   expect(folderCounts.OBJECTS ?? 0).toBeGreaterThan(10);
   expect(folderCounts.VALIDATION ?? 0).toBeGreaterThan(3);
+  // Parameters are categorized into sub-folders and every control has a
+  // plain-language hover tooltip.
+  const subTitles = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.maplab-left .tp-fldv .tp-fldv_b'))
+      .map((e) => e.textContent?.trim() ?? ''),
+  );
+  for (const expected of ['Ground Level', 'Roads', 'Master Switches', 'Height Rules']) {
+    expect(subTitles).toContain(expected);
+  }
+  expect(await page.locator('.maplab-left [title]').count()).toBeGreaterThan(50);
+  expect(await page.locator('.maplab-left [title*="steep"]').count()).toBeGreaterThan(0);
 
   // 4-5. Edit (objects off) -> regenerate shows the change in metrics.
   const checksumBefore = await arenaChecksum(page);
