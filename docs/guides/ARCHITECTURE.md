@@ -26,6 +26,11 @@ are client-only. Driver input frames carry one-shot `dashPressed` /
 `jumpPressed` edges; the authoritative runtime consumes each sequenced edge
 exactly once, so holding a key never repeats the action.
 
+The Driver renders the Gunner's turret from the interpolated snapshot world
+aim re-derived against the predicted chassis (smooth 60 fps, still sticky
+to the Gunner's aim, zero extra network traffic); the Gunner uses local
+turret prediction reconciled with snapshots.
+
 ## Generated arenas (Phases 1-3)
 
 - Every match carries its own `ArenaWorld` (match-scoped; no global arena).

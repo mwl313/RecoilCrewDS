@@ -99,8 +99,18 @@ export class NetworkStatePresenter {
     deps.tankRig.chassis.rotation.set(-t.pitch, yaw, t.roll);
     const usePredictedTurret = deps.mode() === 'practice' || deps.role() === 'gunner';
     const turretSpaces = deps.prediction.getTurretSpaces();
-    deps.tankRig.turret.rotation.y = usePredictedTurret ? turretSpaces.predictedYawLocal : turretSpaces.authoritativeYawLocal;
-    deps.tankRig.barrel.rotation.x = -(usePredictedTurret ? turretSpaces.predictedPitch : turretSpaces.authoritativePitch);
+    if (usePredictedTurret) {
+      deps.tankRig.turret.rotation.y = turretSpaces.predictedYawLocal;
+      deps.tankRig.barrel.rotation.x = -turretSpaces.predictedPitch;
+    } else {
+      // Driver online: the gunner's world aim is already in every snapshot.
+      // Interpolate it client-side and re-derive the local yaw against the
+      // predicted chassis, so the turret moves in real time (60 fps, still
+      // sticky to the gunner's aim) with zero extra network traffic.
+      const worldAim = wrapAngle(state.tank.yaw + state.turret.yaw);
+      deps.tankRig.turret.rotation.y = wrapAngle(worldAim - yaw);
+      deps.tankRig.barrel.rotation.x = -state.turret.pitch;
+    }
     deps.registry.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
     deps.registry.shieldMesh.visible = t.shieldedT > 0;
 
