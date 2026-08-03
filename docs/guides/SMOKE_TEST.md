@@ -75,6 +75,30 @@ stuck key.
   shows the mapgen overlay (seed, checksum, features, routes, zones,
   spawns/gates, ramps, recovery, colliders).
 
+## 5b. Map Lab
+
+```bash
+npm run build:maplab
+npx vite preview --config tools/maplab/vite.config.ts --port 8098
+```
+
+Open `http://localhost:8098`:
+
+- Primary profile loads and generates a Production map with **PASS** and a
+  checksum equal to the in-game metadata pipeline.
+- Change a terrain parameter (e.g. Terrain Drama) → auto-regeneration
+  updates metrics; Undo/Redo/Reset behave.
+- Toggle layers (terrain, routes, zones, spawns/gates, ramps, furniture,
+  validation) without regeneration; switch 3D ↔ Top Down and Fit Map.
+- Turn **Objects** off → routes/spawns/gates remain, object counts drop to
+  0; turn back on → counts return.
+- Click a validation issue → related layer activates and camera focuses.
+- Export Profile / Arena / Validation; reload restores the draft with the
+  same working state.
+- Apply an exported profile via `npm run maplab:apply -- <file>`
+  (requires `--overwrite` for existing ids) and rerun
+  `npm run test:maps` before committing.
+
 ## 6. Gunner controls
 
 - Mouse aims; crosshair is center-screen; the turret follows instantly.

@@ -11,6 +11,7 @@ the docs folder:
 - [Project README / docs index](docs/README.md)
 - [Architecture](docs/guides/ARCHITECTURE.md)
 - [Content authoring guide](docs/guides/CONTENT_AUTHORING_GUIDE.md)
+- [Map Lab (map generation tool) user guide](docs/maplab/MAP_LAB_USER_GUIDE.md)
 - [Refactor status](docs/refractor/REFACTOR_STATUS.md)
 
 See [docs/](docs/) for guides, design decisions, bugfix reports, planning

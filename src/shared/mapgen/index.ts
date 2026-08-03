@@ -25,7 +25,6 @@ export {
   type ValidationReport,
 } from './validation';
 export {
-  LEGACY_MAP_DEFINITIONS,
   resolveMapBundle,
   type MapDefinitionDef,
   type MapGenerationBundle,
@@ -89,11 +88,21 @@ export {
 export { generateMapLayout, type GenerateLayoutOptions, type MapLayoutResult } from './layout';
 export { validatePhase2, type Phase2Metrics, type Phase2ValidationResult } from './validation2';
 export {
-  LEGACY_MAP_LAYOUT_DEFINITIONS,
   type DensityProfileDef,
   type FurnitureSetDef,
   type LandmarkDef,
 } from './phase2Profiles';
+export {
+  GENERATED_MAP_IDS,
+  GENERATED_MAP_PROFILES,
+  MAP_PROFILE_BUNDLE_FORMAT,
+  MAP_PROFILE_SOURCE_HASH,
+} from '../../generated/mapProfiles.generated';
+export {
+  type MapValidationIssue,
+  type ValidationIssueCategory,
+  issuesFromValidationReports,
+} from './validationIssues';
 
 /**
  * Phase 1 keeps normal gameplay on the fixed hand-built arena. Set this to

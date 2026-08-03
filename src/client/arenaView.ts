@@ -3,16 +3,13 @@ import type { Obstacle } from '../shared/arena';
 import type { ArenaWorld } from '../shared/sim/arenaWorld';
 import type { AssetService } from './assets';
 import { setClientGroundHeightAt } from './groundQuery';
+import { buildTerrainChunks, updateChunkLod } from './map-debug/terrainMesh';
 
 export interface Collider {
   box: THREE.Box3;
   type: string;
 }
 
-const TERRAIN_CHUNKS = 4;
-const CELLS_PER_CHUNK = 25;
-const LOD_FAR = 150;
-const LOD_NEAR = 130;
 
 function groundTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
@@ -108,7 +105,7 @@ export class ArenaView {
   barrelMeshes = new Map<number, THREE.Object3D>();
   private readonly world: ArenaWorld;
   private readonly assets: AssetService;
-  private readonly chunks: Array<{ mesh: THREE.Mesh; full: THREE.BufferGeometry; half: THREE.BufferGeometry; center: THREE.Vector3; isHalf: boolean }> = [];
+  private readonly chunks: ReturnType<typeof buildTerrainChunks> = [];
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material | THREE.Texture | THREE.Object3D> = [];
 
   constructor(assets: AssetService, world: ArenaWorld) {
@@ -163,11 +160,8 @@ export class ArenaView {
       this.colliders.push({ box: new BoxAround(b.x, b.z, 0.9, 0.9, 1.1), type: 'barrel' });
     }
 
-    // Client-only decorations (non-authoritative) as instanced meshes.
+    // Client-only decorations + data-driven light poles as instanced meshes.
     this.buildDecorations();
-
-    // Light poles for industrial character (visual only).
-    this.buildLightPoles();
   }
 
   private buildLegacyGround(half: number) {
@@ -202,9 +196,6 @@ export class ArenaView {
 
   private buildTerrainChunks() {
     const hf = this.world.heightfield!;
-    const cell = hf.cellSize;
-    const originX = -this.world.half;
-    const originZ = -this.world.half;
     const material = new THREE.MeshStandardMaterial({
       map: groundTexture(),
       color: 0xb9a77d,
@@ -212,81 +203,18 @@ export class ArenaView {
       metalness: 0.02,
     });
     this.disposables.push(material, material.map as THREE.Texture);
-    for (let cz = 0; cz < TERRAIN_CHUNKS; cz++) {
-      for (let cx = 0; cx < TERRAIN_CHUNKS; cx++) {
-        const full = this.buildChunkGeometry(hf, cx, cz, 1, originX, originZ);
-        const half = this.buildChunkGeometry(hf, cx, cz, 2, originX, originZ);
-        const mesh = new THREE.Mesh(full, material);
-        mesh.frustumCulled = true;
-        mesh.receiveShadow = true;
-        this.group.add(mesh);
-        const center = new THREE.Vector3(
-          originX + (cx + 0.5) * CELLS_PER_CHUNK * cell,
-          0,
-          originZ + (cz + 0.5) * CELLS_PER_CHUNK * cell,
-        );
-        this.chunks.push({ mesh, full, half, center, isHalf: false });
-        this.disposables.push(full, half);
-      }
+    const chunks = buildTerrainChunks(hf, this.world.half, material);
+    for (const c of chunks) {
+      this.group.add(c.mesh);
+      this.disposables.push(c.full, c.half);
     }
-  }
-
-  private buildChunkGeometry(
-    hf: NonNullable<ArenaWorld['heightfield']>,
-    cx: number,
-    cz: number,
-    step: number,
-    originX: number,
-    originZ: number,
-  ): THREE.BufferGeometry {
-    const cells = CELLS_PER_CHUNK;
-    const verts = Math.floor(cells / step) + 1;
-    const positions = new Float32Array(verts * verts * 3);
-    const normals = new Float32Array(verts * verts * 3);
-    const uvs = new Float32Array(verts * verts * 2);
-    const indices: number[] = [];
-    const startXi = cx * cells;
-    const startZi = cz * cells;
-    for (let zi = 0; zi < verts; zi++) {
-      for (let xi = 0; xi < verts; xi++) {
-        const sx = startXi + xi * step;
-        const sz = startZi + zi * step;
-        const i = zi * verts + xi;
-        const wx = sx * hf.cellSize + originX;
-        const wz = sz * hf.cellSize + originZ;
-        positions[i * 3] = wx;
-        positions[i * 3 + 1] = hf.getSample(sx, sz);
-        positions[i * 3 + 2] = wz;
-        const n = hf.normalAt(sx * hf.cellSize, sz * hf.cellSize);
-        normals[i * 3] = n.nx;
-        normals[i * 3 + 1] = n.ny;
-        normals[i * 3 + 2] = n.nz;
-        uvs[i * 2] = wx / 4;
-        uvs[i * 2 + 1] = wz / 4;
-      }
-    }
-    for (let zi = 0; zi < verts - 1; zi++) {
-      for (let xi = 0; xi < verts - 1; xi++) {
-        const a = zi * verts + xi;
-        const b = a + 1;
-        const c = a + verts;
-        const d = c + 1;
-        indices.push(a, c, b, b, c, d);
-      }
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geo.setIndex(indices);
-    geo.computeBoundingSphere();
-    return geo;
+    this.chunks.push(...chunks);
   }
 
   private buildDecorations() {
     const layout = this.world.arena?.layout;
     if (!layout) return;
-    const decorations = layout.objects.filter((o) => !o.collider);
+    const decorations = layout.objects.filter((o) => !o.collider || o.kind === 'lightPole');
     const byAsset = new Map<string, typeof decorations>();
     for (const d of decorations) {
       const list = byAsset.get(d.assetId) ?? [];
@@ -319,23 +247,6 @@ export class ArenaView {
       mesh.frustumCulled = true;
       this.group.add(mesh);
       this.disposables.push(mesh);
-    }
-  }
-
-  private buildLightPoles() {
-    const poleMat = boxMat(0x2c3138, 0.8);
-    const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffd37a, emissiveIntensity: 1.1 });
-    this.disposables.push(poleMat, lampMat);
-    const half = this.world.half;
-    const poles: [number, number][] = [
-      [-half * 0.5, -half * 0.5], [half * 0.5, -half * 0.5], [-half * 0.5, half * 0.5], [half * 0.5, half * 0.5],
-      [0, -half * 0.9], [0, half * 0.9], [-half * 0.9, 0], [half * 0.9, 0],
-    ];
-    for (const [px, pz] of poles) {
-      const pole = boxMesh(0.24, 5.2, 0.24, poleMat, px, 2.6, pz);
-      this.group.add(pole);
-      const lamp = boxMesh(0.8, 0.14, 0.4, lampMat, px, 5.3, pz);
-      this.group.add(lamp);
     }
   }
 
@@ -417,14 +328,7 @@ export class ArenaView {
 
   /** Per-frame LOD + culling maintenance (cheap geometry swap). */
   update(cameraPosition: THREE.Vector3): void {
-    for (const chunk of this.chunks) {
-      const d = chunk.center.distanceTo(cameraPosition);
-      const wantHalf = d > LOD_FAR || (chunk.isHalf && d > LOD_NEAR);
-      if (wantHalf !== chunk.isHalf) {
-        chunk.mesh.geometry = wantHalf ? chunk.half : chunk.full;
-        chunk.isHalf = wantHalf;
-      }
-    }
+    updateChunkLod(this.chunks, cameraPosition);
   }
 
   /** Remove everything and release per-view resources (rematch-safe). */

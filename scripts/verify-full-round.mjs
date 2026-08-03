@@ -85,17 +85,22 @@ const playInterval = setInterval(() => {
   for (const p of s.pickups) {
     if (p.collected) continue;
     const d = Math.hypot(p.x - s.tank.x, p.z - s.tank.z);
-    if (d < 30 && (!target || d < Math.hypot(target.x - s.tank.x, target.z - s.tank.z))) target = p;
+    if (!target || d < Math.hypot(target.x - s.tank.x, target.z - s.tank.z)) target = p;
   }
-  let steer = Math.sin(t / 2.4) * 0.65;
-  if (target) {
-    const yawTo = Math.atan2(target.x - s.tank.x, target.z - s.tank.z);
-    steer = Math.max(-1, Math.min(1, wrapAngle(yawTo - s.tank.yaw) * 1.8));
-  }
+  // Generated arenas are 400x400 centered on (0,0): hold the center so the
+  // horde converges on the tank, and only leave it to collect dropped scrap.
+  const targetX = target ? target.x : 0;
+  const targetZ = target ? target.z : 0;
+  const yawTo = Math.atan2(targetX - s.tank.x, targetZ - s.tank.z);
+  const steer = Math.max(-1, Math.min(1, wrapAngle(yawTo - s.tank.yaw) * 1.8));
+  const enemyNear = s.enemies.some(
+    (e) => e.alive && e.type !== 'lootTruck' && Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < 45,
+  );
+  const throttle = enemyNear && !target ? 0.12 : 0.85;
   driver.send({
     t: 'input',
     seq: driverSeq++,
-    driver: { throttle: 0.85, steer, dashPressed: t % 8 < 0.1, jumpPressed: false },
+    driver: { throttle, steer, dashPressed: t % 8 < 0.1, jumpPressed: false },
   });
   let aimYaw = s.tank.yaw + Math.PI / 2;
   let enemy = null;
@@ -104,7 +109,8 @@ const playInterval = setInterval(() => {
     if (!enemy || Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < Math.hypot(enemy.x - s.tank.x, enemy.z - s.tank.z)) enemy = e;
   }
   if (enemy) aimYaw = Math.atan2(enemy.x - s.tank.x, enemy.z - s.tank.z);
-  const fire = s.turret.cannonCooldown <= 0;
+  const inRange = enemy && Math.hypot(enemy.x - s.tank.x, enemy.z - s.tank.z) < 80;
+  const fire = inRange && s.turret.cannonCooldown <= 0;
   const cannon = fire && !lastCannon;
   lastCannon = fire;
   gunner.send({

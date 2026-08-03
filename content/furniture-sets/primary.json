@@ -10,7 +10,15 @@
     "landmark.rampPark",
     "landmark.openCombat"
   ],
+  "objectPlacement": {
+    "enabled": true
+  },
+  "lightPoles": {
+    "enabled": true,
+    "count": 8
+  },
   "ramps": {
+    "enabled": true,
     "count": 4,
     "length": [8, 14],
     "width": [8, 12],
@@ -18,17 +26,18 @@
     "minSpacing": 60
   },
   "barrel": {
+    "enabled": true,
     "count": 16,
     "minSpacing": 10,
     "chainRadius": 8,
     "maxChain": 3
   },
   "entries": [
-    { "kind": "largeObstacle", "assetId": "prop.container", "obstacleType": "container", "count": 8, "minSpacing": 16, "clearance": 2, "zoneTags": ["openCombat", "resource"], "slopeMax": 0.15, "collider": true },
-    { "kind": "largeObstacle", "assetId": "prop.barrier", "obstacleType": "barrier", "count": 6, "minSpacing": 14, "clearance": 1.5, "zoneTags": ["openCombat", "flat"], "slopeMax": 0.18, "collider": true },
-    { "kind": "barrel", "assetId": "prop.explosiveBarrel", "count": 16, "minSpacing": 10, "clearance": 1.5, "zoneTags": ["openCombat", "flat"], "slopeMax": 0.2, "collider": true },
-    { "kind": "crate", "assetId": "prop.container", "obstacleType": "scrapPile", "count": 8, "minSpacing": 12, "clearance": 1.5, "zoneTags": ["resource", "highland"], "slopeMax": 0.22, "collider": true },
-    { "kind": "medium", "assetId": "prop.tire", "obstacleType": "tires", "count": 10, "minSpacing": 10, "clearance": 1, "zoneTags": ["flat", "slope"], "slopeMax": 0.2, "collider": true },
-    { "kind": "decoration", "assetId": "prop.tire", "count": 18, "minSpacing": 4, "clearance": 0.5, "zoneTags": ["flat", "slope", "openCombat"], "slopeMax": 0.3, "collider": false }
+    { "enabled": true, "kind": "largeObstacle", "assetId": "prop.container", "obstacleType": "container", "count": 8, "minSpacing": 16, "clearance": 2, "zoneTags": ["openCombat", "resource"], "slopeMax": 0.15, "collider": true },
+    { "enabled": true, "kind": "largeObstacle", "assetId": "prop.barrier", "obstacleType": "barrier", "count": 6, "minSpacing": 14, "clearance": 1.5, "zoneTags": ["openCombat", "flat"], "slopeMax": 0.18, "collider": true },
+    { "enabled": true, "kind": "barrel", "assetId": "prop.explosiveBarrel", "count": 16, "minSpacing": 10, "clearance": 1.5, "zoneTags": ["openCombat", "flat"], "slopeMax": 0.2, "collider": true },
+    { "enabled": true, "kind": "crate", "assetId": "prop.container", "obstacleType": "scrapPile", "count": 8, "minSpacing": 12, "clearance": 1.5, "zoneTags": ["resource", "highland"], "slopeMax": 0.22, "collider": true },
+    { "enabled": true, "kind": "medium", "assetId": "prop.tire", "obstacleType": "tires", "count": 10, "minSpacing": 10, "clearance": 1, "zoneTags": ["flat", "slope"], "slopeMax": 0.2, "collider": true },
+    { "enabled": true, "kind": "decoration", "assetId": "prop.tire", "count": 18, "minSpacing": 4, "clearance": 0.5, "zoneTags": ["flat", "slope", "openCombat"], "slopeMax": 0.3, "collider": false }
   ]
 }

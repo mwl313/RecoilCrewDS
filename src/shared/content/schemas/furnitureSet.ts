@@ -5,6 +5,7 @@ import { commonDefinition, nonNegativeInt, nonNegativeNumber, positiveInt, posit
 const tuple2 = z.tuple([positiveNumber, positiveNumber]);
 
 const furnitureEntrySchema = z.object({
+  enabled: z.boolean().default(true),
   kind: z.enum(['largeObstacle', 'barrel', 'crate', 'ramp', 'medium', 'decoration']),
   assetId: z.string().min(1),
   obstacleType: z
@@ -25,7 +26,15 @@ export const furnitureSetSchema = z.object({
   routeMinHalfWidth: positiveNumber,
   maxRouteSlope: positiveNumber,
   landmarks: z.array(z.string().regex(/^landmark\./, 'landmark ref must start with landmark.')).default([]),
+  objectPlacement: z.object({ enabled: z.boolean().default(true) }).default({ enabled: true }),
+  lightPoles: z
+    .object({
+      enabled: z.boolean().default(true),
+      count: nonNegativeInt,
+    })
+    .default({ enabled: true, count: 8 }),
   ramps: z.object({
+    enabled: z.boolean().default(true),
     count: nonNegativeInt,
     length: tuple2,
     width: tuple2,
@@ -33,6 +42,7 @@ export const furnitureSetSchema = z.object({
     minSpacing: positiveNumber,
   }),
   barrel: z.object({
+    enabled: z.boolean().default(true),
     count: nonNegativeInt,
     minSpacing: positiveNumber,
     chainRadius: positiveNumber,

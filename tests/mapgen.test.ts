@@ -24,7 +24,15 @@ import {
   createArenaQueries,
 } from '../src/shared/mapgen/compat';
 import { generateTerrain, type GeneratedArena } from '../src/shared/mapgen/generator';
-import { LEGACY_MAP_DEFINITIONS, resolveMapBundle } from '../src/shared/mapgen/profiles';
+import { resolveMapBundle } from '../src/shared/mapgen/profiles';
+import {
+  GENERATED_MAP_PROFILES,
+  MAP_PROFILE_SOURCE_HASH,
+} from '../src/generated/mapProfiles.generated';
+import {
+  computeMapProfileSourceHash,
+  readGeneratedSourceHash,
+} from '../scripts/generate-map-profile-bundle';
 import { generateArenaWithRetry } from '../src/shared/mapgen/retry';
 import { validateArena } from '../src/shared/mapgen/validation';
 import type { TerrainProfileDef } from '../src/shared/mapgen/profiles';
@@ -145,9 +153,15 @@ describe('content definitions', () => {
     expect([...pack.ids('validationProfiles')].sort()).toEqual(['validationProfile.fallback', 'validationProfile.primary']);
   });
 
-  it('resolved bundles deep-equal the client-safe legacy mirror', () => {
-    expect(PRIMARY).toEqual(LEGACY_MAP_DEFINITIONS['map.arena400Primary']);
-    expect(FALLBACK).toEqual(LEGACY_MAP_DEFINITIONS['map.fallbackLegacy']);
+  it('generated client bundles deep-equal server-resolved bundles (single source)', () => {
+    expect(GENERATED_MAP_PROFILES['map.arena400Primary']).toEqual(PRIMARY);
+    expect(GENERATED_MAP_PROFILES['map.fallbackLegacy']).toEqual(FALLBACK);
+    expect([...Object.keys(GENERATED_MAP_PROFILES)].sort()).toEqual([...pack.ids('maps')].sort());
+  });
+
+  it('detects a stale generated bundle (run npm run generate:map-profiles)', () => {
+    expect(MAP_PROFILE_SOURCE_HASH).toBe(readGeneratedSourceHash());
+    expect(computeMapProfileSourceHash(CONTENT_ROOT)).toBe(readGeneratedSourceHash());
   });
 
   it('rejects map definitions with missing profile references', () => {

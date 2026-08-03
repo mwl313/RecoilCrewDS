@@ -1,8 +1,16 @@
 /**
  * Ordered furniture placement: large obstacles -> barrels -> crates ->
- * medium furniture -> decorations. Every authoritative placement uses the
- * spatial hash for overlap/spacing and rejects required-corridor intrusion
- * and exclusion zones (spawns, gates, landings, recovery).
+ * medium furniture -> decorations -> light poles. Every authoritative
+ * placement uses the spatial hash for overlap/spacing and rejects
+ * required-corridor intrusion and exclusion zones (spawns, gates,
+ * landings, recovery).
+ *
+ * Object enables are hierarchical: master (`objectPlacement.enabled`) ->
+ * category (`barrel.enabled`, `ramps.enabled`) -> entry (`enabled`).
+ * Disabling keeps counts and still generates terrain/routes/zones/spawns/
+ * gates/recovery. All entries of the same kind are processed (never just
+ * the first), and requested/placed/rendered/collider/rejected metrics are
+ * reported per kind.
  */
 import type { Rng } from './prng';
 import type { Heightfield } from './heightfield';
@@ -14,9 +22,17 @@ import type { PlayerSpawn, HordeGate } from './spawns';
 import type { GeneratedRamp } from './ramps';
 import { SpatialHash } from './spatial';
 
-export type FurnitureKind = 'largeObstacle' | 'barrel' | 'crate' | 'ramp' | 'medium' | 'decoration';
+export type FurnitureKind =
+  | 'largeObstacle'
+  | 'barrel'
+  | 'crate'
+  | 'ramp'
+  | 'medium'
+  | 'decoration'
+  | 'lightPole';
 
 export interface FurnitureEntryDef {
+  enabled: boolean;
   kind: FurnitureKind;
   assetId: string;
   obstacleType?: string;
@@ -64,6 +80,9 @@ export interface FurnitureOptions {
   widthMeters: number;
   depthMeters: number;
   routeClearance: number;
+  masterEnabled: boolean;
+  barrelEnabled: boolean;
+  lightPoles: { enabled: boolean; count: number };
   entries: FurnitureEntryDef[];
   budgets: {
     maxObjects: number;
@@ -82,9 +101,24 @@ const OBJECT_SIZE: Record<FurnitureKind, { w: [number, number]; d: [number, numb
   medium: { w: [3, 5], d: [3, 5], h: [1.4, 2.6], radius: 2 },
   decoration: { w: [0.8, 1.4], d: [0.8, 1.4], h: [0.8, 1.6], radius: 0.7 },
   ramp: { w: [8, 12], d: [8, 14], h: [1, 2.5], radius: 4 },
+  lightPole: { w: [0.24, 0.3], d: [0.24, 0.3], h: [5, 5.5], radius: 0.6 },
 };
 
-export function placeFurniture(options: FurnitureOptions): GeneratedObject[] {
+export interface PlacementMetric {
+  kind: FurnitureKind;
+  requested: number;
+  placed: number;
+  rendered: number;
+  colliders: number;
+  rejected: number;
+}
+
+export interface FurniturePlacementResult {
+  objects: GeneratedObject[];
+  metrics: PlacementMetric[];
+}
+
+export function placeFurniture(options: FurnitureOptions): FurniturePlacementResult {
   const spatial = new SpatialHash({
     cellSize: 8,
     minX: 0,
@@ -93,7 +127,24 @@ export function placeFurniture(options: FurnitureOptions): GeneratedObject[] {
     maxZ: options.depthMeters,
   });
   const objects: GeneratedObject[] = [];
-  const counts = { largeObstacle: 0, barrel: 0, crate: 0, medium: 0, decoration: 0, ramp: 0 };
+  const counts: Record<FurnitureKind, number> = {
+    largeObstacle: 0,
+    barrel: 0,
+    crate: 0,
+    medium: 0,
+    decoration: 0,
+    ramp: 0,
+    lightPole: 0,
+  };
+  const rejected: Record<FurnitureKind, number> = {
+    largeObstacle: 0,
+    barrel: 0,
+    crate: 0,
+    medium: 0,
+    decoration: 0,
+    ramp: 0,
+    lightPole: 0,
+  };
 
   const exclusions: Exclusion[] = [
     ...options.spawns.map((s) => ({ id: `spawnSafe.${s.id}`, x: s.x, z: s.z, radius: 12 })),
@@ -110,65 +161,124 @@ export function placeFurniture(options: FurnitureOptions): GeneratedObject[] {
     return best;
   };
 
-  const order: FurnitureKind[] = ['largeObstacle', 'barrel', 'crate', 'medium', 'decoration'];
+  const order: FurnitureKind[] = ['largeObstacle', 'barrel', 'crate', 'medium', 'decoration', 'lightPole'];
+  const requestedFor = (kind: FurnitureKind): number => {
+    if (kind === 'lightPole') {
+      return options.lightPoles.enabled ? options.lightPoles.count : 0;
+    }
+    // Requested preserves counts even when master/category toggles are off.
+    return options.entries
+      .filter((e) => e.kind === kind && e.enabled)
+      .reduce((sum, e) => sum + e.count, 0);
+  };
+
   for (const kind of order) {
-    const entry = options.entries.find((e) => e.kind === kind);
-    if (!entry || entry.count <= 0) continue;
-    const size = OBJECT_SIZE[kind];
+    const entries = options.entries.filter((e) => e.kind === kind);
+    if (kind === 'lightPole' && options.lightPoles.enabled && entries.length === 0) {
+      entries.push({
+        enabled: true,
+        kind: 'lightPole',
+        assetId: 'prop.tire',
+        count: options.lightPoles.count,
+        minSpacing: 40,
+        clearance: 0,
+        zoneTags: ['flat', 'openCombat'],
+        slopeMax: 0.25,
+        collider: false,
+      });
+    }
+    const requested = requestedFor(kind);
     const budgetKey =
       kind === 'largeObstacle' ? 'maxObjects' :
       kind === 'barrel' ? 'maxBarrels' :
       kind === 'crate' ? 'maxCrates' :
-      kind === 'medium' ? 'maxMedium' : 'maxDecorations';
+      kind === 'medium' ? 'maxMedium' :
+      kind === 'decoration' ? 'maxDecorations' : 'maxObjects';
     const budget = options.budgets[budgetKey];
-    const target = Math.min(entry.count, budget);
-    const regionPool = entry.zoneTags.flatMap((tag) => findRegions(options.regions, tag));
-    const attempts = target * 24;
-    for (let i = 0; i < attempts && counts[kind] < target; i++) {
-      const candidate = sampleCandidate(options.rng, entry, regionPool, options);
-      if (!candidate) continue;
-      const { x, z } = candidate;
-      const margin = 6;
-      if (x < margin || x > options.widthMeters - margin || z < margin || z > options.depthMeters - margin) continue;
-      if (options.hf.slopeAt(x, z) > entry.slopeMax) continue;
-      if (!pointHasZoneTag(options, entry.zoneTags, x, z)) continue;
-      if (exclusions.some((e) => Math.hypot(e.x - x, e.z - z) < e.radius + size.radius)) continue;
-      if (corridorDistance(x, z) < options.routeClearance) continue;
-      const minGap = entry.minSpacing + size.radius;
-      let spaced = true;
-      for (const near of spatial.queryCircle(x, z, minGap)) {
-        const other = objects.find((o) => o.id === near)!;
-        if (Math.hypot(other.x - x, other.z - z) < (entry.minSpacing + other.radius)) {
-          spaced = false;
-          break;
+    const target = Math.min(requested, budget);
+    const size = OBJECT_SIZE[kind];
+
+    for (const entry of entries) {
+      if (!entry.enabled || entry.count <= 0) continue;
+      if (kind === 'barrel' && !options.barrelEnabled) continue;
+      if (!options.masterEnabled) continue;
+      const regionPool = entry.zoneTags.flatMap((tag) => findRegions(options.regions, tag));
+      const attempts = entry.count * 24;
+      for (let i = 0; i < attempts && counts[kind] < target; i++) {
+        const candidate = sampleCandidate(options.rng, entry, regionPool, options);
+        if (!candidate) {
+          rejected[kind]++;
+          continue;
         }
+        const { x, z } = candidate;
+        const margin = 6;
+        if (x < margin || x > options.widthMeters - margin || z < margin || z > options.depthMeters - margin) {
+          rejected[kind]++;
+          continue;
+        }
+        if (options.hf.slopeAt(x, z) > entry.slopeMax) {
+          rejected[kind]++;
+          continue;
+        }
+        if (!pointHasZoneTag(options, entry.zoneTags, x, z)) {
+          rejected[kind]++;
+          continue;
+        }
+        if (exclusions.some((e) => Math.hypot(e.x - x, e.z - z) < e.radius + size.radius)) {
+          rejected[kind]++;
+          continue;
+        }
+        if (corridorDistance(x, z) < options.routeClearance) {
+          rejected[kind]++;
+          continue;
+        }
+        let spaced = true;
+        for (const near of spatial.queryCircle(x, z, entry.minSpacing + size.radius)) {
+          const other = objects.find((o) => o.id === near)!;
+          if (Math.hypot(other.x - x, other.z - z) < entry.minSpacing + other.radius) {
+            spaced = false;
+            break;
+          }
+        }
+        if (!spaced) {
+          rejected[kind]++;
+          continue;
+        }
+        const w = size.w[0] + (size.w[1] - size.w[0]) * options.rng();
+        const d = size.d[0] + (size.d[1] - size.d[0]) * options.rng();
+        const h = size.h[0] + (size.h[1] - size.h[0]) * options.rng();
+        const obj: GeneratedObject = {
+          id: `${kind}.${counts[kind]}`,
+          kind,
+          assetId: entry.assetId,
+          obstacleType: entry.obstacleType,
+          x,
+          z,
+          yaw: options.rng() * Math.PI,
+          w,
+          d,
+          h,
+          radius: size.radius,
+          collider: entry.collider,
+          zoneTag: options.zoneGrid.tagAt(x, z),
+        };
+        spatial.insert(obj.id, x, z);
+        objects.push(obj);
+        counts[kind]++;
+        if (obj.collider && objects.filter((o) => o.collider).length >= options.budgets.maxColliders) break;
       }
-      if (!spaced) continue;
-      const w = size.w[0] + (size.w[1] - size.w[0]) * options.rng();
-      const d = size.d[0] + (size.d[1] - size.d[0]) * options.rng();
-      const h = size.h[0] + (size.h[1] - size.h[0]) * options.rng();
-      const obj: GeneratedObject = {
-        id: `${kind}.${counts[kind]}`,
-        kind,
-        assetId: entry.assetId,
-        obstacleType: entry.obstacleType,
-        x,
-        z,
-        yaw: options.rng() * Math.PI,
-        w,
-        d,
-        h,
-        radius: size.radius,
-        collider: entry.collider,
-        zoneTag: options.zoneGrid.tagAt(x, z),
-      };
-      spatial.insert(obj.id, x, z);
-      objects.push(obj);
-      counts[kind]++;
-      if (obj.collider && objects.filter((o) => o.collider).length >= options.budgets.maxColliders) break;
     }
   }
-  return objects;
+
+  const metrics: PlacementMetric[] = order.map((kind) => ({
+    kind,
+    requested: requestedFor(kind),
+    placed: counts[kind],
+    rendered: counts[kind],
+    colliders: objects.filter((o) => o.kind === kind && o.collider).length,
+    rejected: rejected[kind],
+  }));
+  return { objects, metrics };
 }
 
 function sampleCandidate(

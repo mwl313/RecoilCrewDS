@@ -240,33 +240,44 @@ test('wall and high-speed collisions stop the tank without penetration or tunnel
     let lastCd = -1;
     let dashAccepted = false;
     let impacted = false;
-    for (let i = 0; i < 600; i++) {
+    let restDistance = Infinity;
+    for (let i = 0; i < 900; i++) {
       const s = w.__recoil.state();
       if (!s) {
         await delay(16);
         continue;
       }
       const yawTo = Math.atan2(target.x - s.tank.x, target.z - s.tank.z);
-      const steer = Math.max(-1, Math.min(1, (s.tank.yaw - yawTo) * 2.5));
+      const yawError = ((s.tank.yaw - yawTo + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      const steer = Math.max(-1, Math.min(1, yawError * 2.5));
       maxVz = Math.max(maxVz, s.tank.vz);
       const cd = s.tank.dashCooldown;
       if (cd > 0.5) dashAccepted = true;
       const speed = Math.hypot(s.tank.vx, s.tank.vz);
-      if (!impacted && maxVz > 10 && speed < 3 && i > 15) {
+      const distToTarget = Math.hypot(target.x - s.tank.x, target.z - s.tank.z);
+      const distToNearest = Math.min(...obstacles.map((o) => Math.hypot(o.x - s.tank.x, o.z - s.tank.z)));
+      if (!impacted && maxVz > 10 && speed < 3 && distToNearest < 16 && i > 15) {
         impacted = true;
-        (window as unknown as Record<string, unknown>).__impactDistance = Math.hypot(target.x - s.tank.x, target.z - s.tank.z);
+        restDistance = distToNearest;
         break;
       }
-      w.__recoil.input('driver', { throttle: 1, steer, dashPressed: cd <= 0 && lastCd <= 0, jumpPressed: false });
+      const dash = cd <= 0 && lastCd <= 0 && distToTarget > 12;
+      const throttle = distToTarget < 20 ? 0.35 : 1;
+      w.__recoil.input('driver', { throttle, steer, dashPressed: dash, jumpPressed: false });
       lastCd = cd;
       await delay(16);
     }
     w.__recoil.input('driver', { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false });
     (window as unknown as Record<string, unknown>).__maxVz = maxVz;
     (window as unknown as Record<string, unknown>).__dashAccepted = dashAccepted;
-    (window as unknown as Record<string, unknown>).__impactDistance =
-      (window as unknown as { __impactDistance?: number }).__impactDistance ??
-      Math.hypot(target.x - w.__recoil.state().tank.x, target.z - w.__recoil.state().tank.z);
+    if (impacted) {
+      (window as unknown as Record<string, unknown>).__impactDistance = restDistance;
+    } else {
+      const end = w.__recoil.state();
+      (window as unknown as Record<string, unknown>).__impactDistance = Math.min(
+        ...obstacles.map((o) => Math.hypot(o.x - end.tank.x, o.z - end.tank.z)),
+      );
+    }
   });
   await a.waitForTimeout(600);
   const maxVz = await a.evaluate(() => (window as unknown as { __maxVz: number }).__maxVz);

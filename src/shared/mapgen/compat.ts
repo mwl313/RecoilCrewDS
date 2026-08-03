@@ -18,7 +18,7 @@ import {
 import { clamp, pointInBox, resolveCircleBox } from '../math';
 import { Heightfield } from './heightfield';
 import type { GeneratedArena } from './generator';
-import { LEGACY_MAP_DEFINITIONS } from './profiles';
+import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
 
 export interface ArenaProps {
   obstacles: Obstacle[];
@@ -62,7 +62,7 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
     }
   }
   const slopes = hf.slopeGrid();
-  const profile = LEGACY_MAP_DEFINITIONS['map.fallbackLegacy'].terrainProfile;
+  const profile = GENERATED_MAP_PROFILES['map.fallbackLegacy'].terrainProfile;
   const validation = {
     ok: true,
     errors: [] as string[],
@@ -130,7 +130,9 @@ export function toArenaProps(arena: GeneratedArena): ArenaProps {
 
   if (layout) {
     for (const o of layout.objects) {
-      if (!o.collider || o.kind === 'barrel' || o.kind === 'crate') continue;
+      // Crates are authoritative colliders (they must not disappear between
+      // generation, world conversion, and rendering).
+      if (!o.collider || o.kind === 'barrel') continue;
       const p = toWorld(o.x, o.z);
       obstacles.push({
         id: o.id,

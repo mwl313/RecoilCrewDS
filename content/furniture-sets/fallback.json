@@ -5,7 +5,15 @@
   "routeMinHalfWidth": 12,
   "maxRouteSlope": 0.35,
   "landmarks": [],
+  "objectPlacement": {
+    "enabled": true
+  },
+  "lightPoles": {
+    "enabled": false,
+    "count": 0
+  },
   "ramps": {
+    "enabled": true,
     "count": 0,
     "length": [8, 12],
     "width": [8, 10],
@@ -13,6 +21,7 @@
     "minSpacing": 60
   },
   "barrel": {
+    "enabled": true,
     "count": 0,
     "minSpacing": 10,
     "chainRadius": 8,

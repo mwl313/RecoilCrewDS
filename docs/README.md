@@ -15,6 +15,8 @@ docs/
 ├── README.md            this file (project readme)
 ├── guides/              architecture, authoring guides, assets, deploy, smoke test
 ├── design/              design document + stack decisions
+├── map-generation/      seeded map generation plans/reports (Phases 1-3)
+├── maplab/              Map Lab plan, user guide, architecture, report
 ├── bugfix/              bugfix plans/reports
 ├── planning/            build plan, build status, final reports
 └── refractor/           refactor pack: authority docs, phase prompts, status, audit, report
@@ -35,6 +37,23 @@ before the final five-second countdown.
   centered world aim point while the chassis rotates.
 - Space is an edge-triggered jump; Left Shift is an edge-triggered
   chassis-forward dash (an instantaneous burst, never a held boost).
+
+## Map Lab
+
+Recoil Crew Map Lab is a **separate browser tool** that reproduces the
+production map generator (same content, seeds, retries, fallback,
+validation, and checksums), lets you edit a deep-cloned working profile,
+visualize every generation layer, focus validation issues, and export
+profile bundles for safe CLI application.
+
+```bash
+npm run dev:maplab       # http://localhost:5180
+npm run build:maplab     # dist-maplab/
+npm run test:maplab      # unit tests
+npm run maplab:apply -- ./downloads/profile.json [--overwrite]
+```
+
+See [MAP_LAB_USER_GUIDE.md](maplab/MAP_LAB_USER_GUIDE.md).
 
 ---
 

@@ -11,7 +11,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/*"]
+    },
     "types": ["node"]
   },
-  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts", "e2e"]
+  "include": ["src", "tests", "tools/maplab/src", "scripts", "vite.config.ts", "playwright.config.ts", "e2e"]
 }

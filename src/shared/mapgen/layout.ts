@@ -19,7 +19,7 @@ import {
   type PlayerSpawn,
 } from './spawns';
 import { placeRamps, type GeneratedRamp } from './ramps';
-import { placeFurniture, type GeneratedObject } from './furniture';
+import { placeFurniture, type GeneratedObject, type PlacementMetric } from './furniture';
 import { findRecoveryZones } from './recovery';
 import type { DensityProfileDef, FurnitureSetDef, LandmarkDef } from './phase2Profiles';
 
@@ -32,6 +32,7 @@ export interface MapLayoutResult {
   recovery: ZoneRegion[];
   ramps: GeneratedRamp[];
   objects: GeneratedObject[];
+  placementMetrics: PlacementMetric[];
   furnitureSet: FurnitureSetDef;
   densityProfile: DensityProfileDef;
 }
@@ -145,7 +146,7 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
     minSpacing: options.furnitureSet.ramps.minSpacing,
   });
 
-  const objects = placeFurniture({
+  const placement = placeFurniture({
     rng: furnitureRng,
     hf: options.hf,
     graph,
@@ -158,9 +159,14 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
     widthMeters: options.widthMeters,
     depthMeters: options.depthMeters,
     routeClearance: options.furnitureSet.routeClearance,
+    masterEnabled: options.furnitureSet.objectPlacement.enabled,
+    barrelEnabled: options.furnitureSet.barrel.enabled,
+    lightPoles: options.furnitureSet.lightPoles,
     entries: options.furnitureSet.entries,
     budgets: options.densityProfile.budgets,
   });
+  // Category gate: ramps are placed only when enabled.
+  const activeRamps = options.furnitureSet.ramps.enabled ? ramps : [];
 
   return {
     graph,
@@ -169,8 +175,9 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
     gates,
     spawns,
     recovery,
-    ramps,
-    objects,
+    ramps: activeRamps,
+    objects: placement.objects,
+    placementMetrics: placement.metrics,
     furnitureSet: options.furnitureSet,
     densityProfile: options.densityProfile,
   };

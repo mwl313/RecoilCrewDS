@@ -59,6 +59,22 @@
   PASS (generated arena, grade S); `npm run test:maps` + `test:maps:sweep`
   PASS (1000/1000, 0 fallbacks). Details: `docs/map-generation/`.
 
+- **Map Lab complete** — separate browser tool (`tools/maplab/`,
+  `dist-maplab/`) reproducing the production generator (Production +
+  Exact Candidate), parameter editing through a descriptor registry,
+  shared game/Map Lab debug layers, validation-issue focus, object
+  master/category/entry toggles with per-kind metrics, profile/arena/
+  validation exports, and a safe apply CLI
+  (`npm run maplab:apply -- <file> [--overwrite]`). Single-source pipeline:
+  `npm run generate:map-profiles` → `src/generated/mapProfiles.generated.ts`
+  (legacy manual mirrors removed). Verified: `npm run build` PASS;
+  `npm test` **353/353 PASS** (34 files); `npm run test:maplab` **24/24
+  PASS**; `npm run test:demo` PASS (golden byte-identical); `npm run
+  test:e2e` **23/23 PASS** (incl. Map Lab flow + 20-regen stability);
+  `npm run test:loop` PASS (generated arena: score 1020 / 525 across runs,
+  JACKPOT ×2 / ×1, rematch ok); `npm run test:maps` + `test:maps:sweep`
+  PASS (64 + 1000 runs, 0 fallbacks). Details: `docs/maplab/`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

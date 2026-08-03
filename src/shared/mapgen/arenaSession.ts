@@ -12,7 +12,8 @@ import type { ArenaWorld } from '../sim/arenaWorld';
 import { createGeneratedArenaWorld } from '../sim/arenaWorld';
 import { buildLegacyArenaModel, toArenaProps, type ArenaProps } from './compat';
 import type { GeneratedArena } from './generator';
-import { LEGACY_MAP_DEFINITIONS, resolveMapBundle, type MapGenerationBundle } from './profiles';
+import { resolveMapBundle, type MapGenerationBundle } from './profiles';
+import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
 import { ARENA_GENERATOR_VERSION } from './seed';
 import { buildArenaCandidate, generateArenaWithRetry } from './retry';
 import { validateArena } from './validation';
@@ -78,8 +79,8 @@ export function resolveClientMapBundle(mapId = 'map.arena400Primary'): {
   bundle: MapGenerationBundle;
   fallbackBundle: MapGenerationBundle;
 } {
-  const bundle = LEGACY_MAP_DEFINITIONS[mapId];
-  const fallbackBundle = LEGACY_MAP_DEFINITIONS[bundle.map.fallbackMapId!];
+  const bundle = GENERATED_MAP_PROFILES[mapId];
+  const fallbackBundle = GENERATED_MAP_PROFILES[bundle.map.fallbackMapId!];
   if (!bundle || !fallbackBundle) throw new Error(`client map bundle missing for ${mapId}`);
   return { bundle, fallbackBundle };
 }

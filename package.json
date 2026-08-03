@@ -18,6 +18,11 @@
     "demo:write": "tsx scripts/demo-regression.ts --write",
     "test:maps": "vitest run tests/mapgen.test.ts && tsx scripts/mapgen-report.ts",
     "test:maps:sweep": "tsx scripts/mapgen-sweep.ts",
+    "generate:map-profiles": "tsx scripts/generate-map-profile-bundle.ts",
+    "dev:maplab": "vite --config tools/maplab/vite.config.ts",
+    "build:maplab": "npm run generate:map-profiles && vite build --config tools/maplab/vite.config.ts",
+    "test:maplab": "vitest run tests/maplab",
+    "maplab:apply": "tsx scripts/apply-maplab-profile.ts",
     "test:e2e": "playwright test",
     "test:loop": "node scripts/verify-full-round.mjs",
     "start": "npm run build && npm run server"
@@ -29,11 +34,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
+    "@tweakpane/core": "^2.0.5",
     "@types/node": "^24.0.0",
     "@types/three": "^0.178.0",
     "@types/ws": "^8.18.1",
     "esbuild": "^0.25.0",
     "tsx": "^4.19.0",
+    "tweakpane": "^4.0.5",
     "typescript": "^5.8.0",
     "vite": "^7.0.0",
     "vitest": "^3.2.0"

@@ -44,6 +44,36 @@ exactly once, so holding a key never repeats the action.
   decorations, fog 100-150 m, and disposes cleanly on rematch. A dev-only
   overlay (`?debug=1`, F3) shows seeds/checksum/features/routes/zones.
 
+## Map Lab (separate tool)
+
+`tools/maplab/` is a separate Vite application (own entry, own build output
+`dist-maplab/`; never part of the player bundle). It reuses the production
+pipeline:
+
+- **Single source**: `scripts/generate-map-profile-bundle.ts` →
+  `src/generated/mapProfiles.generated.ts`; server resolves from validated
+  JSON, clients/Map Lab from the generated module. No manual mirrors.
+- **Generator adapter**: Production mode runs `selectArenaSession` (same
+  retry/fallback); Exact Candidate mode runs `buildArenaCandidate` +
+  `attachProps`. Checksums match the game session.
+- **Worker**: generation/validation run in a Web Worker (shared modules,
+  no Three.js) with request ids; stale results are dropped. A documented
+  debounced main-thread fallback uses the same shared code.
+- **Shared layers**: `src/client/map-debug/` is used by both the game F3
+  overlay and Map Lab (height/slope, features, routes/corridors, zones,
+  spawns/gates/recovery, ramps/landings/flight, furniture/colliders/
+  decorations, barrel chains, validation issues).
+- **Validation issues**: `src/shared/mapgen/validationIssues.ts` converts
+  validator reports into stable `MapValidationIssue` objects (severity,
+  category, position, layer, entity) for UI focus; validators are
+  unchanged.
+- **Edits**: Tweakpane binds a descriptor registry to a deep-cloned working
+  bundle; source definitions are frozen. History (undo/redo), raw JSON
+  editing, and localStorage drafts with a source fingerprint are included.
+- **Export/apply**: Profile Bundle / Generated Arena / Validation Report
+  exports; `scripts/apply-maplab-profile.ts` validates, writes content,
+  updates the manifest, regenerates the bundle, and never commits.
+
 ## Content and rules
 
 `ContentPack → mode → difficulty → MatchRules`. Definitions are frozen;

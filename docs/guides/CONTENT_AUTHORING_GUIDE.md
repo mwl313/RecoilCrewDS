@@ -10,6 +10,49 @@ validates it with Zod at startup and fails loudly on invalid packs.
 3. Run `npm test` (content validation + parity) and the four gates.
 4. `npm run server` logs the new pack hash.
 
+### Map generation profiles
+
+Map/terrain/validation/furniture/density/landmark JSON is resolved into a
+client-safe bundle by a single pipeline:
+
+```bash
+npm run generate:map-profiles
+```
+
+This writes `src/generated/mapProfiles.generated.ts` (plain data, format
+version 1, sha256 source hash). The server resolves from the validated JSON
+directly; the browser/Practice/Map Lab use the generated module. After any
+map-content edit, run the generator — the stale-file test fails otherwise.
+
+### Furniture enabled switches and metrics
+
+Furniture sets support master/category/entry toggles:
+
+| Field | Meaning |
+| --- | --- |
+| `objectPlacement.enabled` | Master switch for all object placement (terrain/routes/zones/spawns/gates/recovery stay). |
+| `ramps.enabled` | Category switch for ramps. |
+| `barrel.enabled` | Category switch for barrels. |
+| `entries[].enabled` | Per-entry switch; counts are preserved when disabled. |
+| `lightPoles.enabled` / `lightPoles.count` | Data-driven light poles (no hardcoded builder). |
+
+Placement metrics (`requested / placed / rendered / colliders / rejected`
+per kind) are part of the generated layout and are visible in Map Lab.
+
+### Applying a Map Lab profile bundle
+
+The browser never writes repo files. Apply an exported profile bundle with:
+
+```bash
+npm run maplab:apply -- ./downloads/profile.json
+npm run maplab:apply -- ./downloads/profile.json --overwrite
+```
+
+The CLI validates format/version, Zod schemas, references, and id
+conflicts; writes content files; updates `content/manifest.json`;
+regenerates the client bundle; and prints changed files. It never creates a
+git commit. `--overwrite` is required when an id already exists.
+
 ## Rules
 
 - IDs are semantic and dot-namespaced (`weapon.mainCannon`,
