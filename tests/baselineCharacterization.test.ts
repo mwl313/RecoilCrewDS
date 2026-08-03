@@ -479,7 +479,7 @@ describe('Driver predictor config source', () => {
 
   it('the predictor is wired from BASE_CONFIG and the snapshot movement block', () => {
     const controller = readFileSync(path.join(ROOT, 'src/client/app/predictionController.ts'), 'utf8');
-    expect(controller).toContain('new DriverPredictor(BASE_CONFIG, modifier');
+    expect(controller).toContain('new SharedTankPredictor(');
     const presenter = readFileSync(path.join(ROOT, 'src/client/app/networkStatePresenter.ts'), 'utf8');
     expect(presenter).toContain('applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier)');
   });

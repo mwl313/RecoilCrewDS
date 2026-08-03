@@ -9,9 +9,12 @@ import {
   cliffWallMaterial,
   updateChunkLod,
 } from './map-debug/terrainMesh';
+import { buildCameraCollisionIndex, type CameraCollisionQuery } from './cameraCollision';
 
 export interface Collider {
   box: THREE.Box3;
+  /** Pre-expanded camera AABB (built at arena construction; M5). */
+  expanded?: THREE.Box3;
   type: string;
 }
 
@@ -107,6 +110,7 @@ function boxMesh(w: number, h: number, d: number, mat: THREE.Material, x: number
 export class ArenaView {
   group = new THREE.Group();
   colliders: Collider[] = [];
+  cameraQuery: CameraCollisionQuery | null = null;
   barrelMeshes = new Map<number, THREE.Object3D>();
   private readonly world: ArenaWorld;
   private readonly assets: AssetService;
@@ -118,6 +122,7 @@ export class ArenaView {
     this.world = world;
     setClientGroundHeightAt((x, z) => world.groundHeightAt(x, z));
     this.build();
+    this.cameraQuery = buildCameraCollisionIndex(this.colliders);
   }
 
   private build() {

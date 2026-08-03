@@ -16,15 +16,21 @@ export interface RecoilAppliedEvent {
 export class RecoilEffect {
   constructor(private readonly ctx: SystemContext) {}
 
-  apply(dirX: number, dirZ: number, impulse: number, spin: number, weaponId?: string): void {
+  apply(dirX: number, dirZ: number, impulse: number, spin: number, weaponId?: string, sourceActionSeq?: number): void {
     const t = this.ctx.state.tank;
-    t.vx += dirX * impulse;
-    t.vz += dirZ * impulse;
-    t.yawVel += (Math.random() - 0.5) * 2 * spin;
-    if (!t.grounded) {
-      t.vy += 1.8 * clamp(impulse / 7, 0, 1.4);
-    }
-    t.roll = clamp(t.roll + (Math.random() - 0.5) * 0.35, -1.4, 1.4);
+    const actionSeq = sourceActionSeq ?? this.ctx.pendingActionSeq;
+    this.ctx.pendingActionSeq = undefined;
+    // Compute the exact deltas and let TankImpulseSystem apply them once
+    // (sequenced + wire event) so clients can predict/replay recoil.
+    this.ctx.impulses.apply({
+      deltaVx: dirX * impulse,
+      deltaVy: t.grounded ? 0 : 1.8 * clamp(impulse / 7, 0, 1.4),
+      deltaVz: dirZ * impulse,
+      deltaYawVel: (Math.random() - 0.5) * 2 * spin,
+      deltaRoll: (Math.random() - 0.5) * 0.35,
+      source: 'recoil',
+      sourceActionSeq: actionSeq,
+    });
     pushEvent(this.ctx, 'recoil', t.x, t.y, t.z, { value: impulse });
     this.ctx.eventBus.emit('recoil.applied', { impulse, braced: false, weaponId });
   }

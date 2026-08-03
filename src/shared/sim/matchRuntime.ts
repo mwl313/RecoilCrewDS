@@ -15,6 +15,9 @@ import {
 import { createSystemContext, type SystemContext } from './systems/systemContext';
 import { LoadoutRuntime } from '../weapons/loadoutRuntime';
 import { WeaponSystem } from '../weapons/weaponSystem';
+import type { GunnerActionType } from '../net/protocol';
+import { createNetcodeOpState, recordOp } from './opLog';
+import type { TankImpulseWire } from '../effects/tankImpulseSystem';
 import type {
   BarrelState,
   DriverInput,
@@ -117,6 +120,11 @@ export class MatchRuntime {
   readonly loadout: LoadoutRuntime;
   readonly weaponSystem: WeaponSystem;
   readonly world: ArenaWorld;
+  /** Unified netcode op/ack state (driver seq, gunner seq, impulses). */
+  readonly opState = createNetcodeOpState();
+  private readonly impulseEvents: TankImpulseWire[] = [];
+  /** Authoritative simulation tick (increments per step). */
+  simTick = 0;
   private modeDefinition: DemoScoreAttackModeDefinition | null = null;
 
   /** Legacy projections of the resolved match rules (frozen, per-match). */
@@ -133,6 +141,11 @@ export class MatchRuntime {
   private driverEdgesPending: { dash: boolean; jump: boolean } = { dash: false, jump: false };
   private driverEdgesConsumed = true;
   private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
+  private gunnerEdgeLatches: { mgStart: boolean; mgStop: boolean; cannonPressed: boolean } = {
+    mgStart: false,
+    mgStop: false,
+    cannonPressed: false,
+  };
   constructor(
     matchId: string,
     modifier: ModifierId = 'none',
@@ -144,7 +157,16 @@ export class MatchRuntime {
     this.world = world ?? createStaticArenaWorld();
     this.state = initialState(matchId, this.rules, this.world);
     this.eventBus = new GameplayEventBus();
-    this.systems = createSystemContext(this.state, this.rules, this.events, this.eventBus, this.world);
+    this.systems = createSystemContext(
+      this.state,
+      this.rules,
+      this.events,
+      this.eventBus,
+      this.world,
+      this.opState,
+      this.impulseEvents,
+      this.simTick,
+    );
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
     this.loadout = new LoadoutRuntime(this.rules.weapons, this.rules.loadout);
@@ -196,7 +218,19 @@ export class MatchRuntime {
     return out;
   }
 
-  setDriverInput(input: DriverInput) {
+  /** Drain typed tank impulse wire events (broadcast by the room). */
+  takeImpulseEvents(): TankImpulseWire[] {
+    if (this.impulseEvents.length === 0) return [];
+    const out = [...this.impulseEvents];
+    this.impulseEvents.length = 0;
+    return out;
+  }
+
+  setDriverInput(input: DriverInput, seq?: number) {
+    if (seq !== undefined && seq > this.opState.lastDriverInputSeq) {
+      this.opState.lastDriverInputSeq = seq;
+      recordOp(this.opState, 'd', seq);
+    }
     this.driverInput = input;
     if (!this.driverEdgesConsumed) {
       // A new sequenced frame arrived before the previous frame's edges were
@@ -212,8 +246,45 @@ export class MatchRuntime {
     }
   }
 
-  setGunnerInput(input: GunnerInput) {
+  setGunnerInput(input: GunnerInput, seq?: number) {
+    if (seq !== undefined && seq > this.opState.lastGunnerInputSeq) {
+      this.opState.lastGunnerInputSeq = seq;
+    }
     this.gunnerInput = input;
+  }
+
+  /**
+   * Apply a discrete Gunner action edge immediately (before the next sim
+   * step). The weapon system converts the held state into exact firings.
+   */
+  applyGunnerAction(action: GunnerActionType, seq?: number): { accepted: boolean; reason?: string } {
+    const t = this.state.tank;
+    const tur = this.state.turret;
+    if (t.deadT > 0) return { accepted: false, reason: 'dead' };
+    switch (action) {
+      case 'cannonPressed':
+        if (tur.cannonCooldown > 0) return { accepted: false, reason: 'cooldown' };
+        this.gunnerInput.secondary = true;
+        this.gunnerEdgeLatches.cannonPressed = true;
+        this.systems.pendingActionSeq = seq;
+        return { accepted: true };
+      case 'mgStart':
+        this.gunnerInput.primary = true;
+        this.gunnerEdgeLatches.mgStart = true;
+        this.systems.pendingActionSeq = seq;
+        return { accepted: true };
+      case 'mgStop':
+        this.gunnerInput.primary = false;
+        this.gunnerEdgeLatches.mgStop = true;
+        return { accepted: true };
+      case 'abilityStart':
+        if (!tur.jackpotReady) return { accepted: false, reason: 'not_ready' };
+        this.gunnerInput.ability = true;
+        return { accepted: true };
+      case 'abilityRelease':
+        this.gunnerInput.ability = false;
+        return { accepted: true };
+    }
   }
 
   getDriverInput(): DriverInput {
@@ -238,6 +309,7 @@ export class MatchRuntime {
 
   clearGunnerInput() {
     this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
+    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, cannonPressed: false };
     this.weaponSystem.clearActions();
   }
 
@@ -245,7 +317,11 @@ export class MatchRuntime {
     if (this.state.phase !== 'running' && this.state.phase !== 'countdown') return;
     const dt = this.systems.round.advance(dtRaw);
     if (dt === 0) return;
+    this.simTick++;
+    this.systems.simTick = this.simTick;
     const s = this.state;
+    this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
+    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, cannonPressed: false };
     this.stepTank(dt);
     this.weaponSystem.update(dt, this.gunnerInput);
     this.systems.enemies.update(dt);

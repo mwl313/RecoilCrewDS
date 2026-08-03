@@ -12,7 +12,15 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1280, height: 720 },
     launchOptions: {
-      args: ['--enable-unsafe-swiftshader', '--use-gl=angle', '--enable-webgl', '--ignore-gpu-blocklist'],
+      args: [
+        '--enable-unsafe-swiftshader',
+        '--use-gl=angle',
+        '--enable-webgl',
+        '--ignore-gpu-blocklist',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+      ],
     },
   },
   webServer: [

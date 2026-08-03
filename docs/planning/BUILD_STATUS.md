@@ -116,6 +116,24 @@
   `npm run test:maplab` **32/32 PASS**; `build:maplab` +
   `build:presentation-preview` PASS. Details: `docs/refractor02/`.
 
+- **Network03 — shared vehicle prediction + gunner responsiveness
+  complete** — both roles predict the shared tank (Driver local input,
+  Gunner via server-relayed sanitized Driver input); exact tank impulses
+  (`tankImpulse` with opSeq) update both predictors once; Gunner discrete
+  actions are immediate with `actionSeq`/`actionResult` and same-frame
+  presentation; turret reconcile keys to the Gunner input ack; snapshot
+  cadence fixed to true 20 Hz (1804/90 s vs 1353 before); server loop is a
+  bounded fixed-step accumulator with drift metrics; camera/aim queries are
+  spatialized with merged cliff proxies (77–79% fewer); remote interpolation
+  no longer allocates a MatchState per frame; PIP is adaptive
+  (12/6 Hz, 0.6 scale). Diagnostics: F4 netcode overlay + `?latency/?
+  jitter` dev simulation. Verified: `npm run test:netcode` **27/27**;
+  `npm run test:netcode:e2e` **4/4** at 0/50/100/150 ms and 100 ms+40 ms
+  jitter; `npm run test:e2e` **28/28**; `npm test` **464/464** (49 files);
+  Demo golden unchanged; `test:loop` PASS (1804 snapshots); maps/maplab/
+  presentation PASS; soak **8/8 rounds in 778 s**. Details:
+  `docs/network03/`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

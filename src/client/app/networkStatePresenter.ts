@@ -1,14 +1,20 @@
 import * as THREE from 'three';
 import { clamp, lerp, angleDiff, wrapAngle } from '../../shared/math';
-import { SnapshotBuffer, interpolateMatchState, type SnapshotEnvelope } from '../../shared/net/interpolation';
+import { SnapshotBuffer, type SnapshotEnvelope } from '../../shared/net/interpolation';
 import type { AssetService, TankRig } from '../assets';
 import type { AudioManager } from '../audio';
 import type { Collider } from '../arenaView';
+import type { CameraCollisionQuery } from '../cameraCollision';
 import type { EnemyState, MatchState, Role, SimEvent, TankState } from '../../shared/types';
 import type { CameraManager } from './cameraManager';
 import type { EntityViewRegistry } from './entityViewRegistry';
 import type { PredictionController } from './predictionController';
 import type { RenderWorld } from './renderWorld';
+import { RemoteEntityInterpolator, type RemoteFrame } from '../prediction/remoteInterpolator';
+import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
+import type { DriverInput } from '../../shared/types';
+import type { OpEntry } from '../../shared/sim/opLog';
+import { netcodeMetrics } from '../netcode/netcodeMetrics';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -26,6 +32,7 @@ export interface PresenterDeps {
   cameras: CameraManager;
   prediction: PredictionController;
   colliders: () => Collider[];
+  cameraQuery: () => CameraCollisionQuery | null;
   input: InputSource;
   audio: AudioManager;
   mode: () => 'online' | 'practice';
@@ -43,16 +50,44 @@ export interface PresenterDeps {
 export class NetworkStatePresenter {
   private readonly snapBuffer = new SnapshotBuffer<MatchState>();
   latest: MatchState | null = null;
-  interpState: MatchState | null = null;
+  remoteFrame: RemoteFrame | null = null;
   private renderTime = 0;
   private renderClockStarted = false;
   private lastRenderTank: TankState | null = null;
+  private readonly remote = new RemoteEntityInterpolator();
+  private readonly frame: RemoteFrame = {
+    enemies: [],
+    pickups: [],
+    shells: [],
+    truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: 0, waypoint: 0, escaped: false, sirenT: 0 },
+    turret: { yaw: 0, pitch: 0 },
+    tank: undefined as never,
+    discrete: undefined as never,
+    interpolated: false,
+  };
 
   constructor(private readonly deps: PresenterDeps) {}
 
-  setSnapshot(msg: SnapshotEnvelope<MatchState>): void {
+  setSnapshot(msg: SnapshotEnvelope<MatchState> & {
+    lastImpulseSeq?: number;
+    opLog?: OpEntry[];
+    serverTick?: number;
+    tickDurationMs?: number;
+    droppedTimeMs?: number;
+    driftMs?: number;
+    outboundBuffered?: number;
+  }): void {
+    const t0 = performance.now();
     this.latest = msg.state;
     this.snapBuffer.push(msg);
+    netcodeMetrics.serverTick = msg.serverTick ?? 0;
+    netcodeMetrics.serverTickDurationMs = msg.tickDurationMs ?? 0;
+    netcodeMetrics.serverDroppedMs = msg.droppedTimeMs ?? 0;
+    netcodeMetrics.serverDriftMs = msg.driftMs ?? 0;
+    netcodeMetrics.outboundBuffered = msg.outboundBuffered ?? 0;
+    if (msg.serverTime !== undefined) {
+      netcodeMetrics.renderDelayMs = Math.max(0, this.renderTime - msg.serverTime) * 1000;
+    }
     if (this.deps.mode() === 'online') {
       this.deps.prediction.applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier);
     }
@@ -60,12 +95,28 @@ export class NetworkStatePresenter {
       this.renderClockStarted = true;
       this.renderTime = msg.serverTime - 0.1;
     }
-    this.deps.prediction.reconcile(msg.state, msg.lastProcessedDriverInputSeq);
-    this.deps.prediction.reconcileTurret(msg.seq, msg.state);
+    this.deps.prediction.reconcile(msg.state, msg.lastProcessedDriverInputSeq, {
+      impulseAckSeq: msg.lastImpulseSeq,
+      opLog: msg.opLog,
+    });
+    this.deps.prediction.reconcileTurret(msg.state, msg.lastProcessedGunnerInputSeq);
+    netcodeMetrics.snapshotHandleMs = performance.now() - t0;
   }
 
   handleEvent(ev: SimEvent): void {
     void ev;
+  }
+
+  /** Exact tank impulse → both predictors apply immediately (once). */
+  handleTankImpulse(wire: TankImpulseWire): void {
+    this.deps.prediction.applyImpulse(wire);
+  }
+
+  /** Server-relayed sanitized Driver input → Gunner shared predictor. */
+  handleDriverRelay(seq: number, driver: DriverInput): void {
+    if (this.deps.mode() === 'online' && this.deps.role() === 'gunner') {
+      this.deps.prediction.pushRelayInput(seq, driver);
+    }
   }
 
   advanceRenderClock(dtRaw: number): void {
@@ -77,21 +128,37 @@ export class NetworkStatePresenter {
     }
   }
 
-  getInterpState(): MatchState | null {
-    if (this.deps.mode() === 'practice') return this.deps.practiceMatch()?.state ?? this.latest;
-    if (this.snapBuffer.length === 0) return this.latest;
-    const pair = this.snapBuffer.pick(this.renderTime);
-    if (!pair) return this.latest;
-    return interpolateMatchState(pair.a.state, pair.b.state, pair.alpha);
+  /** Fill the reusable remote frame (no whole MatchState allocation). */
+  computeRemote(): void {
+    const t0 = performance.now();
+    if (this.deps.mode() === 'practice') {
+      const state = this.deps.practiceMatch()?.state ?? this.latest;
+      if (state) {
+        this.remote.fillFromDiscrete(this.frame, state);
+        this.remoteFrame = this.frame;
+      }
+    } else if (this.snapBuffer.length > 0) {
+      const pair = this.snapBuffer.pick(this.renderTime);
+      if (pair) {
+        this.remote.setEndpoints(pair.a, pair.b, pair.alpha);
+        this.remote.fill(this.frame);
+        this.remoteFrame = this.frame;
+      } else {
+        this.remoteFrame = this.latest ? this.frame : null;
+        if (this.latest) this.remote.fillFromDiscrete(this.frame, this.latest);
+      }
+    } else if (this.latest) {
+      this.remote.fillFromDiscrete(this.frame, this.latest);
+      this.remoteFrame = this.frame;
+    }
+    netcodeMetrics.interpMs = performance.now() - t0;
   }
 
-  computeInterp(): void {
-    this.interpState = this.getInterpState();
-  }
-
-  syncWorld(state: MatchState, renderTank: TankState, dt: number): void {
+  syncWorld(frame: RemoteFrame, renderTank: TankState, dt: number): void {
+    const t0 = performance.now();
     const deps = this.deps;
     const t = renderTank;
+    const state = frame.discrete;
     this.lastRenderTank = renderTank;
     const pos = new THREE.Vector3(t.x, t.y, t.z);
     const yaw = t.yaw;
@@ -107,16 +174,16 @@ export class NetworkStatePresenter {
       // Interpolate it client-side and re-derive the local yaw against the
       // predicted chassis, so the turret moves in real time (60 fps, still
       // sticky to the gunner's aim) with zero extra network traffic.
-      const worldAim = wrapAngle(state.tank.yaw + state.turret.yaw);
+      const worldAim = wrapAngle(yaw + frame.turret.yaw);
       deps.tankRig.turret.rotation.y = wrapAngle(worldAim - yaw);
-      deps.tankRig.barrel.rotation.x = -state.turret.pitch;
+      deps.tankRig.barrel.rotation.x = -frame.turret.pitch;
     }
     deps.registry.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
     deps.registry.shieldMesh.visible = t.shieldedT > 0;
 
     const registry = deps.registry;
     const seen = new Set<number>();
-    for (const e of state.enemies) {
+    for (const e of frame.enemies) {
       seen.add(e.id);
       let rig = registry.enemyRigs.get(e.id);
       if (!rig) rig = registry.createEnemy(e);
@@ -151,7 +218,7 @@ export class NetworkStatePresenter {
     }
 
     const seenPickups = new Set<number>();
-    for (const p of state.pickups) {
+    for (const p of frame.pickups) {
       if (p.collected) continue;
       seenPickups.add(p.id);
       let rig = registry.pickupRigs.get(p.id);
@@ -164,7 +231,7 @@ export class NetworkStatePresenter {
     }
 
     const seenShells = new Set<number>();
-    for (const sh of state.shells) {
+    for (const sh of frame.shells) {
       seenShells.add(sh.id);
       let rig = registry.shellRigs.get(sh.id);
       if (!rig) rig = registry.createShell(sh);
@@ -179,7 +246,7 @@ export class NetworkStatePresenter {
       if (mesh) mesh.visible = !b.exploded;
     }
 
-    const truck = state.truck;
+    const truck = frame.truck;
     registry.truckRig.visible = truck.active;
     if (truck.active) {
       registry.truckRig.position.set(truck.x, truck.y, truck.z);
@@ -196,16 +263,16 @@ export class NetworkStatePresenter {
 
     const speedRatio = Math.min(1, Math.hypot(t.vx, t.vz) / 18);
     const mouse = deps.input.consumeMouse();
-    deps.cameras.update(dt, pos, yaw, deps.mode() === 'practice' || deps.role() === 'driver' ? speedRatio : 0, deps.colliders(), mouse);
+    deps.cameras.update(dt, pos, yaw, deps.mode() === 'practice' || deps.role() === 'driver' ? speedRatio : 0, deps.cameraQuery(), mouse);
     if (deps.mode() === 'practice' || deps.role() === 'gunner') {
-      const groundY = state.tank.y;
-      const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.colliders(), groundY);
+      const groundY = renderTank.y;
+      const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
       const pivot = pos.clone().add(new THREE.Vector3(0, 1.15, 0));
       const dx = aim.x - pivot.x;
       const dz = aim.z - pivot.z;
       const flat = Math.hypot(dx, dz) || 0.001;
       const worldYaw = Math.atan2(dx, dz);
-      const chassisYaw = deps.mode() === 'practice' ? deps.practiceMatch()!.state.tank.yaw : yaw;
+      const chassisYaw = deps.mode() === 'practice' ? frame.tank.yaw : yaw;
       const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), -0.45, 0.5);
       deps.prediction.updateTurretTarget(worldYaw, pitch, chassisYaw, dt);
       deps.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
@@ -224,6 +291,7 @@ export class NetworkStatePresenter {
         0x9a8462, 1, 1.2, 0.28, 0.5, -0.4,
       );
     }
+    netcodeMetrics.worldSyncMs = performance.now() - t0;
   }
 
   getRenderTank(): { x: number; y: number; z: number; yaw: number; pitch: number; roll: number } | null {
@@ -231,10 +299,16 @@ export class NetworkStatePresenter {
     return t ? { x: t.x, y: t.y, z: t.z, yaw: t.yaw, pitch: t.pitch, roll: t.roll } : null;
   }
 
+  /** Full predicted tank state (used by PIP and diagnostics). */
+  getPredictedTank(): TankState | null {
+    return this.lastRenderTank;
+  }
+
   reset(): void {
     this.snapBuffer.clear();
     this.latest = null;
-    this.interpState = null;
+    this.remoteFrame = null;
+    this.remote.reset();
     this.renderClockStarted = false;
     this.renderTime = 0;
     this.lastRenderTank = null;

@@ -17,6 +17,11 @@ import { PredictionController } from './predictionController';
 import { PresentationEventRouter } from './presentationEventRouter';
 import { QualityManager } from './qualityManager';
 import { RenderWorld } from './renderWorld';
+import { netcodeMetrics, F4Overlay } from '../netcode/netcodeMetrics';
+import { DRIVER_INPUT_INTERVAL, GUNNER_AIM_INTERVAL } from '../../shared/net/tuning';
+import type { GunnerActionType } from '../../shared/net/protocol';
+import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
+import type { DriverInput } from '../../shared/types';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, practice stepping,
@@ -52,6 +57,8 @@ export class GameClient {
   private cannonDown = false;
   private chargeDown = false;
   private mgDown = false;
+  private readonly pendingLocalActions = new Map<number, { action: GunnerActionType; at: number }>();
+  private f4: F4Overlay | null = null;
   private inputEnabled = true;
   private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
   private inputSendT = 0;
@@ -139,7 +146,11 @@ export class GameClient {
       tankRig,
       arenaWorld: world,
     };
-    const router = new PresentationEventRouter(assets, renderWorld.vfx, audio, cameras);
+    const router = new PresentationEventRouter(assets, renderWorld.vfx, audio, cameras, {
+      isPresented: (seq) => gameRef?.isActionPresented(seq) ?? false,
+      confirm: (seq) => gameRef?.confirmAction(seq),
+      reject: (seq) => gameRef?.rejectAction(seq),
+    });
     const pip = new PipRenderer(renderWorld);
     const quality = new QualityManager({
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
@@ -148,7 +159,11 @@ export class GameClient {
       setPipRate: (r) => {
         pip.pipRate = r;
       },
+      setPipScale: (s) => {
+        pip.pipScale = s;
+      },
     });
+    quality.reset();
     const presenter = new NetworkStatePresenter({
       world: renderWorld,
       assets,
@@ -157,6 +172,7 @@ export class GameClient {
       cameras,
       prediction,
       colliders: () => renderWorld.arena.colliders,
+      cameraQuery: () => renderWorld.arena.cameraQuery,
       input,
       audio,
       mode: () => gameRef!.mode,
@@ -171,6 +187,7 @@ export class GameClient {
     deps.quality = quality;
     const game = new GameClient(deps);
     gameRef = game;
+    game.f4 = new F4Overlay();
     game.onReadyHook = onReady;
     return game;
   }
@@ -201,7 +218,7 @@ export class GameClient {
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
     this.prediction.setMovementRules(this.practiceMatch.runtime.rules.movementBlock());
     this.presenter.latest = this.practiceMatch.state;
-    this.presenter.interpState = this.practiceMatch.state;
+    this.presenter.remoteFrame = null;
     this.setRole('driver');
     this.resetState();
     this.prediction.setGround(this.arenaWorld);
@@ -240,6 +257,43 @@ export class GameClient {
     };
   }
 
+  handleTankImpulse(wire: TankImpulseWire): void {
+    this.presenter.handleTankImpulse(wire);
+  }
+
+  handleDriverRelay(seq: number, driver: DriverInput): void {
+    this.presenter.handleDriverRelay(seq, driver);
+  }
+
+  handleActionResult(actionSeq: number, accepted: boolean): void {
+    if (accepted) {
+      // Keep the pending entry: the tagged authoritative shot/impulse event
+      // confirms (and suppresses) the local presentation.
+      netcodeMetrics.markActionLatency(performance.now() - (this.pendingLocalActions.get(actionSeq)?.at ?? performance.now()));
+      return;
+    }
+    this.prediction.rejectAction(actionSeq);
+    this.pendingLocalActions.delete(actionSeq);
+  }
+
+  predictionDebug() {
+    return this.prediction.predictionDebug();
+  }
+
+  isActionPresented(actionSeq: number): boolean {
+    return this.pendingLocalActions.has(actionSeq);
+  }
+
+  confirmAction(actionSeq: number): void {
+    this.prediction.confirmAction(actionSeq);
+    this.pendingLocalActions.delete(actionSeq);
+  }
+
+  rejectAction(actionSeq: number): void {
+    this.prediction.rejectAction(actionSeq);
+    this.pendingLocalActions.delete(actionSeq);
+  }
+
   private resetState(): void {
     this.registry.reset();
     this.presenter.reset();
@@ -249,9 +303,13 @@ export class GameClient {
     this.practiceResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
+    this.pendingLocalActions.clear();
+    this.cannonDown = false;
+    this.chargeDown = false;
+    this.mgDown = false;
   }
 
-  setSnapshot(msg: { seq: number; serverTime: number; state: MatchState; lastProcessedDriverInputSeq: number; lastProcessedGunnerInputSeq: number; rulesRevision?: number; movementRulesRevision?: number; movement?: unknown }): void {
+  setSnapshot(msg: { seq: number; serverTime: number; state: MatchState; lastProcessedDriverInputSeq: number; lastProcessedGunnerInputSeq: number; lastImpulseSeq?: number; opLog?: unknown; serverTick?: number; tickDurationMs?: number; droppedTimeMs?: number; driftMs?: number; outboundBuffered?: number; rulesRevision?: number; movementRulesRevision?: number; movement?: unknown }): void {
     this.presenter.setSnapshot(msg as never);
   }
 
@@ -317,33 +375,49 @@ export class GameClient {
       this.presenter.latest = this.practiceMatch.state;
     }
     if (this.mode === 'online') this.presenter.advanceRenderClock(dtRaw);
-    this.presenter.computeInterp();
+    this.presenter.computeRemote();
     let renderTank: TankState | null = null;
-    const interp = this.presenter.interpState;
-    if (interp) {
+    const frame = this.presenter.remoteFrame;
+    if (frame) {
       if (this.mode === 'practice') {
-        renderTank = interp.tank;
-      } else if (this.role === 'driver') {
+        renderTank = frame.tank;
+      } else {
         if (this.prediction.isPredictionDisabled()) {
           // Wrong-ground / pathological divergence fallback: render the
-          // interpolated authority (gunner-style) instead of jittering.
-          renderTank = interp.tank;
-        } else {
+          // authoritative tank instead of jittering.
+          renderTank = frame.tank;
+        } else if (this.role === 'driver') {
           this.prediction.sampleDriver(this.lastPredictInput, dtRaw);
-          renderTank = this.prediction.renderTank(interp.tank);
+          renderTank = this.prediction.renderTank(frame.tank);
           this.playLocalDriverActions(renderTank);
+        } else {
+          // Gunner: shared tank prediction from server-relayed Driver input.
+          this.prediction.sampleRelayed(dtRaw);
+          renderTank = this.prediction.renderTank(frame.tank);
         }
-      } else {
-        renderTank = interp.tank;
       }
     }
-    if (interp && renderTank) this.presenter.syncWorld(interp, renderTank, dt);
+    if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
     if (this.presenter.latest) this.onFrame?.(this.presenter.latest);
+
+    this.pollGunnerActions();
+    this.prediction.retransmitPendingActions(performance.now());
+    // Fade optimistic presentations that never received a confirming event.
+    for (const [seq, entry] of [...this.pendingLocalActions]) {
+      if (performance.now() - entry.at > 1500) this.pendingLocalActions.delete(seq);
+    }
+    const pending = this.prediction.metricsPending();
+    netcodeMetrics.pendingInputs = pending.inputs;
+    netcodeMetrics.pendingImpulses = pending.impulses;
+    netcodeMetrics.pendingActions = pending.actions;
+    netcodeMetrics.pendingAimFrames = pending.aim;
+    netcodeMetrics.predictorDisabledReason = this.prediction.predictorDisabledReason();
+    this.f4?.update(now);
 
     if (this.mode === 'online' && this.onSendInput) {
       this.inputSendT -= dtRaw;
       if (this.inputSendT <= 0) {
-        this.inputSendT = 0.05;
+        this.inputSendT = this.role === 'driver' ? DRIVER_INPUT_INTERVAL : GUNNER_AIM_INTERVAL;
         this.sendInputs();
       }
     }
@@ -359,9 +433,14 @@ export class GameClient {
     const w = this.world.renderer.domElement.clientWidth || window.innerWidth;
     const h = this.world.renderer.domElement.clientHeight || window.innerHeight;
     this.cameras.applyShake();
+    const renderT0 = performance.now();
     this.world.render(this.cameras.activeCam.camera);
+    netcodeMetrics.mainRenderMs = performance.now() - renderT0;
     if (this.presenter.latest) {
-      this.pip.update(1 / 30, this.presenter.latest, this.role);
+      const pipT0 = performance.now();
+      const tank = this.presenter.getPredictedTank() ?? this.presenter.latest.tank;
+      this.pip.update(1 / 30, tank, this.presenter.latest.turret.yaw, this.role);
+      netcodeMetrics.pipRenderMs = performance.now() - pipT0;
     }
     this.world.resetViewport(w, h);
   }
@@ -522,6 +601,58 @@ export class GameClient {
 
   getRenderTank(): { x: number; y: number; z: number; yaw: number; pitch: number; roll: number } | null {
     return this.presenter.getRenderTank();
+  }
+
+  /**
+   * Milestone 2: discrete Gunner actions bypass the periodic timer. Edge
+   * detection runs every rendered frame so very short clicks are never lost
+   * between 50 ms send frames.
+   */
+  private pollGunnerActions(): void {
+    if (this.mode !== 'online' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
+    const latest = this.presenter.latest;
+    const jackpotReady = latest?.turret.jackpotReady ?? false;
+    const mg = this.mouseDown('primary');
+    const cannon = this.mouseDown('secondary') && !jackpotReady;
+    const charge = this.mouseDown('secondary') && jackpotReady;
+    if (mg && !this.mgDown) this.fireGunnerAction('mgStart');
+    if (!mg && this.mgDown) this.fireGunnerAction('mgStop');
+    if (cannon && !this.cannonDown && (latest?.turret.cannonCooldown ?? 0) <= 0) {
+      this.fireGunnerAction('cannonPressed', true);
+    }
+    if (charge && !this.chargeDown) this.fireGunnerAction('abilityStart');
+    if (!charge && this.chargeDown) this.fireGunnerAction('abilityRelease');
+    this.mgDown = mg;
+    this.cannonDown = cannon;
+    this.chargeDown = charge;
+  }
+
+  private fireGunnerAction(action: GunnerActionType, presentLocally = false): void {
+    const actionSeq = this.prediction.sendGunnerAction(action);
+    if (presentLocally) {
+      this.pendingLocalActions.set(actionSeq, { action, at: performance.now() });
+      this.playLocalGunnerAction(action);
+    }
+  }
+
+  /** Same-frame local weapon presentation (presentation only, no damage). */
+  private playLocalGunnerAction(action: GunnerActionType): void {
+    const latest = this.presenter.latest;
+    this.tankRig.chassis.updateMatrixWorld(true);
+    const muzzle = this.tankRig.barrel.localToWorld(new THREE.Vector3(0, 0.75, 2.9).clone());
+    if (action === 'cannonPressed') {
+      this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
+      this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
+      this.audio.play('cannon');
+      this.cameras.addImpulse(0.45);
+    } else if (action === 'mgStart') {
+      if ((latest?.turret.mgCooldown ?? 1) <= 0) {
+        this.audio.play('machineGun');
+        this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
+      }
+    } else if (action === 'abilityStart') {
+      this.audio.play('jackpotCharge');
+    }
   }
 
   getTurretSpaces() {

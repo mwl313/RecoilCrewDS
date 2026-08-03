@@ -32,6 +32,8 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const s = ctx.state;
       const t = s.tank;
       const muzzle = muzzleWorld(ctx);
+      const actionSeq = ctx.pendingActionSeq;
+      ctx.pendingActionSeq = undefined;
       const spread = weaponStat(weapon, 'weapon.mgSpread', ctx.rules.config.weapons.mgSpread);
       const dx = muzzle.dx + (Math.random() - 0.5) * spread;
       const dy = muzzle.dy + (Math.random() - 0.5) * spread;
@@ -46,8 +48,9 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
         weaponStat(weapon, 'weapon.mgRecoilImpulse', ctx.rules.config.tank.mgRecoilImpulse),
         weaponStat(weapon, 'weapon.mgRecoilSpin', 0.05),
         weapon.id,
+        actionSeq,
       );
-      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'mg', tx: nx, ty: ny, tz: nz });
+      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'mg', tx: nx, ty: ny, tz: nz, actionSeq });
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'primary', kind: 'mg' });
 
       const w = ctx.rules.config.weapons;
@@ -110,6 +113,8 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const t = s.tank;
       const tur = s.turret;
       const muzzle = muzzleWorld(ctx);
+      const actionSeq = ctx.pendingActionSeq;
+      ctx.pendingActionSeq = undefined;
       tur.cannonFlash = 0.12;
       ctx.recoil.apply(
         -muzzle.dx,
@@ -117,8 +122,15 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
         ctx.rules.matchConfig.recoilImpulse,
         weaponStat(weapon, 'weapon.cannonRecoilSpin', ctx.rules.config.tank.recoilSpin),
         weapon.id,
+        actionSeq,
       );
-      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'cannon', tx: muzzle.dx, ty: muzzle.dy, tz: muzzle.dz });
+      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, {
+        kind: 'cannon',
+        tx: muzzle.dx,
+        ty: muzzle.dy,
+        tz: muzzle.dz,
+        actionSeq,
+      });
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'secondary', kind: 'cannon' });
       const speed = weaponStat(weapon, 'weapon.cannonSpeed', ctx.rules.config.weapons.cannonSpeed);
       const life = weaponStat(weapon, 'weapon.cannonLife', ctx.rules.config.weapons.cannonLife);
@@ -134,6 +146,8 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const t = s.tank;
       const tur = s.turret;
       const muzzle = muzzleWorld(ctx);
+      const actionSeq = ctx.pendingActionSeq;
+      ctx.pendingActionSeq = undefined;
       s.stats.jackpotFired++;
       tur.cannonFlash = 0.3;
       tur.jackpotCooldown = weapon.cooldownSeconds;
@@ -144,8 +158,14 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
         impulse,
         weaponStat(weapon, 'weapon.jackpotRecoilSpin', ctx.rules.config.tank.jackpotSpin),
         weapon.id,
+        actionSeq,
       );
-      pushEvent(ctx, 'jackpotFire', muzzle.x, muzzle.y, muzzle.z, { tx: muzzle.dx, ty: muzzle.dy, tz: muzzle.dz });
+      pushEvent(ctx, 'jackpotFire', muzzle.x, muzzle.y, muzzle.z, {
+        tx: muzzle.dx,
+        ty: muzzle.dy,
+        tz: muzzle.dz,
+        actionSeq,
+      });
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'ability', kind: 'jackpot' });
       const speed = weaponStat(weapon, 'weapon.jackpotSpeed', ctx.rules.config.weapons.jackpotSpeed);
       const life = weaponStat(weapon, 'weapon.jackpotLife', ctx.rules.config.weapons.jackpotLife);

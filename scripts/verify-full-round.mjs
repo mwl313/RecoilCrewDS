@@ -10,6 +10,7 @@
 import WebSocket from 'ws';
 
 const WS_URL = process.argv[2] || 'ws://localhost:8080/ws';
+const PROTOCOL_VERSION = 2;
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function client() {
@@ -19,7 +20,7 @@ function client() {
   return {
     ws,
     send(obj) {
-      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ protocol: PROTOCOL_VERSION, ...obj }));
       else setTimeout(() => this.send(obj), 30);
     },
     waitFor(pred, timeoutMs = 120000) {

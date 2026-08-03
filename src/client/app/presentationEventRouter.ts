@@ -4,6 +4,15 @@ import type { VfxSystem } from '../vfx';
 import type { CameraManager } from './cameraManager';
 import type { SimEvent } from '../../shared/types';
 
+export interface ActionPresentationGuard {
+  /** True when this actionSeq was already presented locally. */
+  isPresented(actionSeq: number): boolean;
+  /** Authoritative confirmation: remove the pending local presentation. */
+  confirm(actionSeq: number): void;
+  /** Rejection: fade/remove the pending local presentation. */
+  reject(actionSeq: number): void;
+}
+
 /**
  * Routes authoritative wire events into semantic presentation: VFX/audio ids
  * resolve through the presentation catalog, camera impulses through the
@@ -16,10 +25,16 @@ export class PresentationEventRouter {
     private readonly vfx: VfxSystem,
     private readonly audio: AudioManager,
     private readonly camera: CameraManager,
+    private readonly actionGuard: ActionPresentationGuard | null = null,
   ) {}
 
   handleEvent(ev: SimEvent): void {
     if (ev.type === 'shot') {
+      const alreadyPresented = ev.actionSeq !== undefined && ev.actionSeq > 0 && this.actionGuard?.isPresented(ev.actionSeq) === true;
+      if (alreadyPresented) {
+        this.actionGuard!.confirm(ev.actionSeq!);
+        return; // duplicate suppression: local presentation already played
+      }
       if (ev.kind === 'mg' && ev.x !== undefined && ev.tx !== undefined) {
         this.vfx.spawnTracer(ev.x, ev.y!, ev.z!, ev.x + ev.tx * 34, ev.y! + ev.ty! * 34, ev.z! + ev.tz! * 34, 0xffe08a, 0.07);
         this.audio.play('machineGun');
@@ -71,6 +86,11 @@ export class PresentationEventRouter {
     } else if (ev.type === 'jackpotCharge') {
       this.audio.play('jackpotCharge');
     } else if (ev.type === 'jackpotFire') {
+      const alreadyPresented = ev.actionSeq !== undefined && ev.actionSeq > 0 && this.actionGuard?.isPresented(ev.actionSeq) === true;
+      if (alreadyPresented) {
+        this.actionGuard!.confirm(ev.actionSeq!);
+        return;
+      }
       const spec = this.assets.vfx('vfx.jackpot');
       this.vfx.spawnFlash(ev.x!, ev.y!, ev.z!, spec.color, spec.size * 5, 0.25);
       this.audio.play('jackpotRelease');

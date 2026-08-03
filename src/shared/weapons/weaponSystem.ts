@@ -14,6 +14,9 @@ import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
  */
 export class WeaponSystem {
   readonly behaviors: WeaponBehaviorRegistry;
+  private mgStart = false;
+  private mgStop = false;
+  private cannonPressed = false;
 
   constructor(
     private readonly ctx: SystemContext,
@@ -25,6 +28,16 @@ export class WeaponSystem {
   /** Reset edge latches and burst bookkeeping (stale/clear input path). */
   clearActions(): void {
     this.loadout.clear();
+    this.mgStart = false;
+    this.mgStop = false;
+    this.cannonPressed = false;
+  }
+
+  /** Latch discrete action edges so quick presses survive between ticks. */
+  applyEdges(edges: { mgStart?: boolean; mgStop?: boolean; cannonPressed?: boolean }): void {
+    if (edges.mgStart) this.mgStart = true;
+    if (edges.mgStop) this.mgStop = true;
+    if (edges.cannonPressed) this.cannonPressed = true;
   }
 
   update(dt: number, input: GunnerInput): void {
@@ -60,6 +73,14 @@ export class WeaponSystem {
     const tur = s.turret;
     const slot = this.loadout.primary;
     const w = this.ctx.rules.config.weapons;
+    if (this.mgStart) {
+      held = true;
+      this.mgStart = false;
+    }
+    if (this.mgStop) {
+      held = false;
+      this.mgStop = false;
+    }
     if (held && !slot.state.edgeDown) pushEvent(this.ctx, 'shot', t.x, t.y + 1.5, t.z, { kind: 'mgStart' });
     if (held && tur.mgCooldown <= 0) {
       tur.mgCooldown = 1 / (w.mgRate * this.ctx.rules.matchConfig.mgRate);
@@ -75,6 +96,10 @@ export class WeaponSystem {
   private updateSecondary(dt: number, held: boolean): void {
     const tur = this.ctx.state.turret;
     const slot = this.loadout.secondary;
+    if (this.cannonPressed) {
+      held = true;
+      this.cannonPressed = false;
+    }
     if (held && !slot.state.edgeDown && tur.cannonCooldown <= 0) {
       tur.cannonCooldown = this.ctx.rules.matchConfig.cannonCooldown;
       slot.state.burstsRemaining = this.ctx.rules.matchConfig.cannonBurst - 1;

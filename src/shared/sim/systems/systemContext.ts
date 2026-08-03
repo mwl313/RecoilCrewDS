@@ -4,6 +4,7 @@ import { createStaticArenaWorld } from '../arenaWorld';
 import { GameplayEventBus } from '../../core/gameplayEventBus';
 import { DamageSystem } from '../../damage/damageSystem';
 import { RecoilEffect } from '../../effects/recoilEffect';
+import { TankImpulseSystem, type TankImpulseWire } from '../../effects/tankImpulseSystem';
 import { ProjectileSystem } from '../../projectiles/projectileSystem';
 import { EnemySystem } from '../../enemies/enemySystem';
 import { PickupSystem } from '../../pickups/pickupSystem';
@@ -17,6 +18,7 @@ import { ScoreSystem } from './scoreSystem';
 import { ComboSystem } from './comboSystem';
 import { JackpotSystem } from './jackpotSystem';
 import { ResultSystem } from './resultSystem';
+import { createNetcodeOpState, type NetcodeOpState } from '../opLog';
 
 /**
  * Match-scoped context shared by the extracted systems. Systems mutate
@@ -38,6 +40,15 @@ export interface SystemContext {
   damage: DamageSystem;
   projectiles: ProjectileSystem;
   recoil: RecoilEffect;
+  impulses: TankImpulseSystem;
+  /** Unified server op/ack state (inputs + impulses). */
+  opState: NetcodeOpState;
+  /** Typed tank impulse queue drained by the room. */
+  impulseEvents: TankImpulseWire[];
+  /** Server simulation tick that produced the current state. */
+  simTick: number;
+  /** Gunner actionSeq awaiting its authoritative weapon impulse. */
+  pendingActionSeq: number | undefined;
   enemies: EnemySystem;
   pickups: PickupSystem;
   drops: DropTableResolver;
@@ -63,6 +74,9 @@ export function createSystemContext(
   events: SimEvent[],
   eventBus = new GameplayEventBus(),
   world: ArenaWorld = createStaticArenaWorld(),
+  opState: NetcodeOpState = createNetcodeOpState(),
+  impulseEvents: TankImpulseWire[] = [],
+  simTick = 0,
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -70,9 +84,14 @@ export function createSystemContext(
   ctx.events = events;
   ctx.eventBus = eventBus;
   ctx.world = world;
+  ctx.opState = opState;
+  ctx.impulseEvents = impulseEvents;
+  ctx.simTick = simTick;
+  ctx.pendingActionSeq = undefined;
   ctx.damage = new DamageSystem(ctx);
   ctx.projectiles = new ProjectileSystem(ctx);
   ctx.recoil = new RecoilEffect(ctx);
+  ctx.impulses = new TankImpulseSystem(ctx);
   ctx.enemies = new EnemySystem(ctx);
   ctx.pickups = new PickupSystem(ctx);
   ctx.drops = new DropTableResolver(ctx);

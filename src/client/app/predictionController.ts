@@ -1,10 +1,14 @@
-import { DriverPredictor } from '../predictor';
+import { SharedTankPredictor } from '../prediction/sharedTankPredictor';
 import { BASE_CONFIG } from '../../shared/config';
 import { angleDiff, clamp, wrapAngle } from '../../shared/math';
 import type { GroundQuery } from '../../shared/sim/groundQuery';
 import { STATIC_GROUND_QUERY } from '../../shared/sim/groundQuery';
 import type { MovementRulesBlock } from '../../shared/stats/rulesRevision';
 import type { DriverInput, GunnerInput, MatchState, Role, TankState } from '../../shared/types';
+import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
+import type { GunnerActionType } from '../../shared/net/protocol';
+import type { OpEntry } from '../../shared/sim/opLog';
+import { netcodeMetrics } from '../netcode/netcodeMetrics';
 
 export interface PredictionCallbacks {
   send(msg: Record<string, unknown>): void;
@@ -17,7 +21,7 @@ export interface PredictionCallbacks {
  * movement revision.
  */
 export class PredictionController {
-  private predictor: DriverPredictor | null = null;
+  private predictor: SharedTankPredictor | null = null;
   private movementRevision = 0;
   private role: Role;
   private desiredTurretYawLocal = Math.PI / 2;
@@ -27,6 +31,9 @@ export class PredictionController {
   private authoritativeTurretYawLocal = Math.PI / 2;
   private authoritativeTurretPitch = 0.05;
   private turretReconcileSeq = 0;
+  private pendingAimFrames: Array<{ seq: number; aimYaw: number; aimPitch: number }> = [];
+  private readonly pendingActions = new Map<number, { action: GunnerActionType; sentAt: number; tries: number }>();
+  private actionSeq = 0;
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
@@ -51,11 +58,9 @@ export class PredictionController {
       this.turretTurnRate = movement.turret.turnRate;
       this.pitchFollowRate = movement.turret.pitchFollowRate;
     }
-    if (this.role === 'driver') {
-      this.ensurePredictor(modifier);
-      this.predictor!.applyMovementRules(movement, revision);
-      this.movementRevision = revision;
-    }
+    this.ensurePredictor(modifier);
+    this.predictor?.applyMovementRules(movement, revision);
+    this.movementRevision = revision;
   }
 
   /** Practice path: mirror the local match's turret rates directly. */
@@ -75,8 +80,13 @@ export class PredictionController {
   }
 
   ensurePredictor(modifier: string): void {
-    if (this.role === 'driver' && !this.predictor) {
-      this.predictor = new DriverPredictor(BASE_CONFIG, modifier as never, this.ground);
+    if (!this.predictor) {
+      this.predictor = new SharedTankPredictor(
+        BASE_CONFIG,
+        modifier as never,
+        this.ground,
+        this.role === 'gunner' ? 'gunner' : 'driver',
+      );
     }
   }
 
@@ -96,13 +106,38 @@ export class PredictionController {
     return this.predictor?.isDisabled ?? false;
   }
 
-  reconcile(state: MatchState, ackSeq: number): void {
+  reconcile(
+    state: MatchState,
+    ackSeq: number,
+    extra: { impulseAckSeq?: number; opLog?: OpEntry[] } = {},
+  ): void {
     this.ensurePredictor(state.modifier);
-    this.predictor?.reconcile(state.tank, ackSeq);
+    this.predictor?.reconcile(state.tank, ackSeq, {
+      impulseAckSeq: extra.impulseAckSeq,
+      opLog: extra.opLog,
+      onCorrection: (meters) => netcodeMetrics.markCorrection(meters),
+    });
+  }
+
+  /** Apply an exact authoritative tank impulse immediately (both roles). */
+  applyImpulse(wire: TankImpulseWire): void {
+    this.predictor?.applyImpulse(wire);
+  }
+
+  /** Gunner: queue a server-relayed sanitized Driver input frame. */
+  pushRelayInput(seq: number, input: DriverInput): void {
+    this.ensurePredictor('none');
+    this.predictor?.pushRelayInput(seq, input);
   }
 
   sampleDriver(input: DriverInput, dtRaw: number): void {
     this.predictor?.sampleInput(input, dtRaw);
+    this.predictor?.smooth(dtRaw);
+  }
+
+  /** Gunner: sample the shared predictor every frame (no local driver input). */
+  sampleRelayed(dtRaw: number): void {
+    this.predictor?.sampleRelayed(dtRaw);
     this.predictor?.smooth(dtRaw);
   }
 
@@ -134,10 +169,52 @@ export class PredictionController {
     const seq = this.nextSeq();
     this.predictor?.pushInput(seq, input);
     this.callbacks.send({ t: 'input', seq, driver: input });
+    netcodeMetrics.markInput(performance.now());
   }
 
   sendGunner(input: GunnerInput): void {
-    this.callbacks.send({ t: 'input', seq: this.nextSeq(), gunner: input });
+    const seq = this.nextSeq();
+    this.pendingAimFrames.push({ seq, aimYaw: input.aimYaw, aimPitch: input.aimPitch });
+    if (this.pendingAimFrames.length > 16) this.pendingAimFrames.shift();
+    this.callbacks.send({ t: 'input', seq, gunner: input });
+    netcodeMetrics.markInput(performance.now());
+  }
+
+  /** Immediate discrete Gunner action (bypasses the periodic timer). */
+  sendGunnerAction(action: GunnerActionType): number {
+    const actionSeq = ++this.actionSeq;
+    this.pendingActions.set(actionSeq, { action, sentAt: performance.now(), tries: 1 });
+    if (this.pendingActions.size > 16) this.pendingActions.delete(this.pendingActions.keys().next().value as number);
+    this.callbacks.send({ t: 'action', actionSeq, action });
+    return actionSeq;
+  }
+
+  /**
+   * Reliability under loss/jitter: retransmit unacknowledged discrete
+   * actions with the same actionSeq (the server dedupes by sequence).
+   */
+  retransmitPendingActions(now: number): void {
+    for (const [seq, entry] of [...this.pendingActions]) {
+      if (now - entry.sentAt > 2000) {
+        this.pendingActions.delete(seq);
+        continue;
+      }
+      if (now - entry.sentAt > 100 && entry.tries < 4) {
+        entry.tries++;
+        entry.sentAt = now;
+        this.callbacks.send({ t: 'action', actionSeq: seq, action: entry.action });
+      }
+    }
+  }
+
+  confirmAction(actionSeq: number): GunnerActionType | undefined {
+    const action = this.pendingActions.get(actionSeq)?.action;
+    this.pendingActions.delete(actionSeq);
+    return action;
+  }
+
+  rejectAction(actionSeq: number): void {
+    this.pendingActions.delete(actionSeq);
   }
 
   getTurretSpaces() {
@@ -166,21 +243,69 @@ export class PredictionController {
     );
   }
 
-  reconcileTurret(seq: number, state: MatchState): void {
-    if (seq <= this.turretReconcileSeq) return;
-    this.turretReconcileSeq = seq;
+  /**
+   * Turret reconcile keyed to the Gunner input acknowledgement (not the
+   * snapshot sequence): start from authority, replay queued unacknowledged
+   * aim frames under the authoritative turn rate.
+   */
+  reconcileTurret(state: MatchState, lastProcessedGunnerInputSeq: number): void {
     this.authoritativeTurretYawLocal = state.turret.yaw;
     this.authoritativeTurretPitch = state.turret.pitch;
     if (this.role === 'gunner') {
-      const diff = angleDiff(this.predictedTurretYawLocal, this.authoritativeTurretYawLocal);
-      if (Math.abs(diff) > 1.2) {
-        this.predictedTurretYawLocal = this.authoritativeTurretYawLocal;
-        this.predictedTurretPitch = this.authoritativeTurretPitch;
-      } else {
-        this.predictedTurretYawLocal += diff * 0.2;
-        this.predictedTurretPitch += (this.authoritativeTurretPitch - this.predictedTurretPitch) * 0.2;
+      const remaining = this.pendingAimFrames
+        .filter((f) => f.seq > lastProcessedGunnerInputSeq)
+        .slice(0, 8);
+      let yaw = this.authoritativeTurretYawLocal;
+      let pitch = this.authoritativeTurretPitch;
+      for (const frame of remaining) {
+        yaw += clamp(
+          angleDiff(yaw, frame.aimYaw),
+          -this.turretTurnRate * (1 / 30),
+          this.turretTurnRate * (1 / 30),
+        );
+        pitch += clamp(frame.aimPitch - pitch, -this.pitchFollowRate * (1 / 30), this.pitchFollowRate * (1 / 30));
       }
+      const correction = Math.abs(angleDiff(this.predictedTurretYawLocal, yaw));
+      if (correction > 0.9) {
+        this.predictedTurretYawLocal = yaw;
+        this.predictedTurretPitch = pitch;
+      } else {
+        this.predictedTurretYawLocal += angleDiff(this.predictedTurretYawLocal, yaw) * 0.5;
+        this.predictedTurretPitch += (pitch - this.predictedTurretPitch) * 0.5;
+      }
+      netcodeMetrics.markTurretCorrection(correction);
+      this.pendingAimFrames = this.pendingAimFrames.filter((f) => f.seq > lastProcessedGunnerInputSeq);
+    } else if (this.turretReconcileSeq === 0) {
+      this.predictedTurretYawLocal = this.authoritativeTurretYawLocal;
+      this.predictedTurretPitch = this.authoritativeTurretPitch;
+      this.turretReconcileSeq = 1;
     }
+  }
+
+  metricsPending(): { inputs: number; impulses: number; actions: number; aim: number } {
+    return {
+      inputs: this.predictor?.pendingCount ?? 0,
+      impulses: this.predictor?.pendingImpulseCount ?? 0,
+      actions: this.pendingActions.size,
+      aim: this.pendingAimFrames.length,
+    };
+  }
+
+  predictorDisabledReason(): string {
+    return this.predictor?.disabledReason ?? '';
+  }
+
+  predictionDebug() {
+    return {
+      disabled: this.predictor?.disabled ?? false,
+      disabledReason: this.predictor?.disabledReason ?? '',
+      source: this.role,
+      pendingInputs: this.predictor?.pendingCount ?? 0,
+      pendingImpulses: this.predictor?.pendingImpulseCount ?? 0,
+      display: this.predictor ? { x: this.predictor.display.x, z: this.predictor.display.z } : null,
+      predicted: this.predictor ? { x: this.predictor.predicted.x, z: this.predictor.predicted.z } : null,
+      latestRelay: (this.predictor as unknown as { lastRelayInput?: { throttle: number } | null }).lastRelayInput ?? null,
+    };
   }
 
   reset(): void {
@@ -193,6 +318,9 @@ export class PredictionController {
     this.authoritativeTurretYawLocal = Math.PI / 2;
     this.authoritativeTurretPitch = 0.05;
     this.turretReconcileSeq = 0;
+    this.pendingAimFrames.length = 0;
+    this.pendingActions.clear();
+    this.actionSeq = 0;
     this.inputSeq = 0;
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;

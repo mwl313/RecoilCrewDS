@@ -31,6 +31,40 @@ aim re-derived against the predicted chassis (smooth 60 fps, still sticky
 to the Gunner's aim, zero extra network traffic); the Gunner uses local
 turret prediction reconciled with snapshots.
 
+## Shared vehicle prediction and gunner responsiveness (network03)
+
+- Both online roles run the same shared tank predictor
+  (`src/client/prediction/sharedTankPredictor.ts`) through
+  `stepTankKinematics` on the authoritative arena ground. The Driver feeds
+  it sampled local input; the Gunner feeds it server-relayed sanitized
+  accepted Driver input (`driverInputRelay`, edges normalized per frame).
+- Exact recoil/weapon impulses flow as typed `tankImpulse` events
+  (`src/shared/effects/tankImpulseSystem.ts`) with `impulseSeq`/`opSeq`;
+  both predictors apply them immediately and replay unacknowledged inputs +
+  impulses on reconcile in server order. Recoil is never applied twice and
+  never re-derived from snapshots.
+- Gunner discrete actions (`cannonPressed`, MG/ability edges) bypass the
+  periodic timer with `actionSeq`; the server returns `actionResult`
+  immediately and latches edges so short clicks survive between sim steps.
+  Local presentation (flash/audio/kick) is same-frame with authoritative
+  duplicate suppression.
+- The Gunner camera anchors to the predicted shared tank, not the delayed
+  interpolation timeline; turret reconcile is keyed to
+  `lastProcessedGunnerInputSeq` with bounded aim-frame replay.
+- Snapshot cadence is a true 20 Hz (interval subtraction); the server loop
+  is a bounded fixed-step accumulator with dropped-time/drift metrics;
+  broadcast payloads are serialized once for both sockets.
+- Camera/aim collision is spatialized (`src/client/cameraCollision.ts`)
+  with pre-expanded AABBs and merged cliff proxies (77–79% fewer camera
+  boxes on dramatic maps); remote entities interpolate through pooled
+  records (`remoteInterpolator.ts`) with no whole-MatchState allocation per
+  frame.
+- Diagnostics: F4 netcode overlay + `tests/netcode` unit suite +
+  `e2e/gunner-responsiveness.spec.ts` +
+  `e2e/shared-vehicle-prediction.spec.ts`; tuning in
+  `src/shared/net/tuning.ts` and
+  `docs/network03/NETCODE_TEST_AND_TUNING_GUIDE.md`.
+
 Driver tank prediction is bound to the authoritative arena for any map size:
 the prediction ground is set on create/start/rematch/reconnect and survives
 controller resets (it is never reverted to the legacy static arena). Reconcile

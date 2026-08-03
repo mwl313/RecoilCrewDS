@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { clientGroundHeightAt } from './groundQuery';
 import { angleDiff, clamp, wrapAngle } from '../shared/math';
 import { rayAabbT, type Collider } from './arenaView';
+import type { CameraCollisionQuery } from './cameraCollision';
 
 /**
  * Modern shooter TPS rig, role-independent. Driver and Gunner own separate
@@ -69,6 +70,27 @@ export interface CameraPose {
 }
 
 export type CameraCollider = Collider;
+export type CameraCollisionSource = readonly CameraCollider[] | CameraCollisionQuery;
+
+const scratchForward = new THREE.Vector3();
+const scratchFlat = new THREE.Vector3();
+const scratchRight = new THREE.Vector3();
+const scratchUp = new THREE.Vector3(0, 1, 0);
+const scratchAnchor = new THREE.Vector3();
+const scratchDesired = new THREE.Vector3();
+const scratchEye = new THREE.Vector3();
+const scratchRayDir = new THREE.Vector3();
+const scratchAimDir = new THREE.Vector3();
+const scratchAimPoint = new THREE.Vector3();
+
+function candidatesOf(
+  source: CameraCollisionSource,
+  origin: THREE.Vector3,
+  radius: number,
+): readonly CameraCollider[] {
+  if ('query' in source) return source.query(origin, radius);
+  return source;
+}
 
 export class TpsCameraController {
   readonly camera: THREE.PerspectiveCamera;
@@ -119,7 +141,7 @@ export class TpsCameraController {
     this.recentering = true;
   }
 
-  update(dt: number, colliders: readonly CameraCollider[], speedRatio = 0): CameraPose {
+  update(dt: number, colliders: CameraCollisionSource, speedRatio = 0): CameraPose {
     if (this.recentering) {
       const k = 1 - Math.exp(-dt / Math.max(0.001, this.tuning.recenterSeconds));
       this.yaw += angleDiff(this.yaw, this.recenterTargetYaw) * k;
@@ -131,32 +153,34 @@ export class TpsCameraController {
       }
     }
 
-    const forward = new THREE.Vector3(
+    const forward = scratchForward.set(
       Math.sin(this.yaw) * Math.cos(this.pitch),
       Math.sin(this.pitch),
       Math.cos(this.yaw) * Math.cos(this.pitch),
     );
-    const forwardFlat = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    const forwardFlat = scratchFlat.set(Math.sin(this.yaw), 0, Math.cos(this.yaw));
     // Horizontal right vector (perpendicular to forwardFlat and world up).
-    const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), forwardFlat).normalize();
+    const right = scratchRight.crossVectors(scratchUp, forwardFlat).normalize();
 
-    const anchor = this.followPos.clone().add(new THREE.Vector3(0, this.tuning.anchorHeight, 0));
-    const desiredEye = anchor
-      .clone()
-      .add(new THREE.Vector3(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
+    const anchor = scratchAnchor.set(this.followPos.x, this.followPos.y + this.tuning.anchorHeight, this.followPos.z);
+    const desiredEye = scratchDesired
+      .copy(anchor)
+      .add(scratchEye.set(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
       .addScaledVector(right, this.tuning.shoulderOffset)
       .addScaledVector(forward, -this.tuning.distance);
 
-    // Swept-sphere collision: expand each AABB by the camera radius and ray
-    // the camera center from the anchor toward the desired eye.
-    const rayDir = desiredEye.clone().sub(anchor);
+    // Swept-sphere collision: candidates from the spatial index carry
+    // pre-expanded AABBs (baked at arena construction); raw arrays are
+    // expanded here for backward-compatible tests.
+    const rayDir = scratchRayDir.copy(desiredEye).sub(anchor);
     const rayLen = rayDir.length();
     const boomLen = rayLen;
     let targetDistance = boomLen;
     if (rayLen > 1e-5) {
       rayDir.divideScalar(rayLen);
-      for (const c of colliders) {
-        const box = c.box.clone().expandByScalar(this.tuning.cameraRadius);
+      const candidates = candidatesOf(colliders, anchor, boomLen + this.tuning.cameraRadius);
+      for (const c of candidates) {
+        const box = c.expanded ?? c.box.clone().expandByScalar(this.tuning.cameraRadius);
         const t = rayAabbT(anchor, rayDir, box);
         if (t !== null && t > 0.05 && t < targetDistance) {
           targetDistance = Math.max(this.tuning.minimumDistance, t - 0.01);
@@ -175,7 +199,7 @@ export class TpsCameraController {
       : 1 - Math.exp(-dt / Math.max(0.001, this.tuning.collisionReleaseSeconds));
     this.currentDistance = clamp(this.currentDistance + (targetDistance - this.currentDistance) * rate, this.tuning.minimumDistance, boomLen);
 
-    const eye = anchor.clone().addScaledVector(rayDir, this.currentDistance);
+    const eye = scratchEye.copy(anchor).addScaledVector(rayDir, this.currentDistance);
     // Ground clearance: never clip below the floor plus the camera radius.
     const minY = Math.max(0, clientGroundHeightAt(eye.x, eye.z)) + this.tuning.cameraRadius + 0.12;
     if (eye.y < minY) eye.y = minY;
@@ -189,7 +213,7 @@ export class TpsCameraController {
       this.camera.fov = targetFov;
       this.camera.updateProjectionMatrix();
     }
-    return { position: this.camera.position.clone(), distance: this.currentDistance, colliding: pullIn };
+    return { position: this.camera.position, distance: this.currentDistance, colliding: pullIn };
   }
 
   resize(aspect: number): void {
@@ -207,12 +231,13 @@ export class TpsCameraController {
  * World aim point under the final camera center ray: nearest collider hit,
  * otherwise the ground plane at groundY.
  */
-export function computeWorldAim(camera: THREE.PerspectiveCamera, colliders: readonly CameraCollider[], groundY: number): THREE.Vector3 {
-  const dir = new THREE.Vector3();
+export function computeWorldAim(camera: THREE.PerspectiveCamera, colliders: CameraCollisionSource, groundY: number): THREE.Vector3 {
+  const dir = scratchAimDir;
   camera.getWorldDirection(dir);
   const origin = camera.position;
   let t = 90;
-  for (const c of colliders) {
+  const candidates = candidatesOf(colliders, origin, 100);
+  for (const c of candidates) {
     const hit = rayAabbT(origin, dir, c.box);
     if (hit !== null && hit > 0.2 && hit < t) t = hit;
   }
@@ -220,7 +245,7 @@ export function computeWorldAim(camera: THREE.PerspectiveCamera, colliders: read
     const groundT = (origin.y - groundY) / -dir.y;
     if (groundT > 0.2 && groundT < t) t = groundT;
   }
-  return origin.clone().addScaledVector(dir, t);
+  return scratchAimPoint.copy(origin).addScaledVector(dir, t);
 }
 
 /** World turret yaw → chassis-local turret yaw (chassis yaw applied exactly once). */

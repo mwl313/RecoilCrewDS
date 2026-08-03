@@ -63,12 +63,24 @@ export class Match {
     return this.runtime.takeEvents();
   }
 
-  setDriverInput(input: DriverInput): void {
-    this.runtime.setDriverInput(input);
+  setDriverInput(input: DriverInput, seq?: number): void {
+    this.runtime.setDriverInput(input, seq);
   }
 
-  setGunnerInput(input: GunnerInput): void {
-    this.runtime.setGunnerInput(input);
+  setGunnerInput(input: GunnerInput, seq?: number): void {
+    this.runtime.setGunnerInput(input, seq);
+  }
+
+  applyGunnerAction(action: Parameters<typeof this.runtime.applyGunnerAction>[0], seq?: number): { accepted: boolean; reason?: string } {
+    return this.runtime.applyGunnerAction(action, seq);
+  }
+
+  takeImpulseEvents() {
+    return this.runtime.takeImpulseEvents();
+  }
+
+  get opState() {
+    return this.runtime.opState;
   }
 
   getDriverInput(): DriverInput {

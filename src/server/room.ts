@@ -5,9 +5,15 @@ import { Match } from '../shared/sim/match';
 import type { ArenaWorld } from '../shared/sim/arenaWorld';
 import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
+import { SNAPSHOT_INTERVAL, NET_TUNING } from '../shared/net/tuning';
+import type { GunnerActionType } from '../shared/net/protocol';
+import type { TankImpulseWire } from '../shared/effects/tankImpulseSystem';
+import { opLogTail } from '../shared/sim/opLog';
 
 export interface SocketLike {
   send(msg: unknown): void;
+  /** Pre-serialized broadcast (identical payload for both sockets). */
+  sendText?(text: string): void;
   close(code?: number, reason?: string): void;
 }
 
@@ -24,6 +30,7 @@ export interface Client {
   lastMsgAt: number;
   lastInputAt: number;
   inputSeq: number;
+  actionSeq: number;
   disconnectedAt: number | null;
   graceLeft: number;
 }
@@ -55,13 +62,22 @@ export interface Room {
   countdownT: number;
   snapshotT: number;
   snapshotSeq: number;
+  simTick: number;
   lastMovementRulesRevision: number;
   lastCountdownShown: number;
+  lastDriverRelayEdges: { dash: boolean; jump: boolean };
   createdAt: number;
 }
 
 export interface ManagerEvents {
   onSend?(socket: SocketLike, msg: Record<string, unknown>): void;
+}
+
+export interface LoopMetrics {
+  tickDurationMs: number;
+  droppedTimeMs: number;
+  driftMs: number;
+  outboundBuffered: number;
 }
 
 const CODE_ALPHABET = GAME.roomCodeAlphabet;
@@ -108,6 +124,14 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
   return gunner;
 }
 
+const GUNNER_ACTIONS: readonly GunnerActionType[] = [
+  'cannonPressed',
+  'mgStart',
+  'mgStop',
+  'abilityStart',
+  'abilityRelease',
+];
+
 export class RoomManager {
   rooms = new Map<string, Room>();
   clients = new Map<string, Client>();
@@ -115,6 +139,7 @@ export class RoomManager {
   private now: () => number;
   private contentMeta: ContentMetadata | null;
   private pack: ContentPack | null;
+  private loopMetrics: LoopMetrics = { tickDurationMs: 0, droppedTimeMs: 0, driftMs: 0, outboundBuffered: 0 };
 
   constructor(opts: {
     events?: ManagerEvents;
@@ -141,6 +166,25 @@ export class RoomManager {
     }
   }
 
+  /** Broadcast one pre-serialized payload to both sockets. */
+  sendSerialized(room: Room, text: string): void {
+    const sendTo = (client: Client | null): void => {
+      if (!client?.socket) return;
+      try {
+        if (client.socket.sendText) client.socket.sendText(text);
+        else client.socket.send(JSON.parse(text));
+      } catch {
+        // transport layer
+      }
+    };
+    sendTo(room.driver);
+    sendTo(room.gunner);
+  }
+
+  setLoopMetrics(metrics: LoopMetrics): void {
+    this.loopMetrics = metrics;
+  }
+
   create(socket: SocketLike): Client {
     if (this.rooms.size >= GAME.maxRooms) {
       this.sendWithSocket(socket, { t: 'error', code: 'limit', message: 'Server is full right now. Try again in a moment.' });
@@ -158,6 +202,7 @@ export class RoomManager {
       lastMsgAt: this.now(),
       lastInputAt: this.now(),
       inputSeq: 0,
+      actionSeq: 0,
       disconnectedAt: null,
       graceLeft: 0,
     };
@@ -176,8 +221,10 @@ export class RoomManager {
       countdownT: 0,
       snapshotT: 0,
       snapshotSeq: 0,
+      simTick: 0,
       lastMovementRulesRevision: -1,
       lastCountdownShown: 3,
+      lastDriverRelayEdges: { dash: false, jump: false },
       createdAt: this.now(),
     };
     client.room = room;
@@ -212,6 +259,7 @@ export class RoomManager {
       lastMsgAt: this.now(),
       lastInputAt: this.now(),
       inputSeq: 0,
+      actionSeq: 0,
       disconnectedAt: null,
       graceLeft: 0,
     };
@@ -306,6 +354,10 @@ export class RoomManager {
       this.applyInput(client, raw);
       return;
     }
+    if (t === 'action') {
+      this.applyGunnerAction(client, raw);
+      return;
+    }
     if (t === 'rematch') {
       if (room.phase !== 'results' || !client.role || !room.match) return;
       const modifier = typeof raw.modifier === 'string' && raw.modifier.length > 0 ? (raw.modifier as ModifierId) : 'none';
@@ -337,11 +389,39 @@ export class RoomManager {
     client.lastInputAt = this.now();
     if (client.role === 'driver') {
       const driver = sanitizeDriver(raw.driver);
-      if (driver) room.match.setDriverInput(driver);
+      if (driver) {
+        room.match.setDriverInput(driver, seq);
+        // Relay only sanitized, accepted Driver input to the Gunner so the
+        // Gunner can predict the shared tank without trusting the Driver.
+        // Edges are normalized per frame so the Gunner predictor applies
+        // jump/dash exactly once (matching the server's edge latch).
+        const relay: DriverInput = {
+          ...driver,
+          dashPressed: driver.dashPressed && !room.lastDriverRelayEdges.dash,
+          jumpPressed: driver.jumpPressed && !room.lastDriverRelayEdges.jump,
+        };
+        room.lastDriverRelayEdges = { dash: driver.dashPressed, jump: driver.jumpPressed };
+        this.send(room.gunner, { t: 'driverInputRelay', seq, driver: relay });
+      }
     } else if (client.role === 'gunner') {
       const gunner = sanitizeGunner(raw.gunner);
-      if (gunner) room.match.setGunnerInput(gunner);
+      if (gunner) room.match.setGunnerInput(gunner, seq);
     }
+  }
+
+  applyGunnerAction(client: Client, raw: Record<string, unknown>) {
+    const room = client.room;
+    if (!room || room.phase !== 'running' || !room.match || client.role !== 'gunner') return;
+    const actionSeq = typeof raw.actionSeq === 'number' ? raw.actionSeq : 0;
+    if (actionSeq <= client.actionSeq) return; // sequence protection
+    const action = raw.action as GunnerActionType;
+    if (!GUNNER_ACTIONS.includes(action)) {
+      this.send(client, { t: 'actionResult', actionSeq, accepted: false, reason: 'unknown_action' });
+      return;
+    }
+    client.actionSeq = actionSeq;
+    const result = room.match.applyGunnerAction(action, actionSeq);
+    this.send(client, { t: 'actionResult', actionSeq, accepted: result.accepted, reason: result.reason });
   }
 
   /** Advance all rooms. dt in seconds. */
@@ -379,14 +459,19 @@ export class RoomManager {
             else if (client.role === 'gunner') room.match.clearGunnerInput();
           }
         }
+        room.simTick++;
         room.match.step(dt);
         const events = room.match.takeEvents();
         for (const ev of events) {
           this.broadcast(room, { t: 'event', event: ev });
         }
+        for (const impulse of room.match.takeImpulseEvents()) {
+          this.broadcastImpulse(room, impulse);
+        }
         room.snapshotT += dt;
-        if (room.snapshotT >= 1 / GAME.snapshotHz) {
-          room.snapshotT = 0;
+        if (room.snapshotT >= SNAPSHOT_INTERVAL) {
+          // Interval subtraction (not reset-to-zero): keeps true 20 Hz.
+          room.snapshotT -= SNAPSHOT_INTERVAL;
           this.broadcastSnapshot(room);
         }
         if (room.match.state.phase === 'results') {
@@ -448,23 +533,38 @@ export class RoomManager {
     room.snapshotSeq++;
     const rules = room.match.rules;
     const arena: ArenaMetadata | null = room.arenaSession?.metadata ?? null;
+    const opState = room.match.opState;
     const msg: Record<string, unknown> = {
       t: 'snapshot',
       seq: room.snapshotSeq,
       serverTime: room.match.state.time,
-      serverTick: room.snapshotSeq,
-      lastProcessedDriverInputSeq: room.driver?.inputSeq ?? 0,
-      lastProcessedGunnerInputSeq: room.gunner?.inputSeq ?? 0,
+      serverTick: room.simTick,
+      lastProcessedDriverInputSeq: opState.lastDriverInputSeq,
+      lastProcessedGunnerInputSeq: opState.lastGunnerInputSeq,
+      lastImpulseSeq: opState.lastImpulseSeq,
+      opLog: opLogTail(opState),
       state: room.match.state,
       rulesRevision: rules.rulesRevision,
       movementRulesRevision: rules.movementRulesRevision,
+      tickDurationMs: this.loopMetrics.tickDurationMs,
+      droppedTimeMs: this.loopMetrics.droppedTimeMs,
+      driftMs: this.loopMetrics.driftMs,
+      outboundBuffered: this.loopMetrics.outboundBuffered,
       arena,
     };
     if (rules.movementRulesRevision !== room.lastMovementRulesRevision) {
       room.lastMovementRulesRevision = rules.movementRulesRevision;
       msg.movement = rules.movementBlock();
     }
-    this.broadcast(room, msg);
+    this.broadcastSerialized(room, msg);
+  }
+
+  private broadcastImpulse(room: Room, impulse: TankImpulseWire): void {
+    this.broadcastSerialized(room, { t: 'tankImpulse', ...impulse } as Record<string, unknown>);
+  }
+
+  private broadcastSerialized(room: Room, msg: Record<string, unknown>): void {
+    this.sendSerialized(room, JSON.stringify(msg));
   }
 
   private broadcastLobby(room: Room) {

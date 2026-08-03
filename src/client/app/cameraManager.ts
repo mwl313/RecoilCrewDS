@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import { clamp } from '../../shared/math';
 import { TpsCameraController, computeWorldAim, type TpsCameraTuning } from '../tpsCamera';
 import type { Collider } from '../arenaView';
+import type { CameraCollisionSource } from '../tpsCamera';
+import type { CameraCollisionQuery } from '../cameraCollision';
 import type { MatchState, Role, TankState } from '../../shared/types';
+import { netcodeMetrics } from '../netcode/netcodeMetrics';
 
 /** Driver/Gunner TPS rigs + camera impulses; TPS math stays in tpsCamera. */
 export class CameraManager {
@@ -69,17 +72,22 @@ export class CameraManager {
     pos: THREE.Vector3,
     chassisYaw: number,
     speedRatio: number,
-    colliders: Collider[],
+    colliders: CameraCollisionSource | null,
     mouse: { dx: number; dy: number },
   ): void {
     this.lastRenderYaw = chassisYaw;
     this.activeCam.applyMouseDelta(mouse.dx, mouse.dy);
     this.activeCam.setFollowPose(pos, chassisYaw);
-    this.activeCam.update(dt, colliders, speedRatio);
+    const t0 = performance.now();
+    this.activeCam.update(dt, colliders ?? [], speedRatio);
+    netcodeMetrics.cameraQueryMs = performance.now() - t0;
   }
 
-  computeAim(camera: THREE.PerspectiveCamera, colliders: Collider[], groundY: number): { x: number; y: number; z: number } {
-    return computeWorldAim(camera, colliders, groundY);
+  computeAim(camera: THREE.PerspectiveCamera, colliders: CameraCollisionSource | null, groundY: number): { x: number; y: number; z: number } {
+    const t0 = performance.now();
+    const aim = computeWorldAim(camera, colliders ?? [], groundY);
+    netcodeMetrics.aimQueryMs = performance.now() - t0;
+    return { x: aim.x, y: aim.y, z: aim.z };
   }
 
   /** Camera shake jitter applied to the active camera during render. */

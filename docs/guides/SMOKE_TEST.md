@@ -180,8 +180,18 @@ code is selected in a textarea fallback so it can still be copied manually.
 
 ## Automated equivalents
 
+- **Netcode (network03):** F4 opens the netcode overlay — snapshot rate
+  ~20 Hz, RTT, pending queues, corrections, camera/aim query times. Gunner:
+  a very short right-click fires immediately with same-frame flash/audio,
+  recoil reaches both screens together, and the Gunner camera follows the
+  shared predicted tank (not the old delayed interpolation timeline).
 - `npm test` — 270 unit/integration tests (25 files), including the full
   jump/dash edge, parity, replay, rules, and Demo regression matrix.
+- `npm run test:netcode` — protocol, cadence, fixed-step, gunner actions,
+  impulses, shared predictor, spatial index (27 tests).
+- `npm run test:netcode:e2e` — two-browser gunner responsiveness + shared
+  vehicle prediction (also runnable under `NETCODE_LATENCY_MS` /
+  `NETCODE_JITTER_MS`).
 - `npm run test:e2e` — two real Chrome clients play a complete round and
   rematch, plus dedicated TPS/controls/collision/copy/jump/dash browser
   tests.

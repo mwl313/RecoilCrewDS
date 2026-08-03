@@ -242,7 +242,8 @@ export type SimEventType =
   | 'comboChange'
   | 'hit'
   | 'crash'
-  | 'assist';
+  | 'assist'
+  | 'tankImpulse';
 
 export interface SimEvent {
   type: SimEventType;
@@ -258,6 +259,12 @@ export interface SimEvent {
   value?: number;
   label?: string;
   yaw?: number;
+  /** Gunner actionSeq for discrete action presentation suppression. */
+  actionSeq?: number;
+  /** Tank impulse sequencing (typed impulse events). */
+  impulseSeq?: number;
+  opSeq?: number;
+  source?: string;
 }
 
 export interface ClientState {

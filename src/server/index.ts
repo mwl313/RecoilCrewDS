@@ -5,6 +5,9 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { RoomManager, type ContentMetadata, type SocketLike } from './room';
 import { loadContentPackFromFilesystem } from '../shared/content/contentLoader';
 import type { ContentPack } from '../shared/content/contentPack';
+import { PROTOCOL_VERSION } from '../shared/net/protocol';
+import { NET_TUNING } from '../shared/net/tuning';
+import { FixedStepAccumulator } from './fixedStep';
 
 const PORT = Number(process.env.PORT || 8080);
 const STATIC_DIR = path.resolve(process.cwd(), process.env.STATIC_DIR || 'dist');
@@ -122,6 +125,13 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
     send(msg) {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(msg));
+        outboundBuffered = ws.bufferedAmount;
+      }
+    },
+    sendText(text) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(text);
+        outboundBuffered = ws.bufferedAmount;
       }
     },
     close(code, reason) {
@@ -137,6 +147,15 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
       return;
     }
     if (!msg || typeof msg !== 'object') return;
+    if (msg.protocol !== PROTOCOL_VERSION) {
+      socket.send({
+        t: 'error',
+        code: 'protocol',
+        message: `Protocol mismatch — client ${String(msg.protocol ?? '?')}, server ${PROTOCOL_VERSION}. Reload to update.`,
+      });
+      socket.close(1008, 'protocol mismatch');
+      return;
+    }
     try {
       manager.handle(socket, msg);
     } catch {
@@ -171,10 +190,36 @@ wss.on('connection', (ws) => {
   });
 });
 
-const TICK_MS = 1000 / 30;
-setInterval(() => {
-  manager.tick((TICK_MS / 1000) * TIME_SCALE);
-}, TICK_MS);
+// Bounded wall-clock fixed-step accumulator (Milestone 8): the sim always
+// steps by the exact fixed dt; a blocked event loop drops time instead of
+// running an unbounded catch-up burst, and drift is exposed for diagnostics.
+const accumulator = new FixedStepAccumulator(NET_TUNING.simHz, 5);
+let lastFrame = performance.now();
+let tickDurationMs = 0;
+let droppedTimeMs = 0;
+let outboundBuffered = 0;
+
+function loopFrame(): void {
+  const now = performance.now();
+  const elapsed = now - lastFrame;
+  lastFrame = now;
+  const result = accumulator.accumulate(elapsed);
+  for (let i = 0; i < result.steps; i++) {
+    const t0 = performance.now();
+    manager.tick((accumulator.tickMs / 1000) * TIME_SCALE);
+    tickDurationMs = performance.now() - t0;
+  }
+  droppedTimeMs = accumulator.droppedTimeMs;
+  manager.setLoopMetrics({
+    tickDurationMs,
+    droppedTimeMs,
+    driftMs: result.driftMs,
+    outboundBuffered,
+  });
+  setTimeout(loopFrame, 1);
+}
+
+setTimeout(loopFrame, 1);
 
 server.listen(PORT, () => {
   console.log(`[recoil-crew] server listening on http://localhost:${PORT}`);

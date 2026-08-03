@@ -202,6 +202,13 @@ net.onMessage = (msg) => {
         state: latestState,
         lastProcessedDriverInputSeq: Number(msg.lastProcessedDriverInputSeq ?? 0),
         lastProcessedGunnerInputSeq: Number(msg.lastProcessedGunnerInputSeq ?? 0),
+        lastImpulseSeq: Number(msg.lastImpulseSeq ?? 0),
+        opLog: msg.opLog as never,
+        serverTick: Number(msg.serverTick ?? 0),
+        tickDurationMs: Number(msg.tickDurationMs ?? 0),
+        droppedTimeMs: Number(msg.droppedTimeMs ?? 0),
+        driftMs: Number(msg.driftMs ?? 0),
+        outboundBuffered: Number(msg.outboundBuffered ?? 0),
         rulesRevision: msg.rulesRevision === undefined ? undefined : Number(msg.rulesRevision),
         movementRulesRevision:
           msg.movementRulesRevision === undefined ? undefined : Number(msg.movementRulesRevision),
@@ -212,6 +219,15 @@ net.onMessage = (msg) => {
     case 'event':
       game?.handleEvent(msg.event as never);
       hud.onEvent(msg.event as never);
+      break;
+    case 'driverInputRelay':
+      game?.handleDriverRelay(Number(msg.seq ?? 0), msg.driver as never);
+      break;
+    case 'tankImpulse':
+      game?.handleTankImpulse(msg as never);
+      break;
+    case 'actionResult':
+      game?.handleActionResult(Number(msg.actionSeq ?? 0), msg.accepted === true);
       break;
     case 'results': {
       hud.showResults(msg.results as never, msg.rematch as never);
@@ -483,6 +499,7 @@ if (TEST_MODE) {
     },
     inputState: () => input.debugState(),
     driverInput: () => game?.practiceMatch?.getDriverInput() ?? null,
+    predictionDebug: () => game?.predictionDebug() ?? null,
     arena: () => arenaSession?.metadata ?? null,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],
     groundHeightAt: (x: number, z: number) => arenaSession?.world.groundHeightAt(x, z) ?? 0,
