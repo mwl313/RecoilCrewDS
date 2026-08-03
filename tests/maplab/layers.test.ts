@@ -52,7 +52,7 @@ describe('Map Lab shared layers', () => {
 
   it('validation layer renders markers for a failing candidate', () => {
     const impossible = JSON.parse(JSON.stringify(bundle)) as typeof bundle;
-    impossible.validationProfile = { ...impossible.validationProfile, maxSlope: 0.000001 };
+    impossible.validationProfile = { ...impossible.validationProfile, heightRange: { min: 100, max: 200 } };
     const result = generateMapLabResult({
       requestId: 1,
       mode: 'exactCandidate',

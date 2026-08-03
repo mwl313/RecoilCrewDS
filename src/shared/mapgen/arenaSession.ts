@@ -18,6 +18,7 @@ import { ARENA_GENERATOR_VERSION } from './seed';
 import { buildArenaCandidate, generateArenaWithRetry } from './retry';
 import { validateArena } from './validation';
 import { validatePhase2 } from './validation2';
+import { computeArenaChecksum } from './terrainFlags';
 
 export interface ArenaMetadata {
   mapProfileId: string;
@@ -121,7 +122,7 @@ export function reconstructArenaSession(
     fallbackUsed: metadata.arenaFallbackUsed,
     now,
   });
-  if (arena.heightfield.checksum() !== metadata.arenaChecksum) {
+  if (computeArenaChecksum(arena) !== metadata.arenaChecksum) {
     return { ok: false, reason: 'checksum' };
   }
   const validationBundle = used.validationProfile;
@@ -142,7 +143,7 @@ export function metadataFromArena(arena: GeneratedArena): ArenaMetadata {
     arenaCandidateSeed: arena.candidateSeed,
     arenaAttempt: arena.attempt,
     arenaGeneratorVersion: arena.generatorVersion,
-    arenaChecksum: arena.heightfield.checksum(),
+    arenaChecksum: computeArenaChecksum(arena),
     arenaFallbackUsed: arena.fallbackUsed,
   };
 }

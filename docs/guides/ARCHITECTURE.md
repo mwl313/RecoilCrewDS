@@ -44,6 +44,29 @@ exactly once, so holding a key never repeats the action.
   decorations, fog 100-150 m, and disposes cleanly on rematch. A dev-only
   overlay (`?debug=1`, F3) shows seeds/checksum/features/routes/zones.
 
+## Dramatic terrain and cliffs (generator v2)
+
+- Terrain is classified per cell into a `TerrainFlag` bitmask
+  (driveable/risky/blocked/cliff top/bottom/wall + route/spawn/gate/
+  recovery/landing/access protection). `slopeRules` in the terrain profile
+  drive the categories; old profiles derive safe defaults from `maxSlope`.
+- The generator guarantees a **safe required network, not a driveable
+  landscape**: route corridors, spawns, gates, recovery, landings, and
+  cliff access roads are corrected to `driveableMax`; cliff-wall cells are
+  excluded from correction and smoothing; optional terrain may stay steep,
+  blocked, or cliff-like.
+- `cliffPlateau` and `escarpment` features produce authoritative wall/top/
+  bottom masks and deterministic `CliffEdgeSegment[]`. `ArenaView` and Map
+  Lab build vertical wall quads from those segments; the TPS camera treats
+  walls as camera colliders.
+- `queryTerrainTransition` / `canTraverseGroundStep` (shared) block upward
+  ground steps above `maxStepUp` and cliff-wall climbing for the tank
+  (including dash/recoil), enemies, and the truck; downhill movement is
+  always allowed and drops leave the tank airborne.
+- `arenaChecksum` covers heightfield + flags + cliff edges; generator
+  version bumped to 2. Map Lab shows per-attempt fallback diagnostics and
+  renders invalid Exact Candidates.
+
 ## Map Lab (separate tool)
 
 `tools/maplab/` is a separate Vite application (own entry, own build output

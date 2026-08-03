@@ -1,5 +1,6 @@
 import { Pane } from 'tweakpane';
 import type { FolderApi } from '@tweakpane/core';
+import { GENERATED_MAP_IDS } from '@app/generated/mapProfiles.generated';
 import type { MapValidationIssue } from '@app/shared/mapgen/validationIssues';
 import type { MapGenerationBundle } from '@app/shared/mapgen/profiles';
 import type { MapLabState } from '../mapLabState';
@@ -50,6 +51,7 @@ export class MapLabUI {
   private readonly metricsBox: HTMLElement;
   private readonly logBox: HTMLElement;
   private readonly statusBox: HTMLElement;
+  private readonly fallbackBanner: HTMLElement;
   private readonly paneHost: HTMLElement;
   private layersPanel!: HTMLElement;
   private readonly seedBase: HTMLInputElement;
@@ -138,6 +140,12 @@ export class MapLabUI {
         }
         .maplab-status-pass { background:rgba(77,219,110,.14); color:#4ddb6e; }
         .maplab-status-fail { background:rgba(255,90,74,.14); color:#ff5a4a; }
+        .maplab-fallback { display:none; margin-top:6px; padding:8px 10px; border-radius:6px;
+          background:rgba(255,90,74,.12); border:1px solid #ff5a4a; color:#ffc2b8; }
+        .maplab-fallback.visible { display:block; }
+        .maplab-fallback-title { font-weight:700; color:#ff8a7a; margin-bottom:4px; }
+        .maplab-fallback-attempt { font:11px/1.5 ui-monospace, monospace; color:#ffc2b8;
+          border-top:1px solid rgba(255,90,74,.2); padding-top:3px; margin-top:3px; }
         .maplab-issue {
           cursor:pointer; padding:4px 8px; border-radius:6px; margin:2px 0;
           border-left:3px solid transparent; transition:background .12s;
@@ -191,6 +199,7 @@ export class MapLabUI {
     this.metricsBox = el('div', 'maplab-metrics');
     this.logBox = el('div', 'maplab-log');
     this.statusBox = el('div', 'maplab-status');
+    this.fallbackBanner = el('div', 'maplab-fallback');
     this.seedBase = el('input', '');
     this.seedBase.type = 'text';
     this.seedBase.readOnly = true;
@@ -214,7 +223,7 @@ export class MapLabUI {
     const bar = this.root.querySelector('.maplab-toolbar')!;
     const sep = (): HTMLElement => el('span', 'maplab-sep');
     const profile = el('select', '') as HTMLSelectElement;
-    for (const id of ['map.arena400Primary', 'map.fallbackLegacy']) {
+    for (const id of GENERATED_MAP_IDS) {
       const option = el('option', '', id);
       profile.appendChild(option);
     }
@@ -418,6 +427,7 @@ export class MapLabUI {
     right.append(
       el('div', 'maplab-panel-title', 'VALIDATION'),
       this.statusBox,
+      this.fallbackBanner,
       el('div', 'maplab-panel-title', 'ISSUES (click to focus)'),
       this.issueList,
       el('div', 'maplab-panel-title', 'METRICS'),
@@ -486,6 +496,23 @@ export class MapLabUI {
       this.issueList.appendChild(row);
     }
     this.metricsBox.textContent = metrics.join('\n');
+  }
+
+  updateFallback(used: boolean, report: { attempts: Array<{ attempt: number; candidateSeed: number; ok: boolean; errors: string[]; warnings: string[] }> } | undefined): void {
+    this.fallbackBanner.classList.toggle('visible', used);
+    if (!used) {
+      this.fallbackBanner.textContent = '';
+      return;
+    }
+    this.fallbackBanner.textContent = '';
+    const title = el('div', 'maplab-fallback-title', 'FALLBACK MAP — All procedural attempts failed');
+    this.fallbackBanner.appendChild(title);
+    for (const a of report?.attempts ?? []) {
+      const row = el('div', 'maplab-fallback-attempt');
+      row.textContent = `attempt ${a.attempt} · seed ${a.candidateSeed} · ${a.ok ? 'ok' : 'failed'}`;
+      if (a.errors.length > 0) row.textContent += ` — ${a.errors.slice(0, 4).join('; ')}`;
+      this.fallbackBanner.appendChild(row);
+    }
   }
 
   updateDiff(source: MapGenerationBundle): void {

@@ -8,10 +8,14 @@ import type { RouteGraph } from './routes';
 import { distToSegment } from './routes';
 import type { HordeGate } from './spawns';
 import type { ZoneRegion } from './zones';
+import type { SlopeRules } from './profiles';
+import { isCliffWallAt } from './terrainFlags';
 
 export function findRecoveryZones(options: {
   rng: Rng;
   hf: Heightfield;
+  flags?: Uint32Array;
+  slopeRules?: SlopeRules;
   graph: RouteGraph;
   gates: HordeGate[];
   widthMeters: number;
@@ -41,18 +45,29 @@ export function findRecoveryZones(options: {
 function recoveryCandidateValid(
   x: number,
   z: number,
-  options: { hf: Heightfield; graph: RouteGraph; gates: HordeGate[]; widthMeters: number; depthMeters: number },
+  options: {
+    hf: Heightfield;
+    flags?: Uint32Array;
+    slopeRules?: SlopeRules;
+    graph: RouteGraph;
+    gates: HordeGate[];
+    widthMeters: number;
+    depthMeters: number;
+  },
 ): boolean {
+  const rules = options.slopeRules ?? FALLBACK_RULES;
   const margin = 25;
   if (x < margin || x > options.widthMeters - margin || z < margin || z > options.depthMeters - margin) return false;
-  if (options.hf.slopeAt(x, z) > 0.12) return false;
+  if (options.flags && isCliffWallAt(options.flags, options.hf, x, z)) return false;
+  if (options.hf.slopeAt(x, z) > rules.recoveryMax) return false;
   const h = options.hf.heightAt(x, z);
   if (h < -3 || h > 6) return false;
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
     const px = x + Math.cos(a) * 10;
     const pz = z + Math.sin(a) * 10;
-    if (options.hf.slopeAt(px, pz) > 0.18) return false;
+    if (options.flags && isCliffWallAt(options.flags, options.hf, px, pz)) return false;
+    if (options.hf.slopeAt(px, pz) > rules.recoveryMax * 1.5) return false;
     if (Math.abs(options.hf.heightAt(px, pz) - h) > 1.5) return false;
   }
   if (options.gates.some((g) => Math.hypot(g.x - x, g.z - z) < 40)) return false;
@@ -65,3 +80,14 @@ function recoveryCandidateValid(
   }
   return connected;
 }
+
+const FALLBACK_RULES: SlopeRules = {
+  driveableMax: 0.35,
+  riskyMax: 0.6,
+  blockedMin: 0.6,
+  cliffMin: 1.2,
+  spawnMax: 0.15,
+  recoveryMax: 0.12,
+  landingMax: 0.25,
+  maxStepUp: 0.8,
+};

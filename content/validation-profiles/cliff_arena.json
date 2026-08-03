@@ -1,0 +1,10 @@
+{
+  "id": "validationProfile.cliffArena",
+  "label": "Cliff Arena Validation",
+  "heightRange": { "min": -10, "max": 24 },
+  "maxSlope": 2.0,
+  "minFeatureSeparation": 20,
+  "maxGenerationMs": 1200,
+  "boundsEpsilon": 1e-6,
+  "checkDeterminism": true
+}

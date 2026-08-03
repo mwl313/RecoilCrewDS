@@ -6,11 +6,17 @@
  * built and returned with `fallbackUsed: true` — a round can always start.
  */
 import { ARENA_GENERATOR_VERSION, composeArenaBaseSeed, composeArenaCandidateSeed, hash32 } from './seed';
-import { generateTerrain, type GeneratedArena } from './generator';
+import {
+  finalizeTerrainForLayout,
+  generateTerrain,
+  type GeneratedArena,
+  type RetryReport,
+} from './generator';
 import { generateMapLayout } from './layout';
 import { validateArena, type ValidationReport } from './validation';
 import { validatePhase2 } from './validation2';
 import type { MapGenerationBundle } from './profiles';
+import { resolveSlopeRules } from './profiles';
 
 export interface GenerateArenaOptions {
   roomCode: string;
@@ -48,6 +54,7 @@ export function generateArenaWithRetry(options: GenerateArenaOptions): Generated
     generatorVersion: version,
   });
 
+  const retryReport: RetryReport = { attempts: [], fallbackUsed: false };
   for (let attempt = 0; attempt < options.bundle.terrainProfile.retryLimit; attempt++) {
     const candidateSeed = composeArenaCandidateSeed(baseSeed, attempt);
     const arena = buildArenaCandidate({
@@ -71,8 +78,18 @@ export function generateArenaWithRetry(options: GenerateArenaOptions): Generated
         errors: [...phase1.errors, ...phase2.errors.slice(0, 6)],
       };
     }
+    retryReport.attempts.push({
+      attempt,
+      candidateSeed,
+      ok,
+      errors: [...phase1.errors, ...phase2.errors].slice(0, 12),
+      warnings: [...phase1.warnings, ...phase2.warnings].slice(0, 12),
+    });
     options.onAttempt?.(attempt, candidateSeed, ok);
-    if (ok) return arena;
+    if (ok) {
+      arena.retryReport = retryReport;
+      return arena;
+    }
   }
 
   // All attempts failed: fixed known-safe fallback (same runtime interface).
@@ -91,6 +108,8 @@ export function generateArenaWithRetry(options: GenerateArenaOptions): Generated
   const phase1 = validateArena(arena, fallback.validationProfile);
   const phase2 = validatePhase2(arena);
   arena.validation = phase1.ok && phase2.ok ? phase1 : { ...phase1, ok: false, errors: [...phase1.errors, ...phase2.errors] };
+  retryReport.fallbackUsed = true;
+  arena.retryReport = retryReport;
   return arena;
 }
 
@@ -110,6 +129,8 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
   const layout = generateMapLayout({
     candidateSeed: options.candidateSeed,
     hf: terrain.heightfield,
+    flags: terrain.terrainFlags,
+    slopeRules: resolveSlopeRules(options.bundle.terrainProfile),
     features: terrain.macroFeatures,
     widthMeters: map.widthMeters,
     depthMeters: map.depthMeters,
@@ -117,6 +138,14 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
     densityProfile: options.bundle.densityProfile,
     landmarks: options.bundle.landmarks,
   });
+  const finalized = finalizeTerrainForLayout(
+    terrain.heightfield,
+    terrain.terrainFlags,
+    terrain.accessCorridors,
+    layout,
+    options.bundle.terrainProfile,
+    terrain.cliffFeatures,
+  );
   const generationMs = now() - t0;
   const report: ValidationReport = {
     ok: false,
@@ -129,6 +158,12 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
       maxSlope: terrain.heightfield.maxSlope(),
       checksum: terrain.heightfield.checksum(),
       featureCount: terrain.macroFeatures.length,
+      driveableRatio: finalized.terrainMetrics.driveableRatio,
+      riskyRatio: finalized.terrainMetrics.riskyRatio,
+      blockedRatio: finalized.terrainMetrics.blockedRatio,
+      cliffCount: finalized.terrainMetrics.cliffCount,
+      cliffEdgeLength: finalized.terrainMetrics.cliffEdgeLength,
+      largestDrop: finalized.terrainMetrics.largestDrop,
     },
   };
   return {
@@ -145,8 +180,14 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
     originZ: -map.depthMeters / 2,
     heightfield: terrain.heightfield,
     macroFeatures: terrain.macroFeatures,
-    slopes: terrain.slopes,
+    cliffFeatures: terrain.cliffFeatures,
+    cliffMasks: finalized.cliffMasks,
+    cliffEdges: finalized.cliffEdges,
+    accessCorridors: terrain.accessCorridors,
+    slopes: finalized.slopes,
     steepMask: terrain.steepMask,
+    terrainFlags: finalized.terrainFlags,
+    terrainMetrics: finalized.terrainMetrics,
     terrainProfile: options.bundle.terrainProfile,
     validation: report,
     fallbackUsed: options.fallbackUsed,

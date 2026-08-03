@@ -61,7 +61,7 @@ describe('Map Lab generator adapter', () => {
 
   it('retry/fallback parity: impossible validation falls back with metadata', () => {
     const impossible = JSON.parse(JSON.stringify(bundle)) as typeof bundle;
-    impossible.validationProfile = { ...impossible.validationProfile, maxSlope: 0.000001 };
+    impossible.validationProfile = { ...impossible.validationProfile, heightRange: { min: 100, max: 200 } };
     impossible.terrainProfile = {
       ...impossible.terrainProfile,
       slopeCorrectionIterations: 0,

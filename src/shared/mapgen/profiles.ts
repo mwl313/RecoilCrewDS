@@ -11,7 +11,7 @@
  */
 import type { ContentPack } from '../content/contentPack';
 import type { ModeDefinition } from '../content/schemas/mode';
-import type { FeatureRange, MacroFeatureConfigs } from './features';
+import type { FeatureRange, MacroFeatureConfig, MacroFeatureConfigs } from './features';
 import type { DensityProfileDef, FurnitureSetDef, LandmarkDef } from './phase2Profiles';
 
 export interface TerrainProfileDef {
@@ -20,6 +20,14 @@ export interface TerrainProfileDef {
   baseHeight: number;
   heightRange: { min: number; max: number };
   maxSlope: number;
+  /** Purpose-split slope categories; derived from maxSlope when absent. */
+  slopeRules?: SlopeRules;
+  /** Legacy opt-in: correct the whole map instead of only protected cells. */
+  correctAllMap?: boolean;
+  /** Mask-aware final smoothing passes (default 1). */
+  finalSmoothingPasses?: number;
+  /** Presentation material id for cliff walls (rendering only). */
+  cliffMaterialId?: string;
   smoothingPasses: number;
   slopeCorrectionIterations: number;
   retryLimit: number;
@@ -27,6 +35,33 @@ export interface TerrainProfileDef {
   /** Sample the legacy analytic ground instead of generated features. */
   legacySampled: boolean;
   features: MacroFeatureConfigs;
+}
+
+export interface SlopeRules {
+  driveableMax: number;
+  riskyMax: number;
+  blockedMin: number;
+  cliffMin: number;
+  spawnMax: number;
+  recoveryMax: number;
+  landingMax: number;
+  maxStepUp: number;
+}
+
+/** Back-compatible slope rules derived from the legacy single maxSlope. */
+export function resolveSlopeRules(profile: TerrainProfileDef): SlopeRules {
+  if (profile.slopeRules) return profile.slopeRules;
+  const m = profile.maxSlope;
+  return {
+    driveableMax: m,
+    riskyMax: m * 1.6,
+    blockedMin: m * 1.6,
+    cliffMin: m * 2.4,
+    spawnMax: 0.2,
+    recoveryMax: 0.18,
+    landingMax: 0.25,
+    maxStepUp: 0.8,
+  };
 }
 
 export interface ValidationProfileDef {
@@ -100,6 +135,10 @@ export function resolveMapBundle(pack: ContentPack, mapId: string): MapGeneratio
       baseHeight: terrainProfile.baseHeight,
       heightRange: { ...terrainProfile.heightRange },
       maxSlope: terrainProfile.maxSlope,
+      slopeRules: terrainProfile.slopeRules ? { ...terrainProfile.slopeRules } : undefined,
+      correctAllMap: terrainProfile.correctAllMap,
+      finalSmoothingPasses: terrainProfile.finalSmoothingPasses,
+      cliffMaterialId: terrainProfile.cliffMaterialId,
       smoothingPasses: terrainProfile.smoothingPasses,
       slopeCorrectionIterations: terrainProfile.slopeCorrectionIterations,
       retryLimit: terrainProfile.retryLimit,
@@ -111,6 +150,8 @@ export function resolveMapBundle(pack: ContentPack, mapId: string): MapGeneratio
         plateau: toFeatureConfig(terrainProfile.features.plateau),
         valley: toFeatureConfig(terrainProfile.features.valley),
         hill: toFeatureConfig(terrainProfile.features.hill),
+        ...(terrainProfile.features.cliffPlateau ? { cliffPlateau: toFeatureConfig(terrainProfile.features.cliffPlateau) } : {}),
+        ...(terrainProfile.features.escarpment ? { escarpment: toFeatureConfig(terrainProfile.features.escarpment) } : {}),
       },
     },
     validationProfile: {
@@ -177,7 +218,15 @@ function toFeatureConfig(cfg: {
   length?: [number, number];
   width?: [number, number];
   falloff: number;
-}): MacroFeatureConfigs[keyof MacroFeatureConfigs] {
+  edgeWidth?: [number, number];
+  edgeRoughness?: number;
+  accessCount?: number;
+  accessWidth?: number;
+  accessMaxSlope?: number;
+  safetyBuffer?: number;
+  boundaryClearance?: number;
+  spawnClearance?: number;
+}): MacroFeatureConfig {
   return {
     count: cfg.count,
     minSeparation: cfg.minSeparation,
@@ -187,6 +236,14 @@ function toFeatureConfig(cfg: {
     length: toRange(cfg.length),
     width: toRange(cfg.width),
     falloff: cfg.falloff,
+    edgeWidth: toRange(cfg.edgeWidth),
+    edgeRoughness: cfg.edgeRoughness,
+    accessCount: cfg.accessCount,
+    accessWidth: cfg.accessWidth,
+    accessMaxSlope: cfg.accessMaxSlope,
+    safetyBuffer: cfg.safetyBuffer,
+    boundaryClearance: cfg.boundaryClearance,
+    spawnClearance: cfg.spawnClearance,
   };
 }
 

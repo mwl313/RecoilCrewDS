@@ -56,6 +56,19 @@ F3 overlay (`src/client/app/debugOverlay.ts`) and Map Lab:
 The game overlay and Map Lab register the same default layer set, so
 visualizations cannot drift.
 
+### Terrain classes and cliffs
+
+Generated arenas carry a per-cell `terrainFlags` bitmask, `cliffFeatures`,
+`cliffMasks`, `cliffEdges`, and `accessCorridors` (all serialized through
+the worker and included in `computeArenaChecksum`). Map Lab's parameter
+registry exposes `slopeRules` and cliff feature controls; the shared layer
+set visualizes driveable/risky/blocked masks, cliff top/bottom/walls,
+protected traversal, safety buffers, access routes, and terrain cost. The
+viewport renders vertical wall quads from authoritative edge segments.
+Exact Candidate keeps invalid arenas for inspection (`generationSucceeded`
+vs `validationPassed`), and production fallback shows a per-attempt
+diagnostic banner.
+
 ## Validation issue contract
 
 `src/shared/mapgen/validationIssues.ts` converts the existing string

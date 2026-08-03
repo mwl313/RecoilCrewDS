@@ -74,6 +74,12 @@ stuck key.
 - Terrain renders as chunked heightfield with LOD + fog; `?debug=1` + F3
   shows the mapgen overlay (seed, checksum, features, routes, zones,
   spawns/gates, ramps, recovery, colliders).
+- Dramatic/cliff maps (e.g. `map.cliffArena`): steep optional terrain is
+  allowed; the tank cannot climb cliff walls upward (stops at the base),
+  can fall off a top into normal airborne physics, and the required roads
+  stay driveable. Cliff walls render as vertical faces matching the
+  heightfield, and the camera pulls in instead of clipping through them.
+  Rematch rerolls; reconnect reproduces the same walls/checksum.
 
 ## 5b. Map Lab
 
@@ -98,6 +104,12 @@ Open `http://localhost:8098`:
 - Apply an exported profile via `npm run maplab:apply -- <file>`
   (requires `--overwrite` for existing ids) and rerun
   `npm run test:maps` before committing.
+- Map Lab now includes `map.dramaticHighlands` and `map.cliffArena` in the
+  profile dropdown; **TERRAIN** shows Terrain Classes + Cliff Plateau/
+  Escarpment controls, and the layer drawer shows driveable/risky/blocked
+  masks, cliff top/bottom/walls, protected traversal, safety buffer,
+  access routes, and terrain cost. If every attempt fails, a red
+  **FALLBACK MAP** banner lists each attempt's seed and errors.
 
 ## 6. Gunner controls
 

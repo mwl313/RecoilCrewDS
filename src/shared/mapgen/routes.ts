@@ -10,6 +10,9 @@
 import type { Rng } from './prng';
 import type { Heightfield } from './heightfield';
 import type { MacroFeatureRecord, MacroFeatureType } from './features';
+import type { CliffFeatureRecord } from './cliffs';
+import { terrainFlagsAt, TerrainFlag } from './terrainFlags';
+import type { SlopeRules } from './profiles';
 
 export type RouteNodeTag = 'center' | 'feature' | 'highland' | 'valley' | 'gate' | 'spawn';
 
@@ -102,6 +105,9 @@ export function segmentSlope(hf: Heightfield, ax: number, az: number, bx: number
 export interface RouteGraphOptions {
   rng: Rng;
   hf: Heightfield;
+  /** Per-cell terrain class flags (route cost model). */
+  flags?: Uint32Array;
+  slopeRules?: SlopeRules;
   features: MacroFeatureRecord[];
   widthMeters: number;
   depthMeters: number;
@@ -116,6 +122,7 @@ export function buildRouteGraph(options: RouteGraphOptions): RouteGraph {
   const nodes = buildWaypointCandidates(
     options.rng,
     options.hf,
+    options.flags,
     options.features,
     options.widthMeters,
     options.depthMeters,
@@ -125,7 +132,9 @@ export function buildRouteGraph(options: RouteGraphOptions): RouteGraph {
   const byId = new Map(nodes.map((n) => [n.id, n]));
 
   // Candidate edges: k-nearest per node with a deterministic tie-break.
-  const candidates: Array<{ a: string; b: string; length: number; slope: number }> = [];
+  // Required routes may not cross cliff walls or blocked cells; risky cells
+  // are allowed only as a penalized shortcut.
+  const candidates: Array<{ a: string; b: string; length: number; slope: number; cost: number }> = [];
   const seenPairs = new Set<string>();
   for (const node of nodes) {
     const others = nodes
@@ -143,16 +152,20 @@ export function buildRouteGraph(options: RouteGraphOptions): RouteGraph {
       if (seenPairs.has(key)) continue;
       seenPairs.add(key);
       const slope = segmentSlope(options.hf, node.x, node.z, byId.get(other.id)!.x, byId.get(other.id)!.z);
-      if (other.length <= profile.maxEdgeLength && slope <= profile.maxRouteSlope * 1.5) {
+      const maxFlags = segmentMaxFlags(options.hf, options.flags, node.x, node.z, byId.get(other.id)!.x, byId.get(other.id)!.z);
+      if (maxFlags & (TerrainFlag.CliffWall | TerrainFlag.Blocked)) continue;
+      const risky = (maxFlags & TerrainFlag.Risky) !== 0;
+      if (other.length <= profile.maxEdgeLength && (slope <= profile.maxRouteSlope * 1.5 || risky)) {
         const a = keyA < keyB ? node.id : other.id;
         const b = keyA < keyB ? other.id : node.id;
-        candidates.push({ a, b, length: other.length, slope });
+        candidates.push({ a, b, length: other.length, slope, cost: other.length * (risky ? 1.35 : 1) });
       }
     }
   }
   // Sort with a stable, purely deterministic key.
   candidates.sort(
     (p, q) =>
+      p.cost - q.cost ||
       p.length - q.length ||
       (p.a < q.a ? -1 : p.a > q.a ? 1 : p.b < q.b ? -1 : p.b > q.b ? 1 : 0),
   );
@@ -178,7 +191,7 @@ export function buildRouteGraph(options: RouteGraphOptions): RouteGraph {
   };
   pushFrontier(centerNodeId);
   while (inTree.size < nodes.length) {
-    frontier.sort((p, q) => p.length - q.length || (p.a < q.a ? -1 : p.a > q.a ? 1 : p.b < q.b ? -1 : 1));
+    frontier.sort((p, q) => p.cost - q.cost || p.length - q.length || (p.a < q.a ? -1 : p.a > q.a ? 1 : p.b < q.b ? -1 : 1));
     let chosen: (typeof candidates)[number] | undefined;
     let chosenIndex = -1;
     for (let i = 0; i < frontier.length; i++) {
@@ -191,7 +204,37 @@ export function buildRouteGraph(options: RouteGraphOptions): RouteGraph {
         break;
       }
     }
-    if (!chosen) break; // defensive: graph should be connected
+    if (!chosen) {
+      // Deterministic fallback: connect the closest out-of-tree node with a
+      // synthetic edge. If that edge crosses a cliff wall, carving will be
+      // caught by corridor validation and the candidate retries.
+      let bestIn: string | null = null;
+      let bestOut: string | null = null;
+      let bestDist = Infinity;
+      for (const inNode of inTree) {
+        const a = byId.get(inNode)!;
+        for (const outNode of nodes) {
+          if (inTree.has(outNode.id)) continue;
+          const d = Math.hypot(outNode.x - a.x, outNode.z - a.z);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIn = inNode;
+            bestOut = outNode.id;
+          }
+        }
+      }
+      if (!bestIn || !bestOut) break;
+      const a = byId.get(bestIn)!;
+      const b = byId.get(bestOut)!;
+      chosen = {
+        a: bestIn < bestOut ? bestIn : bestOut,
+        b: bestIn < bestOut ? bestOut : bestIn,
+        length: bestDist,
+        slope: segmentSlope(options.hf, a.x, a.z, b.x, b.z),
+        cost: bestDist * 2,
+      };
+      chosenIndex = -1;
+    }
     frontier.splice(chosenIndex, 1);
     mstEdges.push(chosen);
     const added = inTree.has(chosen.a) ? chosen.b : chosen.a;
@@ -270,6 +313,7 @@ function computeDeadEnds(edges: RouteEdge[], nodes: RouteNode[]): string[] {
 export function buildWaypointCandidates(
   rng: Rng,
   hf: Heightfield,
+  flags: Uint32Array | undefined,
   features: MacroFeatureRecord[],
   widthMeters: number,
   depthMeters: number,
@@ -296,6 +340,11 @@ export function buildWaypointCandidates(
   const featureTag = (type: MacroFeatureType): RouteNodeTag =>
     type === 'valley' ? 'valley' : type === 'basin' ? 'center' : 'highland';
   for (const f of features) {
+    // Cliff tops are optional high ground: only nodes with carved access
+    // corridors may join the required graph.
+    if (f.type === 'cliffPlateau' || f.type === 'escarpment') {
+      continue; // never required nodes; access is optional traversal
+    }
     add(f.x, f.z, ['feature', featureTag(f.type)]);
   }
 
@@ -308,13 +357,18 @@ export function buildWaypointCandidates(
       samples.push({ x, z, h: hf.getSample(xi, zi), slope: hf.slopeAt(x, z) });
     }
   }
+  const flagOk = (x: number, z: number): boolean => {
+    if (!flags) return true;
+    const f = terrainFlagsAt(flags, hf, x, z);
+    return (f & (TerrainFlag.Blocked | TerrainFlag.CliffWall | TerrainFlag.CliffTop)) === 0;
+  };
   const highlands = samples
-    .filter((s) => s.h >= 2.5 && s.slope <= 0.2)
+    .filter((s) => s.h >= 2.5 && s.slope <= 0.2 && flagOk(s.x, s.z))
     .sort((a, b) => b.h - a.h || a.x - b.x || a.z - b.z)
     .slice(0, 4);
   for (const s of highlands) add(s.x, s.z, ['highland', 'feature']);
   const valleys = samples
-    .filter((s) => s.h <= -1)
+    .filter((s) => s.h <= -1 && flagOk(s.x, s.z))
     .sort((a, b) => a.h - b.h || a.x - b.x || a.z - b.z)
     .slice(0, 4);
   for (const s of valleys) add(s.x, s.z, ['valley', 'feature']);
@@ -322,6 +376,28 @@ export function buildWaypointCandidates(
   for (const g of gateCandidates) add(g.x, g.z, ['gate']);
   for (const s of spawnCandidates) add(s.x, s.z, ['spawn', 'feature']);
   return nodes;
+}
+
+/** OR of terrain flags sampled along a segment (every 8 m + endpoints). */
+export function segmentMaxFlags(
+  hf: Heightfield,
+  flags: Uint32Array | undefined,
+  ax: number,
+  az: number,
+  bx: number,
+  bz: number,
+): number {
+  if (!flags) return 0;
+  const len = Math.hypot(bx - ax, bz - az);
+  const steps = Math.max(2, Math.ceil(len / 8));
+  let maxFlags = 0;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = ax + (bx - ax) * t;
+    const z = az + (bz - az) * t;
+    maxFlags |= terrainFlagsAt(flags, hf, x, z);
+  }
+  return maxFlags;
 }
 
 /**

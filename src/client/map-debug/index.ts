@@ -8,6 +8,18 @@ import { FlightCorridorsLayer, LandingsLayer, RampsLayer } from './layers/rampLa
 import { CollidersLayer, DecorationsLayer, FurnitureLayer, TerrainLayer } from './layers/furnitureLayer';
 import { BarrelChainsLayer } from './layers/barrelLayer';
 import { ValidationErrorsLayer, ValidationWarningsLayer } from './layers/validationLayer';
+import {
+  BlockedMaskLayer,
+  CliffAccessLayer,
+  CliffBottomLayer,
+  CliffSafetyBufferLayer,
+  CliffTopLayer,
+  CliffWallsLayer,
+  DriveableMaskLayer,
+  ProtectedTraversalLayer,
+  RiskyMaskLayer,
+  TerrainCostLayer,
+} from './layers/terrainClassLayer';
 
 /** Register the standard layer set used by the game F3 overlay and Map Lab. */
 export function registerDefaultLayers(manager: MapLabLayerManager): void {
@@ -31,6 +43,16 @@ export function registerDefaultLayers(manager: MapLabLayerManager): void {
   manager.register(new BarrelChainsLayer());
   manager.register(new ValidationErrorsLayer());
   manager.register(new ValidationWarningsLayer());
+  manager.register(new DriveableMaskLayer());
+  manager.register(new RiskyMaskLayer());
+  manager.register(new BlockedMaskLayer());
+  manager.register(new CliffTopLayer());
+  manager.register(new CliffBottomLayer());
+  manager.register(new CliffWallsLayer());
+  manager.register(new ProtectedTraversalLayer());
+  manager.register(new CliffSafetyBufferLayer());
+  manager.register(new CliffAccessLayer());
+  manager.register(new TerrainCostLayer());
 }
 
 export { MapLabLayerManager } from './layerManager';

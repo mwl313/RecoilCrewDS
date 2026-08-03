@@ -244,10 +244,29 @@ describe('ramps', () => {
       });
       expect(landing).not.toBeNull();
     }
-    // A ramp rotated 90° relative to the route must be rejected.
+    // A ramp rotated 90° and placed far from every route must be rejected
+    // (no takeoff corridor alignment within 30 m).
     const d = { dirX: layout.ramps[0].dirX, dirZ: layout.ramps[0].dirZ };
+    let farX = 20;
+    let farZ = 20;
+    let farD = -1;
+    for (let zi = 1; zi < 20; zi++) {
+      for (let xi = 1; xi < 20; xi++) {
+        const x = xi * 20;
+        const z = zi * 20;
+        const dist = Math.min(...layout.graph.corridors.map((c) => distToSegment(x, z, c.ax, c.az, c.bx, c.bz)));
+        if (dist > farD) {
+          farD = dist;
+          farX = x;
+          farZ = z;
+        }
+      }
+    }
     const broken = {
       ...layout.ramps[0],
+      x: farX,
+      z: farZ,
+      baseY: arena.heightfield.heightAt(farX, farZ),
       dirX: -d.dirZ,
       dirZ: d.dirX,
     };

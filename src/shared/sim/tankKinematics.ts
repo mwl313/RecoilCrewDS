@@ -4,6 +4,7 @@ import { clamp, lerp, pointInBox } from '../math';
 import type { GroundQuery } from './groundQuery';
 import { STATIC_GROUND_QUERY } from './groundQuery';
 import type { DriverInput, MatchConfig } from '../types';
+import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 
 /**
  * Shared deterministic tank kinematics used by BOTH the authoritative server
@@ -145,9 +146,24 @@ export function stepTankKinematics(
   const subDt = dt / substeps;
   let hits: CollisionHit[] = [];
   for (let s = 0; s < substeps; s++) {
-    t.x += t.vx * subDt;
+    const nx = t.x + t.vx * subDt;
+    const nz = t.z + t.vz * subDt;
+    // Cliff/step guard: a grounded tank may never climb an upward step
+    // above maxStepUp or cross a cliff wall upward. Downhill (falling)
+    // movement is always allowed. Dash and recoil share these substeps.
+    if (t.grounded && ground.queryTerrainTransition) {
+      const transition = ground.queryTerrainTransition(t.x, t.z, nx, nz);
+      if (transition && !canTraverseGroundStep(transition)) {
+        t.vx = 0;
+        t.vz = 0;
+        t.y += t.vy * subDt;
+        hits = hits.concat(resolveTankFootprint(t, cfg, ground));
+        continue;
+      }
+    }
+    t.x = nx;
     t.y += t.vy * subDt;
-    t.z += t.vz * subDt;
+    t.z = nz;
     hits = hits.concat(resolveTankFootprint(t, cfg, ground));
   }
 

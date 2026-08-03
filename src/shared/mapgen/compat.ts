@@ -18,6 +18,9 @@ import {
 import { clamp, pointInBox, resolveCircleBox } from '../math';
 import { Heightfield } from './heightfield';
 import type { GeneratedArena } from './generator';
+import { resolveSlopeRules } from './profiles';
+import { isCliffWallAt, isDriveableAt, isRequiredTraversalAt, terrainFlagsAt } from './terrainFlags';
+import { queryTerrainTransition, type TerrainTransition } from './terrainTraversal';
 import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
 
 export interface ArenaProps {
@@ -46,6 +49,11 @@ export interface ArenaQueries {
   nearestSpawn(x: number, z: number): { x: number; z: number };
   /** Boundary clamp half-size (arena.half equivalent). */
   boundsHalf(): number;
+  queryTerrainTransition(fromX: number, fromZ: number, toX: number, toZ: number): TerrainTransition;
+  terrainFlagsAt(x: number, z: number): number;
+  isDriveableAt(x: number, z: number): boolean;
+  isCliffWallAt(x: number, z: number): boolean;
+  isRequiredTraversalAt(x: number, z: number): boolean;
 }
 
 /** Wrap the fixed hand-built arena into the generated runtime model. */
@@ -74,8 +82,16 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
       maxSlope: hf.maxSlope(),
       checksum: hf.checksum(),
       featureCount: 0,
+      driveableRatio: 1,
+      riskyRatio: 0,
+      blockedRatio: 0,
+      cliffCount: 0,
+      cliffEdgeLength: 0,
+      largestDrop: 0,
     },
   };
+  const allDriveable = new Uint32Array(slopes.length);
+  allDriveable.fill(1); // TerrainFlag.Driveable
   const props: ArenaProps = {
     obstacles: ARENA.obstacles.map((o) => ({ ...o })),
     barrels: ARENA.barrels.map((b) => ({ ...b })),
@@ -100,8 +116,25 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
     originZ: -depthMeters / 2,
     heightfield: hf,
     macroFeatures: [],
+    cliffFeatures: [],
+    accessCorridors: [],
+    cliffMasks: {
+      cliffWall: new Uint8Array(slopes.length),
+      cliffTop: new Uint8Array(slopes.length),
+      cliffBottom: new Uint8Array(slopes.length),
+    },
+    cliffEdges: [],
     slopes,
     steepMask: new Uint8Array(slopes.length),
+    terrainFlags: allDriveable,
+    terrainMetrics: {
+      driveableRatio: 1,
+      riskyRatio: 0,
+      blockedRatio: 0,
+      cliffCount: 0,
+      cliffEdgeLength: 0,
+      largestDrop: 0,
+    },
     terrainProfile: profile,
     validation,
     fallbackUsed: false,
@@ -211,6 +244,30 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
     },
     slopeAt(x: number, z: number): number {
       return arena.heightfield.slopeAt(toLocalX(x), toLocalZ(z));
+    },
+    queryTerrainTransition(fromX: number, fromZ: number, toX: number, toZ: number): TerrainTransition {
+      const rules = resolveSlopeRules(arena.terrainProfile);
+      return queryTerrainTransition(
+        arena.heightfield,
+        arena.terrainFlags,
+        rules.maxStepUp,
+        toLocalX(fromX),
+        toLocalZ(fromZ),
+        toLocalX(toX),
+        toLocalZ(toZ),
+      );
+    },
+    terrainFlagsAt(x: number, z: number): number {
+      return terrainFlagsAt(arena.terrainFlags, arena.heightfield, toLocalX(x), toLocalZ(z));
+    },
+    isDriveableAt(x: number, z: number): boolean {
+      return isDriveableAt(arena.terrainFlags, arena.heightfield, toLocalX(x), toLocalZ(z));
+    },
+    isCliffWallAt(x: number, z: number): boolean {
+      return isCliffWallAt(arena.terrainFlags, arena.heightfield, toLocalX(x), toLocalZ(z));
+    },
+    isRequiredTraversalAt(x: number, z: number): boolean {
+      return isRequiredTraversalAt(arena.terrainFlags, arena.heightfield, toLocalX(x), toLocalZ(z));
     },
     obstacleAt(x: number, z: number): Obstacle | undefined {
       for (const o of props.obstacles) {

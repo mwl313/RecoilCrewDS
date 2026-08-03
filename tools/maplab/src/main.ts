@@ -118,9 +118,11 @@ class MapLabApp {
         const working = this.state.workingBundle.terrainProfile.features;
         const base = source.terrainProfile.features;
         for (const key of Object.keys(base) as Array<keyof typeof base>) {
+          const baseConfig = base[key];
           const target = working[key];
-          if (base[key].height) target.height = { min: r1(base[key].height!.min * factor), max: r1(base[key].height!.max * factor) };
-          if (base[key].depth) target.depth = { min: r1(base[key].depth!.min * factor), max: r1(base[key].depth!.max * factor) };
+          if (!baseConfig || !target) continue;
+          if (baseConfig.height) target.height = { min: r1(baseConfig.height.min * factor), max: r1(baseConfig.height.max * factor) };
+          if (baseConfig.depth) target.depth = { min: r1(baseConfig.depth.min * factor), max: r1(baseConfig.depth.max * factor) };
         }
         this.onWorkingChanged();
       },
@@ -259,7 +261,7 @@ class MapLabApp {
     this.ui.log(`generating (${this.state.mode}, match ${this.state.matchIndex})…`);
     const result = await this.generator.generate(request);
     if (result.requestId !== this.latestRequestId) return; // stale result dropped
-    if (!result.ok || !result.arena) {
+    if (!result.arena) {
       this.ui.log(`generation failed: ${result.error ?? 'unknown'}`);
       this.ui.updateValidation(false, [], ['generation failed']);
       return;
@@ -275,6 +277,7 @@ class MapLabApp {
     const world = createGeneratedArenaWorld(arena, result.arena.metadata);
     this.viewport.setArena(arena, world);
     this.restoreLayerVisibility();
+    this.ui.updateFallback(result.arena.metadata.arenaFallbackUsed, arena.retryReport);
     this.ui.updateSeeds(
       result.arena.metadata.arenaBaseSeed,
       result.arena.metadata.arenaCandidateSeed,
@@ -290,6 +293,9 @@ class MapLabApp {
       `generation: ${this.generationMs.toFixed(1)}ms`,
       `height: ${arena.heightfield.minHeight().toFixed(2)}..${arena.heightfield.maxHeight().toFixed(2)}`,
       `max slope: ${arena.heightfield.maxSlope().toFixed(3)}`,
+      `terrain: driveable ${(arena.terrainMetrics.driveableRatio * 100).toFixed(1)}% · risky ${(arena.terrainMetrics.riskyRatio * 100).toFixed(1)}% · blocked ${(arena.terrainMetrics.blockedRatio * 100).toFixed(1)}%`,
+      `cliffs: ${arena.terrainMetrics.cliffCount} walls · ${arena.terrainMetrics.cliffEdgeLength.toFixed(1)}m edges · largest drop ${arena.terrainMetrics.largestDrop.toFixed(1)}m`,
+      `access corridors: ${arena.accessCorridors.length}`,
       ...(layout
         ? [
             `routes: ${layout.graph.edges.length} edges / ${layout.graph.loops} loops`,

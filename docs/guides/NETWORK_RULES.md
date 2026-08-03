@@ -32,6 +32,15 @@ a map blob), verifies `arenaChecksum` against its regenerated heightfield,
 and refuses to start on mismatch. Rematch increments the room match index
 (new seed → new map); reconnect keeps the same metadata.
 
+### Dramatic terrain (generator v2)
+
+`ARENA_GENERATOR_VERSION = 2`. `arenaChecksum` now covers the heightfield
+**plus** per-cell terrain flags (driveable/risky/blocked/cliff/protected)
+and cliff edge geometry, so any terrain-class or cliff change breaks the
+checksum gate. Old active matches fail the version gate instead of
+reconstructing different terrain. The client rebuilds the same flags and
+edges from the shared generator; there is still no map blob on the wire.
+
 ## Snapshot envelope
 
 ```text

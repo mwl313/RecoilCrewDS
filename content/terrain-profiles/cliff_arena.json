@@ -1,0 +1,62 @@
+{
+  "id": "terrainProfile.cliffArena",
+  "label": "Cliff Arena",
+  "baseHeight": 0,
+  "heightRange": { "min": -10, "max": 24 },
+  "maxSlope": 1.2,
+  "slopeRules": {
+    "driveableMax": 0.35,
+    "riskyMax": 0.9,
+    "blockedMin": 0.9,
+    "cliffMin": 1.2,
+    "spawnMax": 0.2,
+    "recoveryMax": 0.15,
+    "landingMax": 0.25,
+    "maxStepUp": 0.8
+  },
+  "correctAllMap": false,
+  "finalSmoothingPasses": 1,
+  "smoothingPasses": 1,
+  "slopeCorrectionIterations": 32,
+  "retryLimit": 10,
+  "maxGenerationMs": 900,
+  "legacySampled": false,
+  "features": {
+    "basin": { "count": 1, "minSeparation": 70, "radius": [30, 48], "depth": [3, 6], "falloff": 0.25 },
+    "ridge": { "count": 2, "minSeparation": 70, "length": [80, 150], "width": [14, 26], "height": [3, 5], "falloff": 0.25 },
+    "plateau": { "count": 2, "minSeparation": 70, "radius": [18, 34], "height": [3, 6], "falloff": 0.25 },
+    "valley": { "count": 2, "minSeparation": 70, "length": [70, 140], "width": [16, 28], "depth": [2, 5], "falloff": 0.25 },
+    "hill": { "count": 4, "minSeparation": 25, "radius": [8, 18], "height": [1, 2.5], "falloff": 0.25 },
+    "cliffPlateau": {
+      "count": 3,
+      "minSeparation": 80,
+      "radius": [24, 42],
+      "height": [6, 12],
+      "falloff": 0.15,
+      "edgeWidth": [3, 6],
+      "edgeRoughness": 0.45,
+      "accessCount": 1,
+      "accessWidth": 10,
+      "accessMaxSlope": 0.3,
+      "safetyBuffer": 8,
+      "boundaryClearance": 25,
+      "spawnClearance": 40
+    },
+    "escarpment": {
+      "count": 2,
+      "minSeparation": 80,
+      "length": [70, 150],
+      "width": [18, 34],
+      "height": [6, 11],
+      "falloff": 0.15,
+      "edgeWidth": [3, 6],
+      "edgeRoughness": 0.45,
+      "accessCount": 1,
+      "accessWidth": 10,
+      "accessMaxSlope": 0.3,
+      "safetyBuffer": 8,
+      "boundaryClearance": 25,
+      "spawnClearance": 40
+    }
+  }
+}

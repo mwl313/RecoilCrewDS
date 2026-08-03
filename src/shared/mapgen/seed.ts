@@ -7,7 +7,7 @@
  */
 
 /** Bump when generation rules change; old maps become intentionally stale. */
-export const ARENA_GENERATOR_VERSION = 1;
+export const ARENA_GENERATOR_VERSION = 2;
 
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;

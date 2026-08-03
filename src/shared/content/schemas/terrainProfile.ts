@@ -10,6 +10,25 @@ const featureConfigSchema = z.object({
   length: z.tuple([positiveNumber, positiveNumber]).optional(),
   width: z.tuple([positiveNumber, positiveNumber]).optional(),
   falloff: probability,
+  edgeWidth: z.tuple([positiveNumber, positiveNumber]).optional(),
+  edgeRoughness: probability.optional(),
+  accessCount: nonNegativeInt.optional(),
+  accessWidth: positiveNumber.optional(),
+  accessMaxSlope: positiveNumber.optional(),
+  safetyBuffer: nonNegativeNumber.optional(),
+  boundaryClearance: nonNegativeNumber.optional(),
+  spawnClearance: nonNegativeNumber.optional(),
+});
+
+const slopeRulesSchema = z.object({
+  driveableMax: positiveNumber,
+  riskyMax: positiveNumber,
+  blockedMin: positiveNumber,
+  cliffMin: positiveNumber,
+  spawnMax: positiveNumber,
+  recoveryMax: positiveNumber,
+  landingMax: positiveNumber,
+  maxStepUp: positiveNumber,
 });
 
 export const terrainProfileSchema = z.object({
@@ -21,6 +40,10 @@ export const terrainProfileSchema = z.object({
     max: finiteNumber,
   }),
   maxSlope: positiveNumber,
+  slopeRules: slopeRulesSchema.optional(),
+  correctAllMap: z.boolean().optional(),
+  finalSmoothingPasses: nonNegativeInt.optional(),
+  cliffMaterialId: z.string().optional(),
   smoothingPasses: nonNegativeInt,
   slopeCorrectionIterations: nonNegativeInt,
   retryLimit: positiveInt,
@@ -32,6 +55,8 @@ export const terrainProfileSchema = z.object({
     plateau: featureConfigSchema,
     valley: featureConfigSchema,
     hill: featureConfigSchema,
+    cliffPlateau: featureConfigSchema.optional(),
+    escarpment: featureConfigSchema.optional(),
   }),
 });
 

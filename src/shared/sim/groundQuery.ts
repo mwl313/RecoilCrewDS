@@ -6,6 +6,7 @@ import {
   type RampDef,
 } from '../arena';
 import type { CollisionContact } from '../math';
+import type { TerrainTransition } from '../mapgen/terrainTraversal';
 
 /** Ground/topology queries used by tank kinematics and prediction. */
 export interface GroundQuery {
@@ -18,6 +19,12 @@ export interface GroundQuery {
     z: number,
     r: number,
   ): { x: number; z: number; contacts: CollisionContact[] };
+  /** Cliff/step transition query (absent on the legacy analytic arena). */
+  queryTerrainTransition?(fromX: number, fromZ: number, toX: number, toZ: number): TerrainTransition | null;
+  terrainFlagsAt?(x: number, z: number): number | undefined;
+  isDriveableAt?(x: number, z: number): boolean;
+  isCliffWallAt?(x: number, z: number): boolean;
+  isRequiredTraversalAt?(x: number, z: number): boolean;
 }
 
 /** The legacy analytic ground (used when no generated arena is supplied). */

@@ -1,0 +1,62 @@
+{
+  "id": "terrainProfile.dramaticHighlands",
+  "label": "Dramatic Highlands",
+  "baseHeight": 0,
+  "heightRange": { "min": -8, "max": 16 },
+  "maxSlope": 0.6,
+  "slopeRules": {
+    "driveableMax": 0.4,
+    "riskyMax": 0.9,
+    "blockedMin": 0.9,
+    "cliffMin": 1.0,
+    "spawnMax": 0.2,
+    "recoveryMax": 0.15,
+    "landingMax": 0.25,
+    "maxStepUp": 0.8
+  },
+  "correctAllMap": false,
+  "finalSmoothingPasses": 1,
+  "smoothingPasses": 2,
+  "slopeCorrectionIterations": 48,
+  "retryLimit": 8,
+  "maxGenerationMs": 600,
+  "legacySampled": false,
+  "features": {
+    "basin": { "count": 1, "minSeparation": 70, "radius": [30, 48], "depth": [3, 6], "falloff": 0.3 },
+    "ridge": { "count": 3, "minSeparation": 55, "length": [90, 150], "width": [16, 26], "height": [3, 6], "falloff": 0.3 },
+    "plateau": { "count": 3, "minSeparation": 45, "radius": [18, 34], "height": [4, 8], "falloff": 0.3 },
+    "valley": { "count": 2, "minSeparation": 55, "length": [80, 140], "width": [16, 28], "depth": [3, 6], "falloff": 0.3 },
+    "hill": { "count": 6, "minSeparation": 16, "radius": [8, 20], "height": [2, 4], "falloff": 0.3 },
+    "cliffPlateau": {
+      "count": 1,
+      "minSeparation": 90,
+      "radius": [24, 36],
+      "height": [5, 9],
+      "falloff": 0.2,
+      "edgeWidth": [4, 7],
+      "edgeRoughness": 0.3,
+      "accessCount": 1,
+      "accessWidth": 10,
+      "accessMaxSlope": 0.3,
+      "safetyBuffer": 8,
+      "boundaryClearance": 30,
+      "spawnClearance": 40
+    },
+    "escarpment": {
+      "count": 1,
+      "minSeparation": 90,
+      "length": [80, 130],
+      "width": [16, 28],
+      "height": [5, 8],
+      "falloff": 0.2,
+      "edgeWidth": [4, 7],
+      "edgeRoughness": 0.3,
+      "accessCount": 1,
+      "accessWidth": 10,
+      "accessMaxSlope": 0.3,
+      "safetyBuffer": 8,
+      "boundaryClearance": 30,
+      "spawnClearance": 40
+    }
+  }
+}

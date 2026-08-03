@@ -3,7 +3,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { GeneratedArena } from '@app/shared/mapgen/generator';
 import type { ArenaWorld } from '@app/shared/sim/arenaWorld';
 import {
+  buildCliffWallChunks,
   buildTerrainChunks,
+  cliffWallMaterial,
   updateChunkLod,
 } from '@app/client/map-debug/terrainMesh';
 import {
@@ -28,8 +30,10 @@ export class MapLabViewport {
   private readonly ortho: THREE.OrthographicCamera;
   private readonly controls: OrbitControls;
   private readonly terrainGroup = new THREE.Group();
+  private readonly cliffGroup = new THREE.Group();
   private terrainChunks: ReturnType<typeof buildTerrainChunks> = [];
   private terrainMaterial: THREE.Material | null = null;
+  private cliffMaterial: THREE.Material | null = null;
   private arena: GeneratedArena | null = null;
   private raf = 0;
   private cameraMode: 'orbit3d' | 'topDown' = 'orbit3d';
@@ -63,6 +67,7 @@ export class MapLabViewport {
     this.controls.update();
     this.scene.add(this.layersContainer);
     this.scene.add(this.terrainGroup);
+    this.scene.add(this.cliffGroup);
     this.layers = new MapLabLayerManager(this.layersContainer);
     registerDefaultLayers(this.layers);
     window.addEventListener('resize', this.resize);
@@ -88,6 +93,26 @@ export class MapLabViewport {
     });
     this.terrainChunks = buildTerrainChunks(hf, hf.widthMeters / 2, this.terrainMaterial);
     for (const c of this.terrainChunks) this.terrainGroup.add(c.mesh);
+    // Cliff walls from authoritative edge segments (disposed on rebuild).
+    for (const child of [...this.cliffGroup.children]) {
+      this.cliffGroup.remove(child);
+      (child as THREE.Mesh).geometry?.dispose();
+    }
+    this.cliffMaterial?.dispose();
+    this.cliffMaterial = null;
+    if (arena.cliffEdges.length > 0) {
+      this.cliffMaterial = cliffWallMaterial(arena.terrainProfile.cliffMaterialId);
+      const wallGeos = buildCliffWallChunks(hf, arena.cliffEdges, -arena.widthMeters / 2, -arena.depthMeters / 2);
+      for (const geo of wallGeos) {
+        if (geo.attributes.position.count === 0) {
+          geo.dispose();
+          continue;
+        }
+        const mesh = new THREE.Mesh(geo, this.cliffMaterial);
+        mesh.frustumCulled = true;
+        this.cliffGroup.add(mesh);
+      }
+    }
 
     const ctx: MapLabRenderContext = {
       arena,
@@ -173,6 +198,11 @@ export class MapLabViewport {
     }
     this.terrainChunks.length = 0;
     this.terrainMaterial?.dispose();
+    for (const child of [...this.cliffGroup.children]) {
+      this.cliffGroup.remove(child);
+      (child as THREE.Mesh).geometry?.dispose();
+    }
+    this.cliffMaterial?.dispose();
     this.controls.dispose();
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement) {

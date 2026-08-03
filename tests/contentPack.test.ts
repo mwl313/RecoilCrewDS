@@ -50,9 +50,24 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(pack.hash).toMatch(/^[0-9a-f]{64}$/);
     expect([...pack.ids('modes')].sort()).toEqual(['mode.demoScoreAttack', 'mode.truckHunter']);
     expect([...pack.ids('objectives')].sort()).toEqual(['objective.highScore', 'objective.truckEscort']);
-    expect([...pack.ids('maps')].sort()).toEqual(['map.arena400Primary', 'map.fallbackLegacy']);
-    expect([...pack.ids('terrainProfiles')].sort()).toEqual(['terrainProfile.fallback', 'terrainProfile.primary']);
-    expect([...pack.ids('validationProfiles')].sort()).toEqual(['validationProfile.fallback', 'validationProfile.primary']);
+    expect([...pack.ids('maps')].sort()).toEqual([
+      'map.arena400Primary',
+      'map.cliffArena',
+      'map.dramaticHighlands',
+      'map.fallbackLegacy',
+    ]);
+    expect([...pack.ids('terrainProfiles')].sort()).toEqual([
+      'terrainProfile.cliffArena',
+      'terrainProfile.dramaticHighlands',
+      'terrainProfile.fallback',
+      'terrainProfile.primary',
+    ]);
+    expect([...pack.ids('validationProfiles')].sort()).toEqual([
+      'validationProfile.cliffArena',
+      'validationProfile.dramaticHighlands',
+      'validationProfile.fallback',
+      'validationProfile.primary',
+    ]);
     expect([...pack.ids('landmarks')].sort()).toEqual([
       'landmark.basinCenter',
       'landmark.openCombat',

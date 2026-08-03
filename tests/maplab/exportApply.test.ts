@@ -11,6 +11,7 @@ import { applyProfileBundle, ApplyError } from '../../scripts/apply-maplab-profi
 import { buildArenaExport, buildProfileBundleExport } from '../../tools/maplab/src/io/export';
 import { issuesFromValidationReports } from '../../src/shared/mapgen/validationIssues';
 import { Heightfield } from '../../src/shared/mapgen/heightfield';
+import { computeArenaChecksum } from '../../src/shared/mapgen/terrainFlags';
 
 const CONTENT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../content');
 const pack = loadContentPackFromFilesystem(CONTENT_ROOT);
@@ -90,8 +91,9 @@ describe('Map Lab export/apply', () => {
       { widthMeters: exported.heightfield.widthMeters, depthMeters: exported.heightfield.depthMeters, cellSize: exported.heightfield.cellSize },
       Float32Array.from(exported.heightfield.samples),
     );
-    expect(hf.checksum()).toBe(exported.metadata.arenaChecksum);
     expect(hf.checksum()).toBe(session.arena.heightfield.checksum());
+    expect(session.metadata.arenaChecksum).toBe(exported.metadata.arenaChecksum);
+    expect(computeArenaChecksum(session.arena)).toBe(exported.metadata.arenaChecksum);
   });
 
   it('the exported profile bundle equals the generated client bundle', () => {

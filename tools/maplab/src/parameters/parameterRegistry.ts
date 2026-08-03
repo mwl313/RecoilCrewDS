@@ -3,6 +3,7 @@ import { mapParameters } from './mapParameters';
 import { terrainParameters } from './terrainParameters';
 import { validationParameters } from './validationParameters';
 import { routeParameters } from './routeParameters';
+import { cliffParameters } from './terrainParameters';
 import { furnitureParameters, entryParameters } from './furnitureParameters';
 import type { MapGenerationBundle } from '@app/shared/mapgen/profiles';
 import { getPath, setPath } from '../mapLabState';
@@ -13,6 +14,7 @@ export function buildParameterRegistry(bundle: MapGenerationBundle): ParameterDe
   return [
     ...mapParameters,
     ...terrainParameters,
+    ...cliffParameters,
     ...validationParameters,
     ...routeParameters,
     ...furnitureParameters,

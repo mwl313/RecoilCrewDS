@@ -75,6 +75,23 @@
   JACKPOT ×2 / ×1, rematch ok); `npm run test:maps` + `test:maps:sweep`
   PASS (64 + 1000 runs, 0 fallbacks). Details: `docs/maplab/`.
 
+- **Dramatic terrain & cliffs complete** — per-cell terrain classes
+  (driveable/risky/blocked/cliff + protected masks), purpose-split
+  `slopeRules`, route-cost graph that avoids walls, localized protected
+  correction with cliff exclusion, `cliffPlateau`/`escarpment` features
+  with deterministic wall masks + edge segments, vertical wall rendering
+  and camera colliders, and a shared traversal guard so the tank/enemies
+  cannot snap upward through cliffs while downhill falls stay airborne.
+  New profiles `map.dramaticHighlands` and `map.cliffArena`; generator
+  version bumped to 2 and `arenaChecksum` now covers flags + cliff edges.
+  Verified: `npm run build` PASS; `npm test` **384/384 PASS** (37 files);
+  `npm run test:demo` PASS (golden byte-identical); `npm run test:e2e`
+  **23/23 PASS**; `npm run test:loop` PASS; `npm run test:maps` +
+  `test:maps:sweep` + `test:maps:sweep:full` PASS (1000/profile; fallback
+  0% primary, ~1-2% dramatic/cliff); `npm run build:maplab` +
+  `test:maplab` PASS (32/32). Details:
+  `docs/map-generation/DRAMATIC_TERRAIN_CLIFF_IMPLEMENTATION_REPORT.md`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

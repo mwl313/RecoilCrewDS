@@ -72,6 +72,18 @@ id; Practice follows the same default. Omitting the field falls back to
 `map.arena400Primary`. "Save as New Profile" in Map Lab writes a new map
 definition and updates this field automatically.
 
+### Dramatic terrain and cliff profiles
+
+Terrain profiles may declare purpose-split `slopeRules`
+(`driveableMax`, `riskyMax`, `blockedMin`, `cliffMin`, `spawnMax`,
+`recoveryMax`, `landingMax`, `maxStepUp`) and cliff features
+(`cliffPlateau`, `escarpment`) with `edgeWidth`, `edgeRoughness`,
+`accessCount`, `accessWidth`, `accessMaxSlope`, `safetyBuffer`,
+`boundaryClearance`, and `spawnClearance`. Only required traversal must be
+driveable; optional terrain may be steep, blocked, or cliff-like. See
+[DRAMATIC_TERRAIN_PROFILE_AUTHORING.md](DRAMATIC_TERRAIN_PROFILE_AUTHORING.md)
+for tuning, validation semantics, and safe promotion.
+
 ## Rules
 
 - IDs are semantic and dot-namespaced (`weapon.mainCannon`,

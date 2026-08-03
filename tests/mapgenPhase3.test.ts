@@ -11,6 +11,8 @@ import {
   type ArenaMetadata,
 } from '../src/shared/mapgen/arenaSession';
 import { resolveMapBundle } from '../src/shared/mapgen/profiles';
+import { ARENA_GENERATOR_VERSION } from '../src/shared/mapgen/seed';
+import { computeArenaChecksum } from '../src/shared/mapgen/terrainFlags';
 import { createGeneratedArenaWorld, createStaticArenaWorld } from '../src/shared/sim/arenaWorld';
 import { Match } from '../src/shared/sim/match';
 import { RoomManager, type ContentMetadata, type SocketLike } from '../src/server/room';
@@ -39,7 +41,7 @@ describe('arena session selection', () => {
     expect(meta.arenaBaseSeed).toBeGreaterThan(0);
     expect(meta.arenaCandidateSeed).toBeGreaterThan(0);
     expect(meta.arenaAttempt).toBe(0);
-    expect(meta.arenaGeneratorVersion).toBe(1);
+    expect(meta.arenaGeneratorVersion).toBe(ARENA_GENERATOR_VERSION);
     expect(meta.arenaChecksum).toBeGreaterThan(0);
     expect(meta.arenaFallbackUsed).toBe(false);
   });
@@ -60,7 +62,7 @@ describe('arena session selection', () => {
   });
 
   it('fallback selection reports fallback metadata and keeps fixed props', () => {
-    const impossibleValidation = { ...bundle.validationProfile, maxSlope: 0.000001 };
+    const impossibleValidation = { ...bundle.validationProfile, heightRange: { min: 100, max: 200 } };
     const impossibleTerrain = {
       ...bundle.terrainProfile,
       slopeCorrectionIterations: 0,
@@ -94,7 +96,7 @@ describe('client reconstruction + checksum gate', () => {
     const result = reconstructArenaSession(session.metadata, cb, fb);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.session.arena.heightfield.checksum()).toBe(session.metadata.arenaChecksum);
+      expect(computeArenaChecksum(result.session.arena)).toBe(session.metadata.arenaChecksum);
       expect(result.session.metadata).toEqual(session.metadata);
     }
   });

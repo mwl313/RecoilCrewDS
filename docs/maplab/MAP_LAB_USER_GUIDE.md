@@ -99,6 +99,20 @@ overlay (`?debug=1`).
 When validation fails (or warns), click an issue in the right panel. Map Lab
 activates the related layer and moves the camera to the issue position.
 
+### Terrain classes and cliffs
+
+- **TERRAIN ▸ Terrain Classes** — driveable/risky/blocked/cliff slope
+  thresholds, spawn/recovery/landing limits, and max step up.
+- **TERRAIN ▸ Cliff Plateau / Escarpment** — counts, drop heights, edge
+  width/roughness, and access roads (count/width/max slope).
+- Layers: `driveableMask`, `riskyMask`, `blockedMask`, `cliffTop`,
+  `cliffBottom`, `cliffWalls`, `protectedTraversal`, `cliffSafetyBuffer`,
+  `cliffAccessRoutes`, `terrainCost`.
+- When generation falls back, a red **FALLBACK MAP** banner lists every
+  failed attempt (index, seed, errors). Invalid Exact Candidates still
+  render so you can inspect why they failed; **Apply to Game** stays
+  disabled unless validation passes.
+
 ### 5. Export
 
 Three separate export buttons:

@@ -66,7 +66,7 @@ describe('seed pipeline', () => {
         profileId: 'map.arena400Primary',
         generatorVersion: ARENA_GENERATOR_VERSION,
       }),
-    ).toBe(225852939);
+    ).toBe(1908796446);
     expect(
       composeArenaBaseSeed({
         roomCode: 'ABCDEF',
@@ -74,7 +74,7 @@ describe('seed pipeline', () => {
         profileId: 'map.arena400Primary',
         generatorVersion: ARENA_GENERATOR_VERSION,
       }),
-    ).toBe(2871394158);
+    ).toBe(1767293821);
     expect(
       composeArenaBaseSeed({
         roomCode: 'ABCDEF',
@@ -82,7 +82,7 @@ describe('seed pipeline', () => {
         profileId: 'map.fallbackLegacy',
         generatorVersion: ARENA_GENERATOR_VERSION,
       }),
-    ).toBe(1091879171);
+    ).toBe(3351201938);
   });
 
   it('attempt seeds are deterministic, distinct, and ordered', () => {
@@ -93,8 +93,8 @@ describe('seed pipeline', () => {
       generatorVersion: ARENA_GENERATOR_VERSION,
     });
     const attempts = [0, 1, 2, 3, 4, 5, 6, 7].map((a) => composeArenaCandidateSeed(base, a));
-    expect(attempts[0]).toBe(2974508065);
-    expect(attempts[1]).toBe(3358617151);
+    expect(attempts[0]).toBe(1171264819);
+    expect(attempts[1]).toBe(3098122808);
     expect(new Set(attempts).size).toBe(8);
     expect(attempts).toEqual([0, 1, 2, 3, 4, 5, 6, 7].map((a) => composeArenaCandidateSeed(base, a)));
   });
@@ -114,7 +114,7 @@ describe('seed pipeline', () => {
       roomCode: 'ABCDEF',
       matchIndex: 0,
       profileId: 'map.arena400Primary',
-      generatorVersion: 2,
+      generatorVersion: ARENA_GENERATOR_VERSION + 1,
     });
     expect(differentVersion).not.toBe(a);
   });
@@ -148,9 +148,24 @@ describe('PRNG and substreams', () => {
 
 describe('content definitions', () => {
   it('loads the new map/terrain/validation categories from the pack', () => {
-    expect([...pack.ids('maps')].sort()).toEqual(['map.arena400Primary', 'map.fallbackLegacy']);
-    expect([...pack.ids('terrainProfiles')].sort()).toEqual(['terrainProfile.fallback', 'terrainProfile.primary']);
-    expect([...pack.ids('validationProfiles')].sort()).toEqual(['validationProfile.fallback', 'validationProfile.primary']);
+    expect([...pack.ids('maps')].sort()).toEqual([
+      'map.arena400Primary',
+      'map.cliffArena',
+      'map.dramaticHighlands',
+      'map.fallbackLegacy',
+    ]);
+    expect([...pack.ids('terrainProfiles')].sort()).toEqual([
+      'terrainProfile.cliffArena',
+      'terrainProfile.dramaticHighlands',
+      'terrainProfile.fallback',
+      'terrainProfile.primary',
+    ]);
+    expect([...pack.ids('validationProfiles')].sort()).toEqual([
+      'validationProfile.cliffArena',
+      'validationProfile.dramaticHighlands',
+      'validationProfile.fallback',
+      'validationProfile.primary',
+    ]);
   });
 
   it('generated client bundles deep-equal server-resolved bundles (single source)', () => {
@@ -330,7 +345,7 @@ describe('retry and fallback', () => {
   }
 
   function impossibleValidation() {
-    return { ...PRIMARY.validationProfile, maxSlope: 0.000001 };
+    return { ...PRIMARY.validationProfile, heightRange: { min: 100, max: 200 } };
   }
 
   it('retries attempts 0..7 in deterministic order before falling back', () => {

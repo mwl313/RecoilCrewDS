@@ -3,6 +3,7 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState } from '../types';
 import { behaviorParam, EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import type { EnemyRuntimeState } from './enemyRuntimeState';
+import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -88,8 +89,20 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
     update(ctx, e, runtime, dt) {
       const r = ctx.enemies.radiusFor(e);
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
-      e.x += (runtime.dirX / ml) * runtime.speed * dt;
-      e.z += (runtime.dirZ / ml) * runtime.speed * dt;
+      const nx = e.x + (runtime.dirX / ml) * runtime.speed * dt;
+      const nz = e.z + (runtime.dirZ / ml) * runtime.speed * dt;
+      if (ctx.world.queryTerrainTransition) {
+        const tr = ctx.world.queryTerrainTransition(e.x, e.z, nx, nz);
+        if (tr && !canTraverseGroundStep(tr)) {
+          // Cliff/step guard: ground enemies cannot snap upward through
+          // cliffs; they stay put (bounded recovery behaviors handle traps).
+          e.y = ctx.world.groundHeightAt(e.x, e.z);
+          e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
+          return;
+        }
+      }
+      e.x = nx;
+      e.z = nz;
       e.y = ctx.world.groundHeightAt(e.x, e.z);
       e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
       const col = ctx.world.resolveCircle(e.x, e.z, r);
@@ -309,8 +322,24 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const dz = wp.z - truck.z;
       const d = Math.hypot(dx, dz) || 1;
       truck.yaw = angleLerp(truck.yaw, Math.atan2(dx, dz), clamp(dt * 3, 0, 1));
-      truck.x += (dx / d) * speed * dt;
-      truck.z += (dz / d) * speed * dt;
+      const nx = truck.x + (dx / d) * speed * dt;
+      const nz = truck.z + (dz / d) * speed * dt;
+      if (ctx.world.queryTerrainTransition) {
+        const tr = ctx.world.queryTerrainTransition(truck.x, truck.z, nx, nz);
+        if (tr && !canTraverseGroundStep(tr)) {
+          truck.y = ctx.world.groundHeightAt(truck.x, truck.z);
+          e.x = truck.x;
+          e.y = truck.y;
+          e.z = truck.z;
+          e.yaw = truck.yaw;
+          const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e));
+          truck.x = col.x;
+          truck.z = col.z;
+          return;
+        }
+      }
+      truck.x = nx;
+      truck.z = nz;
       truck.y = ctx.world.groundHeightAt(truck.x, truck.z);
       e.x = truck.x;
       e.y = truck.y;

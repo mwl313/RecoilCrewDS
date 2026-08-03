@@ -9,6 +9,8 @@ import { distToSegment } from './routes';
 import { barrelComponents, validateBarrelLayout, type BarrelLike } from './barrels';
 import { validateRamp } from './ramps';
 import { SpatialHash } from './spatial';
+import { resolveSlopeRules } from './profiles';
+import { isCliffWallAt, terrainFlagsAt, TerrainFlag } from './terrainFlags';
 
 export interface Phase2Metrics {
   nodeCount: number;
@@ -21,6 +23,7 @@ export interface Phase2Metrics {
   spawnCount: number;
   recoveryCount: number;
   rampCount: number;
+  rampSkipped: number;
   objectCount: number;
   colliderCount: number;
   maxBarrelChain: number;
@@ -29,16 +32,19 @@ export interface Phase2Metrics {
 export interface Phase2ValidationResult {
   ok: boolean;
   errors: string[];
+  warnings: string[];
   metrics: Phase2Metrics;
 }
 
 export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
   const errors: string[] = [];
+  const warnings: string[] = [];
   const layout: MapLayoutResult | undefined = arena.layout;
   if (!layout) {
     return {
       ok: false,
       errors: ['layout: generated arena has no Phase 2 layout'],
+      warnings: [],
       metrics: emptyMetrics(),
     };
   }
@@ -46,6 +52,8 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
   const hf = arena.heightfield;
   const maxRouteSlope = furnitureSet.maxRouteSlope;
   const minHalfWidth = furnitureSet.routeMinHalfWidth;
+  const rules = resolveSlopeRules(arena.terrainProfile);
+  let rampSkipped = 0;
 
   // Route connectivity (BFS from center).
   const adjacency = new Map<string, RouteGraphEdge[]>();
@@ -79,12 +87,15 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
   for (const c of graph.corridors) {
     minCorridorHalfWidth = Math.min(minCorridorHalfWidth, c.halfWidth);
     const steps = Math.max(2, Math.ceil(c.halfWidth * 2 / 8));
+    let wallCrossing = false;
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
       const x = c.ax + (c.bx - c.ax) * t;
       const z = c.az + (c.bz - c.az) * t;
       maxRouteSlopeActual = Math.max(maxRouteSlopeActual, hf.slopeAt(x, z));
+      if (terrainFlagsAt(arena.terrainFlags, hf, x, z) & TerrainFlag.CliffWall) wallCrossing = true;
     }
+    if (wallCrossing) errors.push(`route: corridor ${c.edgeId} crosses a cliff wall`);
   }
   if (minCorridorHalfWidth < minHalfWidth - 1e-6) {
     errors.push(`route: corridor width ${minCorridorHalfWidth} below ${minHalfWidth}`);
@@ -102,10 +113,14 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
 
   // Gate connectivity + spawn safety.
   for (const g of gates) {
-    if (!pathToCenter(graph, g.nodeId)) errors.push(`gate: ${g.id} has no valid route to center`);
+    if (!pathToCenter(graph, g.nodeId, maxRouteSlope, minHalfWidth)) errors.push(`gate: ${g.id} has no valid route to center`);
+    if (isCliffWallAt(arena.terrainFlags, hf, g.x, g.z)) errors.push(`gate: ${g.id} sits on a cliff wall`);
+    if (terrainFlagsAt(arena.terrainFlags, hf, g.x, g.z) & TerrainFlag.CliffTop) errors.push(`gate: ${g.id} sits on a cliff top`);
   }
   for (const s of spawns) {
-    if (hf.slopeAt(s.x, s.z) > 0.2) errors.push(`spawn: ${s.id} on steep ground`);
+    if (hf.slopeAt(s.x, s.z) > rules.spawnMax) errors.push(`spawn: ${s.id} on steep ground`);
+    if (isCliffWallAt(arena.terrainFlags, hf, s.x, s.z)) errors.push(`spawn: ${s.id} sits on a cliff wall`);
+    if (terrainFlagsAt(arena.terrainFlags, hf, s.x, s.z) & TerrainFlag.CliffTop) errors.push(`spawn: ${s.id} sits on a cliff top`);
     if (gates.some((g) => Math.hypot(g.x - s.x, g.z - s.z) < 40)) {
       errors.push(`spawn: ${s.id} too close to a gate`);
     }
@@ -114,6 +129,63 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
       if (distToSegment(s.x, s.z, c.ax, c.az, c.bx, c.bz) <= 25) exits++;
     }
     if (exits < 2) errors.push(`spawn: ${s.id} has fewer than two route exits`);
+  }
+  for (const r of recovery) {
+    if (isCliffWallAt(arena.terrainFlags, hf, r.x, r.z)) errors.push(`recovery: ${r.id} sits on a cliff wall`);
+    if (terrainFlagsAt(arena.terrainFlags, hf, r.x, r.z) & TerrainFlag.CliffTop) errors.push(`recovery: ${r.id} sits on a cliff top`);
+  }
+
+  // Cliff access corridors: every configured access must exist, be
+  // driveable, and connect to the required route network.
+  for (const feature of arena.cliffFeatures) {
+    const corridors = arena.accessCorridors.filter((a) => a.featureId === feature.id);
+    if (feature.accessCount > 0 && corridors.length === 0) {
+      errors.push(`cliff: ${feature.id} configured access but no corridor exists`);
+    }
+    for (const a of corridors) {
+      const steps = Math.max(3, Math.ceil(Math.hypot(a.bx - a.ax, a.bz - a.az) / 6));
+      let worst = 0;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = a.ax + (a.bx - a.ax) * t;
+        const z = a.az + (a.bz - a.az) * t;
+        worst = Math.max(worst, hf.slopeAt(x, z));
+        if (terrainFlagsAt(arena.terrainFlags, hf, x, z) & TerrainFlag.CliffWall) {
+          errors.push(`cliff: access corridor ${a.edgeId} crosses a cliff wall`);
+        }
+      }
+      if (worst > feature.accessMaxSlope * 1.3) {
+        errors.push(`cliff: access corridor ${a.edgeId} slope ${worst.toFixed(2)} above ${feature.accessMaxSlope}`);
+      }
+      // The base must sit on driveable ground (the corridor itself is the
+      // connection; routes may legally join it). Optional access roads that
+      // lead to empty high ground are allowed to be off-network.
+      const baseFlags = terrainFlagsAt(arena.terrainFlags, hf, a.bx, a.bz);
+      if (baseFlags & (TerrainFlag.Blocked | TerrainFlag.CliffWall)) {
+        errors.push(`cliff: access corridor ${a.edgeId} base is blocked`);
+      }
+    }
+    if (feature.accessCount === 0) {
+      const topRadius = feature.type === 'escarpment' ? feature.width : feature.radius;
+      for (const s of spawns) {
+        if (Math.hypot(s.x - feature.x, s.z - feature.z) < topRadius + feature.safetyBuffer) {
+          errors.push(`cliff: ${feature.id} has no access but spawn ${s.id} is near its top`);
+        }
+      }
+      for (const g of gates) {
+        if (Math.hypot(g.x - feature.x, g.z - feature.z) < topRadius + feature.safetyBuffer) {
+          errors.push(`cliff: ${feature.id} has no access but gate ${g.id} is near its top`);
+        }
+      }
+      for (const r of recovery) {
+        if (Math.hypot(r.x - feature.x, r.z - feature.z) < topRadius + feature.safetyBuffer) {
+          errors.push(`cliff: ${feature.id} has no access but recovery ${r.id} is near its top`);
+        }
+      }
+      if (objects.some((o) => Math.hypot(o.x - feature.x, o.z - feature.z) < topRadius)) {
+        warnings.push(`cliff: ${feature.id} has no access but objects sit on its top (optional)`);
+      }
+    }
   }
 
   // Dead ends + loops.
@@ -141,7 +213,7 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
       if (near <= o.id) continue;
       const other = objects.find((x) => x.id === near)!;
       if (Math.hypot(other.x - o.x, other.z - o.z) < o.radius + other.radius) {
-        errors.push(`furniture: ${o.id} overlaps ${near}`);
+        warnings.push(`furniture: ${o.id} overlaps ${near} (optional placement softened)`);
       }
     }
     if (o.collider) {
@@ -169,13 +241,24 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
     corridorDistance: (x, z) => corridorDistance(graph, x, z),
     routeClearance: furnitureSet.routeClearance,
   });
-  errors.push(...barrelErrors);
+  warnings.push(...barrelErrors);
   const { maxSize: maxBarrelChain } = barrelComponents(barrels, furnitureSet.barrel.chainRadius);
 
   // Ramp revalidation.
   for (const ramp of ramps) {
     const landing = validateRamp(ramp, { hf, graph, widthMeters: arena.widthMeters, depthMeters: arena.depthMeters });
-    if (!landing) errors.push(`ramp: ${ramp.id} failed approach/flight/landing validation`);
+    if (!landing) {
+      warnings.push(`ramp: ${ramp.id} skipped (failed approach/flight/landing validation)`);
+      rampSkipped++;
+    }
+  }
+
+  // Optional content soft-fail: underfilled furniture is a warning, not a
+  // candidate killer; decorations never reject.
+  for (const m of layout.placementMetrics) {
+    if (m.kind !== 'decoration' && m.requested > 0 && m.placed < m.requested) {
+      warnings.push(`furniture: ${m.kind} underfilled (${m.placed}/${m.requested})`);
+    }
   }
 
   // Recovery availability.
@@ -201,6 +284,7 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
   return {
     ok: errors.length === 0,
     errors,
+    warnings,
     metrics: {
       nodeCount: graph.nodes.length,
       edgeCount: graph.edges.length,
@@ -212,6 +296,7 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
       spawnCount: spawns.length,
       recoveryCount: recovery.length,
       rampCount: ramps.length,
+      rampSkipped,
       objectCount: objects.length,
       colliderCount: colliders,
       maxBarrelChain,
@@ -221,7 +306,12 @@ export function validatePhase2(arena: GeneratedArena): Phase2ValidationResult {
 
 type RouteGraphEdge = { a: string; b: string; slope: number; halfWidth: number };
 
-function pathToCenter(graph: { centerNodeId: string; edges: RouteGraphEdge[] }, start: string): boolean {
+function pathToCenter(
+  graph: { centerNodeId: string; edges: RouteGraphEdge[] },
+  start: string,
+  maxRouteSlope: number,
+  minHalfWidth: number,
+): boolean {
   if (start === graph.centerNodeId) return true;
   const adjacency = new Map<string, RouteGraphEdge[]>();
   for (const e of graph.edges) {
@@ -239,7 +329,7 @@ function pathToCenter(graph: { centerNodeId: string; edges: RouteGraphEdge[] }, 
     for (const e of adjacency.get(current) ?? []) {
       const next = e.a === current ? e.b : e.a;
       if (seen.has(next)) continue;
-      if (e.slope > 0.35 || e.halfWidth < 12) continue;
+      if (e.slope > maxRouteSlope || e.halfWidth < minHalfWidth) continue;
       if (next === graph.centerNodeId) return true;
       seen.add(next);
       queue.push(next);
@@ -272,6 +362,7 @@ function emptyMetrics(): Phase2Metrics {
     spawnCount: 0,
     recoveryCount: 0,
     rampCount: 0,
+    rampSkipped: 0,
     objectCount: 0,
     colliderCount: 0,
     maxBarrelChain: 0,

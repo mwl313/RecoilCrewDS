@@ -1,0 +1,13 @@
+{
+  "id": "map.dramaticHighlands",
+  "label": "Dramatic Highlands",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.dramaticHighlands",
+  "validationProfileId": "validationProfile.dramaticHighlands",
+  "furnitureSetId": "furnitureSet.primary",
+  "densityProfileId": "densityProfile.primary",
+  "fallbackMapId": "map.fallbackLegacy",
+  "isFallback": false
+}

@@ -8,7 +8,7 @@
 import type { Rng } from './prng';
 import type { Heightfield } from './heightfield';
 
-export type MacroFeatureType = 'basin' | 'ridge' | 'plateau' | 'valley' | 'hill';
+export type MacroFeatureType = 'basin' | 'ridge' | 'plateau' | 'valley' | 'hill' | 'cliffPlateau' | 'escarpment';
 
 export interface FeatureRange {
   min: number;
@@ -24,6 +24,17 @@ export interface MacroFeatureConfig {
   length?: FeatureRange;
   width?: FeatureRange;
   falloff: number;
+  /** Cliff features: sharp transition band width (m). */
+  edgeWidth?: FeatureRange;
+  /** Cliff features: 0..1 deterministic edge irregularity. */
+  edgeRoughness?: number;
+  /** Cliff features: number of carved driveable access corridors. */
+  accessCount?: number;
+  accessWidth?: number;
+  accessMaxSlope?: number;
+  safetyBuffer?: number;
+  boundaryClearance?: number;
+  spawnClearance?: number;
 }
 
 export interface MacroFeatureRecord {
@@ -40,9 +51,12 @@ export interface MacroFeatureRecord {
   minSeparation: number;
 }
 
-export type MacroFeatureConfigs = Record<MacroFeatureType, MacroFeatureConfig>;
+export type BaseFeatureType = 'basin' | 'ridge' | 'plateau' | 'valley' | 'hill';
+export type CliffFeatureType = 'cliffPlateau' | 'escarpment';
+export type MacroFeatureConfigs = Record<BaseFeatureType, MacroFeatureConfig> &
+  Partial<Record<CliffFeatureType, MacroFeatureConfig>>;
 
-const FEATURE_ORDER: MacroFeatureType[] = ['basin', 'ridge', 'plateau', 'valley', 'hill'];
+export const FEATURE_ORDER: BaseFeatureType[] = ['basin', 'ridge', 'plateau', 'valley', 'hill'];
 
 function sampleRange(rng: Rng, range: FeatureRange | undefined, fallback: number): number {
   if (!range) return fallback;

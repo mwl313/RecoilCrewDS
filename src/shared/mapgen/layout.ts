@@ -8,7 +8,7 @@
 import { forkSeed, mulberry32 } from './prng';
 import type { Heightfield } from './heightfield';
 import type { MacroFeatureRecord } from './features';
-import { buildRouteGraph, carveRoutes, type RouteCorridor, type RouteGraph } from './routes';
+import { buildRouteGraph, carveRoutes, segmentSlope, type RouteCorridor, type RouteGraph } from './routes';
 import { classifyZones, type ZoneClassification, type ZoneRegion } from './zones';
 import {
   buildGateCandidates,
@@ -22,6 +22,7 @@ import { placeRamps, type GeneratedRamp } from './ramps';
 import { placeFurniture, type GeneratedObject, type PlacementMetric } from './furniture';
 import { findRecoveryZones } from './recovery';
 import type { DensityProfileDef, FurnitureSetDef, LandmarkDef } from './phase2Profiles';
+import type { SlopeRules } from './profiles';
 
 export interface MapLayoutResult {
   graph: RouteGraph;
@@ -40,6 +41,8 @@ export interface MapLayoutResult {
 export interface GenerateLayoutOptions {
   candidateSeed: number;
   hf: Heightfield;
+  flags?: Uint32Array;
+  slopeRules?: SlopeRules;
   features: MacroFeatureRecord[];
   widthMeters: number;
   depthMeters: number;
@@ -61,6 +64,8 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
   const graph = buildRouteGraph({
     rng: routesRng,
     hf: options.hf,
+    flags: options.flags,
+    slopeRules: options.slopeRules,
     features: options.features,
     widthMeters: options.widthMeters,
     depthMeters: options.depthMeters,
@@ -75,13 +80,38 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
 
   // Carve required corridors before gates/spawns/zones validate terrain.
   carveRoutes(options.hf, graph.corridors, options.furnitureSet.maxRouteSlope);
+  // Edge slope records reflect the carved corridor, not the raw terrain.
+  for (const e of graph.edges) {
+    const c = graph.corridors.find((cor) => cor.edgeId === e.id);
+    if (c) e.slope = segmentSlope(options.hf, c.ax, c.az, c.bx, c.bz);
+  }
 
   const gates = selectHordeGates(
-    { rng: spawnsRng, hf: options.hf, graph, widthMeters: options.widthMeters, depthMeters: options.depthMeters, centerX, centerZ },
+    {
+      rng: spawnsRng,
+      hf: options.hf,
+      flags: options.flags,
+      slopeRules: options.slopeRules,
+      graph,
+      widthMeters: options.widthMeters,
+      depthMeters: options.depthMeters,
+      centerX,
+      centerZ,
+    },
     gateCandidates,
   );
   const spawns = selectPlayerSpawns(
-    { rng: spawnsRng, hf: options.hf, graph, widthMeters: options.widthMeters, depthMeters: options.depthMeters, centerX, centerZ },
+    {
+      rng: spawnsRng,
+      hf: options.hf,
+      flags: options.flags,
+      slopeRules: options.slopeRules,
+      graph,
+      widthMeters: options.widthMeters,
+      depthMeters: options.depthMeters,
+      centerX,
+      centerZ,
+    },
     gates,
     spawnCandidates,
     4,
@@ -124,6 +154,8 @@ export function generateMapLayout(options: GenerateLayoutOptions): MapLayoutResu
   const recovery = findRecoveryZones({
     rng: spawnsRng,
     hf: options.hf,
+    flags: options.flags,
+    slopeRules: options.slopeRules,
     graph,
     gates,
     widthMeters: options.widthMeters,

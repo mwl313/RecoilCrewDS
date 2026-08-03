@@ -5,8 +5,11 @@
  */
 import type { GeneratedArena } from './generator';
 import type { ValidationProfileDef } from './profiles';
+import { resolveSlopeRules } from './profiles';
 import { composeArenaCandidateSeed, hash32 } from './seed';
 import { generateTerrain } from './generator';
+import { terrainClassMetrics, TerrainFlag } from './terrainFlags';
+import { cliffEdgeMetrics } from './cliffs';
 
 export interface ValidationMetrics {
   generationMs: number;
@@ -15,6 +18,12 @@ export interface ValidationMetrics {
   maxSlope: number;
   checksum: number;
   featureCount: number;
+  driveableRatio: number;
+  riskyRatio: number;
+  blockedRatio: number;
+  cliffCount: number;
+  cliffEdgeLength: number;
+  largestDrop: number;
 }
 
 export interface ValidationReport {
@@ -56,10 +65,40 @@ export function validateArena(
     errors.push(`height: max ${hMax} above ${profile.heightRange.max}`);
   }
 
-  // Slope limits.
-  const worstSlope = hf.maxSlope();
-  if (worstSlope > profile.maxSlope + eps) {
-    errors.push(`slope: max ${worstSlope.toFixed(4)} exceeds ${profile.maxSlope}`);
+  // Terrain classes (permissive for optional terrain, strict for data).
+  const rules = resolveSlopeRules(arena.terrainProfile);
+  const classMetrics = terrainClassMetrics(arena.terrainFlags);
+  if (arena.cliffFeatures.length > 0 && arena.cliffEdges.length === 0) {
+    errors.push('cliff: cliff features produced no wall edge segments');
+  }
+  if (arena.cliffEdges.length > 0) {
+    let wallCells = 0;
+    for (let i = 0; i < arena.terrainFlags.length; i++) {
+      if (arena.terrainFlags[i] & TerrainFlag.CliffWall) wallCells++;
+    }
+    if (wallCells === 0) errors.push('cliff: edge segments exist but no cliff-wall flags');
+  }
+  // Corrupt spikes: cells steeper than cliffMin that are not represented as
+  // valid cliff data are fatal; intentional cliff walls are not.
+  for (let i = 0; i < arena.slopes.length; i++) {
+    if (arena.slopes[i] >= rules.cliffMin && !(arena.terrainFlags[i] & TerrainFlag.CliffWall)) {
+      errors.push('terrain: steep spike without valid cliff data');
+      break;
+    }
+  }
+  if (classMetrics.blockedRatio > 0.02) {
+    warnings.push(
+      `terrain: ${(classMetrics.blockedRatio * 100).toFixed(1)}% of the map is blocked or cliff (optional terrain is allowed to be impassable)`,
+    );
+  }
+  if (classMetrics.riskyRatio > 0.15) {
+    warnings.push(`terrain: ${(classMetrics.riskyRatio * 100).toFixed(1)}% of the map is risky (optional)`);
+  }
+  if (arena.cliffEdges.length > 0) {
+    const edgeMetrics = cliffEdgeMetrics(arena.cliffEdges);
+    warnings.push(
+      `cliff: ${edgeMetrics.count} walls, ${edgeMetrics.edgeLength.toFixed(1)}m edges, largest drop ${edgeMetrics.largestDrop.toFixed(1)}m`,
+    );
   }
 
   // Feature spacing.
@@ -104,7 +143,15 @@ export function validateArena(
     ok: errors.length === 0,
     errors,
     warnings,
-    metrics: arena.validation.metrics,
+    metrics: {
+      ...arena.validation.metrics,
+      driveableRatio: classMetrics.driveableRatio,
+      riskyRatio: classMetrics.riskyRatio,
+      blockedRatio: classMetrics.blockedRatio,
+      cliffCount: arena.cliffEdges.length,
+      cliffEdgeLength: arena.cliffEdges.reduce((s, e) => s + Math.hypot(e.bx - e.ax, e.bz - e.az), 0),
+      largestDrop: arena.cliffEdges.reduce((m, e) => Math.max(m, e.topY - e.bottomY), 0),
+    },
   };
 }
 

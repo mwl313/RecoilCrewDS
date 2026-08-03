@@ -10,6 +10,8 @@ import type { Rng } from './prng';
 import type { Heightfield } from './heightfield';
 import type { RouteGraph } from './routes';
 import { distToSegment } from './routes';
+import type { SlopeRules } from './profiles';
+import { isCliffWallAt } from './terrainFlags';
 
 export interface HordeGate {
   id: string;
@@ -28,6 +30,8 @@ export interface PlayerSpawn {
 export interface SpawnOptions {
   rng: Rng;
   hf: Heightfield;
+  flags?: Uint32Array;
+  slopeRules?: SlopeRules;
   graph: RouteGraph;
   widthMeters: number;
   depthMeters: number;
@@ -64,7 +68,8 @@ export function selectHordeGates(options: SpawnOptions, candidates: GateCandidat
     const node = nearestNode(graph, c.x, c.z);
     if (!node || !node.tags.includes('gate')) continue;
     if (chosen.some((g) => Math.hypot(g.x - c.x, g.z - c.z) < 60)) continue;
-    if (!broadRouteToCenter(graph, node.id, centerX, centerZ, hf)) continue;
+    const rules = options.slopeRules ?? FALLBACK_RULES;
+    if (!broadRouteToCenter(graph, node.id, centerX, centerZ, hf, rules.driveableMax, 12)) continue;
     chosen.push({ id: `gate.${chosen.length}`, x: c.x, z: c.z, nodeId: node.id });
   }
   return chosen.slice(0, 8);
@@ -72,9 +77,11 @@ export function selectHordeGates(options: SpawnOptions, candidates: GateCandidat
 
 function gateCandidateValid(x: number, z: number, options: SpawnOptions): boolean {
   const { hf, widthMeters, depthMeters } = options;
+  const rules = options.slopeRules ?? FALLBACK_RULES;
   const margin = 12;
   if (x < margin || x > widthMeters - margin || z < margin || z > depthMeters - margin) return false;
-  if (hf.slopeAt(x, z) > 0.2) return false;
+  if (options.flags && isCliffWallAt(options.flags, hf, x, z)) return false;
+  if (hf.slopeAt(x, z) > rules.spawnMax) return false;
   const h = hf.heightAt(x, z);
   if (h < -3 || h > 8) return false;
   // Clear radius: bounded slope and height variance (no cliff/wall).
@@ -82,7 +89,8 @@ function gateCandidateValid(x: number, z: number, options: SpawnOptions): boolea
     const a = (i / 8) * Math.PI * 2;
     const px = x + Math.cos(a) * 8;
     const pz = z + Math.sin(a) * 8;
-    if (hf.slopeAt(px, pz) > 0.25) return false;
+    if (options.flags && isCliffWallAt(options.flags, hf, px, pz)) return false;
+    if (hf.slopeAt(px, pz) > rules.spawnMax * 1.25) return false;
     if (Math.abs(hf.heightAt(px, pz) - h) > 2) return false;
   }
   return true;
@@ -127,16 +135,19 @@ function spawnCandidateValid(
   gates: HordeGate[],
 ): boolean {
   const { hf, widthMeters, depthMeters, graph } = options;
+  const rules = options.slopeRules ?? FALLBACK_RULES;
   const margin = 20;
   if (x < margin || x > widthMeters - margin || z < margin || z > depthMeters - margin) return false;
-  if (hf.slopeAt(x, z) > 0.15) return false;
+  if (options.flags && isCliffWallAt(options.flags, hf, x, z)) return false;
+  if (hf.slopeAt(x, z) > rules.spawnMax) return false;
   const h = hf.heightAt(x, z);
   // Clear radius + camera clearance (no cliff/edge within 7 m).
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
     const px = x + Math.cos(a) * 7;
     const pz = z + Math.sin(a) * 7;
-    if (hf.slopeAt(px, pz) > 0.2) return false;
+    if (options.flags && isCliffWallAt(options.flags, hf, px, pz)) return false;
+    if (hf.slopeAt(px, pz) > rules.spawnMax * 1.33) return false;
     if (Math.abs(hf.heightAt(px, pz) - h) > 2) return false;
   }
   // Route connectivity + at least two distinct route exits.
@@ -156,6 +167,8 @@ function broadRouteToCenter(
   centerX: number,
   centerZ: number,
   hf: Heightfield,
+  maxRouteSlope: number,
+  minHalfWidth: number,
 ): boolean {
   const centerNode = nearestNode(graph, centerX, centerZ);
   if (!centerNode) return false;
@@ -176,16 +189,27 @@ function broadRouteToCenter(
     for (const e of adjacency.get(current) ?? []) {
       const next = e.a === current ? e.b : e.a;
       if (seen.has(next)) continue;
-      if (e.slope > 0.35) continue;
-      if (e.halfWidth < 12) continue;
+      if (e.slope > maxRouteSlope) continue;
+      if (e.halfWidth < minHalfWidth) continue;
       const node = graph.nodes.find((n) => n.id === next)!;
-      if (hf.slopeAt(node.x, node.z) > 0.35) continue;
+      if (hf.slopeAt(node.x, node.z) > maxRouteSlope) continue;
       seen.add(next);
       queue.push(next);
     }
   }
   return false;
 }
+
+const FALLBACK_RULES: SlopeRules = {
+  driveableMax: 0.35,
+  riskyMax: 0.6,
+  blockedMin: 0.6,
+  cliffMin: 1.2,
+  spawnMax: 0.15,
+  recoveryMax: 0.18,
+  landingMax: 0.25,
+  maxStepUp: 0.8,
+};
 
 export function nearestNode(graph: RouteGraph, x: number, z: number): RouteGraph['nodes'][number] | undefined {
   let best: RouteGraph['nodes'][number] | undefined;

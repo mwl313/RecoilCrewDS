@@ -8,6 +8,7 @@ import type { GeneratedArena } from './generator';
 
 export type ValidationIssueCategory =
   | 'terrain'
+  | 'cliffs'
   | 'routes'
   | 'spawns'
   | 'furniture'
@@ -66,6 +67,7 @@ export function issuesFromValidationReports(arena: GeneratedArena): MapValidatio
 }
 
 function categoryFor(message: string): ValidationIssueCategory {
+  if (/^cliff/.test(message)) return 'cliffs';
   if (/^(route|corridor|width|slope|loop|dead-end|gate)/.test(message)) return 'routes';
   if (/^(spawn|spacing)/.test(message)) return 'spawns';
   if (/^(furniture|barrel|budget|object|decoration|collider)/.test(message)) return 'furniture';

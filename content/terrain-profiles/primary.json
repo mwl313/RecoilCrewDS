@@ -7,6 +7,18 @@
     "max": 10
   },
   "maxSlope": 0.5,
+  "slopeRules": {
+    "driveableMax": 0.5,
+    "riskyMax": 0.8,
+    "blockedMin": 0.8,
+    "cliffMin": 1.2,
+    "spawnMax": 0.2,
+    "recoveryMax": 0.12,
+    "landingMax": 0.25,
+    "maxStepUp": 0.8
+  },
+  "correctAllMap": true,
+  "finalSmoothingPasses": 1,
   "smoothingPasses": 2,
   "slopeCorrectionIterations": 48,
   "retryLimit": 8,

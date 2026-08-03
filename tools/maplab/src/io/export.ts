@@ -60,6 +60,10 @@ export function buildArenaExport(
     },
     layout: JSON.parse(JSON.stringify(arena.layout ?? null)),
     validation: arena.validation,
+    terrainFlags: Array.from(serialized.arena.terrainFlags),
+    cliffEdges: JSON.parse(JSON.stringify(arena.cliffEdges)),
+    accessCorridors: JSON.parse(JSON.stringify(arena.accessCorridors ?? [])),
+    terrainMetrics: arena.terrainMetrics,
   };
 }
 
@@ -76,6 +80,7 @@ export function buildValidationExport(
     generationMs,
     issues,
     metrics: arena.validation.metrics,
+    terrainMetrics: arena.terrainMetrics,
     phase2: arena.layout ? validationMetricsFromLayout(arena) : null,
   };
 }

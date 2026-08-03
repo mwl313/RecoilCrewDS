@@ -3,7 +3,12 @@ import type { Obstacle } from '../shared/arena';
 import type { ArenaWorld } from '../shared/sim/arenaWorld';
 import type { AssetService } from './assets';
 import { setClientGroundHeightAt } from './groundQuery';
-import { buildTerrainChunks, updateChunkLod } from './map-debug/terrainMesh';
+import {
+  buildCliffWallChunks,
+  buildTerrainChunks,
+  cliffWallMaterial,
+  updateChunkLod,
+} from './map-debug/terrainMesh';
 
 export interface Collider {
   box: THREE.Box3;
@@ -209,6 +214,38 @@ export class ArenaView {
       this.disposables.push(c.full, c.half);
     }
     this.chunks.push(...chunks);
+    const arena = this.world.arena;
+    if (arena && arena.cliffEdges.length > 0) {
+      const wallMaterial = cliffWallMaterial(arena.terrainProfile.cliffMaterialId);
+      this.disposables.push(wallMaterial);
+      const wallGeos = buildCliffWallChunks(hf, arena.cliffEdges, -this.world.half, -this.world.half);
+      for (const geo of wallGeos) {
+        if (geo.attributes.position.count === 0) {
+          geo.dispose();
+          continue;
+        }
+        const mesh = new THREE.Mesh(geo, wallMaterial);
+        mesh.frustumCulled = true;
+        this.group.add(mesh);
+        this.disposables.push(mesh);
+      }
+      // Camera collision: cliff walls are camera colliders so the TPS rig
+      // pulls in instead of clipping through them (tank physics stays on
+      // the heightfield + step guard).
+      for (const e of arena.cliffEdges) {
+        const minX = Math.min(e.ax, e.bx) - 0.9;
+        const maxX = Math.max(e.ax, e.bx) + 0.9;
+        const minZ = Math.min(e.az, e.bz) - 0.9;
+        const maxZ = Math.max(e.az, e.bz) + 0.9;
+        this.colliders.push({
+          box: new THREE.Box3(
+            new THREE.Vector3(minX, Math.min(e.topY, e.bottomY) - 0.5, minZ),
+            new THREE.Vector3(maxX, Math.max(e.topY, e.bottomY) + 0.5, maxZ),
+          ),
+          type: 'cliff',
+        });
+      }
+    }
   }
 
   private buildDecorations() {

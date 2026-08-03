@@ -10,6 +10,7 @@ const FEATURE_LABELS: Record<string, string> = {
 };
 
 export const terrainParameters: ParameterDescriptor[] = [
+  ...terrainClassParameters(),
   {
     path: 'terrainProfile.baseHeight',
     label: 'Ground Level',
@@ -175,3 +176,76 @@ export const terrainParameters: ParameterDescriptor[] = [
     return out;
   }),
 ];
+
+function terrainClassParameters(): ParameterDescriptor[] {
+  const p = (field: string, label: string, min: number, max: number, step: number, description: string): ParameterDescriptor => ({
+    path: `terrainProfile.slopeRules.${field}`,
+    label,
+    group: 'terrain',
+    subgroup: 'Terrain Classes',
+    type: 'number',
+    min,
+    max,
+    step,
+    description,
+    requiresRegeneration: true,
+  });
+  return [
+    p('driveableMax', 'Driveable Max Slope', 0.05, 1.5, 0.05, 'Steepest ground that counts as normal driveable terrain.'),
+    p('riskyMax', 'Risky Max Slope', 0.1, 2, 0.05, 'Steeper than this = risky optional terrain (driveable only as a shortcut).'),
+    p('blockedMin', 'Blocked Slope', 0.1, 3, 0.05, 'Steeper than this = blocked for required routes.'),
+    p('cliffMin', 'Cliff Minimum Slope', 0.4, 4, 0.05, 'Slope needed for a cell to count as a cliff wall.'),
+    p('spawnMax', 'Spawn Max Slope', 0.05, 0.5, 0.01, 'Steepest ground allowed for player spawns.'),
+    p('recoveryMax', 'Recovery Max Slope', 0.05, 0.5, 0.01, 'Steepest ground allowed for recovery zones.'),
+    p('landingMax', 'Landing Max Slope', 0.05, 0.5, 0.01, 'Steepest ground allowed for ramp landing zones.'),
+    p('maxStepUp', 'Max Step Up', 0.1, 2.5, 0.05, 'Highest upward step a tank may climb while grounded.'),
+  ];
+}
+
+const CLIFF_FEATURES: Array<{ type: 'cliffPlateau' | 'escarpment'; label: string }> = [
+  { type: 'cliffPlateau', label: 'Cliff Plateau' },
+  { type: 'escarpment', label: 'Escarpment' },
+];
+
+export const cliffParameters: ParameterDescriptor[] = CLIFF_FEATURES.flatMap(({ type, label }) => {
+  const base = `terrainProfile.features.${type}`;
+  const p = (field: string, fieldLabel: string, min: number, max: number, step: number, description: string, advanced = false): ParameterDescriptor => ({
+    path: `${base}.${field}`,
+    label: fieldLabel,
+    group: 'terrain',
+    subgroup: label,
+    type: 'number',
+    min,
+    max,
+    step,
+    advanced,
+    description,
+    requiresRegeneration: true,
+  });
+  return [
+    { path: `${base}.count`, label: 'Enabled / How Many', group: 'terrain', subgroup: label, type: 'number', min: 0, max: 12, step: 1, description: `How many ${label.toLowerCase()} features to place. 0 turns them off.`, requiresRegeneration: true },
+    { path: `${base}.minSeparation`, label: 'Spacing', group: 'terrain', subgroup: label, type: 'number', min: 0, max: 300, step: 5, advanced: true, description: 'Minimum distance from other features.', requiresRegeneration: true },
+    p('height.min', 'Lowest Drop', 1, 20, 0.5, `Shortest ${label.toLowerCase()} wall height.`),
+    p('height.max', 'Tallest Drop', 1, 20, 0.5, `Tallest ${label.toLowerCase()} wall height.`),
+    p('edgeWidth.min', 'Narrowest Edge', 2, 16, 1, 'Thinnest transition band. Narrow = sheer cliff.', true),
+    p('edgeWidth.max', 'Widest Edge', 2, 16, 1, 'Widest transition band. Wide = gentle ramp-like edge.', true),
+    p('edgeRoughness', 'Edge Roughness', 0, 1, 0.05, 'How jagged the cliff edge looks.', true),
+    p('accessCount', 'Access Corridors', 0, 4, 1, 'How many driveable roads lead up to the top. 0 = inaccessible optional high ground.'),
+    p('accessWidth', 'Access Width', 4, 24, 1, 'How wide each access road is.', true),
+    p('accessMaxSlope', 'Access Max Slope', 0.1, 0.6, 0.05, 'Steepest slope allowed on access roads.', true),
+    p('safetyBuffer', 'Edge Safety Buffer', 0, 30, 1, 'Keep-away zone below the wall.', true),
+    p('boundaryClearance', 'Boundary Clearance', 10, 80, 5, 'How far cliffs stay from the map edge.', true),
+    p('spawnClearance', 'Spawn Clearance', 10, 80, 5, 'How far cliffs stay from spawns.', true),
+    ...(type === 'escarpment'
+      ? [
+          p('length.min', 'Shortest Length', 40, 220, 10, 'Shortest escarpment length.'),
+          p('length.max', 'Longest Length', 40, 220, 10, 'Longest escarpment length.'),
+          p('width.min', 'Narrowest Width', 10, 60, 2, 'Narrowest escarpment width.'),
+          p('width.max', 'Widest Width', 10, 60, 2, 'Widest escarpment width.'),
+        ]
+      : [
+          p('radius.min', 'Smallest Top Radius', 10, 70, 2, 'Smallest cliff plateau top radius.'),
+          p('radius.max', 'Biggest Top Radius', 10, 70, 2, 'Biggest cliff plateau top radius.'),
+        ]),
+  ];
+});

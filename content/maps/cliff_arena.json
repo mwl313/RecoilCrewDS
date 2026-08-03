@@ -1,0 +1,13 @@
+{
+  "id": "map.cliffArena",
+  "label": "Cliff Arena",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.cliffArena",
+  "validationProfileId": "validationProfile.cliffArena",
+  "furnitureSetId": "furnitureSet.primary",
+  "densityProfileId": "densityProfile.primary",
+  "fallbackMapId": "map.fallbackLegacy",
+  "isFallback": false
+}
