@@ -35,7 +35,10 @@ button {
 
 .hidden { display: none !important; }
 
-.screen.scene-enter { animation: sceneFadeIn 180ms ease; }
+/* `backwards` fill: the first painted frame is already the 0% keyframe, so
+   showing a screen never flashes one frame at full opacity before the
+   animation starts. */
+.screen.scene-enter { animation: sceneFadeIn 180ms ease backwards; }
 .screen.scene-exit { animation: sceneFadeOut 120ms ease forwards; }
 @keyframes sceneFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes sceneFadeOut { to { opacity: 0; } }
@@ -52,16 +55,10 @@ button {
     radial-gradient(ellipse at 50% 30%, rgba(52, 72, 84, 0.55), transparent 60%),
     linear-gradient(180deg, rgba(10, 14, 18, 0.92), rgba(6, 8, 11, 0.97));
   z-index: 30;
-  animation: fadein 0.22s ease;
 }
 
 #presentation-canvas {
   z-index: -1;
-}
-
-@keyframes fadein {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .panel {
