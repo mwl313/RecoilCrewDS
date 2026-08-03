@@ -44,6 +44,7 @@ button {
 .screen {
   position: fixed;
   inset: 0;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +53,10 @@ button {
     linear-gradient(180deg, rgba(10, 14, 18, 0.92), rgba(6, 8, 11, 0.97));
   z-index: 30;
   animation: fadein 0.22s ease;
+}
+
+#presentation-canvas {
+  z-index: -1;
 }
 
 @keyframes fadein {

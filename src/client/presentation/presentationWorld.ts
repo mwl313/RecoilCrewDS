@@ -37,6 +37,13 @@ export class PresentationWorld {
     this.renderer.domElement.style.position = 'absolute';
     this.renderer.domElement.style.inset = '0';
     this.renderer.domElement.style.pointerEvents = 'none';
+    // Keep the presentation layer BEHIND the scene's DOM content: the
+    // parent screen establishes a stacking context (see styles.css
+    // `.screen { isolation: isolate }`), so z-index -1 paints above the
+    // screen background but below panels/buttons. Without this, the opaque
+    // scene background covers the UI (buttons stay clickable because the
+    // canvas has pointer-events: none — the "invisible menu" bug).
+    this.renderer.domElement.style.zIndex = '-1';
     this.renderer.domElement.id = 'presentation-canvas';
     container.appendChild(this.renderer.domElement);
 

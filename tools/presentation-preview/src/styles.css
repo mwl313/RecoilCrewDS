@@ -3,5 +3,6 @@ body { margin: 0; }
 header { grid-column: 1/4; display: flex; gap: 10px; align-items: center; padding: 0 12px; background: #142028; border-bottom: 1px solid #22333d; color: #d7edf3; }
 aside { padding: 10px; border-right: 1px solid #22333d; overflow: auto; color: #d7edf3; }
 #preview { position: relative; overflow: hidden; background: #0b1216; }
+.screen { position: absolute; inset: 0; isolation: isolate; overflow: hidden; }
 #info { padding: 10px; border-left: 1px solid #22333d; overflow: auto; color: #9fc4cf; font: 11px/1.5 ui-monospace, monospace; }
 #preview.stable * { animation: none !important; }
