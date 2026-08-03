@@ -25,7 +25,8 @@ The flow must be identical — no IP knowledge or router configuration.
 ## 3. Practice
 
 Main menu → **PRACTICE**. Drive with WASD, aim with the mouse, fire MG (LMB)
-and cannon (RMB). **Tab** swaps Driver/Gunner views. Esc opens the pause menu.
+and cannon (RMB). Space jumps, Shift dashes. **Tab** swaps Driver/Gunner
+views. Esc opens the pause menu.
 
 ## 4. Pointer lock
 
@@ -50,12 +51,29 @@ stuck key.
 - W accelerates, S reverses, A/D steer (chassis-relative).
 - A turns left and D turns right even while reversing (strength may reduce,
   direction never flips).
-- Shift boosts and drifts; Space deploys braces (stabilizers appear).
+- Shift dashes — one instantaneous chassis-forward burst per press; holding
+  Shift never sprints or repeats.
+- Space jumps — one jump per press; holding Space never repeats; land,
+  release, and press again to jump again.
 - R recenters the camera behind the chassis.
 - Driving feels immediate (local prediction) and settles smoothly to the
   server state; the tank no longer visibly steps at snapshot rate.
-- Boost and recoil do not push the tank through walls; the nose never sinks
+- Dash and recoil do not push the tank through walls; the nose never sinks
   into obstacles; the camera never clips the tank, floor, walls, or corners.
+
+## 5a. Generated maps (Phases 1-3)
+
+- Online rounds run on a deterministic generated 400×400 arena: the server
+  selects a seed per room/match and the client regenerates it, verifying
+  the published checksum before GO. A mismatch shows **Connection lost /
+  map checksum** style error and never starts the round.
+- Rematch rerolls a new seed/map in the same room; reconnect during a round
+  resumes the identical map (same checksum).
+- Practice uses the same generator/queries with a local seed and rerolls
+  per practice round.
+- Terrain renders as chunked heightfield with LOD + fog; `?debug=1` + F3
+  shows the mapgen overlay (seed, checksum, features, routes, zones,
+  spawns/gates, ramps, recovery, colliders).
 
 ## 6. Gunner controls
 
@@ -67,9 +85,9 @@ stuck key.
 ## 7. PIP
 
 Bottom-right shows the partner role feed (`DRIVER FEED` / `GUNNER FEED`) with
-an action label (BRACING, CHARGING, DRIVING…). The connection dot stays green;
-close one tab and it turns red (reconnect within 10 s by refreshing with the
-same session — the retry path offers Practice).
+an action label (JUMPING, DASHING, CHARGING, DRIVING…). The connection dot
+stays green; close one tab and it turns red (reconnect within 10 s by
+refreshing with the same session — the retry path offers Practice).
 
 ## 8. First pickup
 
@@ -84,9 +102,10 @@ assistance pacing.
 
 ## 10. JACKPOT
 
-At ~55–70 s the meter reaches full. Driver sees **HOLD SPACE TO BRACE**;
-Gunner sees **HOLD RIGHT MOUSE TO CHARGE**. A charged shot produces a huge
-flash, massive recoil, chain detonations, and a scrap shower.
+At ~55–70 s the meter reaches full. Gunner sees **HOLD RIGHT MOUSE TO
+CHARGE**; the Driver sees the gunner-charge prompt. A charged shot produces
+a huge flash, massive recoil, chain detonations, and a scrap shower — recoil
+is always full strength (no brace reduction).
 
 ## 11. Wipeout
 
@@ -114,8 +133,12 @@ code is selected in a textarea fallback so it can still be copied manually.
 
 ## Automated equivalents
 
-- `npm test` — 97 unit/integration tests.
+- `npm test` — 270 unit/integration tests (25 files), including the full
+  jump/dash edge, parity, replay, rules, and Demo regression matrix.
 - `npm run test:e2e` — two real Chrome clients play a complete round and
-  rematch, plus dedicated TPS/controls/collision/copy browser tests.
+  rematch, plus dedicated TPS/controls/collision/copy/jump/dash browser
+  tests.
 - `npm run test:loop` — two headless WebSocket clients play a complete
   90-second round and rematch.
+- `npm run test:maps`, `npm run test:maps:sweep` — deterministic mapgen
+  suites + 1000-seed sweep report.

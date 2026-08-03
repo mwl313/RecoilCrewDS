@@ -1,4 +1,5 @@
 import type { GameConfig } from '../config';
+import type { ArenaWorld } from './arenaWorld';
 import type { ContentPack } from '../content/contentPack';
 import type {
   DriverInput,
@@ -26,10 +27,12 @@ export { MatchRuntime } from './matchRuntime';
 export class Match {
   readonly runtime: MatchRuntime;
 
-  constructor(matchId: string, modifier: ModifierId = 'none', pack?: ContentPack) {
+  constructor(matchId: string, modifier: ModifierId = 'none', pack?: ContentPack, world?: ArenaWorld) {
     this.runtime = pack
-      ? MatchRuntime.fromContentPack(pack, matchId, modifier)
-      : MatchRuntime.fromLegacy(matchId, modifier);
+      ? world
+        ? MatchRuntime.fromContentPackWithWorld(pack, matchId, world, modifier)
+        : MatchRuntime.fromContentPack(pack, matchId, modifier)
+      : new MatchRuntime(matchId, modifier, undefined, undefined, world);
   }
 
   get state(): MatchState {

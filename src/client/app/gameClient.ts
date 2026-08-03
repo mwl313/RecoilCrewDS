@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { ARENA } from '../../shared/arena';
 import { clamp } from '../../shared/math';
 import { Match } from '../../shared/sim/match';
+import type { ArenaSessionResult } from '../../shared/mapgen/arenaSession';
+import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 import type { MatchState, Role, SimEvent, TankState } from '../../shared/types';
 import type { AssetService, TankRig } from '../assets';
 import type { AudioManager } from '../audio';
@@ -23,7 +24,7 @@ import { RenderWorld } from './renderWorld';
  * There are no ordinary gameplay content branches here.
  */
 export class GameClient {
-  private readonly world: RenderWorld;
+  readonly world: RenderWorld;
   private readonly registry: EntityViewRegistry;
   private readonly cameras: CameraManager;
   private readonly prediction: PredictionController;
@@ -35,6 +36,7 @@ export class GameClient {
   private readonly audio: AudioManager;
   private readonly input: InputSource;
   private readonly container: HTMLElement;
+  readonly arenaWorld: ArenaWorld;
 
   practiceMatch: Match | null = null;
   role: Role = 'driver';
@@ -50,7 +52,7 @@ export class GameClient {
   private chargeDown = false;
   private mgDown = false;
   private inputEnabled = true;
-  private lastPredictInput: { throttle: number; steer: number; boost: boolean; brace: boolean } = { throttle: 0, steer: 0, boost: false, brace: false };
+  private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
   private inputSendT = 0;
   suppressAutoInput = false;
 
@@ -73,6 +75,7 @@ export class GameClient {
     pip: PipRenderer;
     quality: QualityManager;
     tankRig: TankRig;
+    arenaWorld: ArenaWorld;
   }) {
     this.container = deps.container;
     this.world = deps.world;
@@ -86,6 +89,7 @@ export class GameClient {
     this.tankRig = deps.tankRig;
     this.audio = deps.audio;
     this.input = deps.input;
+    this.arenaWorld = deps.arenaWorld;
   }
 
   /** Awaits assets, then builds the full client (called after load()). */
@@ -95,33 +99,35 @@ export class GameClient {
     audio: AudioManager,
     input: InputSource,
     onReady: () => void,
+    world: ArenaWorld,
   ): Promise<GameClient> {
-    const world = new RenderWorld(container, assets);
+    const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
-    const registry = new EntityViewRegistry(world.scene, factory);
+    const registry = new EntityViewRegistry(renderWorld.scene, factory);
     const tankRig = assets.tankRig();
-    world.scene.add(tankRig.chassis);
+    renderWorld.scene.add(tankRig.chassis);
     const truckRig = new THREE.Group();
     truckRig.add(assets.model('enemy.lootTruck'));
     truckRig.visible = false;
-    world.scene.add(truckRig);
-    registry.registerTruckRig(truckRig, world.scene);
-    for (const barrel of ARENA.barrels) {
+    renderWorld.scene.add(truckRig);
+    registry.registerTruckRig(truckRig, renderWorld.scene);
+    for (const barrel of world.barrels) {
       const mesh = assets.model('prop.explosiveBarrel').clone(true);
       mesh.position.set(barrel.x, 0.55, barrel.z);
-      world.scene.add(mesh);
+      renderWorld.scene.add(mesh);
       registry.registerBarrel(barrel.id, mesh);
     }
     const cameras = new CameraManager();
     cameras.resize((container.clientWidth || window.innerWidth) / (container.clientHeight || window.innerHeight));
     let gameRef: GameClient | null = null;
     const prediction = new PredictionController('driver', { send: (msg) => gameRef?.onSendInput?.(msg) });
+    prediction.setGround(world);
     const deps = {
       container,
       assets,
       audio,
       input,
-      world,
+      world: renderWorld,
       registry,
       cameras,
       prediction,
@@ -130,25 +136,26 @@ export class GameClient {
       pip: null as unknown as PipRenderer,
       quality: null as unknown as QualityManager,
       tankRig,
+      arenaWorld: world,
     };
-    const router = new PresentationEventRouter(assets, world.vfx, audio, cameras);
-    const pip = new PipRenderer(world);
+    const router = new PresentationEventRouter(assets, renderWorld.vfx, audio, cameras);
+    const pip = new PipRenderer(renderWorld);
     const quality = new QualityManager({
-      setPixelRatio: (r) => world.setPixelRatio(r),
-      setShadows: (e) => world.setShadows(e),
-      setBloomStrength: (s) => world.setBloomStrength(s),
+      setPixelRatio: (r) => renderWorld.setPixelRatio(r),
+      setShadows: (e) => renderWorld.setShadows(e),
+      setBloomStrength: (s) => renderWorld.setBloomStrength(s),
       setPipRate: (r) => {
         pip.pipRate = r;
       },
     });
     const presenter = new NetworkStatePresenter({
-      world,
+      world: renderWorld,
       assets,
       registry,
       tankRig,
       cameras,
       prediction,
-      colliders: world.arena.colliders,
+      colliders: () => renderWorld.arena.colliders,
       input,
       audio,
       mode: () => gameRef!.mode,
@@ -187,7 +194,7 @@ export class GameClient {
   startPractice(): void {
     this.mode = 'practice';
     this.practiceViewRole = 'driver';
-    this.practiceMatch = new Match('practice-' + Date.now(), 'none');
+    this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, this.arenaWorld);
     const turret = this.practiceMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
     this.presenter.latest = this.practiceMatch.state;
@@ -196,6 +203,20 @@ export class GameClient {
     this.resetState();
     this.running = true;
     this.loop();
+  }
+
+  /**
+   * Phase 3: swap the authoritative arena (rematch / practice reroll /
+   * reconnect). Rebuilds the arena view, resets prediction/presenter, and
+   * recreates the local Practice match on the new world.
+   */
+  applyArenaSession(session: ArenaSessionResult): void {
+    this.world.rebuildArena(session.world);
+    this.prediction.setGround(session.world);
+    if (this.mode === 'practice') {
+      this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, session.world);
+    }
+    this.resetState();
   }
 
   private resetState(): void {
@@ -214,13 +235,17 @@ export class GameClient {
   }
 
   handleEvent(ev: SimEvent): void {
+    // The online Driver already received immediate local feedback from
+    // prediction; skip the authoritative duplicate for jump/dash.
+    if (this.mode === 'online' && this.role === 'driver' && (ev.type === 'jump' || ev.type === 'dash')) {
+      return;
+    }
     this.router.handleEvent(ev);
   }
 
   private stepPractice(dt: number): void {
     const m = this.practiceMatch!;
     if (m.state.phase !== 'running' || !this.inputEnabled) return;
-    m.setDriverInput({ ...this.sampleDriverInput() });
     const turret = this.prediction.getTurretSpaces();
     m.setGunnerInput({
       aimYaw: turret.desiredYawLocal,
@@ -234,6 +259,13 @@ export class GameClient {
     let guard = 0;
     while (this.practiceAcc >= step && guard++ < 6) {
       this.practiceAcc -= step;
+      // Each practice sim step gets its own sequenced input frame. Sampling
+      // at step time means a press can never be overwritten by a neutral
+      // frame before a step consumes it.
+      const frame = this.sampleDriverInput();
+      m.setDriverInput({ ...frame });
+      // The frame is created; clear the latches so holding never repeats.
+      this.input.clearDriverEdges();
       m.step(step);
       for (const ev of m.takeEvents()) {
         this.router.handleEvent(ev);
@@ -258,13 +290,13 @@ export class GameClient {
     this.slowMo = Math.max(0, this.slowMo - dtRaw);
     this.cameras.tickShake(dtRaw);
 
+    this.lastPredictInput = this.sampleDriverInput();
     if (this.mode === 'practice' && this.practiceMatch) {
       this.stepPractice(dtRaw);
       this.presenter.latest = this.practiceMatch.state;
     }
     if (this.mode === 'online') this.presenter.advanceRenderClock(dtRaw);
     this.presenter.computeInterp();
-    this.lastPredictInput = this.sampleDriverInput();
     let renderTank: TankState | null = null;
     const interp = this.presenter.interpState;
     if (interp) {
@@ -273,6 +305,7 @@ export class GameClient {
       } else if (this.role === 'driver') {
         this.prediction.sampleDriver(this.lastPredictInput, dtRaw);
         renderTank = this.prediction.renderTank(interp.tank);
+        this.playLocalDriverActions(renderTank);
       } else {
         renderTank = interp.tank;
       }
@@ -290,7 +323,7 @@ export class GameClient {
 
     this.world.vfx.update(dt);
     const latest = this.presenter.latest;
-    this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0, latest?.tank.boosting ?? false);
+    this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
     this.renderFrame();
   };
@@ -309,7 +342,14 @@ export class GameClient {
   private sendInputs(): void {
     if (!this.onSendInput || this.suppressAutoInput) return;
     if (this.role === 'driver') {
-      this.prediction.sendDriver(this.sampleDriverInput());
+      // Re-sample at send time: a key pressed since the frame sample must
+      // still land in this sequenced frame (never lost between sends).
+      const fresh = this.sampleDriverInput();
+      this.lastPredictInput = { ...fresh };
+      this.prediction.sendDriver({ ...fresh });
+      // The sequenced network frame is created; the latched edges must not
+      // leak into the next frame (holding the key never repeats).
+      this.input.clearDriverEdges();
     } else {
       const latest = this.presenter.latest;
       const turret = this.prediction.getTurretSpaces();
@@ -323,57 +363,62 @@ export class GameClient {
     }
   }
 
-  private sampleDriverInput(): { throttle: number; steer: number; boost: boolean; brace: boolean } {
-    if (!this.inputEnabled) return { throttle: 0, steer: 0, boost: false, brace: false };
+  private sampleDriverInput(): { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } {
+    if (!this.inputEnabled) return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     return {
       throttle: this.keyAxis('forward') - this.keyAxis('back'),
       steer: this.keyAxis('right') - this.keyAxis('left'),
-      boost: this.keyDown('boost'),
-      brace: this.keyDown('brace'),
+      dashPressed: this.input.edge('dash'),
+      jumpPressed: this.input.edge('jump'),
     };
   }
 
   injectOnlineInput(role: Role, data: {
     throttle?: number;
     steer?: number;
-    boost?: boolean;
-    brace?: boolean;
+    dashPressed?: boolean;
+    jumpPressed?: boolean;
     aimYaw?: number;
     aimPitch?: number;
     primary?: boolean;
     secondary?: boolean;
     ability?: boolean;
-    /** Legacy test-hook aliases (mapped to generic actions). */
-    mg?: boolean;
-    cannon?: boolean;
-    charge?: boolean;
   }): void {
     if (this.mode !== 'online' || !this.onSendInput) return;
     if (role === 'driver') {
       const input = {
         throttle: data.throttle ?? 0,
         steer: data.steer ?? 0,
-        boost: !!data.boost,
-        brace: !!data.brace,
+        dashPressed: data.dashPressed === true,
+        jumpPressed: data.jumpPressed === true,
       };
       this.onSendInput({ t: 'input', seq: this.prediction.nextSeq(), driver: input });
     } else {
       const turret = this.prediction.getTurretSpaces();
-      // Test hook compat: legacy mg/cannon/charge keys map to generic actions.
-      const mg = data.mg ?? data.primary;
-      const cannon = data.cannon ?? data.secondary;
-      const charge = data.charge ?? data.ability;
       this.onSendInput({
         t: 'input',
         seq: this.prediction.nextSeq(),
         gunner: {
           aimYaw: data.aimYaw ?? turret.desiredYawLocal,
           aimPitch: data.aimPitch ?? turret.desiredPitch,
-          primary: !!mg,
-          secondary: !!cannon && !(this.presenter.latest?.turret.jackpotReady ?? false),
-          ability: !!charge && (this.presenter.latest?.turret.jackpotReady ?? false),
+          primary: data.primary === true,
+          secondary: data.secondary === true && !(this.presenter.latest?.turret.jackpotReady ?? false),
+          ability: data.ability === true && (this.presenter.latest?.turret.jackpotReady ?? false),
         },
       });
+    }
+  }
+
+  /** Immediate local jump/dash feedback for the predicted Driver. */
+  private playLocalDriverActions(tank: TankState): void {
+    for (const action of this.prediction.takeLocalDriverActions()) {
+      if (action === 'jump') {
+        this.world.vfx.spawnJumpDust(tank.x, tank.y, tank.z);
+        this.audio.play('jump');
+      } else if (action === 'dash') {
+        this.world.vfx.spawnDashBurst(tank.x, tank.y, tank.z, tank.yaw);
+        this.audio.play('dash');
+      }
     }
   }
 
@@ -429,7 +474,7 @@ export class GameClient {
   setInputEnabled(enabled: boolean): void {
     this.inputEnabled = enabled;
     if (!enabled) {
-      this.lastPredictInput = { throttle: 0, steer: 0, boost: false, brace: false };
+      this.lastPredictInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     }
   }
 
@@ -467,6 +512,7 @@ export class GameClient {
   destroy(): void {
     this.running = false;
     cancelAnimationFrame(this.raf);
+    this.world.arena.dispose();
     this.registry.reset();
     this.world.dispose();
   }

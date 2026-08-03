@@ -68,14 +68,14 @@ function startCrew(manager: RoomManager) {
 function tankState(over: Partial<TankState> = {}): TankState {
   return {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-    pitch: 0, roll: 0, integrity: 100, brace: false, boosting: false,
+    pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0,
     shieldedT: 0, deadT: 0, grounded: true, drift: false,
     ...over,
   };
 }
 
 function holdDriver(over: Partial<DriverInput> = {}): DriverInput {
-  return { throttle: 0, steer: 0, boost: false, brace: false, ...over };
+  return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false, ...over };
 }
 
 const neutralGunner = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
@@ -160,20 +160,20 @@ describe('weapon input fields (wire contract)', () => {
     expect(input.ability).toBe(false);
   });
 
-  it('driver input fields are exactly throttle/steer/boost/brace and are clamped', () => {
+  it('driver input fields are exactly throttle/steer/dashPressed/jumpPressed and are clamped', () => {
     const { manager } = makeManager();
     const { a, room } = startCrew(manager);
     manager.handle(a, {
       t: 'input',
       seq: 1,
-      driver: { throttle: 5, steer: -9, boost: 1, brace: 0, nitro: true },
+      driver: { throttle: 5, steer: -9, dashPressed: 1, jumpPressed: true, nitro: true },
     });
     manager.tick(1 / 30);
     expect(room.match!.getDriverInput()).toEqual({
       throttle: 1,
       steer: -1,
-      boost: true,
-      brace: false,
+      dashPressed: false,
+      jumpPressed: true,
     });
   });
 
@@ -454,7 +454,7 @@ describe('Driver predictor config source', () => {
     const p = new DriverPredictor(BASE_CONFIG, 'none');
     p.resetFromAuthority(tankState());
     for (let i = 0; i < 30; i++) {
-      p.sampleInput({ throttle: 1, steer: 0, boost: false, brace: false }, 1 / 30);
+      p.sampleInput({ throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, 1 / 30);
     }
     const speed = Math.hypot(p.predicted.vx, p.predicted.vz);
     expect(speed).toBeGreaterThan(13.5);
@@ -466,7 +466,7 @@ describe('Driver predictor config source', () => {
       const p = new DriverPredictor(BASE_CONFIG, modifier);
       p.resetFromAuthority(tankState({ y: 10, grounded: false, vy: 0 }));
       for (let i = 0; i < 30; i++) {
-        p.sampleInput({ throttle: 0, steer: 0, boost: false, brace: false }, 1 / 30);
+        p.sampleInput({ throttle: 0, steer: 0, dashPressed: false, jumpPressed: false }, 1 / 30);
       }
       return p.predicted.y;
     };

@@ -1,5 +1,7 @@
 import { buildMatchConfig, type GameConfig } from '../shared/config';
 import { lerp } from '../shared/math';
+import type { GroundQuery } from '../shared/sim/groundQuery';
+import { STATIC_GROUND_QUERY } from '../shared/sim/groundQuery';
 import { stepTankKinematics, type TankKinematicState } from '../shared/sim/tankKinematics';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import type { DriverInput, ModifierId, TankState } from '../shared/types';
@@ -15,7 +17,7 @@ export interface QueuedDriverInput {
 function emptyState(): TankKinematicState {
   return {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-    pitch: 0, roll: 0, grounded: true, boosting: false, brace: false, drift: false,
+    pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false,
   };
 }
 
@@ -23,7 +25,10 @@ function fromTank(t: TankState): TankKinematicState {
   return {
     x: t.x, y: t.y, z: t.z, vx: t.vx, vy: t.vy, vz: t.vz,
     yaw: t.yaw, yawVel: t.yawVel, pitch: t.pitch, roll: t.roll,
-    grounded: t.grounded, boosting: t.boosting, brace: t.brace, drift: t.drift,
+    grounded: t.grounded,
+    dashCooldown: t.dashCooldown,
+    dashPresentationT: t.dashPresentationT,
+    drift: t.drift,
     prevOnRamp: t.prevOnRamp ?? false,
   };
 }
@@ -46,12 +51,21 @@ export class DriverPredictor {
   private acc = 0;
   private cfg: GameConfig;
   private mcfg: ReturnType<typeof buildMatchConfig>;
+  private ground: GroundQuery;
   private prevDead = 0;
   private movementRevision = 0;
+  private prevEdges = { dash: false, jump: false };
+  private appliedActions: string[] = [];
 
-  constructor(cfg: GameConfig, modifier: ModifierId) {
+  constructor(cfg: GameConfig, modifier: ModifierId, ground: GroundQuery = STATIC_GROUND_QUERY) {
     this.cfg = cfg;
     this.mcfg = buildMatchConfig(modifier);
+    this.ground = ground;
+  }
+
+  /** Phase 3: switch the predictor to the authoritative arena ground. */
+  setGround(ground: GroundQuery): void {
+    this.ground = ground;
   }
 
   resetFromAuthority(t: TankState): void {
@@ -60,6 +74,8 @@ export class DriverPredictor {
     this.pending = [];
     this.acc = 0;
     this.prevDead = t.deadT;
+    this.prevEdges = { dash: false, jump: false };
+    this.appliedActions = [];
   }
 
   pushInput(seq: number, input: DriverInput): void {
@@ -87,19 +103,54 @@ export class DriverPredictor {
       ...this.mcfg,
       timeScale: block.match.timeScale,
       grip: block.match.grip,
-      boostGrip: block.match.boostGrip,
       gravity: block.match.gravity,
     };
   }
 
   /** Sample the current input every frame; simulate at the fixed server rate. */
   sampleInput(input: DriverInput, dt: number): void {
+    // A latched edge is applied on exactly one fixed step, when it first
+    // appears in the sampled input. Repeating samples (same latch held until
+    // the send frame consumes it) never apply the edge again locally.
+    const dashEdge = input.dashPressed && !this.prevEdges.dash;
+    const jumpEdge = input.jumpPressed && !this.prevEdges.jump;
+    this.prevEdges = { dash: input.dashPressed, jump: input.jumpPressed };
+    const stepInput: DriverInput = {
+      throttle: input.throttle,
+      steer: input.steer,
+      dashPressed: dashEdge,
+      jumpPressed: jumpEdge,
+    };
     this.acc += Math.min(0.1, dt);
     let guard = 0;
+    let appliedOnFirstStep = true;
     while (this.acc >= STEP && guard++ < 6) {
       this.acc -= STEP;
-      stepTankKinematics(this.predicted, input, this.cfg, this.mcfg, STEP);
+      stepTankKinematics(
+        this.predicted,
+        stepInput,
+        this.cfg,
+        this.mcfg,
+        STEP,
+        {
+          onJump: () => {
+            if (appliedOnFirstStep) this.appliedActions.push('jump');
+          },
+          onDash: () => {
+            if (appliedOnFirstStep) this.appliedActions.push('dash');
+          },
+        },
+        this.ground,
+      );
+      appliedOnFirstStep = false;
     }
+  }
+
+  /** One-shot local presentation actions (jump/dash) applied by prediction. */
+  takeAppliedActions(): string[] {
+    const out = [...this.appliedActions];
+    this.appliedActions = [];
+    return out;
   }
 
   /**
@@ -110,7 +161,7 @@ export class DriverPredictor {
     const base = fromTank(authoritative);
     const remaining = this.pending.filter((p) => p.seq > ackSeq);
     for (const q of remaining) {
-      stepTankKinematics(base, q.input, this.cfg, this.mcfg, STEP);
+      stepTankKinematics(base, q.input, this.cfg, this.mcfg, STEP, undefined, this.ground);
     }
     const respawned = authoritative.deadT > 0 && this.prevDead <= 0;
     const divergence = Math.hypot(base.x - this.predicted.x, base.z - this.predicted.z);

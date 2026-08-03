@@ -9,11 +9,15 @@ import { contentHash } from './hash';
 import { ReferenceValidator } from './referenceValidator';
 import type { PackManifest } from './schemas/pack';
 import { packManifestSchema } from './schemas/pack';
+import { densityProfileSchema } from './schemas/densityProfile';
 import { difficultySchema } from './schemas/difficulty';
 import { dropTableSchema } from './schemas/dropTable';
 import { enemySchema } from './schemas/enemy';
+import { furnitureSetSchema } from './schemas/furnitureSet';
 import { itemSchema, statusEffectSchema } from './schemas/item';
+import { landmarkSchema } from './schemas/landmark';
 import { loadoutSchema } from './schemas/loadout';
+import { mapSchema } from './schemas/map';
 import { modeSchema } from './schemas/mode';
 import { objectiveSchema } from './schemas/objective';
 import { presentationSchema } from './schemas/presentation';
@@ -23,12 +27,20 @@ import { resultsSchema } from './schemas/results';
 import { scoringSchema } from './schemas/scoring';
 import { spawnDirectorSchema } from './schemas/spawnDirector';
 import { tankSchema } from './schemas/tank';
+import { terrainProfileSchema } from './schemas/terrainProfile';
+import { validationProfileSchema } from './schemas/validationProfile';
 import { weaponSchema } from './schemas/weapon';
 import { defaultStatIds } from './statIds';
 
 const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   modes: modeSchema,
   objectives: objectiveSchema,
+  maps: mapSchema,
+  terrainProfiles: terrainProfileSchema,
+  validationProfiles: validationProfileSchema,
+  landmarks: landmarkSchema,
+  furnitureSets: furnitureSetSchema,
+  densityProfiles: densityProfileSchema,
   tanks: tankSchema,
   loadouts: loadoutSchema,
   weapons: weaponSchema,
@@ -151,6 +163,12 @@ function createEmptyRegistries(): CategoryRegistries {
   return {
     modes: new DefinitionRegistry(),
     objectives: new DefinitionRegistry(),
+    maps: new DefinitionRegistry(),
+    terrainProfiles: new DefinitionRegistry(),
+    validationProfiles: new DefinitionRegistry(),
+    landmarks: new DefinitionRegistry(),
+    furnitureSets: new DefinitionRegistry(),
+    densityProfiles: new DefinitionRegistry(),
     tanks: new DefinitionRegistry(),
     loadouts: new DefinitionRegistry(),
     weapons: new DefinitionRegistry(),

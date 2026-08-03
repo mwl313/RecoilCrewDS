@@ -1,4 +1,3 @@
-import { ARENA, groundHeightAt } from '../arena';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 
@@ -38,19 +37,23 @@ export class SpawnDirectorRuntime {
       this.rammerSpawnIdx++;
     }
     while (this.towerSpawnIdx < def.towerSpawns.length && s.time >= def.towerSpawns[this.towerSpawnIdx]) {
-      const towers = s.enemies.filter((e) => e.alive && e.type === 'gunTower').length;
-      const spot = ARENA.towerSpots[this.towerSpawnIdx % ARENA.towerSpots.length];
-      if (towers < Math.round(ac.maxTowers * mcfg.maxTowers)) {
-        this.ctx.enemies.spawnEnemy('gunTower', spot.x, spot.z);
+      const spots = this.ctx.world.towerSpots;
+      if (spots.length > 0) {
+        const towers = s.enemies.filter((e) => e.alive && e.type === 'gunTower').length;
+        const spot = spots[this.towerSpawnIdx % spots.length];
+        if (towers < Math.round(ac.maxTowers * mcfg.maxTowers)) {
+          this.ctx.enemies.spawnEnemy('gunTower', spot.x, spot.z);
+        }
       }
       this.towerSpawnIdx++;
     }
-    if (!this.truckSpawned && s.time >= def.truck.spawnTime) {
+    const truckRoute = this.ctx.world.truckRoute;
+    if (!this.truckSpawned && s.time >= def.truck.spawnTime && truckRoute.length > 0) {
       this.truckSpawned = true;
-      const start = ARENA.truckRoute[0];
+      const start = truckRoute[0];
       s.truck.active = true;
       s.truck.x = start.x;
-      s.truck.y = groundHeightAt(start.x, start.z);
+      s.truck.y = this.ctx.world.groundHeightAt(start.x, start.z);
       s.truck.z = start.z;
       s.truck.hp = this.ctx.rules.config.enemies.truckHp;
       const e = this.ctx.enemies.spawnEnemy('lootTruck', start.x, start.z);
@@ -65,11 +68,13 @@ export class SpawnDirectorRuntime {
         this.ctx.enemies.spawnEnemy('rammer');
       }
       const towers = s.enemies.filter((e) => e.alive && e.type === 'gunTower').length;
-      if (towers < Math.round(ac.maxTowers * mcfg.maxTowers) && Math.random() < dt * def.finalChaos.towerProbability) {
+      const spots = this.ctx.world.towerSpots;
+      if (spots.length > 0 && towers < Math.round(ac.maxTowers * mcfg.maxTowers) && Math.random() < dt * def.finalChaos.towerProbability) {
+        // Legacy parity: two independent random picks (x and z) as before.
         this.ctx.enemies.spawnEnemy(
           'gunTower',
-          ARENA.towerSpots[Math.floor(Math.random() * ARENA.towerSpots.length)].x,
-          ARENA.towerSpots[Math.floor(Math.random() * ARENA.towerSpots.length)].z,
+          spots[Math.floor(Math.random() * spots.length)].x,
+          spots[Math.floor(Math.random() * spots.length)].z,
         );
       }
     }

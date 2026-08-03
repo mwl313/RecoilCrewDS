@@ -1,5 +1,8 @@
 import { GAME } from '../shared/config';
+import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
+import { selectArenaSessionFromPack } from '../shared/mapgen/arenaSession';
 import { Match } from '../shared/sim/match';
+import type { ArenaWorld } from '../shared/sim/arenaWorld';
 import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
 
@@ -45,6 +48,10 @@ export interface Room {
   ready: { driver: boolean; gunner: boolean };
   rematch: { driver: ModifierId | null; gunner: ModifierId | null };
   rematchModifier: ModifierId;
+  /** Deterministic map seed index: 0 = first round, +1 per rematch. */
+  matchIndex: number;
+  /** Match-scoped generated arena (Phase 3). */
+  arenaSession: ArenaSessionResult | null;
   countdownT: number;
   snapshotT: number;
   snapshotSeq: number;
@@ -79,8 +86,10 @@ function sanitizeDriver(raw: unknown): DriverInput | null {
   return {
     throttle,
     steer,
-    boost: !!r.boost,
-    brace: !!r.brace,
+    // Action edges accept only explicit booleans; anything else is treated
+    // as "not pressed" so clients can never manufacture extra edges.
+    dashPressed: r.dashPressed === true,
+    jumpPressed: r.jumpPressed === true,
   };
 }
 
@@ -162,6 +171,8 @@ export class RoomManager {
       ready: { driver: false, gunner: false },
       rematch: { driver: null, gunner: null },
       rematchModifier: 'none',
+      matchIndex: 0,
+      arenaSession: null,
       countdownT: 0,
       snapshotT: 0,
       snapshotSeq: 0,
@@ -227,7 +238,14 @@ export class RoomManager {
         candidate.lastMsgAt = this.now();
         candidate.lastInputAt = this.now();
         this.clients.set(candidate.id, candidate);
-        this.send(candidate, { t: 'joined', code, role: candidate.role, sessionId: candidate.sessionId, phase: room.phase });
+        this.send(candidate, {
+          t: 'joined',
+          code,
+          role: candidate.role,
+          sessionId: candidate.sessionId,
+          phase: room.phase,
+          arena: room.arenaSession?.metadata ?? null,
+        });
         this.broadcastPeers(room);
         return candidate;
       }
@@ -381,9 +399,22 @@ export class RoomManager {
   }
 
   private startMatch(room: Room) {
+    const matchIndex = room.matchIndex;
+    room.matchIndex = matchIndex + 1;
+    let world: ArenaWorld | undefined;
+    if (this.pack) {
+      const session = selectArenaSessionFromPack(this.pack, {
+        roomCode: room.code,
+        matchIndex,
+      });
+      room.arenaSession = session;
+      world = session.world;
+    } else {
+      room.arenaSession = null;
+    }
     room.match = this.pack
-      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack)
-      : new Match(room.code + '-' + this.now(), room.rematchModifier);
+      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world)
+      : new Match(room.code + '-' + this.now(), room.rematchModifier, undefined, world);
     room.phase = 'running';
     room.snapshotT = 0;
     room.ready = { driver: false, gunner: false };
@@ -393,6 +424,7 @@ export class RoomManager {
       modifier: room.rematchModifier,
     };
     if (room.content) startMsg.content = room.content;
+    if (room.arenaSession) startMsg.arena = room.arenaSession.metadata;
     this.broadcast(room, startMsg);
     this.broadcastSnapshot(room);
   }
@@ -415,6 +447,7 @@ export class RoomManager {
     if (!room.match) return;
     room.snapshotSeq++;
     const rules = room.match.rules;
+    const arena: ArenaMetadata | null = room.arenaSession?.metadata ?? null;
     const msg: Record<string, unknown> = {
       t: 'snapshot',
       seq: room.snapshotSeq,
@@ -425,6 +458,7 @@ export class RoomManager {
       state: room.match.state,
       rulesRevision: rules.rulesRevision,
       movementRulesRevision: rules.movementRulesRevision,
+      arena,
     };
     if (rules.movementRulesRevision !== room.lastMovementRulesRevision) {
       room.lastMovementRulesRevision = rules.movementRulesRevision;

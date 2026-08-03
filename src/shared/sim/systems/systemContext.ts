@@ -1,4 +1,6 @@
 import type { MatchRules } from '../../rules/matchRules';
+import type { ArenaWorld } from '../arenaWorld';
+import { createStaticArenaWorld } from '../arenaWorld';
 import { GameplayEventBus } from '../../core/gameplayEventBus';
 import { DamageSystem } from '../../damage/damageSystem';
 import { RecoilEffect } from '../../effects/recoilEffect';
@@ -26,6 +28,7 @@ export interface SystemContext {
   rules: MatchRules;
   events: SimEvent[];
   eventBus: GameplayEventBus;
+  world: ArenaWorld;
   round: RoundSystem;
   objective: ObjectiveSystem;
   score: ScoreSystem;
@@ -59,12 +62,14 @@ export function createSystemContext(
   rules: MatchRules,
   events: SimEvent[],
   eventBus = new GameplayEventBus(),
+  world: ArenaWorld = createStaticArenaWorld(),
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
   ctx.rules = rules;
   ctx.events = events;
   ctx.eventBus = eventBus;
+  ctx.world = world;
   ctx.damage = new DamageSystem(ctx);
   ctx.projectiles = new ProjectileSystem(ctx);
   ctx.recoil = new RecoilEffect(ctx);

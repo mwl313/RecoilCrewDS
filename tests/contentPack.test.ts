@@ -50,6 +50,17 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(pack.hash).toMatch(/^[0-9a-f]{64}$/);
     expect([...pack.ids('modes')].sort()).toEqual(['mode.demoScoreAttack', 'mode.truckHunter']);
     expect([...pack.ids('objectives')].sort()).toEqual(['objective.highScore', 'objective.truckEscort']);
+    expect([...pack.ids('maps')].sort()).toEqual(['map.arena400Primary', 'map.fallbackLegacy']);
+    expect([...pack.ids('terrainProfiles')].sort()).toEqual(['terrainProfile.fallback', 'terrainProfile.primary']);
+    expect([...pack.ids('validationProfiles')].sort()).toEqual(['validationProfile.fallback', 'validationProfile.primary']);
+    expect([...pack.ids('landmarks')].sort()).toEqual([
+      'landmark.basinCenter',
+      'landmark.openCombat',
+      'landmark.rampPark',
+      'landmark.resourcePlateau',
+    ]);
+    expect([...pack.ids('furnitureSets')].sort()).toEqual(['furnitureSet.fallback', 'furnitureSet.primary']);
+    expect([...pack.ids('densityProfiles')].sort()).toEqual(['densityProfile.fallback', 'densityProfile.primary']);
     expect(pack.ids('tanks')).toEqual(['tank.default']);
     expect([...pack.ids('loadouts')].sort()).toEqual(['loadout.default', 'loadout.truckHunter']);
     expect([...pack.ids('weapons')].sort()).toEqual([
@@ -176,8 +187,10 @@ describe('content validation failures', () => {
     expect(err.issues.some((i) => i.includes("unknown stat id 'tank.bogus'"))).toBe(true);
   });
 
-  it('rejects unknown and mis-prefixed difficulty override stat ids', () => {
+  it('rejects unknown difficulty override stat ids and accepts known tank.* ids', () => {
     const { manifest, files } = loadRealPackRecords();
+    const originalSoap = deepClone(files['difficulties/soapTracks.json']) as { overrides: Record<string, number> };
+    const originalMoon = deepClone(files['difficulties/moonYard.json']);
     const moon = deepClone(files['difficulties/moonYard.json']) as { overrides: Record<string, number> };
     moon.overrides['match.bogus'] = 1;
     files['difficulties/moonYard.json'] = moon;
@@ -185,10 +198,17 @@ describe('content validation failures', () => {
     expect(err.issues.some((i) => i.includes("unknown stat id 'match.bogus'"))).toBe(true);
 
     const soap = deepClone(files['difficulties/soapTracks.json']) as { overrides: Record<string, number> };
-    soap.overrides['tank.forwardSpeed'] = 2;
+    soap.overrides['tank.bogus'] = 2;
     files['difficulties/soapTracks.json'] = soap;
     const err2 = loadExpectingError(manifest, files);
-    expect(err2.issues.some((i) => i.includes('overrides.tank.forwardSpeed'))).toBe(true);
+    expect(err2.issues.some((i) => i.includes("unknown stat id 'tank.bogus'"))).toBe(true);
+
+    // tank.* overrides are valid when the stat exists (jump/dash tuning).
+    const valid = deepClone(originalSoap) as { overrides: Record<string, number> };
+    valid.overrides['tank.dashImpulse'] = 12;
+    files['difficulties/soapTracks.json'] = valid;
+    files['difficulties/moonYard.json'] = originalMoon;
+    expect(() => new ContentLoader().loadFromRecords(manifest, files)).not.toThrow();
   });
 
   it('rejects invalid numeric values with file and JSON path', () => {
@@ -222,7 +242,8 @@ describe('content validation failures', () => {
           version: '1.0.0',
           mode: 'mode.demoScoreAttack',
           files: {
-            modes: [], objectives: [], tanks: [], loadouts: [],
+            modes: [], objectives: [], maps: [], terrainProfiles: [], validationProfiles: [],
+            landmarks: [], furnitureSets: [], densityProfiles: [], tanks: [], loadouts: [],
             weapons: ['../../package.json'], projectiles: [], enemies: [],
             dropTables: [], pickups: [],
             items: [], statusEffects: [], spawnDirectors: [], scoring: [],

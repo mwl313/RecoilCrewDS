@@ -6,6 +6,17 @@
     "files": {
       "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json"],
       "objectives": ["objectives/highScore.json", "objectives/truckEscort.json"],
+      "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json"],
+      "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json"],
+      "validationProfiles": ["validation-profiles/primary.json", "validation-profiles/fallback.json"],
+      "landmarks": [
+        "landmarks/basin_center.json",
+        "landmarks/resource_plateau.json",
+        "landmarks/ramp_park.json",
+        "landmarks/open_combat.json"
+      ],
+      "furnitureSets": ["furniture-sets/primary.json", "furniture-sets/fallback.json"],
+      "densityProfiles": ["density-profiles/primary.json", "density-profiles/fallback.json"],
       "tanks": ["tanks/default.json"],
       "loadouts": ["loadouts/default.json", "loadouts/truckHunter.json"],
       "weapons": [

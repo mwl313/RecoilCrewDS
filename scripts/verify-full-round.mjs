@@ -95,7 +95,7 @@ const playInterval = setInterval(() => {
   driver.send({
     t: 'input',
     seq: driverSeq++,
-    driver: { throttle: 0.85, steer, boost: t % 8 < 1.4, brace: s.turret.jackpotReady },
+    driver: { throttle: 0.85, steer, dashPressed: t % 8 < 0.1, jumpPressed: false },
   });
   let aimYaw = s.tank.yaw + Math.PI / 2;
   let enemy = null;

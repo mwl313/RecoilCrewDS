@@ -143,7 +143,7 @@ describe('entity factory and registry', () => {
       expect(registry.pickupRigs.size).toBe(0);
       expect(registry.shellRigs.size).toBe(0);
     }
-    expect(scene.children.filter((c) => c.type === 'Group').length).toBeLessThanOrEqual(4); // truck/marker/brace + none leaked
+    expect(scene.children.filter((c) => c.type === 'Group').length).toBeLessThanOrEqual(3); // truck/marker + none leaked
   });
 });
 

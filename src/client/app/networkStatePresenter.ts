@@ -13,6 +13,8 @@ import type { RenderWorld } from './renderWorld';
 export interface InputSource {
   key(name: string): boolean;
   button(name: string): boolean;
+  edge(name: 'dash' | 'jump'): boolean;
+  clearDriverEdges(): void;
   consumeMouse(): { dx: number; dy: number };
 }
 
@@ -23,7 +25,7 @@ export interface PresenterDeps {
   tankRig: TankRig;
   cameras: CameraManager;
   prediction: PredictionController;
-  colliders: Collider[];
+  colliders: () => Collider[];
   input: InputSource;
   audio: AudioManager;
   mode: () => 'online' | 'practice';
@@ -101,8 +103,6 @@ export class NetworkStatePresenter {
     deps.tankRig.barrel.rotation.x = -(usePredictedTurret ? turretSpaces.predictedPitch : turretSpaces.authoritativePitch);
     deps.registry.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
     deps.registry.shieldMesh.visible = t.shieldedT > 0;
-    deps.registry.braceMesh.visible = t.brace;
-    if (t.brace) deps.registry.braceMesh.position.copy(pos);
 
     const registry = deps.registry;
     const seen = new Set<number>();
@@ -186,10 +186,10 @@ export class NetworkStatePresenter {
 
     const speedRatio = Math.min(1, Math.hypot(t.vx, t.vz) / 18);
     const mouse = deps.input.consumeMouse();
-    deps.cameras.update(dt, pos, yaw, deps.mode() === 'practice' || deps.role() === 'driver' ? speedRatio : 0, deps.colliders, mouse);
+    deps.cameras.update(dt, pos, yaw, deps.mode() === 'practice' || deps.role() === 'driver' ? speedRatio : 0, deps.colliders(), mouse);
     if (deps.mode() === 'practice' || deps.role() === 'gunner') {
       const groundY = state.tank.y;
-      const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.colliders, groundY);
+      const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.colliders(), groundY);
       const pivot = pos.clone().add(new THREE.Vector3(0, 1.15, 0));
       const dx = aim.x - pivot.x;
       const dz = aim.z - pivot.z;
@@ -213,9 +213,6 @@ export class NetworkStatePresenter {
         t.z + Math.cos(yaw + side * Math.PI / 2) * 1.2,
         0x9a8462, 1, 1.2, 0.28, 0.5, -0.4,
       );
-    }
-    if (t.boosting && Math.random() < 0.5) {
-      deps.world.vfx.spawnBurst(t.x - Math.sin(yaw) * 2.2, t.y + 0.5, t.z - Math.cos(yaw) * 2.2, 0x7fd4ff, 1, 2.5, 0.22, 0.4);
     }
   }
 

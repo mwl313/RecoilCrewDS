@@ -6,6 +6,14 @@ import { NetClient } from './net';
 import { AudioManager } from './audio';
 import { AssetService } from './assets';
 import { HudController } from './app/hudController';
+import { DebugOverlay } from './app/debugOverlay';
+import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
+import {
+  reconstructArenaSession,
+  resolveClientMapBundle,
+  selectArenaSession,
+} from '../shared/mapgen/arenaSession';
+import { createStaticArenaWorld, type ArenaWorld } from '../shared/sim/arenaWorld';
 import type { MatchState, Role } from '../shared/types';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 
@@ -23,13 +31,22 @@ let sessionId = '';
 let roomCode = '';
 let inGame = false;
 let practice = false;
-let flow: 'boot' | 'main' | 'create' | 'join' | 'ready' | 'game' | 'results' = 'boot';
+let flow: 'boot' | 'main' | 'create' | 'join' | 'ready' | 'game' | 'results' | 'error' = 'boot';
 let lastPingSent = 0;
 let pingMs = 0;
 let latestState: MatchState | null = null;
 let peerConnected = false;
 let lastFps = 60;
-const TEST_MODE = new URLSearchParams(window.location.search).has('test');
+let arenaSession: ArenaSessionResult | null = null;
+let practiceMatchIndex = 0;
+let debugOverlay: DebugOverlay | null = null;
+let pendingChecksumOverride: number | null = null;
+let mapGateFailed = false;
+
+const params = new URLSearchParams(window.location.search);
+const TEST_MODE = params.has('test');
+const DEBUG_MODE = params.has('debug') || TEST_MODE;
+const FORCED_SEED = params.has('seed') ? Number(params.get('seed')) : null;
 
 hud.bind({
   onBoot: () => {
@@ -56,7 +73,7 @@ hud.bind({
     net.send({ t: 'ready', ready: true });
   },
   onPractice: () => {
-    startPractice();
+    void startPractice();
   },
   onHowTo: () => {
     hud.showScreen('howto');
@@ -68,7 +85,7 @@ hud.bind({
   },
   onRematch: (modifier) => {
     if (practice) {
-      startPractice();
+      void startPractice();
       return;
     }
     net.send({ t: 'rematch', modifier });
@@ -80,6 +97,7 @@ hud.bind({
     flow = 'main';
   },
   onRetry: () => {
+    teardownGame();
     net.reopen();
     hud.showScreen('create');
     flow = 'create';
@@ -117,6 +135,12 @@ net.onMessage = (msg) => {
       role = msg.role as Role;
       sessionId = msg.sessionId as string;
       roomCode = msg.code as string;
+      const phase = msg.phase as string;
+      if ((phase === 'running' || phase === 'results') && msg.arena) {
+        // Mid-round reconnect (same page refresh or rejoin).
+        if (!mapGateFailed) void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
+        break;
+      }
       hud.setCreateCode(roomCode);
       hud.setTheme(role);
       hud.showScreen('ready');
@@ -135,10 +159,22 @@ net.onMessage = (msg) => {
       hud.showCountdown(Number(msg.n));
       break;
     case 'start':
-      startOnline(role);
+      if (msg.arena) {
+        void startOnlineWithArena(role, msg.arena as ArenaMetadata);
+      } else {
+        void startOnline(role, null);
+      }
       hud.hideCountdown();
       break;
-    case 'snapshot':
+    case 'snapshot': {
+      const meta = msg.arena as ArenaMetadata | undefined;
+      if (meta && !mapGateFailed) {
+        if (!arenaSession) {
+          void resumeOnline(meta, false);
+        } else if (meta.arenaChecksum !== arenaSession.metadata.arenaChecksum) {
+          showMapError('checksum');
+        }
+      }
       latestState = msg.state as MatchState;
       game?.setSnapshot({
         seq: Number(msg.seq),
@@ -152,6 +188,7 @@ net.onMessage = (msg) => {
         movement: msg.movement as MovementRulesBlock | undefined,
       });
       break;
+    }
     case 'event':
       game?.handleEvent(msg.event as never);
       hud.onEvent(msg.event as never);
@@ -180,15 +217,97 @@ net.onStatus = (connected) => {
     input.setEnabled(false);
     game?.setInputEnabled(false);
     input.releaseLock();
-    flow = 'main';
+    flow = 'error';
   } else if (!connected && flow === 'join') {
     hud.showJoinError('Cannot reach the server. Is it running?');
   }
 };
 
-async function startOnline(r: Role) {
+/** Reconstruct the server's arena on the client and gate on checksum. */
+function buildSessionFromMetadata(meta: ArenaMetadata): ArenaSessionResult | { error: string } {
+  const { bundle, fallbackBundle } = resolveClientMapBundle(meta.mapProfileId);
+  const effective = pendingChecksumOverride !== null ? { ...meta, arenaChecksum: pendingChecksumOverride } : meta;
+  pendingChecksumOverride = null;
+  const result = reconstructArenaSession(effective, bundle, fallbackBundle);
+  if (!result.ok) return { error: result.reason };
+  return result.session;
+}
+
+function buildPracticeSession(): ArenaSessionResult {
+  const { bundle, fallbackBundle } = resolveClientMapBundle();
+  const roomCode = FORCED_SEED !== null ? `SEED${FORCED_SEED}` : 'PRACTICE';
+  try {
+    return selectArenaSession({
+      roomCode,
+      matchIndex: practiceMatchIndex,
+      bundle,
+      fallbackBundle,
+    });
+  } catch {
+    return {
+      arena: undefined as never,
+      world: createStaticArenaWorld(),
+      metadata: null as never,
+      generationMs: 0,
+    };
+  }
+}
+
+function showMapError(reason: string): void {
+  const labels: Record<string, string> = {
+    version: 'Map generator version mismatch — reload to update.',
+    profile: 'Map profile mismatch — reload to rejoin.',
+    checksum: 'Map checksum mismatch — reload to rejoin.',
+    validation: 'Map validation failed on this client — reload to rejoin.',
+  };
+  hud.showError(labels[reason] ?? 'Map synchronization failed — reload to rejoin.');
+  input.setEnabled(false);
+  game?.setInputEnabled(false);
+  input.releaseLock();
+  flow = 'error';
+  arenaSession = null;
+  mapGateFailed = true;
+}
+
+async function startOnlineWithArena(r: Role, meta: ArenaMetadata): Promise<void> {
+  const session = buildSessionFromMetadata(meta);
+  if ('error' in session) {
+    showMapError(session.error);
+    return;
+  }
+  arenaSession = session;
+  await startOnline(r, session.world);
+}
+
+async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void> {
+  if (arenaSession && arenaSession.metadata.arenaChecksum === meta.arenaChecksum) {
+    // Same active map: resume the existing game.
+    if (game) {
+      hud.setGameScreen(true);
+      hud.setTheme(role);
+      input.setEnabled(true);
+      game.setInputEnabled(true);
+      flow = 'game';
+      if (results) flow = 'results';
+      return;
+    }
+  }
+  const session = buildSessionFromMetadata(meta);
+  if ('error' in session) {
+    showMapError(session.error);
+    return;
+  }
+  arenaSession = session;
+  if (game) {
+    game.applyArenaSession(session);
+  }
+  await startOnline(role, session.world);
+  if (results) flow = 'results';
+}
+
+async function startOnline(r: Role, world: ArenaWorld | null): Promise<void> {
   practice = false;
-  if (!game) game = await createGame();
+  if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
   game.startOnline(r);
@@ -199,12 +318,16 @@ async function startOnline(r: Role) {
   input.setEnabled(true);
   game.setInputEnabled(true);
   input.requestLock();
+  attachDebugOverlay();
 }
 
-async function startPractice() {
+async function startPractice(): Promise<void> {
   teardownGame();
   practice = true;
-  game = await createGame();
+  const session = buildPracticeSession();
+  arenaSession = session.metadata ? session : null;
+  practiceMatchIndex++;
+  game = await createGame(session.world);
   attachGameCallbacks(game);
   game.onPracticeResults = (results) => {
     hud.showResults(results as never, { driver: true, gunner: true, modifier: 'none' });
@@ -220,12 +343,13 @@ async function startPractice() {
   input.setEnabled(true);
   game.setInputEnabled(true);
   input.requestLock();
+  attachDebugOverlay();
 }
 
-async function createGame(): Promise<GameClient> {
+async function createGame(world: ArenaWorld): Promise<GameClient> {
   const loaded = assets ?? (await assetsPromise);
   assets = loaded;
-  const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined);
+  const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined, world);
   created.onHudEvent = (ev) => hud.onEvent(ev as never);
   return created;
 }
@@ -244,10 +368,21 @@ function teardownGame() {
     game.destroy();
     game = null;
   }
+  debugOverlay?.dispose();
+  debugOverlay = null;
+  input.setEnabled(false);
   inGame = false;
   practice = false;
   latestState = null;
+  arenaSession = null;
+  mapGateFailed = false;
   input.releaseLock();
+}
+
+function attachDebugOverlay(): void {
+  if (!DEBUG_MODE || !game || !arenaSession) return;
+  if (!debugOverlay) debugOverlay = new DebugOverlay(game, arenaSession);
+  else debugOverlay.setSession(arenaSession);
 }
 
 function showPause() {
@@ -306,9 +441,11 @@ if (TEST_MODE) {
     input: (role: Role, data: unknown) => game?.injectOnlineInput(role, data as never),
     state: () => latestState,
     code: () => roomCode,
+    sessionId: () => sessionId,
     flow: () => flow,
     create: () => net.send({ t: 'create' }),
     join: (code: string) => net.send({ t: 'join', code }),
+    rejoin: (code: string, sid: string) => net.send({ t: 'rejoin', code, sessionId: sid }),
     ready: () => net.send({ t: 'ready', ready: true }),
     rematch: (modifier: string) => net.send({ t: 'rematch', modifier }),
     leave: () => net.send({ t: 'leave' }),
@@ -324,5 +461,17 @@ if (TEST_MODE) {
       game?.setInputEnabled(enabled);
     },
     inputState: () => input.debugState(),
+    driverInput: () => game?.practiceMatch?.getDriverInput() ?? null,
+    arena: () => arenaSession?.metadata ?? null,
+    obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],
+    groundHeightAt: (x: number, z: number) => arenaSession?.world.groundHeightAt(x, z) ?? 0,
+    sceneStats: () => {
+      const scene = (game as unknown as { world: { scene: { children: unknown[] } } })?.world?.scene;
+      return scene ? { children: scene.children.length } : null;
+    },
+    /** Test-only: corrupt the next reconstruction so the checksum gate fails. */
+    corruptArenaChecksum: (value: number) => {
+      pendingChecksumOverride = value;
+    },
   };
 }

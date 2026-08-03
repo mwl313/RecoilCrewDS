@@ -36,7 +36,6 @@ export class EntityViewRegistry {
   truckRig: THREE.Group;
   truckMarker: THREE.Group;
   shieldMesh: THREE.Mesh;
-  braceMesh: THREE.Group;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -51,15 +50,6 @@ export class EntityViewRegistry {
     );
     this.shieldMesh.visible = false;
     scene.add(this.shieldMesh);
-    this.braceMesh = new THREE.Group();
-    const braceMat = new THREE.MeshStandardMaterial({ color: 0xffc35a, roughness: 0.5, metalness: 0.4, flatShading: true });
-    const b1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.24, 1.2), braceMat);
-    b1.position.set(-1.35, 0.45, 0);
-    const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.24, 1.2), braceMat);
-    b2.position.set(1.35, 0.45, 0);
-    this.braceMesh.add(b1, b2);
-    this.braceMesh.visible = false;
-    scene.add(this.braceMesh);
   }
 
   registerTruckRig(rig: THREE.Group, scene: THREE.Scene): void {
@@ -102,7 +92,6 @@ export class EntityViewRegistry {
     this.truckRig.visible = false;
     this.truckMarker.visible = false;
     this.shieldMesh.visible = false;
-    this.braceMesh.visible = false;
   }
 
   removeEnemy(id: number): void {

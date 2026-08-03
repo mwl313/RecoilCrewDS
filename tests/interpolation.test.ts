@@ -10,7 +10,7 @@ function state(time: number, z: number, yaw = 0): MatchState {
     phase: 'running',
     tank: {
       x: 0, y: 0, z, vx: 0, vy: 0, vz: 0, yaw, yawVel: 0, pitch: 0, roll: 0,
-      integrity: 100, brace: false, boosting: false, shieldedT: 0, deadT: 0, grounded: true, drift: false,
+      integrity: 100, dashCooldown: 0, dashPresentationT: 0, shieldedT: 0, deadT: 0, grounded: true, drift: false,
     },
     turret: { yaw: 0, pitch: 0, chargeT: 0, cannonCooldown: 0, cannonFlash: 0, mgCooldown: 0, mgFiring: false, jackpotReady: false, jackpotCooldown: 0 },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },

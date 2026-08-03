@@ -135,7 +135,7 @@ describe('Driver predictor movement synchronization', () => {
   function tankAt(y: number): TankState {
     return {
       x: 0, y, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-      pitch: 0, roll: 0, integrity: 100, brace: false, boosting: false,
+      pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0,
       shieldedT: 0, deadT: 0, grounded: false, drift: false,
     };
   }
@@ -146,7 +146,7 @@ describe('Driver predictor movement synchronization', () => {
     const predictor = new DriverPredictor(BASE_CONFIG, 'none');
     predictor.resetFromAuthority(tankAt(10));
     predictor.applyMovementRules(block, rules.movementRulesRevision);
-    const neutral = { throttle: 0, steer: 0, boost: false, brace: false };
+    const neutral = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     for (let i = 0; i < 30; i++) predictor.sampleInput(neutral, 1 / 30);
     // Falls under the authority gravity (6.5) instead of the default 16.
     expect(predictor.predicted.y).toBeGreaterThan(5);
@@ -163,7 +163,7 @@ describe('Driver predictor movement synchronization', () => {
     predictor.applyMovementRules(block, 4);
     expect((predictor as unknown as { movementRevision: number }).movementRevision).toBe(5);
     // And the applied gravity is the moonYard one.
-    const neutral = { throttle: 0, steer: 0, boost: false, brace: false };
+    const neutral = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     for (let i = 0; i < 30; i++) predictor.sampleInput(neutral, 1 / 30);
     expect(predictor.predicted.y).toBeGreaterThan(5);
   });

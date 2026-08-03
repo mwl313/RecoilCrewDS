@@ -39,5 +39,34 @@ validates it with Zod at startup and fails loudly on invalid packs.
 | `items/`, `status-effects/` | stat modifiers (add/multiply/override, stacking, duration) |
 | `spawn-directors/` | pacing, schedules, truck timing, final chaos |
 | `scoring/`, `results/` | score/combo/JACKPOT rules, grades/titles |
-| `difficulties/` | match.* stat overrides |
+| `difficulties/` | match.* / tank.* stat overrides |
 | `presentation/` | models, VFX, audio, themes, icons, camera impulses |
+
+## Tank movement tuning (jump and dash)
+
+`content/tanks/*.json` drives Driver locomotion. Designer-facing fields:
+
+| Field | Meaning |
+| --- | --- |
+| `jumpHeight` | Approximate vertical rise in world metres for a grounded jump; `0` disables jumping. Launch velocity is always `sqrt(2 * gravity * jumpHeight)`. |
+| `rampLaunchSpeed` | Launch speed used when leaving a ramp at speed (preserved legacy ramp behavior). |
+| `dashImpulse` | Forward velocity delta (m/s) added by a grounded dash. |
+| `dashCooldown` | Minimum authoritative seconds between accepted dashes; `0` allows one dash per press edge. |
+| `dashAirMultiplier` | Multiplier applied to `dashImpulse` while airborne (`0` disables air dash). |
+| `dashMaxHorizontalSpeed` | Post-dash horizontal speed cap; the burst is applied first, then total horizontal speed is capped while preserving direction. |
+| `dashPresentationSeconds` | Short PIP/audio/VFX presentation window after a dash; physics is instantaneous. |
+
+Runtime stat IDs (`tank.jumpHeight`, `tank.dashImpulse`,
+`tank.dashCooldown`, `tank.dashAirMultiplier`,
+`tank.dashMaxHorizontalSpeed`, `tank.dashPresentationSeconds`) support
+add/multiply/override modifiers, and every movement-critical value is
+replicated in the movement rules block.
+
+Difficulty overrides may target `match.*` or `tank.*` stat ids:
+
+```json
+{ "overrides": { "match.gravity": 6.5, "tank.jumpHeight": 2.8 } }
+```
+
+Soap Tracks overrides ordinary `match.grip`; there is no held-boost stat
+anymore.

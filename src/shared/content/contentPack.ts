@@ -1,10 +1,14 @@
 import { DefinitionRegistry, type ContentDefinition } from './definitionRegistry';
 import { deepFreeze } from './freeze';
+import type { DensityProfileDefinition } from './schemas/densityProfile';
 import type { DifficultyDefinition } from './schemas/difficulty';
 import type { DropTableDefinition } from './schemas/dropTable';
 import type { EnemyDefinition } from './schemas/enemy';
+import type { FurnitureSetDefinition } from './schemas/furnitureSet';
 import type { ItemDefinition, StatusEffectDefinition } from './schemas/item';
+import type { LandmarkDefinition } from './schemas/landmark';
 import type { LoadoutDefinition } from './schemas/loadout';
+import type { MapDefinition } from './schemas/map';
 import type { ModeDefinition } from './schemas/mode';
 import type { ObjectiveDefinition } from './schemas/objective';
 import type { PresentationDefinition } from './schemas/presentation';
@@ -14,11 +18,19 @@ import type { ResultsDefinition } from './schemas/results';
 import type { ScoringDefinition } from './schemas/scoring';
 import type { SpawnDirectorDefinition } from './schemas/spawnDirector';
 import type { TankDefinition } from './schemas/tank';
+import type { TerrainProfileDefinition } from './schemas/terrainProfile';
+import type { ValidationProfileDefinition } from './schemas/validationProfile';
 import type { WeaponDefinition } from './schemas/weapon';
 
 export const CONTENT_CATEGORIES = [
   'modes',
   'objectives',
+  'maps',
+  'terrainProfiles',
+  'validationProfiles',
+  'landmarks',
+  'furnitureSets',
+  'densityProfiles',
   'tanks',
   'loadouts',
   'weapons',
@@ -40,6 +52,12 @@ export type ContentCategory = (typeof CONTENT_CATEGORIES)[number];
 export interface CategoryRegistries {
   modes: DefinitionRegistry<ModeDefinition>;
   objectives: DefinitionRegistry<ObjectiveDefinition>;
+  maps: DefinitionRegistry<MapDefinition>;
+  terrainProfiles: DefinitionRegistry<TerrainProfileDefinition>;
+  validationProfiles: DefinitionRegistry<ValidationProfileDefinition>;
+  landmarks: DefinitionRegistry<LandmarkDefinition>;
+  furnitureSets: DefinitionRegistry<FurnitureSetDefinition>;
+  densityProfiles: DefinitionRegistry<DensityProfileDefinition>;
   tanks: DefinitionRegistry<TankDefinition>;
   loadouts: DefinitionRegistry<LoadoutDefinition>;
   weapons: DefinitionRegistry<WeaponDefinition>;
@@ -124,6 +142,24 @@ export class ContentPack {
   }
   getObjective(id: string): ObjectiveDefinition {
     return this.require('objectives', id);
+  }
+  getMap(id: string): MapDefinition {
+    return this.require('maps', id);
+  }
+  getTerrainProfile(id: string): TerrainProfileDefinition {
+    return this.require('terrainProfiles', id);
+  }
+  getValidationProfile(id: string): ValidationProfileDefinition {
+    return this.require('validationProfiles', id);
+  }
+  getLandmark(id: string): LandmarkDefinition {
+    return this.require('landmarks', id);
+  }
+  getFurnitureSet(id: string): FurnitureSetDefinition {
+    return this.require('furnitureSets', id);
+  }
+  getDensityProfile(id: string): DensityProfileDefinition {
+    return this.require('densityProfiles', id);
   }
   getTank(id: string): TankDefinition {
     return this.require('tanks', id);

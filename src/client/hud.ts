@@ -74,7 +74,7 @@ export class Hud {
   private objectiveArrow!: HTMLElement;
   private practiceTag!: HTMLElement;
   private resultsScore!: HTMLElement;
-  private braceInd!: HTMLElement;
+  private dashInd!: HTMLElement;
   private copyBtn!: HTMLButtonElement;
   private copyFeedbackT = 0;
   private menuClick = (fn: () => void) => (e: Event) => {
@@ -223,8 +223,8 @@ export class Hud {
         <div class="howto-grid">
           <div>
             <h3 class="cyan">DRIVER</h3>
-            <p><b>WASD</b> drive · <b>Mouse</b> look<br/><b>Shift</b> boost &amp; drift · <b>Space</b> brace<br/><b>R</b> recenter camera</p>
-            <p>Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Brace before big shots to control recoil.</p>
+            <p><b>WASD</b> drive · <b>Mouse</b> look<br/><b>Shift</b> dash · <b>Space</b> jump<br/><b>R</b> recenter camera</p>
+            <p>Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Jump obstacles and dash to escape big shots.</p>
           </div>
           <div>
             <h3 class="orange">GUNNER</h3>
@@ -232,7 +232,7 @@ export class Hud {
             <p>Kill everything. Shoot the Loot Truck. Chain barrels. Coordinate shots with the Driver for Crew Links.</p>
           </div>
         </div>
-        <p class="howto-foot">Both roles share one tank. The cannon physically throws the Driver around — brace or enjoy the chaos.</p>
+        <p class="howto-foot">Both roles share one tank. The cannon physically throws the Driver around — dash and jump through the chaos.</p>
         <button class="btn ghost" data-act="back">BACK</button>
       </div>`;
     root.appendChild(howto);
@@ -340,7 +340,7 @@ export class Hud {
         </div>
         <div class="hud-speed">
           <div class="speed-num"><span id="speed">0</span><small>KM/H</small></div>
-          <div class="brace-ind" id="brace-ind">BRACE</div>
+          <div class="dash-ind" id="dash-ind">DASH</div>
         </div>
       </div>
       <div class="hud-center">
@@ -378,7 +378,7 @@ export class Hud {
     this.fpsText = document.getElementById('fps')!;
     this.popups = document.getElementById('popups')!;
     this.objectiveArrow = document.getElementById('objective-arrow')!;
-    this.braceInd = document.getElementById('brace-ind')!;
+    this.dashInd = document.getElementById('dash-ind')!;
     document.getElementById('pause-btn')!.addEventListener('click', () => this.handlers.onResume?.());
   }
 
@@ -517,7 +517,8 @@ export class Hud {
     this.jackpotFill.style.width = `${state.stats.jackpotMeter}%`;
     this.jackpotWrap.classList.toggle('ready', state.turret.jackpotReady);
     this.speedText.textContent = String(Math.round(Math.hypot(t.vx, t.vz) * 3.6));
-    this.braceInd.classList.toggle('on', t.brace);
+    this.dashInd.classList.toggle('on', t.dashPresentationT > 0);
+    this.dashInd.classList.toggle('cool', t.dashCooldown > 0);
     this.connDot.classList.toggle('off', !opts.peerConnected);
     this.pingText.textContent = `${Math.round(opts.ping)}ms`;
     this.fpsText.textContent = `${Math.round(opts.fps)} FPS`;
@@ -530,7 +531,7 @@ export class Hud {
     if (jp) {
       if (opts.role === 'driver') {
         prompt = 'JACKPOT READY';
-        sub = 'HOLD SPACE TO BRACE';
+        sub = 'GUNNER — HOLD RIGHT MOUSE TO CHARGE';
       } else {
         prompt = 'JACKPOT READY';
         sub = 'HOLD RIGHT MOUSE TO CHARGE';
@@ -588,8 +589,8 @@ export class Hud {
     const t = state.tank;
     if (role === 'driver') {
       if (t.deadT > 0) return 'WIPED OUT';
-      if (t.brace) return 'BRACING';
-      if (t.boosting) return 'BOOSTING';
+      if (!t.grounded && t.vy > 0) return 'JUMPING';
+      if (t.dashPresentationT > 0) return 'DASHING';
       if (t.drift) return 'DRIFTING';
       if (Math.hypot(t.vx, t.vz) > 2) return 'DRIVING';
       return 'STATIONARY';

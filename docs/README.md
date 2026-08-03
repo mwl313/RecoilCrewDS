@@ -3,7 +3,7 @@
 **One tank. Two brains. Zero brakes.**
 
 Recoil Crew is a two-player online cooperative score-attack browser game. The
-**Driver** drives, steers, boosts, drifts, collects scrap, and braces. The
+**Driver** drives, steers, dashes, jumps, drifts, and collects scrap. The
 **Gunner** aims independently, fires a machine gun and a main cannon, and
 charges the shared **JACKPOT Shell**. The catch: the cannon's recoil
 physically throws the Driver's tank around.
@@ -33,6 +33,8 @@ before the final five-second countdown.
 - R recenters the camera smoothly behind the chassis.
 - The Driver's mouse never moves the turret; the Gunner's turret follows the
   centered world aim point while the chassis rotates.
+- Space is an edge-triggered jump; Left Shift is an edge-triggered
+  chassis-forward dash (an instantaneous burst, never a held boost).
 
 ---
 
@@ -61,8 +63,8 @@ npm run dev:client     # Vite dev client on :5173 (proxies /ws to :8080)
 
 From the main menu, choose **PRACTICE**. WASD drives, mouse aims, left click
 fires the machine gun, right click fires the cannon (hold to charge JACKPOT),
-Shift boosts, Space braces. Press **Tab** to swap between Driver and Gunner
-camera views. Practice works fully offline.
+Shift dashes, Space jumps. Press **Tab** to swap between Driver and Gunner
+camera views. Practice works fully offline with the same shared kinematics.
 
 ---
 
@@ -73,8 +75,9 @@ camera views. Practice works fully offline.
 | Move / aim | WASD / arrows, mouse free-look | Mouse TPS aim |
 | Fire | — | Left mouse (machine gun) |
 | Cannon | — | Right mouse (main cannon) |
-| JACKPOT | Hold Space to brace | Hold right mouse to charge |
-| Boost & drift | Left Shift | — |
+| Jump | Space | — |
+| Dash | Left Shift | — |
+| JACKPOT | — | Hold right mouse to charge |
 | Recenter camera | R | R |
 | Menu | Esc | Esc |
 
@@ -89,13 +92,21 @@ Picture-in-Picture feed in the bottom-right corner.
 
 - Two-player online rooms with short join codes, ready flow, 3-2-1-GO
   countdown, results, and rematch modifiers in the same room.
-- Authoritative Node WebSocket server: shared tank physics, recoil, enemies,
-  damage, pickups, score, Crew Combo, JACKPOT meter, timer, wipeout/respawn.
+- Authoritative Node WebSocket server: shared tank physics (jump/dash
+  included), recoil, enemies, damage, pickups, score, Crew Combo, JACKPOT
+  meter, timer, wipeout/respawn.
+- Edge-triggered Driver actions: one jump per Space press, one chassis-
+  forward dash per Shift press, with latched inputs, authoritative edge
+  consumption, and local prediction that never double-applies on replay.
 - Real-time client: snapshot interpolation, local turret prediction for the
   Gunner, independent TPS cameras with obstacle pull-in, PIP feed, procedural
   audio, pooled particles/explosions/tracers, low-poly industrial arena.
 - All six rematch modifiers (Double Barrel, Soap Tracks, Moon Yard, Volatile
   Inventory, Scrap Magnet, Overclocked).
+- Data-driven jump height (`tank.jumpHeight`) and dash stats
+  (`dashImpulse`, `dashCooldown`, `dashAirMultiplier`,
+  `dashMaxHorizontalSpeed`) with runtime stat IDs and movement-rule
+  synchronization.
 - Scrap Bug, Rammer (telegraph/charge/recovery), Gun Tower (telegraph/bursts),
   and the Loot Truck timed event with guaranteed first-round JACKPOT
   assistance pacing.

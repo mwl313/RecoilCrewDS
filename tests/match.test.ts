@@ -21,7 +21,7 @@ function holdGunner(aimYaw = Math.PI / 2): GunnerInput {
 }
 
 function holdDriver(over: Partial<DriverInput> = {}): DriverInput {
-  return { throttle: 0, steer: 0, boost: false, brace: false, ...over };
+  return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false, ...over };
 }
 
 function nearestEnemy(state: MatchState, type: string) {
@@ -79,22 +79,15 @@ describe('recoil', () => {
     expect(vz0).toBeLessThan(-2);
   });
 
-  it('bracing substantially reduces recoil', () => {
-    const unbraced = new Match('m6a');
-    step(unbraced, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
-    unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
-    unbraced.step(DT);
-    unbraced.takeEvents();
-    const uv = Math.hypot(unbraced.state.tank.vx, unbraced.state.tank.vz);
-
-    const braced = new Match('m6b');
-    braced.setDriverInput(holdDriver({ brace: true }));
-    step(braced, 1.0, holdDriver({ brace: true }), { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
-    braced.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
-    braced.step(DT);
-    braced.takeEvents();
-    const bv = Math.hypot(braced.state.tank.vx, braced.state.tank.vz);
-    expect(bv).toBeLessThan(uv * BASE_CONFIG.tank.braceRecoilMult * 1.2);
+  it('cannon recoil lands at full impulse (no brace reduction path)', () => {
+    const m = new Match('m6');
+    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
+    m.step(DT);
+    m.takeEvents();
+    const v = Math.hypot(m.state.tank.vx, m.state.tank.vz);
+    expect(v).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.9);
+    expect(v).toBeLessThan(BASE_CONFIG.tank.recoilImpulse * 1.1);
   });
 
   it('machine gun recoil is negligible compared to cannon recoil', () => {

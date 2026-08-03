@@ -1,4 +1,3 @@
-import { ARENA, groundHeightAt } from '../arena';
 import { dist2 } from '../math';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyDefinition } from '../content/schemas/enemy';
@@ -70,7 +69,7 @@ export class EnemySystem {
     let sx = x;
     let sz = z;
     if (sx === undefined || sz === undefined) {
-      const gates = ARENA.bugSpawns;
+      const gates = this.ctx.world.bugSpawns;
       for (let i = 0; i < 12; i++) {
         const g = gates[Math.floor(Math.random() * gates.length)];
         const px = g.x + (Math.random() - 0.5) * 4;
@@ -90,7 +89,7 @@ export class EnemySystem {
       id: s.nextEnemyId++,
       type,
       x: sx!,
-      y: groundHeightAt(sx!, sz!),
+      y: this.ctx.world.groundHeightAt(sx!, sz!),
       z: sz!,
       yaw: Math.atan2(s.tank.x - sx!, s.tank.z - sz!),
       hp: def.hp,

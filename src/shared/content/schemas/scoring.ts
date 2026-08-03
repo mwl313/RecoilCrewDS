@@ -14,7 +14,6 @@ export const scoringSchema = z.object({
     bothWindow: positiveNumber,
   }),
   links: z.object({
-    braceShot: nonNegativeInt,
     scrapLoop: nonNegativeInt,
     ramFinish: nonNegativeInt,
   }),
@@ -24,7 +23,6 @@ export const scoringSchema = z.object({
   }),
   scrapLoopWindow: positiveNumber,
   ramScore: nonNegativeInt,
-  jackpotBraceBonus: nonNegativeInt,
   wipeoutPenalty: probability,
   jackpotCooldown: nonNegativeNumber,
   assist: z.object({

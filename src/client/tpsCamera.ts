@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { groundHeightAt } from '../shared/arena';
+import { clientGroundHeightAt } from './groundQuery';
 import { angleDiff, clamp, wrapAngle } from '../shared/math';
 import { rayAabbT, type Collider } from './arenaView';
 
@@ -177,7 +177,7 @@ export class TpsCameraController {
 
     const eye = anchor.clone().addScaledVector(rayDir, this.currentDistance);
     // Ground clearance: never clip below the floor plus the camera radius.
-    const minY = Math.max(0, groundHeightAt(eye.x, eye.z)) + this.tuning.cameraRadius + 0.12;
+    const minY = Math.max(0, clientGroundHeightAt(eye.x, eye.z)) + this.tuning.cameraRadius + 0.12;
     if (eye.y < minY) eye.y = minY;
 
     this.camera.position.copy(eye);

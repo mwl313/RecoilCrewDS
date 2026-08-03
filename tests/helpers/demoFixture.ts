@@ -70,7 +70,7 @@ export interface CanonicalTank {
   x: number; y: number; z: number;
   vx: number; vy: number; vz: number;
   yaw: number; yawVel: number;
-  integrity: number; brace: boolean; boosting: boolean;
+  integrity: number; dashCooldown: number; dashPresentationT: number;
   shieldedT: number; deadT: number; grounded: boolean; drift: boolean;
   prevOnRamp: boolean;
 }
@@ -200,7 +200,8 @@ export function canonicalizeState(s: MatchState): CanonicalState {
       vx: round(s.tank.vx), vy: round(s.tank.vy), vz: round(s.tank.vz),
       yaw: round(s.tank.yaw), yawVel: round(s.tank.yawVel),
       integrity: round(s.tank.integrity),
-      brace: s.tank.brace, boosting: s.tank.boosting,
+      dashCooldown: round(s.tank.dashCooldown),
+      dashPresentationT: round(s.tank.dashPresentationT),
       shieldedT: round(s.tank.shieldedT), deadT: round(s.tank.deadT),
       grounded: s.tank.grounded, drift: s.tank.drift,
       prevOnRamp: s.tank.prevOnRamp ?? false,
@@ -270,7 +271,7 @@ export function canonicalizeResults(r: MatchResults): CanonicalResults {
   };
 }
 
-/** Scripted Driver input: drive toward the nearest pickup, boost on a rhythm. */
+/** Scripted Driver input: drive toward the nearest pickup, dash on a rhythm. */
 export function scriptedDriver(state: MatchState, t: number): DriverInput {
   let target: { x: number; z: number } | null = null;
   for (const p of state.pickups) {
@@ -288,8 +289,8 @@ export function scriptedDriver(state: MatchState, t: number): DriverInput {
   return {
     throttle: 0.85,
     steer,
-    boost: t % 8 < 1.4,
-    brace: state.turret.jackpotReady,
+    dashPressed: t % 8 < DEMO_DT,
+    jumpPressed: t % 6 < DEMO_DT,
   };
 }
 

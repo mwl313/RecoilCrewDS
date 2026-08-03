@@ -26,7 +26,9 @@
       { "id": "vfx.cannonImpact", "color": 16760645, "size": 0.5, "life": 0.5, "count": 40, "speed": 11, "gravity": 12 },
       { "id": "vfx.enemyDeath", "color": 16724288, "size": 0.5, "life": 0.55, "count": 34, "speed": 9, "gravity": 10 },
       { "id": "vfx.scrapPickup", "color": 7333999, "size": 0.3, "life": 0.35, "count": 18, "speed": 6, "gravity": 6 },
-      { "id": "vfx.jackpot", "color": 16772746, "size": 0.9, "life": 1.0, "count": 80, "speed": 14, "gravity": 8 }
+      { "id": "vfx.jackpot", "color": 16772746, "size": 0.9, "life": 1.0, "count": 80, "speed": 14, "gravity": 8 },
+      { "id": "vfx.dashBurst", "color": 8377583, "size": 0.34, "life": 0.22, "count": 10, "speed": 7, "gravity": 0 },
+      { "id": "vfx.jumpDust", "color": 10128738, "size": 0.3, "life": 0.34, "count": 12, "speed": 3.4, "gravity": 2.4 }
     ],
     "ui": [
       {
@@ -50,7 +52,8 @@
     ],
     "audio": [
       { "id": "audio.engine", "kind": "engineLoop", "desc": "audio.engine" },
-      { "id": "audio.boost", "kind": "boost", "desc": "audio.boost" },
+      { "id": "audio.dash", "kind": "dash", "desc": "audio.dash" },
+      { "id": "audio.jump", "kind": "jump", "desc": "audio.jump" },
       { "id": "audio.drift", "kind": "drift", "desc": "audio.drift" },
       { "id": "audio.collision", "kind": "collision", "desc": "audio.collision" },
       { "id": "audio.machineGun", "kind": "machineGun", "desc": "audio.machineGun" },
@@ -61,7 +64,6 @@
       { "id": "audio.rammerTelegraph", "kind": "rammerTelegraph", "desc": "audio.rammerTelegraph" },
       { "id": "audio.towerFire", "kind": "towerFire", "desc": "audio.towerFire" },
       { "id": "audio.truckSiren", "kind": "truckSiren", "desc": "audio.truckSiren" },
-      { "id": "audio.brace", "kind": "brace", "desc": "audio.brace" },
       { "id": "audio.wipeout", "kind": "wipeout", "desc": "audio.wipeout" },
       { "id": "audio.jackpotCharge", "kind": "jackpotCharge", "desc": "audio.jackpotCharge" },
       { "id": "audio.jackpotRelease", "kind": "jackpotRelease", "desc": "audio.jackpotRelease" },

@@ -54,6 +54,18 @@ Files are relative to the site root (put them in `public/assets/...`). If a
 model fails to load or the manifest is missing, the generated low-poly
 fallback is used automatically — the game never breaks.
 
+## Generated map props (Phase 3)
+
+Generated arenas reference the same semantic ids through the asset service:
+large obstacles (`prop.container`, `prop.barrier`, `prop.tire`,
+`prop.scrapPile` via `obstacleType`), barrels (`prop.explosiveBarrel`),
+crates (`prop.container`), ramps (`arena.ramp`), and decorations (`prop.tire`,
+`prop.container`). Authoritative colliders render as individual semantic
+meshes; client-only decorations are instanced (`InstancedMesh`) per asset
+id with deterministic transforms. Terrain is a chunked heightfield mesh
+(shared material, stable world/4 UVs) — not an asset id — so custom ground
+textures replace the material, not the authoritative data.
+
 ## Model conventions
 
 - **Format:** glTF binary (`.glb`), one scene per asset ID.

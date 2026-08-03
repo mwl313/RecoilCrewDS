@@ -136,15 +136,15 @@ describe('input handling', () => {
     const match = room.match!;
     const z0 = match.state.tank.z;
     // Driver moves.
-    manager.handle(a, { t: 'input', seq: 1, driver: { throttle: 1, steer: 0, boost: false, brace: false } });
+    manager.handle(a, { t: 'input', seq: 1, driver: { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false } });
     stepSeconds(manager, 0.5);
     expect(match.state.tank.z).not.toBeCloseTo(z0, 0);
     // Stop the driver, then have the Gunner try to send driver input.
-    manager.handle(a, { t: 'input', seq: 2, driver: { throttle: 0, steer: 0, boost: false, brace: false } });
+    manager.handle(a, { t: 'input', seq: 2, driver: { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false } });
     manager.tick(1 / 30);
     expect(match.getDriverInput().throttle).toBe(0);
     // Gunner cannot send driver input.
-    manager.handle(b, { t: 'input', seq: 1, driver: { throttle: 1, steer: 0, boost: false, brace: false } });
+    manager.handle(b, { t: 'input', seq: 1, driver: { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false } });
     manager.tick(1 / 30);
     expect(match.getDriverInput().throttle).toBe(0);
     // But the Gunner's own input is accepted.
@@ -166,12 +166,12 @@ describe('input handling', () => {
     const room = manager.getClient(a)!.room!;
     const match = room.match!;
     const z0 = match.state.tank.z;
-    manager.handle(a, { t: 'input', seq: 10, driver: { throttle: 1, steer: 0, boost: false, brace: false } });
+    manager.handle(a, { t: 'input', seq: 10, driver: { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false } });
     stepSeconds(manager, 0.3);
     const z1 = match.state.tank.z;
     expect(z1).not.toBeCloseTo(z0, 0);
     // A stale/lower sequence is ignored entirely.
-    manager.handle(a, { t: 'input', seq: 3, driver: { throttle: 0, steer: 0, boost: false, brace: false } });
+    manager.handle(a, { t: 'input', seq: 3, driver: { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false } });
     stepSeconds(manager, 0.2);
     expect(Math.abs(match.state.tank.z - z1)).toBeGreaterThan(0.1);
   });
@@ -247,7 +247,7 @@ describe('full round and rematch', () => {
         manager.handle(a, {
           t: 'input',
           seq: seq++,
-          driver: { throttle: 0.8, steer: Math.sin(i / 40) * 0.7, boost: i % 240 < 60, brace: false },
+          driver: { throttle: 0.8, steer: Math.sin(i / 40) * 0.7, dashPressed: i % 240 < 2, jumpPressed: false },
         });
         manager.handle(b, {
           t: 'input',

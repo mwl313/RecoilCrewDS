@@ -95,6 +95,12 @@ export class PresentationEventRouter {
     } else if (ev.type === 'crash') {
       this.audio.play('collision');
       this.camera.addImpulse(this.assets.cameraImpulse('cameraImpulse.crash').shake);
+    } else if (ev.type === 'jump') {
+      this.vfx.spawnJumpDust(ev.x!, ev.y!, ev.z!);
+      this.audio.play('jump');
+    } else if (ev.type === 'dash') {
+      this.vfx.spawnDashBurst(ev.x!, ev.y!, ev.z!, ev.yaw ?? 0);
+      this.audio.play('dash');
     }
     // assist/link/score/comboChange are HUD-only.
   }

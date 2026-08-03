@@ -1,0 +1,22 @@
+{
+  "id": "terrainProfile.primary",
+  "label": "Primary 400m Terrain",
+  "baseHeight": 0,
+  "heightRange": {
+    "min": -5,
+    "max": 10
+  },
+  "maxSlope": 0.5,
+  "smoothingPasses": 2,
+  "slopeCorrectionIterations": 48,
+  "retryLimit": 8,
+  "maxGenerationMs": 500,
+  "legacySampled": false,
+  "features": {
+    "basin": { "count": 1, "minSeparation": 60, "radius": [28, 45], "depth": [2.5, 4.5], "falloff": 0.35 },
+    "ridge": { "count": 2, "minSeparation": 70, "length": [90, 160], "width": [18, 30], "height": [2.5, 4.5], "falloff": 0.3 },
+    "plateau": { "count": 3, "minSeparation": 60, "radius": [20, 35], "height": [3, 5], "falloff": 0.25 },
+    "valley": { "count": 2, "minSeparation": 70, "length": [80, 150], "width": [20, 34], "depth": [2, 3.5], "falloff": 0.3 },
+    "hill": { "count": 5, "minSeparation": 25, "radius": [10, 22], "height": [1.2, 3], "falloff": 0.3 }
+  }
+}

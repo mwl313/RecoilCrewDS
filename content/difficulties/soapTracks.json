@@ -4,7 +4,6 @@
   "description": "Lower grip, wider drifts, less steering control.",
   "timeScale": 1,
   "overrides": {
-    "match.grip": 0.35,
-    "match.boostGrip": 0.18
+    "match.grip": 0.35
   }
 }

@@ -236,38 +236,27 @@ describe('damage, kill, and semantic events', () => {
   });
 });
 
-describe('recoil and brace parity', () => {
-  it('bracing reduces cannon recoil by the legacy brace multiplier', () => {
+describe('recoil parity (unbraced)', () => {
+  it('cannon recoil applies the full configured impulse', () => {
     const unbraced = new Match('recoil-unbraced');
     step(unbraced, 0.5, { aimYaw: 0, aimPitch: 0, secondary: false , primary: false, ability: false });
     unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     unbraced.step(DT);
     unbraced.takeEvents();
     const uv = Math.hypot(unbraced.state.tank.vx, unbraced.state.tank.vz);
-
-    const braced = new Match('recoil-braced');
-    braced.setDriverInput({ throttle: 0, steer: 0, boost: false, brace: true });
-    step(braced, 0.5, { aimYaw: 0, aimPitch: 0, secondary: false , primary: false, ability: false });
-    braced.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
-    braced.step(DT);
-    braced.takeEvents();
-    const bv = Math.hypot(braced.state.tank.vx, braced.state.tank.vz);
-    expect(bv).toBeLessThan(uv * BASE_CONFIG.tank.braceRecoilMult * 1.2);
-    // JACKPOT brace applies the legacy jackpotBraceMult on top of braceRecoilMult.
-    const jackpotBrace = new Match('recoil-jackpot-brace');
+    expect(uv).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.9);
+    expect(uv).toBeLessThan(BASE_CONFIG.tank.recoilImpulse * 1.1);
+    // JACKPOT applies its full configured impulse with no Driver reduction.
+    const jackpot = new Match('recoil-jackpot');
     let recoilImpulse = 0;
-    jackpotBrace.runtime.eventBus.subscribe('recoil.applied', (p) => {
+    jackpot.runtime.eventBus.subscribe('recoil.applied', (p) => {
       recoilImpulse = (p as { impulse: number }).impulse;
     });
-    jackpotBrace.setDriverInput({ throttle: 0, steer: 0, boost: false, brace: true });
-    jackpotBrace.addJackpot(100);
-    step(jackpotBrace, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
-    jackpotBrace.runtime.eventBus.drain(); // deliver queued semantic events
-    expect(jackpotBrace.state.stats.jackpotFired).toBe(1);
-    expect(recoilImpulse).toBeCloseTo(
-      BASE_CONFIG.tank.jackpotRecoilImpulse * BASE_CONFIG.tank.jackpotBraceMult * BASE_CONFIG.tank.braceRecoilMult,
-      6,
-    );
+    jackpot.addJackpot(100);
+    step(jackpot, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
+    jackpot.runtime.eventBus.drain(); // deliver queued semantic events
+    expect(jackpot.state.stats.jackpotFired).toBe(1);
+    expect(recoilImpulse).toBeCloseTo(BASE_CONFIG.tank.jackpotRecoilImpulse, 6);
   });
 });
 

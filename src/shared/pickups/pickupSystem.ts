@@ -1,4 +1,3 @@
-import { groundHeightAt } from '../arena';
 import { clamp, dist } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { PickupDefinition } from '../content/schemas/pickup';
@@ -38,7 +37,7 @@ export class PickupSystem {
       id: s.nextPickupId++,
       kind,
       x,
-      y: groundHeightAt(x, z) + 0.55,
+      y: this.ctx.world.groundHeightAt(x, z) + 0.55,
       z,
       life: def.life * this.ctx.rules.matchConfig.pickupLife,
       collected: false,

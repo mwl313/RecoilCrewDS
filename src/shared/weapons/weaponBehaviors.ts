@@ -124,9 +124,6 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const life = weaponStat(weapon, 'weapon.cannonLife', ctx.rules.config.weapons.cannonLife);
       ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'cannon', life);
       ctx.combo.addContribution('gunner', 1);
-      if (t.brace) {
-        ctx.score.addLink('braceShot');
-      }
     },
   });
 
@@ -141,11 +138,10 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       tur.cannonFlash = 0.3;
       tur.jackpotCooldown = weapon.cooldownSeconds;
       const impulse = weaponStat(weapon, 'weapon.jackpotRecoilImpulse', ctx.rules.config.tank.jackpotRecoilImpulse);
-      const braceMult = t.brace ? weaponStat(weapon, 'weapon.jackpotBraceMultiplier', ctx.rules.config.tank.jackpotBraceMult) : 1;
       ctx.recoil.apply(
         -muzzle.dx,
         -muzzle.dz,
-        impulse * braceMult,
+        impulse,
         weaponStat(weapon, 'weapon.jackpotRecoilSpin', ctx.rules.config.tank.jackpotSpin),
         weapon.id,
       );
@@ -154,10 +150,6 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const speed = weaponStat(weapon, 'weapon.jackpotSpeed', ctx.rules.config.weapons.jackpotSpeed);
       const life = weaponStat(weapon, 'weapon.jackpotLife', ctx.rules.config.weapons.jackpotLife);
       ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'jackpot', life);
-      if (t.brace) {
-        ctx.score.addLink('braceShot');
-        ctx.score.addScore(ctx.rules.scoring.jackpotBraceBonus, 'JACKPOT BRACE BONUS');
-      }
       ctx.combo.addContribution('gunner', 4);
     },
   });

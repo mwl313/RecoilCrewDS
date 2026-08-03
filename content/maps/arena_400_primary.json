@@ -1,0 +1,13 @@
+{
+  "id": "map.arena400Primary",
+  "label": "Primary 400m Map",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.primary",
+  "validationProfileId": "validationProfile.primary",
+  "fallbackMapId": "map.fallbackLegacy",
+  "furnitureSetId": "furnitureSet.primary",
+  "densityProfileId": "densityProfile.primary",
+  "isFallback": false
+}

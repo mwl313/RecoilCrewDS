@@ -22,7 +22,27 @@ The server owns content selection, movement, weapons, damage, enemies,
 items, score, objectives, and match flow. Clients receive snapshots at
 20 Hz (sim 30 Hz), interpolate them, and locally predict the Driver tank
 (shared kinematics + movement rules block) and the Gunner turret. Cameras
-are client-only.
+are client-only. Driver input frames carry one-shot `dashPressed` /
+`jumpPressed` edges; the authoritative runtime consumes each sequenced edge
+exactly once, so holding a key never repeats the action.
+
+## Generated arenas (Phases 1-3)
+
+- Every match carries its own `ArenaWorld` (match-scoped; no global arena).
+  The static world delegates to the legacy analytic arena (byte-identical
+  Demo path); generated worlds route ground/collision queries through their
+  own heightfield + props (`src/shared/sim/arenaWorld.ts`).
+- The server selects an arena per room/match (`Room.matchIndex` → base seed
+  → `selectArenaSession`), publishes metadata (`mapProfileId`,
+  `arenaBaseSeed`, `arenaCandidateSeed`, `arenaAttempt`,
+  `arenaGeneratorVersion`, `arenaChecksum`, `arenaFallbackUsed`) on start,
+  snapshots, and rejoin, and builds the `Match` on that world.
+- The client regenerates the exact candidate and compares checksums before
+  gameplay; mismatch blocks the round with a sticky error state.
+- Rendering (`ArenaView`) builds chunked terrain from the authoritative
+  heightfield (LOD + frustum culling), semantic prop meshes, instanced
+  decorations, fog 100-150 m, and disposes cleanly on rematch. A dev-only
+  overlay (`?debug=1`, F3) shows seeds/checksum/features/routes/zones.
 
 ## Content and rules
 
@@ -50,7 +70,16 @@ and `rulesRevision`/`movementRulesRevision` exposed on snapshots.
 construction; models are cached prototypes (custom GLBs or registered
 procedural fallbacks) cloned per instance and transformed by manifest
 metadata. Presentation (VFX/audio/themes/icons/camera impulses) routes
-through the bundled `presentation` definition.
+through the bundled `presentation` definition. The input layer latches
+Space/Shift press edges until the next Driver input frame is created, and
+clears latches on blur, visibility loss, pause, disconnect, and teardown.
+
+Jump and dash use the same shared `tankKinematics` on the server, the Driver
+predictor, and Practice. `jumpHeight` is designer-facing: launch velocity is
+`sqrt(2 * gravity * jumpHeight)`, and Moon Yard lowers gravity for longer
+airtime without changing the target height. Dash applies an instantaneous
+chassis-forward burst gated by `dashCooldown`; `dashPresentationSeconds`
+drives the short DASHING presentation window only.
 
 ## Intended engine defaults (documented, not accidental)
 

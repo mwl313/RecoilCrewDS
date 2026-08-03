@@ -268,6 +268,8 @@ export class FallbackAssetFactory {
       ['vfx.enemyDeath', mkVfx(0xff5540, 0.5, 0.55, 34, 9, 10)],
       ['vfx.scrapPickup', mkVfx(0x6fe86f, 0.3, 0.35, 18, 6, 6)],
       ['vfx.jackpot', mkVfx(0xffe98a, 0.9, 1.0, 80, 14, 8)],
+      ['vfx.dashBurst', mkVfx(0x7fd4ff, 0.34, 0.22, 10, 7)],
+      ['vfx.jumpDust', mkVfx(0x9a8462, 0.3, 0.34, 12, 3.4, 2.4)],
     ];
     for (const [id, spec] of entries) this.vfx.set(id, () => ({ ...spec }));
   }
@@ -296,11 +298,11 @@ export class FallbackAssetFactory {
   private registerAudio(): void {
     const mkAudio = (kind: string, desc: string): AudioSpec => ({ kind, desc });
     const audioIds: Array<[string, string]> = [
-      ['audio.engine', 'engineLoop'], ['audio.boost', 'boost'], ['audio.drift', 'drift'],
+      ['audio.engine', 'engineLoop'], ['audio.dash', 'dash'], ['audio.jump', 'jump'], ['audio.drift', 'drift'],
       ['audio.collision', 'collision'], ['audio.machineGun', 'machineGun'], ['audio.cannon', 'cannon'],
       ['audio.enemyHit', 'enemyHit'], ['audio.enemyDeath', 'enemyDeath'], ['audio.scrapPickup', 'scrapPickup'],
       ['audio.rammerTelegraph', 'rammerTelegraph'], ['audio.towerFire', 'towerFire'], ['audio.truckSiren', 'truckSiren'],
-      ['audio.brace', 'brace'], ['audio.wipeout', 'wipeout'], ['audio.jackpotCharge', 'jackpotCharge'],
+      ['audio.wipeout', 'wipeout'], ['audio.jackpotCharge', 'jackpotCharge'],
       ['audio.jackpotRelease', 'jackpotRelease'], ['audio.ui', 'ui'], ['audio.results', 'results'], ['audio.music', 'music'],
     ];
     for (const [id, kind] of audioIds) this.audio.set(id, () => mkAudio(kind, id));

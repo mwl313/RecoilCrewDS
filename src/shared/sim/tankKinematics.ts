@@ -1,6 +1,8 @@
-import { ARENA, groundHeightAt, groundNormalAt, pitchFromNormal, resolveCircleContacts } from '../arena';
+import { pitchFromNormal } from '../arena';
 import type { GameConfig } from '../config';
 import { clamp, lerp, pointInBox } from '../math';
+import type { GroundQuery } from './groundQuery';
+import { STATIC_GROUND_QUERY } from './groundQuery';
 import type { DriverInput, MatchConfig } from '../types';
 
 /**
@@ -29,8 +31,10 @@ export interface TankKinematicState {
   pitch: number;
   roll: number;
   grounded: boolean;
-  boosting: boolean;
-  brace: boolean;
+  /** Authoritative time until the next dash may be accepted (seconds). */
+  dashCooldown: number;
+  /** Short presentation window after an accepted dash (seconds). */
+  dashPresentationT: number;
   drift: boolean;
   prevOnRamp?: boolean;
 }
@@ -39,6 +43,8 @@ export interface TankKinematicsCallbacks {
   onHardCrash?(impactSpeed: number): void;
   onRampLaunch?(fwdSpeed: number): void;
   onHardFall?(fallSpeed: number): void;
+  onJump?(): void;
+  onDash?(): void;
 }
 
 export interface CollisionHit {
@@ -59,8 +65,9 @@ export function applyVelocityResponse(vx: number, vz: number, normalX: number, n
 
 /**
  * Advance tank kinematics by one fixed simulation step.
- * Steering order: read input → update yaw → recompute basis → rebuild
- * velocity → integrate → resolve the three-circle footprint with substeps.
+ * Steering order: timers → jump edge → read input → update yaw → recompute
+ * basis → rebuild velocity → dash edge → integrate → resolve the
+ * three-circle footprint with substeps.
  */
 export function stepTankKinematics(
   t: TankKinematicState,
@@ -69,26 +76,36 @@ export function stepTankKinematics(
   mcfg: MatchConfig,
   dt: number,
   callbacks?: TankKinematicsCallbacks,
+  ground: GroundQuery = STATIC_GROUND_QUERY,
 ): CollisionHit[] {
   const tankCfg = cfg.tank;
   const forward = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
   const fwdSpeed = t.vx * forward.x + t.vz * forward.z;
-  const boosting = inp.boost && Math.abs(inp.throttle) > 0.05 && t.grounded;
-  const bracing = inp.brace && t.grounded;
-  t.boosting = boosting;
-  t.brace = bracing;
 
-  const maxSpeed = boosting ? tankCfg.forwardSpeed * tankCfg.boostMult : tankCfg.forwardSpeed;
+  // Timers decrement by simulation time. The cooldown gates dash acceptance;
+  // the presentation timer is cosmetic and deliberately independent.
+  t.dashCooldown = Math.max(0, t.dashCooldown - dt);
+  t.dashPresentationT = Math.max(0, t.dashPresentationT - dt);
+
+  // Jump edge: grounded-only, before normal gravity integration. Launch
+  // velocity derives identically on server, predictor, and Practice from the
+  // same resolved gravity and designer-facing jumpHeight.
+  const jumped = inp.jumpPressed && t.grounded && tankCfg.jumpHeight > 0;
+  if (jumped) {
+    t.vy = Math.max(t.vy, Math.sqrt(2 * mcfg.gravity * tankCfg.jumpHeight));
+    t.grounded = false;
+    callbacks?.onJump?.();
+  }
+
+  const maxSpeed = tankCfg.forwardSpeed;
   const targetSpeed = inp.throttle >= 0 ? inp.throttle * maxSpeed : inp.throttle * tankCfg.reverseSpeed;
-  const accel = (inp.throttle >= 0 ? tankCfg.accel : tankCfg.reverseAccel) * (bracing ? tankCfg.braceAccelMult : 1);
+  const accel = inp.throttle >= 0 ? tankCfg.accel : tankCfg.reverseAccel;
   let newFwd = approach(fwdSpeed, targetSpeed, accel * dt);
   newFwd = Math.max(-tankCfg.reverseSpeed, Math.min(maxSpeed, newFwd));
 
   // Steering. Reverse reduces strength but NEVER flips A/D direction.
   const speedRatio = Math.abs(newFwd) / tankCfg.forwardSpeed;
   let steerRate = lerp(tankCfg.steerLow, tankCfg.steerHigh, speedRatio);
-  if (boosting) steerRate *= 1.3;
-  if (bracing) steerRate *= tankCfg.braceSteerMult;
   if (!t.grounded) steerRate *= tankCfg.airControl;
   if (newFwd < -0.1) steerRate *= tankCfg.reverseSteerMult;
 
@@ -102,13 +119,27 @@ export function stepTankKinematics(
   const f2 = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
   const lateralX = t.vx - forward.x * fwdSpeed;
   const lateralZ = t.vz - forward.z * fwdSpeed;
-  const grip = bracing ? tankCfg.braceGrip : boosting ? mcfg.boostGrip : mcfg.grip;
-  const gripF = Math.exp(-grip * dt);
+  const gripF = Math.exp(-mcfg.grip * dt);
   // 3. Rebuild velocity with the NEW basis; preserve intentional lateral drift.
   t.vx = f2.x * newFwd + lateralX * gripF;
   t.vz = f2.z * newFwd + lateralZ * gripF;
 
-  // 4. Integrate with displacement-based substeps (boost/recoil/rammer/high speed).
+  // 4. Dash edge: one instantaneous chassis-forward burst per sequenced
+  // press, cooldown-gated. Lateral momentum is preserved; vertical velocity
+  // is untouched; the horizontal speed cap preserves direction.
+  if (inp.dashPressed && t.dashCooldown <= 0) {
+    const strength = tankCfg.dashImpulse * (t.grounded ? 1 : tankCfg.dashAirMultiplier);
+    if (strength > 0) {
+      t.vx += Math.sin(t.yaw) * strength;
+      t.vz += Math.cos(t.yaw) * strength;
+      capHorizontalSpeed(t, tankCfg.dashMaxHorizontalSpeed);
+      t.dashCooldown = tankCfg.dashCooldown;
+      t.dashPresentationT = tankCfg.dashPresentationSeconds;
+      callbacks?.onDash?.();
+    }
+  }
+
+  // 5. Integrate with displacement-based substeps (dash/recoil/rammer/high speed).
   const displacement = Math.hypot(t.vx, t.vz) * dt;
   const substeps = Math.max(1, Math.min(tankCfg.maxSubsteps, Math.ceil(displacement / tankCfg.maxSafeStep)));
   const subDt = dt / substeps;
@@ -117,14 +148,15 @@ export function stepTankKinematics(
     t.x += t.vx * subDt;
     t.y += t.vy * subDt;
     t.z += t.vz * subDt;
-    hits = hits.concat(resolveTankFootprint(t, cfg));
+    hits = hits.concat(resolveTankFootprint(t, cfg, ground));
   }
 
-  // 5. Ground/air.
-  const h = groundHeightAt(t.x, t.z);
+  // 6. Ground/air. A jump applied this step must not immediately snap back
+  // to the ground; it integrates upward and stays airborne.
+  const h = ground.groundHeightAt(t.x, t.z);
   const wasGrounded = t.grounded;
-  const onRamp = ARENA.ramps.some((r) => pointInBox(t.x, t.z, r.x, r.z, r.w, r.d));
-  if (t.y <= h + 0.08) {
+  const onRamp = ground.ramps.some((r) => pointInBox(t.x, t.z, r.x, r.z, r.w, r.d));
+  if (!jumped && t.y <= h + 0.08) {
     if (!wasGrounded && t.vy < -tankCfg.fallDamageSpeed) {
       callbacks?.onHardFall?.(-t.vy);
     }
@@ -139,12 +171,13 @@ export function stepTankKinematics(
   const wasOnRamp = t.prevOnRamp === true;
   t.prevOnRamp = onRamp;
   if (wasOnRamp && !onRamp && Math.abs(newFwd) > 7) {
-    t.vy = Math.min(tankCfg.jumpImpulse, tankCfg.jumpImpulse * (Math.abs(newFwd) / tankCfg.forwardSpeed));
+    const rampLaunch = tankCfg.rampLaunchSpeed * Math.min(1, Math.abs(newFwd) / tankCfg.forwardSpeed);
+    t.vy = rampLaunch;
     t.grounded = false;
     callbacks?.onRampLaunch?.(Math.abs(newFwd));
   }
 
-  // 6. Visual pitch/roll and auto-right (visual only, safe for prediction).
+  // 7. Visual pitch/roll and auto-right (visual only, safe for prediction).
   const targetRoll = clamp(-inp.steer * speedRatio * 0.16 - t.yawVel * 0.04, -0.55, 0.55);
   if (t.grounded) {
     t.roll = lerp(t.roll, targetRoll, clamp(dt * 5, 0, 1));
@@ -153,10 +186,22 @@ export function stepTankKinematics(
       t.yawVel = 0;
     }
   }
-  const normal = groundNormalAt(t.x, t.z);
+  const normal = ground.groundNormalAt(t.x, t.z);
   t.pitch = t.grounded ? lerp(t.pitch, pitchFromNormal(normal, t.yaw), clamp(dt * 8, 0, 1)) : t.pitch;
-  t.drift = boosting && Math.abs(inp.steer) > 0.4;
+  // Drift is a presentation label for hard cornering at speed (no boost
+  // state exists anymore).
+  t.drift = t.grounded && Math.abs(inp.steer) > 0.4 && Math.abs(newFwd) > 6;
   return hits;
+}
+
+function capHorizontalSpeed(t: TankKinematicState, maxHorizontalSpeed: number): void {
+  if (maxHorizontalSpeed <= 0) return;
+  const speed = Math.hypot(t.vx, t.vz);
+  if (speed > maxHorizontalSpeed) {
+    const k = maxHorizontalSpeed / speed;
+    t.vx *= k;
+    t.vz *= k;
+  }
 }
 
 /**
@@ -164,14 +209,18 @@ export function stepTankKinematics(
  * obstacle rectangle, iterating to convergence. Returns contact normals so
  * the caller can apply velocity response.
  */
-export function resolveTankFootprint(t: TankKinematicState, cfg: GameConfig): CollisionHit[] {
+export function resolveTankFootprint(
+  t: TankKinematicState,
+  cfg: GameConfig,
+  ground: GroundQuery = STATIC_GROUND_QUERY,
+): CollisionHit[] {
   const hits: CollisionHit[] = [];
   for (let iter = 0; iter < 3; iter++) {
     let corrected = false;
     for (const foot of cfg.tank.footprint) {
       const ox = Math.sin(t.yaw) * foot.offset;
       const oz = Math.cos(t.yaw) * foot.offset;
-      const res = resolveCircleContacts(t.x + ox, t.z + oz, foot.radius);
+      const res = ground.resolveCircleContacts(t.x + ox, t.z + oz, foot.radius);
       for (const c of res.contacts) {
         // Correction applies to the whole chassis.
         t.x += c.x - (t.x + ox);
@@ -186,9 +235,9 @@ export function resolveTankFootprint(t: TankKinematicState, cfg: GameConfig): Co
   // position is only returned as a correction when an obstacle box was hit.
   // The gate gaps have no wall box, so clamp the chassis explicitly and stop
   // the outward velocity component to prevent escaping or boundary jitter.
-  const half = ARENA.half - 0.5;
-  const clampedX = clamp(t.x, -half, half);
-  const clampedZ = clamp(t.z, -half, half);
+  const bound = ground.half - 0.5;
+  const clampedX = clamp(t.x, -bound, bound);
+  const clampedZ = clamp(t.z, -bound, bound);
   if (clampedX !== t.x) t.vx = 0;
   if (clampedZ !== t.z) t.vz = 0;
   t.x = clampedX;

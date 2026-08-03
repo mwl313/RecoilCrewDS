@@ -252,7 +252,6 @@ export class MatchRules {
       match: {
         timeScale: this.timeScale,
         grip: this.resolver.resolve('match.grip'),
-        boostGrip: this.resolver.resolve('match.boostGrip'),
         gravity: this.resolver.resolve('match.gravity'),
       },
       turret: {

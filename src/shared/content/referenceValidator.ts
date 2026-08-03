@@ -11,7 +11,7 @@ const JACKPOT_GAIN_KEYS = new Set([
   'speedCollect',
   'ram',
   'dodge',
-  'braceShot',
+  'linkGain',
 ]);
 
 /**
@@ -59,6 +59,35 @@ export class ReferenceValidator {
       this.ref(issues, loadout.primary, this.registries.weapons, file, 'primary');
       this.ref(issues, loadout.secondary, this.registries.weapons, file, 'secondary');
       this.ref(issues, loadout.ability, this.registries.weapons, file, 'ability');
+    }
+
+    for (const map of this.registries.maps.all()) {
+      const file = this.fileOf(map.id, this.registries.maps);
+      this.checkCommon(issues, map, file);
+      this.ref(issues, map.terrainProfileId, this.registries.terrainProfiles, file, 'terrainProfileId');
+      this.ref(issues, map.validationProfileId, this.registries.validationProfiles, file, 'validationProfileId');
+      this.ref(issues, map.furnitureSetId, this.registries.furnitureSets, file, 'furnitureSetId');
+      this.ref(issues, map.densityProfileId, this.registries.densityProfiles, file, 'densityProfileId');
+      if (map.fallbackMapId) {
+        this.ref(issues, map.fallbackMapId, this.registries.maps, file, 'fallbackMapId');
+      }
+    }
+    for (const terrain of this.registries.terrainProfiles.all()) {
+      this.checkCommon(issues, terrain, this.fileOf(terrain.id, this.registries.terrainProfiles));
+    }
+    for (const validation of this.registries.validationProfiles.all()) {
+      this.checkCommon(issues, validation, this.fileOf(validation.id, this.registries.validationProfiles));
+    }
+    for (const set of this.registries.furnitureSets.all()) {
+      const file = this.fileOf(set.id, this.registries.furnitureSets);
+      this.checkCommon(issues, set, file);
+      set.landmarks.forEach((id, i) => this.ref(issues, id, this.registries.landmarks, file, `landmarks[${i}]`));
+    }
+    for (const landmark of this.registries.landmarks.all()) {
+      this.checkCommon(issues, landmark, this.fileOf(landmark.id, this.registries.landmarks));
+    }
+    for (const density of this.registries.densityProfiles.all()) {
+      this.checkCommon(issues, density, this.fileOf(density.id, this.registries.densityProfiles));
     }
 
     for (const enemy of this.registries.enemies.all()) {
@@ -111,8 +140,8 @@ export class ReferenceValidator {
       this.checkCommon(issues, difficulty, file);
       if (difficulty.overrides) {
         for (const key of Object.keys(difficulty.overrides)) {
-          if (!key.startsWith('match.')) {
-            issues.push(`${file}: overrides.${key} — override keys must be match.* stat ids`);
+          if (!key.startsWith('match.') && !key.startsWith('tank.')) {
+            issues.push(`${file}: overrides.${key} — override keys must be match.* or tank.* stat ids`);
           } else if (!this.statIds.has(key)) {
             issues.push(`${file}: overrides.${key} — unknown stat id '${key}'`);
           }

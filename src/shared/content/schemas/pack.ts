@@ -8,6 +8,12 @@ export const packManifestSchema = z.object({
     files: z.object({
       modes: z.array(z.string()),
       objectives: z.array(z.string()),
+      maps: z.array(z.string()),
+      terrainProfiles: z.array(z.string()),
+      validationProfiles: z.array(z.string()),
+      landmarks: z.array(z.string()),
+      furnitureSets: z.array(z.string()),
+      densityProfiles: z.array(z.string()),
       tanks: z.array(z.string()),
       loadouts: z.array(z.string()),
       weapons: z.array(z.string()),

@@ -36,7 +36,6 @@ export const LEGACY_DEMO_CONSTANTS = {
   atSpeedBonus: 25,
   scrapLoopWindow: 3,
   ramScore: 20,
-  jackpotBraceBonus: 150,
 } as const;
 
 export function createLegacyDemoRulesBundle(): DemoRulesBundle {
@@ -63,7 +62,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       speedCollect: j.speedCollectGain,
       ram: j.ramGain,
       dodge: j.dodgeGain,
-      braceShot: j.braceShotGain,
+      linkGain: j.linkGain,
     },
     combo: {
       pointsPerLevel: sc.comboPointsPerLevel,
@@ -72,14 +71,12 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       bothWindow: sc.comboBothWindow,
     },
     links: {
-      braceShot: sc.linkBraceShot,
       scrapLoop: sc.linkScrapLoop,
       ramFinish: sc.linkRamFinish,
     },
     atSpeed: { threshold: LEGACY_DEMO_CONSTANTS.atSpeedThreshold, bonus: LEGACY_DEMO_CONSTANTS.atSpeedBonus },
     scrapLoopWindow: LEGACY_DEMO_CONSTANTS.scrapLoopWindow,
     ramScore: LEGACY_DEMO_CONSTANTS.ramScore,
-    jackpotBraceBonus: LEGACY_DEMO_CONSTANTS.jackpotBraceBonus,
     wipeoutPenalty: sc.wipeoutPenalty,
     jackpotCooldown: j.jackpotCooldown,
     assist: {
@@ -173,7 +170,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
     'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
     'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
-    'weapon.jackpotBraceMultiplier': BASE_CONFIG.tank.jackpotBraceMult,
   };
 
   const loadout: LoadoutDefinition = {
@@ -247,7 +243,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
         'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
         'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
-        'weapon.jackpotBraceMultiplier': BASE_CONFIG.tank.jackpotBraceMult,
         'weapon.splashInnerRatio': 0.45,
         'weapon.splashInnerMultiplier': 1,
         'weapon.splashOuterMultiplier': 0.65,

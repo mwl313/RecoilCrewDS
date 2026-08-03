@@ -3,8 +3,10 @@
 **One tank. Two brains. Zero brakes.**
 
 Two-player online cooperative tank game — the Driver drives, the Gunner
-aims, and the cannon's recoil throws the tank around. The full project
-readme now lives in the docs folder:
+aims, and the cannon's recoil throws the tank around. The Driver jumps with
+Space and dashes with Left Shift; both actions are server-authoritative,
+locally predicted, and data-driven. The full project readme now lives in
+the docs folder:
 
 - [Project README / docs index](docs/README.md)
 - [Architecture](docs/guides/ARCHITECTURE.md)

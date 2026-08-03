@@ -1,6 +1,8 @@
 import { DriverPredictor } from '../predictor';
 import { BASE_CONFIG } from '../../shared/config';
 import { angleDiff, clamp, wrapAngle } from '../../shared/math';
+import type { GroundQuery } from '../../shared/sim/groundQuery';
+import { STATIC_GROUND_QUERY } from '../../shared/sim/groundQuery';
 import type { MovementRulesBlock } from '../../shared/stats/rulesRevision';
 import type { DriverInput, GunnerInput, MatchState, Role, TankState } from '../../shared/types';
 
@@ -28,6 +30,7 @@ export class PredictionController {
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
+  private ground: GroundQuery = STATIC_GROUND_QUERY;
 
   constructor(
     role: Role,
@@ -61,8 +64,14 @@ export class PredictionController {
 
   ensurePredictor(modifier: string): void {
     if (this.role === 'driver' && !this.predictor) {
-      this.predictor = new DriverPredictor(BASE_CONFIG, modifier as never);
+      this.predictor = new DriverPredictor(BASE_CONFIG, modifier as never, this.ground);
     }
+  }
+
+  /** Phase 3: switch prediction to the authoritative arena ground. */
+  setGround(ground: GroundQuery): void {
+    this.ground = ground;
+    this.predictor?.setGround(ground);
   }
 
   reconcile(state: MatchState, ackSeq: number): void {
@@ -83,8 +92,16 @@ export class PredictionController {
       ...base,
       x: d.x, y: d.y, z: d.z, vx: d.vx, vy: d.vy, vz: d.vz,
       yaw: d.yaw, yawVel: d.yawVel, pitch: d.pitch, roll: d.roll,
-      grounded: d.grounded, boosting: d.boosting, brace: d.brace, drift: d.drift,
+      grounded: d.grounded,
+      dashCooldown: d.dashCooldown,
+      dashPresentationT: d.dashPresentationT,
+      drift: d.drift,
     };
+  }
+
+  /** Local one-shot Driver actions applied by prediction (jump/dash). */
+  takeLocalDriverActions(): string[] {
+    return this.predictor?.takeAppliedActions() ?? [];
   }
 
   nextSeq(): number {
@@ -157,5 +174,6 @@ export class PredictionController {
     this.inputSeq = 0;
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;
+    this.ground = STATIC_GROUND_QUERY;
   }
 }

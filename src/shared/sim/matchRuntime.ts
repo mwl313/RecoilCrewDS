@@ -1,5 +1,6 @@
 ﻿import { ARENA, groundHeightAt, nearestSpawn, obstacleAt, resolveCircle } from '../arena';
 import type { GameConfig } from '../config';
+import { createStaticArenaWorld, type ArenaWorld } from './arenaWorld';
 import { angleDiff, angleLerp, clamp, dist, dist2, lerp, pointInBox, wrapAngle } from '../math';
 import { stepTankKinematics, type TankKinematicState } from './tankKinematics';
 import type { ContentPack } from '../content/contentPack';
@@ -32,15 +33,15 @@ import type {
   TruckState,
 } from '../types';
 
-function makeBarrels(): BarrelState[] {
-  return ARENA.barrels.map((b) => ({ id: b.id, x: b.x, z: b.z, exploded: false, fuseT: 0, flash: 0, hp: 0 }));
+function makeBarrels(world: ArenaWorld): BarrelState[] {
+  return world.barrels.map((b) => ({ id: b.id, x: b.x, z: b.z, exploded: false, fuseT: 0, flash: 0, hp: 0 }));
 }
 
-function initialTank(rules: MatchRules): MatchState['tank'] {
-  const spawn = ARENA.spawnPoints[0];
+function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
+  const spawn = world.spawnPoints[0];
   return {
     x: spawn.x,
-    y: groundHeightAt(spawn.x, spawn.z),
+    y: world.groundHeightAt(spawn.x, spawn.z),
     z: spawn.z,
     vx: 0,
     vy: 0,
@@ -50,8 +51,8 @@ function initialTank(rules: MatchRules): MatchState['tank'] {
     pitch: 0,
     roll: 0,
     integrity: rules.config.tank.maxIntegrity,
-    brace: false,
-    boosting: false,
+    dashCooldown: 0,
+    dashPresentationT: 0,
     shieldedT: rules.config.tank.shieldTime,
     deadT: 0,
     grounded: true,
@@ -59,13 +60,13 @@ function initialTank(rules: MatchRules): MatchState['tank'] {
   };
 }
 
-function initialState(matchId: string, rules: MatchRules): MatchState {
+function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): MatchState {
   return {
     matchId,
     time: 0,
     duration: rules.duration,
     phase: 'running',
-    tank: initialTank(rules),
+    tank: initialTank(rules, world),
     turret: {
       yaw: Math.PI / 2,
       pitch: 0.05,
@@ -94,7 +95,7 @@ function initialState(matchId: string, rules: MatchRules): MatchState {
     enemies: [],
     pickups: [],
     shells: [],
-    barrels: makeBarrels(),
+    barrels: makeBarrels(world),
     truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: rules.config.enemies.truckHp, waypoint: 0, escaped: false, sirenT: 0 },
     respawnT: 0,
     countdown: 0,
@@ -115,6 +116,7 @@ export class MatchRuntime {
   readonly eventBus: GameplayEventBus;
   readonly loadout: LoadoutRuntime;
   readonly weaponSystem: WeaponSystem;
+  readonly world: ArenaWorld;
   private modeDefinition: DemoScoreAttackModeDefinition | null = null;
 
   /** Legacy projections of the resolved match rules (frozen, per-match). */
@@ -126,18 +128,23 @@ export class MatchRuntime {
     return this.rules.matchConfig;
   }
 
-  private driverInput: DriverInput = { throttle: 0, steer: 0, boost: false, brace: false };
+  private driverInput: DriverInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
+  /** Pending one-shot action edges from the newest sequenced Driver frame. */
+  private driverEdgesPending: { dash: boolean; jump: boolean } = { dash: false, jump: false };
+  private driverEdgesConsumed = true;
   private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
   constructor(
     matchId: string,
     modifier: ModifierId = 'none',
     rules?: MatchRules,
     definition?: DemoScoreAttackModeDefinition,
+    world?: ArenaWorld,
   ) {
     this.rules = rules ?? MatchRules.fromLegacyConfig(modifier);
-    this.state = initialState(matchId, this.rules);
+    this.world = world ?? createStaticArenaWorld();
+    this.state = initialState(matchId, this.rules, this.world);
     this.eventBus = new GameplayEventBus();
-    this.systems = createSystemContext(this.state, this.rules, this.events, this.eventBus);
+    this.systems = createSystemContext(this.state, this.rules, this.events, this.eventBus, this.world);
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
     this.loadout = new LoadoutRuntime(this.rules.weapons, this.rules.loadout);
@@ -155,6 +162,19 @@ export class MatchRuntime {
     const selectedModeId = modeId ?? pack.modeId;
     const definition = new DemoScoreAttackModeDefinition(pack.getMode(selectedModeId), pack);
     return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier, selectedModeId), definition);
+  }
+
+  /** Phase 3: authoritative match on a specific arena world. */
+  static fromContentPackWithWorld(
+    pack: ContentPack,
+    matchId: string,
+    world: ArenaWorld,
+    modifier: ModifierId = 'none',
+    modeId?: string,
+  ): MatchRuntime {
+    const selectedModeId = modeId ?? pack.modeId;
+    const definition = new DemoScoreAttackModeDefinition(pack.getMode(selectedModeId), pack);
+    return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier, selectedModeId), definition, world);
   }
 
   /** Client-safe path: rules resolved from legacy constants (same values). */
@@ -178,6 +198,18 @@ export class MatchRuntime {
 
   setDriverInput(input: DriverInput) {
     this.driverInput = input;
+    if (!this.driverEdgesConsumed) {
+      // A new sequenced frame arrived before the previous frame's edges were
+      // stepped. Preserve the unconsumed edges so a quick press is never
+      // dropped between network frames.
+      this.driverEdgesPending = {
+        dash: this.driverEdgesPending.dash || input.dashPressed,
+        jump: this.driverEdgesPending.jump || input.jumpPressed,
+      };
+    } else {
+      this.driverEdgesPending = { dash: input.dashPressed, jump: input.jumpPressed };
+      this.driverEdgesConsumed = false;
+    }
   }
 
   setGunnerInput(input: GunnerInput) {
@@ -193,13 +225,15 @@ export class MatchRuntime {
   }
 
   clearInputs() {
-    this.driverInput = { throttle: 0, steer: 0, boost: false, brace: false };
+    this.clearDriverInput();
     this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
     this.weaponSystem.clearActions();
   }
 
   clearDriverInput() {
-    this.driverInput = { throttle: 0, steer: 0, boost: false, brace: false };
+    this.driverInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
+    this.driverEdgesPending = { dash: false, jump: false };
+    this.driverEdgesConsumed = true;
   }
 
   clearGunnerInput() {
@@ -229,6 +263,13 @@ export class MatchRuntime {
     const s = this.state;
     const t = s.tank;
     const tankCfg = this.cfg.tank;
+    // Consume the sequenced frame's action edges exactly once. If the tank
+    // is dead the edges are discarded with the frame (a dead tank cannot
+    // jump or dash at the respawn moment).
+    const edges = this.driverEdgesConsumed
+      ? { dash: false, jump: false }
+      : this.driverEdgesPending;
+    this.driverEdgesConsumed = true;
     if (t.deadT > 0) {
       t.deadT -= dt;
       if (t.deadT <= 0) {
@@ -238,17 +279,32 @@ export class MatchRuntime {
     }
     if (t.shieldedT > 0) t.shieldedT -= dt;
     const speed = Math.hypot(t.vx, t.vz);
-    const hits = stepTankKinematics(t as unknown as TankKinematicState, this.driverInput, this.cfg, this.mcfg, dt, {
+    const hits = stepTankKinematics(
+      t as unknown as TankKinematicState,
+      {
+        throttle: this.driverInput.throttle,
+        steer: this.driverInput.steer,
+        dashPressed: edges.dash,
+        jumpPressed: edges.jump,
+      },
+      this.cfg,
+      this.mcfg,
+      dt,
+      {
       onRampLaunch: () => this.push('assist', t.x, t.y, t.z, { label: 'LAUNCHED' }),
       onHardFall: () => {
         this.damageTank(tankCfg.fallDamage, 'fall');
         this.push('crash', t.x, t.y, t.z, { value: tankCfg.fallDamage });
       },
-    });
+        onJump: () => this.push('jump', t.x, t.y, t.z),
+        onDash: () => this.push('dash', t.x, t.y, t.z, { yaw: t.yaw }),
+      },
+      this.world,
+    );
     // Hard obstacle crash damage (crusher/factory/wall) at speed.
     if (speed > 10 && hits.length > 0) {
       const hardHit = hits.some((hit) => {
-        const ob = hit.obstacleId ? ARENA.obstacles.find((o) => o.id === hit.obstacleId) : undefined;
+        const ob = hit.obstacleId ? this.world.obstacles.find((o) => o.id === hit.obstacleId) : undefined;
         return !!ob && (ob.type === 'crusher' || ob.type === 'factory' || ob.type === 'wall');
       });
       if (hardHit) {
@@ -260,15 +316,17 @@ export class MatchRuntime {
 
   private respawn() {
     const t = this.state.tank;
-    const spawn = nearestSpawn(t.x, t.z);
+    const spawn = this.world.nearestSpawn(t.x, t.z);
     t.x = spawn.x;
-    t.y = groundHeightAt(spawn.x, spawn.z);
+    t.y = this.world.groundHeightAt(spawn.x, spawn.z);
     t.z = spawn.z;
     t.vx = 0;
     t.vy = 0;
     t.vz = 0;
     t.yawVel = 0;
     t.roll = 0;
+    t.dashCooldown = 0;
+    t.dashPresentationT = 0;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
     t.integrity = this.cfg.tank.maxIntegrity;

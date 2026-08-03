@@ -70,7 +70,7 @@ describe('content pack metadata on the server', () => {
     manager.handle(a, {
       t: 'input',
       seq: 1,
-      driver: { throttle: 1, steer: 0, boost: false, brace: false },
+      driver: { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false },
       definitions: [{ id: 'weapon.hacked', damage: 9999 }],
       content: { packId: 'hacked', version: '9.9.9', hash: 'deadbeef', modeId: 'mode.hacked' },
     });

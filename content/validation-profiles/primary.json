@@ -1,0 +1,13 @@
+{
+  "id": "validationProfile.primary",
+  "label": "Primary 400m Validation",
+  "heightRange": {
+    "min": -5,
+    "max": 10
+  },
+  "maxSlope": 0.5,
+  "minFeatureSeparation": 20,
+  "maxGenerationMs": 500,
+  "boundsEpsilon": 1e-6,
+  "checkDeterminism": false
+}

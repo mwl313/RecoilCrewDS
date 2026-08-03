@@ -5,7 +5,9 @@ export const difficultySchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^difficulty\./, 'difficulty id must start with difficulty.'),
   timeScale: positiveNumber.default(1),
-  overrides: z.record(z.string().regex(/^match\./, 'override keys must be match.* stat ids'), finiteNumber).optional(),
+  overrides: z
+    .record(z.string().regex(/^(match|tank)\./, 'override keys must be match.* or tank.* stat ids'), finiteNumber)
+    .optional(),
 });
 
 export type DifficultyDefinition = z.infer<typeof difficultySchema>;

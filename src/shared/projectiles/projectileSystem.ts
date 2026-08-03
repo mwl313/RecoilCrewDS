@@ -1,4 +1,3 @@
-import { ARENA, groundHeightAt } from '../arena';
 import { dist, dist2, pointInBox } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { ShellState } from '../types';
@@ -57,7 +56,7 @@ export class ProjectileSystem {
           continue;
         }
       }
-      const h = groundHeightAt(sh.x, sh.z);
+      const h = this.ctx.world.groundHeightAt(sh.x, sh.z);
       let exploded = false;
       if (sh.y <= h + 0.05) {
         sh.y = h + 0.05;
@@ -65,7 +64,7 @@ export class ProjectileSystem {
       }
       if (!exploded) {
         const r = sh.kind === 'jackpot' ? 1.4 : 0.9;
-        for (const o of ARENA.obstacles) {
+        for (const o of this.ctx.world.obstacles) {
           if (pointInBox(sh.x, sh.z, o.x, o.z, o.w + r * 2, o.d + r * 2)) {
             exploded = true;
             break;

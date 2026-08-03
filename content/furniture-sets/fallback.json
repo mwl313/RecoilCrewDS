@@ -1,0 +1,22 @@
+{
+  "id": "furnitureSet.fallback",
+  "label": "Legacy Fallback Furniture",
+  "routeClearance": 14,
+  "routeMinHalfWidth": 12,
+  "maxRouteSlope": 0.35,
+  "landmarks": [],
+  "ramps": {
+    "count": 0,
+    "length": [8, 12],
+    "width": [8, 10],
+    "rise": [1, 2],
+    "minSpacing": 60
+  },
+  "barrel": {
+    "count": 0,
+    "minSpacing": 10,
+    "chainRadius": 8,
+    "maxChain": 3
+  },
+  "entries": []
+}

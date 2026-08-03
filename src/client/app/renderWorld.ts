@@ -6,6 +6,7 @@ import { ArenaView } from '../arenaView';
 import { VfxSystem } from '../vfx';
 import type { AssetService } from '../assets';
 import type { TpsCameraController } from '../tpsCamera';
+import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 
 /**
  * RenderWorld owns the renderer, scene graph, post-processing passes, arena
@@ -15,7 +16,7 @@ import type { TpsCameraController } from '../tpsCamera';
 export class RenderWorld {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
-  readonly arena: ArenaView;
+  arena: ArenaView;
   readonly vfx: VfxSystem;
   composer: EffectComposer | null = null;
   bloom: UnrealBloomPass | null = null;
@@ -23,7 +24,8 @@ export class RenderWorld {
 
   constructor(
     private readonly container: HTMLElement,
-    assets: AssetService,
+    private readonly assets: AssetService,
+    world: ArenaWorld,
   ) {
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || window.innerHeight;
@@ -38,7 +40,7 @@ export class RenderWorld {
     this.renderer.domElement.id = 'game-canvas';
     container.appendChild(this.renderer.domElement);
     this.setupScene();
-    this.arena = new ArenaView(assets);
+    this.arena = new ArenaView(assets, world);
     this.scene.add(this.arena.group);
     this.vfx = new VfxSystem(this.scene);
     this.setupPost();
@@ -47,7 +49,7 @@ export class RenderWorld {
 
   private setupScene(): void {
     this.scene.background = new THREE.Color(0x3d4c56);
-    this.scene.fog = new THREE.Fog(0x3d4c56, 60, 150);
+    this.scene.fog = new THREE.Fog(0x3d4c56, 100, 150);
     const hemi = new THREE.HemisphereLight(0xffe9c8, 0x3b3f45, 0.85);
     this.scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xffd9a0, 1.9);
@@ -58,7 +60,7 @@ export class RenderWorld {
     sun.shadow.camera.right = 50;
     sun.shadow.camera.top = 50;
     sun.shadow.camera.bottom = -50;
-    sun.shadow.camera.far = 90;
+    sun.shadow.camera.far = 120;
     sun.shadow.bias = -0.0006;
     this.scene.add(sun);
     const fill = new THREE.DirectionalLight(0x7fb4c4, 0.5);
@@ -90,6 +92,14 @@ export class RenderWorld {
 
   setCamera(camera: THREE.PerspectiveCamera): void {
     if (this.renderPass) this.renderPass.camera = camera;
+  }
+
+  /** Phase 3: swap the arena view (rematch / reconnect / practice reroll). */
+  rebuildArena(world: ArenaWorld): void {
+    this.arena.dispose();
+    this.scene.remove(this.arena.group);
+    this.arena = new ArenaView(this.assets, world);
+    this.scene.add(this.arena.group);
   }
 
   render(camera: THREE.PerspectiveCamera): void {

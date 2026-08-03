@@ -10,15 +10,16 @@ export const tankSchema = z.object({
   reverseAccel: positiveNumber,
   steerLow: nonNegativeNumber,
   steerHigh: nonNegativeNumber,
-  boostMult: positiveNumber,
-  boostGrip: positiveNumber,
   normalGrip: positiveNumber,
-  braceGrip: positiveNumber,
-  braceAccelMult: positiveNumber,
-  braceSteerMult: positiveNumber,
   airControl: nonNegativeNumber,
   gravity: positiveNumber,
-  jumpImpulse: nonNegativeNumber,
+  jumpHeight: nonNegativeNumber,
+  rampLaunchSpeed: nonNegativeNumber,
+  dashImpulse: nonNegativeNumber,
+  dashCooldown: nonNegativeNumber,
+  dashAirMultiplier: nonNegativeNumber,
+  dashMaxHorizontalSpeed: positiveNumber,
+  dashPresentationSeconds: nonNegativeNumber,
   collisionRadius: positiveNumber,
   footprint: z
     .array(
@@ -40,10 +41,8 @@ export const tankSchema = z.object({
   fallDamage: nonNegativeNumber,
   recoilImpulse: nonNegativeNumber,
   recoilSpin: nonNegativeNumber,
-  braceRecoilMult: nonNegativeNumber,
   jackpotRecoilImpulse: nonNegativeNumber,
   jackpotSpin: nonNegativeNumber,
-  jackpotBraceMult: nonNegativeNumber,
   mgRecoilImpulse: nonNegativeNumber,
 });
 

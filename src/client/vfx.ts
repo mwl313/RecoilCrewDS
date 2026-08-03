@@ -184,6 +184,20 @@ export class VfxSystem {
     this.spawnRing(x, y + 0.2, z, 0xffb45e, big ? 9 : 4.5, big ? 0.6 : 0.38);
   }
 
+  /** Short transient backwards burst for a chassis-forward dash. */
+  spawnDashBurst(x: number, y: number, z: number, yaw: number): void {
+    const bx = -Math.sin(yaw) * 1.8;
+    const bz = -Math.cos(yaw) * 1.8;
+    this.spawnBurst(x + bx, y + 0.35, z + bz, 0x7fd4ff, 10, 7, 0.34, 0.22, 0, 0.55);
+    this.spawnRing(x, y + 0.12, z, 0x9fe8ff, 2.2, 0.26);
+  }
+
+  /** Takeoff dust for a grounded jump. */
+  spawnJumpDust(x: number, y: number, z: number): void {
+    this.spawnBurst(x, y + 0.12, z, 0x9a8462, 12, 3.4, 0.3, 0.34, 2.4, 0.6);
+    this.spawnRing(x, y + 0.08, z, 0xcbb294, 1.8, 0.3);
+  }
+
   smoke(x: number, y: number, z: number, color = 0x4a4a4a, count = 4, life = 1.2) {
     this.spawnBurst(x, y, z, color, count, 1.6, 0.9, life, -1.2, 0.5);
   }

@@ -14,8 +14,7 @@
     "weapon.splashInnerMultiplier": 1,
     "weapon.splashOuterMultiplier": 0.65,
     "weapon.jackpotRecoilImpulse": 17,
-    "weapon.jackpotRecoilSpin": 4.5,
-    "weapon.jackpotBraceMultiplier": 0.32
+    "weapon.jackpotRecoilSpin": 4.5
   },
   "projectileId": "projectile.jackpotShell",
   "presentation": {

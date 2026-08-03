@@ -1,0 +1,8 @@
+{
+  "id": "landmark.openCombat",
+  "label": "Open Combat",
+  "zoneTag": "openCombat",
+  "source": "center",
+  "count": 2,
+  "priority": 4
+}

@@ -19,14 +19,11 @@ export class ScoreSystem {
     this.ctx.combo.reset();
   }
 
-  addLink(kind: 'braceShot' | 'scrapLoop' | 'ramFinish'): void {
+  addLink(kind: 'scrapLoop' | 'ramFinish'): void {
     const sc = this.ctx.rules.config.scoring;
     let value = 0;
     let label = '';
-    if (kind === 'braceShot') {
-      value = sc.linkBraceShot;
-      label = 'CREW LINK: BRACE SHOT';
-    } else if (kind === 'scrapLoop') {
+    if (kind === 'scrapLoop') {
       value = sc.linkScrapLoop;
       label = 'CREW LINK: SCRAP LOOP';
     } else {
@@ -35,7 +32,7 @@ export class ScoreSystem {
     }
     this.ctx.state.stats.links++;
     this.addScore(value, label);
-    this.ctx.jackpot.addGain(this.ctx.rules.config.jackpot.braceShotGain);
+    this.ctx.jackpot.addGain(this.ctx.rules.config.jackpot.linkGain);
     pushEvent(this.ctx, 'link', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, { label });
   }
 }

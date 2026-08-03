@@ -1,4 +1,3 @@
-import { ARENA, groundHeightAt, obstacleAt, resolveCircle } from '../arena';
 import { angleLerp, clamp, dist } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState } from '../types';
@@ -74,7 +73,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const turn = behaviorParam(def, 'movement.obstacleAvoid', 'turn', 1.1);
       const aheadX = e.x + runtime.dirX * lookAhead;
       const aheadZ = e.z + runtime.dirZ * lookAhead;
-      if (obstacleAt(aheadX, aheadZ)) {
+      if (ctx.world.obstacleAt(aheadX, aheadZ)) {
         const ang = Math.atan2(runtime.dirX, runtime.dirZ);
         const side = e.id % 2 === 0 ? 1 : -1;
         const newAng = ang + side * turn;
@@ -91,9 +90,9 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
       e.x += (runtime.dirX / ml) * runtime.speed * dt;
       e.z += (runtime.dirZ / ml) * runtime.speed * dt;
-      e.y = groundHeightAt(e.x, e.z);
+      e.y = ctx.world.groundHeightAt(e.x, e.z);
       e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
-      const col = resolveCircle(e.x, e.z, r);
+      const col = ctx.world.resolveCircle(e.x, e.z, r);
       e.x = col.x;
       e.z = col.z;
     },
@@ -192,7 +191,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             ctx.enemies.sharedDodgeAwarded = true;
             ctx.combo.addDriverContribution(2, ctx.rules.config.jackpot.dodgeGain, 'DODGE');
           }
-          const col = resolveCircle(e.x, e.z, r);
+          const col = ctx.world.resolveCircle(e.x, e.z, r);
           if (col.hit) {
             e.state = 'recovery';
             e.stateT = 0;
@@ -226,7 +225,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
           }
           break;
       }
-      e.y = groundHeightAt(e.x, e.z);
+      e.y = ctx.world.groundHeightAt(e.x, e.z);
     },
   });
 
@@ -304,7 +303,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const truckRules = ctx.rules.spawnDirector.truck;
       if (!truck.active) return;
       truck.sirenT += dt;
-      const route = ARENA.truckRoute;
+      const route = ctx.world.truckRoute;
       const wp = route[truck.waypoint];
       const dx = wp.x - truck.x;
       const dz = wp.z - truck.z;
@@ -312,12 +311,12 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       truck.yaw = angleLerp(truck.yaw, Math.atan2(dx, dz), clamp(dt * 3, 0, 1));
       truck.x += (dx / d) * speed * dt;
       truck.z += (dz / d) * speed * dt;
-      truck.y = groundHeightAt(truck.x, truck.z);
+      truck.y = ctx.world.groundHeightAt(truck.x, truck.z);
       e.x = truck.x;
       e.y = truck.y;
       e.z = truck.z;
       e.yaw = truck.yaw;
-      const col = resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e));
+      const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e));
       truck.x = col.x;
       truck.z = col.z;
       if (d < waypointReach) {

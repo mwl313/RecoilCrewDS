@@ -24,7 +24,7 @@
     "speedCollect": 2,
     "ram": 4,
     "dodge": 3,
-    "braceShot": 4
+    "linkGain": 4
   },
   "combo": {
     "pointsPerLevel": 3,
@@ -33,7 +33,6 @@
     "bothWindow": 8
   },
   "links": {
-    "braceShot": 50,
     "scrapLoop": 40,
     "ramFinish": 40
   },
@@ -43,7 +42,6 @@
   },
   "scrapLoopWindow": 3,
   "ramScore": 20,
-  "jackpotBraceBonus": 150,
   "wipeoutPenalty": 0.15,
   "jackpotCooldown": 12,
   "assist": {
