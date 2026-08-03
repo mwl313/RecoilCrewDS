@@ -67,7 +67,7 @@ export class Hud {
   }
 
   setGameScreen(show: boolean) {
-    this.hudRuntime.setVisible(show);
+    this.flow.setGameVisible(show);
   }
 
   setTheme(role: Role) {

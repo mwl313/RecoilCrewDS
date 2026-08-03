@@ -363,6 +363,9 @@ test('pause overlay neutralizes gameplay input and one practice click starts one
   const z1 = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
   expect(Math.abs(z1 - z0)).toBeLessThan(0.3);
   await a.click('#resume-btn');
+  await a.waitForTimeout(300);
+  await expect(a.locator('#screen-pause')).toHaveClass(/hidden/);
+  await expect(a.locator('#hud:not(.hidden)')).toBeVisible();
   await ctxA.close();
   await ctxB.close();
 
@@ -370,6 +373,8 @@ test('pause overlay neutralizes gameplay input and one practice click starts one
   await enter(practice);
   await practice.click('#screen-main [data-act="practice"]');
   await practice.waitForTimeout(600);
+  await expect(practice.locator('#screen-main')).toHaveClass(/hidden/);
+  await expect(practice.locator('#hud:not(.hidden)')).toBeVisible();
   const canvases = await practice.evaluate(() => document.querySelectorAll('canvas#game-canvas').length);
   expect(canvases).toBe(1);
   const passes = await practice.evaluate(() => (window as unknown as { __recoil: { composerPasses(): number } }).__recoil.composerPasses());

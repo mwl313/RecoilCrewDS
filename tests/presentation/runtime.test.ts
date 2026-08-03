@@ -7,6 +7,7 @@ import { SceneRuntime } from '../../src/client/presentation/sceneRuntime';
 import { HudProjector, emptyHudViewModel } from '../../src/client/presentation/hudViewModel';
 import type { MatchState } from '../../src/shared/types';
 import { PRESENTATION_SCENES, PRESENTATION_HUDS } from '../../src/generated/presentationContent.generated';
+import { AppFlowController } from '../../src/client/presentation/appFlowController';
 
 function makeRuntime(container: HTMLElement): { runtime: SceneRuntime; actions: SceneActionRegistry } {
   const registry = new UiComponentRegistry();
@@ -21,7 +22,9 @@ describe('SceneRuntime components', () => {
     const container = document.createElement('div');
     const { runtime, actions } = makeRuntime(container);
     let clicked = 0;
-    actions.register('app.test', () => clicked++);
+    actions.register('app.enter', () => {
+      clicked++;
+    });
     await runtime.load({
       id: 'scene.test',
       label: 'Test',
@@ -33,7 +36,7 @@ describe('SceneRuntime components', () => {
         children: [
           { id: 'label', type: 'text', text: 'hi', bindings: [{ target: 'text', source: 'name' }] },
           { id: 'visible', type: 'text', text: 'x', bindings: [{ target: 'visible', source: 'show' }] },
-          { id: 'btn', type: 'button', text: 'GO', actions: [{ event: 'click', action: 'app.test' }] },
+          { id: 'btn', type: 'button', text: 'GO', actions: [{ event: 'click', action: 'app.enter' }] },
           { id: 'box', type: 'progressBar', props: { valueSource: 'v', maxSource: 'max' } },
         ],
       },
@@ -58,7 +61,9 @@ describe('SceneRuntime components', () => {
     const container = document.createElement('div');
     const { runtime, actions } = makeRuntime(container);
     const rematched: string[] = [];
-    actions.register('app.rematch', (payload) => rematched.push(String(payload)));
+    actions.register('app.rematch', (payload) => {
+      rematched.push(String(payload));
+    });
     await runtime.load({
       id: 'scene.list',
       label: 'List',
@@ -133,9 +138,9 @@ describe('HudProjector', () => {
   function state(partial: Partial<MatchState> = {}): MatchState {
     return {
       tank: { x: 0, y: 0, z: 0, vx: 10, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false, deadT: 0, prevOnRamp: false },
-      turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false },
+      turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 },
       combo: { multiplier: 1 },
-      stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, time: 0 },
+      stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, bestCombo: 0, ramKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false },
       duration: 90,
       time: 0,
       truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: 100, waypoint: 0, escaped: false, sirenT: 0 },
@@ -157,7 +162,7 @@ describe('HudProjector', () => {
 
   it('projects safe view fields (no raw MatchState exposure)', () => {
     const projector = new HudProjector();
-    const vm = projector.project(state({ stats: { score: 12345, jackpotMeter: 80, scrapCollected: 5, kills: 4, links: 2, wipeouts: 1, time: 0 } }), {
+    const vm = projector.project(state({ stats: { score: 12345, jackpotMeter: 80, scrapCollected: 5, kills: 4, links: 2, wipeouts: 1, bestCombo: 5, ramKills: 1, dodgeCount: 2, jackpotFired: 1, anyContribution: true } }), {
       role: 'driver',
       peerConnected: true,
       ping: 24.2,
@@ -178,7 +183,7 @@ describe('HudProjector', () => {
   it('gunner/practice projection and prompts', () => {
     const projector = new HudProjector();
     const vm = projector.project(
-      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 1.2, mgCooldown: 0, mgFiring: false, chargeT: 0.5, jackpotReady: true } }),
+      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 1.2, mgCooldown: 0, mgFiring: false, chargeT: 0.5, jackpotReady: true, cannonFlash: 0, jackpotCooldown: 0 } }),
       { role: 'gunner', peerConnected: true, ping: 10, fps: 60, pointerLocked: false, practice: true, objective: null },
     );
     expect(vm.crosshairVisible).toBe(true);
@@ -192,5 +197,39 @@ describe('HudProjector', () => {
     const vm = emptyHudViewModel();
     expect(vm.match.timeRemaining).toBe(90);
     expect(vm.pip.roleLabel).toBe('GUNNER FEED');
+  });
+});
+
+describe('AppFlowController overlay visibility', () => {
+  it('game visibility hides every scene overlay (pause/menu regression)', async () => {
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const hudEl = document.createElement('div');
+    hudEl.id = 'hud';
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new AppFlowController(container, themeRoot, registry);
+    flow.setHudElement(hudEl);
+    flow.bind({} as never);
+
+    flow.showState('main');
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect(hudEl.classList.contains('hidden')).toBe(true);
+
+    // Gameplay starts: every screen must disappear, HUD appears.
+    flow.setGameVisible(true);
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(true);
+    expect(hudEl.classList.contains('hidden')).toBe(false);
+
+    // Pause overlay shows, then resume hides it again.
+    flow.showState('pause');
+    expect((container.querySelector('#screen-pause') as HTMLElement).classList.contains('hidden')).toBe(false);
+    flow.setGameVisible(true);
+    expect((container.querySelector('#screen-pause') as HTMLElement).classList.contains('hidden')).toBe(true);
+    expect(hudEl.classList.contains('hidden')).toBe(false);
+
+    // Leaving to the menu re-shows the menu scene.
+    flow.showState('main');
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
   });
 });

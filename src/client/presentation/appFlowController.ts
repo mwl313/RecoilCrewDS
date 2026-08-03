@@ -61,6 +61,20 @@ export class AppFlowController {
     this.hudElement = element;
   }
 
+  /**
+   * Gameplay visibility (mirrors the legacy HUD contract): when gameplay is
+   * shown, EVERY scene screen is hidden and the HUD is shown; when hidden,
+   * every screen and the HUD are hidden. Also tears down any hybrid
+   * presentation world so a menu background never renders behind gameplay.
+   */
+  setGameVisible(show: boolean): void {
+    for (const runtime of this.runtimes.values()) {
+      runtime.element?.classList.add('hidden');
+    }
+    if (this.hudElement) this.hudElement.classList.toggle('hidden', !show);
+    if (show) this.disposePresentationWorld();
+  }
+
   setUiSound(fn: () => void): void {
     this.uiSound = fn;
   }
@@ -85,14 +99,18 @@ export class AppFlowController {
   }
 
   private syncPresentationWorld(stateId: FlowStateId): void {
-    this.activeWorld?.dispose();
-    this.activeWorld = null;
+    this.disposePresentationWorld();
     if (!this.presentationFactory || stateId !== 'main') return;
     const scene = PRESENTATION_SCENES['scene.mainMenu'];
     if (scene.type !== 'hybrid') return;
     const container = this.runtimes.get('scene.mainMenu')?.element;
     if (!container) return;
     this.activeWorld = this.presentationFactory(scene, container);
+  }
+
+  private disposePresentationWorld(): void {
+    this.activeWorld?.dispose();
+    this.activeWorld = null;
   }
 
   private services(): SceneRuntimeServices {
