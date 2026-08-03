@@ -1,11 +1,18 @@
 import * as THREE from 'three';
-import { ARENA, type Obstacle } from '../shared/arena';
-import type { GameAssets } from './assets';
+import type { Obstacle } from '../shared/arena';
+import type { ArenaWorld } from '../shared/sim/arenaWorld';
+import type { AssetService } from './assets';
+import { setClientGroundHeightAt } from './groundQuery';
 
 export interface Collider {
   box: THREE.Box3;
   type: string;
 }
+
+const TERRAIN_CHUNKS = 4;
+const CELLS_PER_CHUNK = 25;
+const LOD_FAR = 150;
+const LOD_NEAR = 130;
 
 function groundTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
@@ -35,7 +42,6 @@ function groundTexture(): THREE.CanvasTexture {
     ctx.arc(Math.random() * 512, Math.random() * 512, 4 + Math.random() * 18, 0, Math.PI * 2);
     ctx.fill();
   }
-  // Center bowl marking.
   ctx.strokeStyle = 'rgba(210,180,120,0.45)';
   ctx.lineWidth = 8;
   ctx.beginPath();
@@ -70,8 +76,8 @@ function hazardTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-function cloneScaled(assets: GameAssets, id: string, sx: number, sy: number, sz: number, x: number, z: number, y = 0, ry = 0): THREE.Object3D {
-  const m = assets.models.resolve(id).clone(true);
+function cloneScaled(assets: AssetService, id: string, sx: number, sy: number, sz: number, x: number, z: number, y = 0, ry = 0): THREE.Object3D {
+  const m = assets.model(id).clone(true);
   m.scale.set(sx, sy, sz);
   m.position.set(x, y, z);
   m.rotation.y = ry;
@@ -90,47 +96,39 @@ function boxMesh(w: number, h: number, d: number, mat: THREE.Material, x: number
   return m;
 }
 
+/**
+ * Arena view built from the match-scoped ArenaWorld. Generated worlds get
+ * chunked terrain (LOD + frustum culling) whose vertices agree with the
+ * authoritative heightfield; legacy worlds keep the flat ground view.
+ * Rendering never mutates authoritative data.
+ */
 export class ArenaView {
   group = new THREE.Group();
   colliders: Collider[] = [];
   barrelMeshes = new Map<number, THREE.Object3D>();
+  private readonly world: ArenaWorld;
+  private readonly assets: AssetService;
+  private readonly chunks: Array<{ mesh: THREE.Mesh; full: THREE.BufferGeometry; half: THREE.BufferGeometry; center: THREE.Vector3; isHalf: boolean }> = [];
+  private readonly disposables: Array<THREE.BufferGeometry | THREE.Material | THREE.Texture | THREE.Object3D> = [];
 
-  constructor(private assets: GameAssets) {
+  constructor(assets: AssetService, world: ArenaWorld) {
+    this.assets = assets;
+    this.world = world;
+    setClientGroundHeightAt((x, z) => world.groundHeightAt(x, z));
     this.build();
   }
 
   private build() {
-    const half = ARENA.half;
-    // Ground.
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(half * 2 + 4, half * 2 + 4),
-      new THREE.MeshStandardMaterial({ map: groundTexture(), color: 0xc9b487, roughness: 0.92, metalness: 0.02 }),
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.02;
-    ground.receiveShadow = true;
-    this.group.add(ground);
-
-    // Center bowl.
-    const bowl = new THREE.Mesh(
-      new THREE.CircleGeometry(7.4, 32),
-      new THREE.MeshStandardMaterial({ color: 0x5e5340, roughness: 0.9, flatShading: true }),
-    );
-    bowl.rotation.x = -Math.PI / 2;
-    bowl.position.y = -0.4;
-    bowl.receiveShadow = true;
-    this.group.add(bowl);
-    const bowlRing = new THREE.Mesh(
-      new THREE.TorusGeometry(7.4, 0.22, 6, 40),
-      boxMat(0xd8c08a, 0.6),
-    );
-    bowlRing.rotation.x = -Math.PI / 2;
-    bowlRing.position.y = -0.38;
-    this.group.add(bowlRing);
+    const half = this.world.half;
+    if (this.world.heightfield) {
+      this.buildTerrainChunks();
+    } else {
+      this.buildLegacyGround(half);
+    }
 
     // Ramps.
-    for (const ramp of ARENA.ramps) {
-      const model = this.assets.models.resolve('arena.ramp');
+    for (const ramp of this.world.ramps) {
+      const model = this.assets.model('arena.ramp');
       model.scale.set(ramp.w, ramp.rise, ramp.d);
       model.position.set(ramp.x, ramp.baseY, ramp.z);
       model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
@@ -139,33 +137,199 @@ export class ArenaView {
         o.receiveShadow = true;
       });
       this.group.add(model);
-      const box = new THREE.Box3(
-        new THREE.Vector3(ramp.x - ramp.w / 2, 0, ramp.z - ramp.d / 2),
-        new THREE.Vector3(ramp.x + ramp.w / 2, ramp.baseY + ramp.rise, ramp.z + ramp.d / 2),
-      );
-      this.colliders.push({ box, type: 'ramp' });
+      this.disposables.push(model);
+      this.colliders.push({
+        box: new THREE.Box3(
+          new THREE.Vector3(ramp.x - ramp.w / 2, 0, ramp.z - ramp.d / 2),
+          new THREE.Vector3(ramp.x + ramp.w / 2, ramp.baseY + ramp.rise, ramp.z + ramp.d / 2),
+        ),
+        type: 'ramp',
+      });
     }
 
-    // Obstacles.
-    for (const o of ARENA.obstacles) {
+    // Obstacles (authoritative colliders, visibly represented).
+    for (const o of this.world.obstacles) {
       this.buildObstacle(o);
     }
 
     // Barrels.
-    for (const b of ARENA.barrels) {
-      const mesh = this.assets.models.resolve('prop.explosiveBarrel').clone(true);
+    for (const b of this.world.barrels) {
+      const mesh = this.assets.model('prop.explosiveBarrel').clone(true);
       mesh.position.set(b.x, 0, b.z);
       mesh.rotation.y = Math.random() * Math.PI;
       this.group.add(mesh);
       this.barrelMeshes.set(b.id, mesh);
+      this.disposables.push(mesh);
       this.colliders.push({ box: new BoxAround(b.x, b.z, 0.9, 0.9, 1.1), type: 'barrel' });
     }
 
-    // Light poles for industrial character.
+    // Client-only decorations (non-authoritative) as instanced meshes.
+    this.buildDecorations();
+
+    // Light poles for industrial character (visual only).
+    this.buildLightPoles();
+  }
+
+  private buildLegacyGround(half: number) {
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(half * 2 + 4, half * 2 + 4),
+      new THREE.MeshStandardMaterial({ map: groundTexture(), color: 0xc9b487, roughness: 0.92, metalness: 0.02 }),
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.02;
+    ground.receiveShadow = true;
+    this.group.add(ground);
+    this.disposables.push(ground.geometry, ground.material as THREE.Material);
+
+    const bowl = new THREE.Mesh(
+      new THREE.CircleGeometry(7.4, 32),
+      new THREE.MeshStandardMaterial({ color: 0x5e5340, roughness: 0.9, flatShading: true }),
+    );
+    bowl.rotation.x = -Math.PI / 2;
+    bowl.position.y = -0.4;
+    bowl.receiveShadow = true;
+    this.group.add(bowl);
+    this.disposables.push(bowl.geometry, bowl.material as THREE.Material);
+    const bowlRing = new THREE.Mesh(
+      new THREE.TorusGeometry(7.4, 0.22, 6, 40),
+      boxMat(0xd8c08a, 0.6),
+    );
+    bowlRing.rotation.x = -Math.PI / 2;
+    bowlRing.position.y = -0.38;
+    this.group.add(bowlRing);
+    this.disposables.push(bowlRing.geometry, bowlRing.material as THREE.Material);
+  }
+
+  private buildTerrainChunks() {
+    const hf = this.world.heightfield!;
+    const cell = hf.cellSize;
+    const originX = -this.world.half;
+    const originZ = -this.world.half;
+    const material = new THREE.MeshStandardMaterial({
+      map: groundTexture(),
+      color: 0xb9a77d,
+      roughness: 0.94,
+      metalness: 0.02,
+    });
+    this.disposables.push(material, material.map as THREE.Texture);
+    for (let cz = 0; cz < TERRAIN_CHUNKS; cz++) {
+      for (let cx = 0; cx < TERRAIN_CHUNKS; cx++) {
+        const full = this.buildChunkGeometry(hf, cx, cz, 1, originX, originZ);
+        const half = this.buildChunkGeometry(hf, cx, cz, 2, originX, originZ);
+        const mesh = new THREE.Mesh(full, material);
+        mesh.frustumCulled = true;
+        mesh.receiveShadow = true;
+        this.group.add(mesh);
+        const center = new THREE.Vector3(
+          originX + (cx + 0.5) * CELLS_PER_CHUNK * cell,
+          0,
+          originZ + (cz + 0.5) * CELLS_PER_CHUNK * cell,
+        );
+        this.chunks.push({ mesh, full, half, center, isHalf: false });
+        this.disposables.push(full, half);
+      }
+    }
+  }
+
+  private buildChunkGeometry(
+    hf: NonNullable<ArenaWorld['heightfield']>,
+    cx: number,
+    cz: number,
+    step: number,
+    originX: number,
+    originZ: number,
+  ): THREE.BufferGeometry {
+    const cells = CELLS_PER_CHUNK;
+    const verts = Math.floor(cells / step) + 1;
+    const positions = new Float32Array(verts * verts * 3);
+    const normals = new Float32Array(verts * verts * 3);
+    const uvs = new Float32Array(verts * verts * 2);
+    const indices: number[] = [];
+    const startXi = cx * cells;
+    const startZi = cz * cells;
+    for (let zi = 0; zi < verts; zi++) {
+      for (let xi = 0; xi < verts; xi++) {
+        const sx = startXi + xi * step;
+        const sz = startZi + zi * step;
+        const i = zi * verts + xi;
+        const wx = sx * hf.cellSize + originX;
+        const wz = sz * hf.cellSize + originZ;
+        positions[i * 3] = wx;
+        positions[i * 3 + 1] = hf.getSample(sx, sz);
+        positions[i * 3 + 2] = wz;
+        const n = hf.normalAt(sx * hf.cellSize, sz * hf.cellSize);
+        normals[i * 3] = n.nx;
+        normals[i * 3 + 1] = n.ny;
+        normals[i * 3 + 2] = n.nz;
+        uvs[i * 2] = wx / 4;
+        uvs[i * 2 + 1] = wz / 4;
+      }
+    }
+    for (let zi = 0; zi < verts - 1; zi++) {
+      for (let xi = 0; xi < verts - 1; xi++) {
+        const a = zi * verts + xi;
+        const b = a + 1;
+        const c = a + verts;
+        const d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    geo.computeBoundingSphere();
+    return geo;
+  }
+
+  private buildDecorations() {
+    const layout = this.world.arena?.layout;
+    if (!layout) return;
+    const decorations = layout.objects.filter((o) => !o.collider);
+    const byAsset = new Map<string, typeof decorations>();
+    for (const d of decorations) {
+      const list = byAsset.get(d.assetId) ?? [];
+      list.push(d);
+      byAsset.set(d.assetId, list);
+    }
+    for (const [assetId, items] of byAsset) {
+      const proto = this.assets.model(assetId) as THREE.Mesh;
+      const protoGeo = proto.geometry instanceof THREE.BufferGeometry
+        ? proto.geometry
+        : new THREE.BoxGeometry(0.7, 0.7, 0.7);
+      const protoMat =
+        proto.material instanceof THREE.Material
+          ? proto.material
+          : new THREE.MeshStandardMaterial({ color: 0x8a7a55 });
+      const mesh = new THREE.InstancedMesh(
+        protoGeo,
+        protoMat,
+        items.length,
+      );
+      const matrix = new THREE.Matrix4();
+      const quat = new THREE.Quaternion();
+      const scale = new THREE.Vector3(0.7, 0.7, 0.7);
+      items.forEach((item, i) => {
+        quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), item.yaw);
+        matrix.compose(new THREE.Vector3(item.x, item.h ?? 0.5, item.z), quat, scale);
+        mesh.setMatrixAt(i, matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.frustumCulled = true;
+      this.group.add(mesh);
+      this.disposables.push(mesh);
+    }
+  }
+
+  private buildLightPoles() {
     const poleMat = boxMat(0x2c3138, 0.8);
     const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffd37a, emissiveIntensity: 1.1 });
+    this.disposables.push(poleMat, lampMat);
+    const half = this.world.half;
     const poles: [number, number][] = [
-      [-20, -20], [20, -20], [-20, 20], [20, 20], [0, -35], [0, 35], [-35, 0], [35, 0],
+      [-half * 0.5, -half * 0.5], [half * 0.5, -half * 0.5], [-half * 0.5, half * 0.5], [half * 0.5, half * 0.5],
+      [0, -half * 0.9], [0, half * 0.9], [-half * 0.9, 0], [half * 0.9, 0],
     ];
     for (const [px, pz] of poles) {
       const pole = boxMesh(0.24, 5.2, 0.24, poleMat, px, 2.6, pz);
@@ -198,6 +362,7 @@ export class ArenaView {
         stripe.position.y = h - 0.28;
         g.add(stripe);
         mesh = g;
+        this.disposables.push(stripe.material as THREE.Material, stripe.geometry);
         break;
       }
       case 'crusher': {
@@ -210,6 +375,7 @@ export class ArenaView {
         const stripeMat = new THREE.MeshStandardMaterial({ map: hazardTexture(), roughness: 0.8 });
         g.add(boxMesh(0.7, 0.7, d + 0.1, stripeMat, 0, h - 0.35, 0));
         mesh = g;
+        this.disposables.push(stripeMat, head.geometry);
         break;
       }
       case 'towerBase': {
@@ -245,7 +411,48 @@ export class ArenaView {
       mesh.position.y = h / 2;
     }
     this.group.add(mesh);
+    this.disposables.push(mesh);
     this.colliders.push({ box: new BoxAround(x, z, w, d, h), type: o.type });
+  }
+
+  /** Per-frame LOD + culling maintenance (cheap geometry swap). */
+  update(cameraPosition: THREE.Vector3): void {
+    for (const chunk of this.chunks) {
+      const d = chunk.center.distanceTo(cameraPosition);
+      const wantHalf = d > LOD_FAR || (chunk.isHalf && d > LOD_NEAR);
+      if (wantHalf !== chunk.isHalf) {
+        chunk.mesh.geometry = wantHalf ? chunk.half : chunk.full;
+        chunk.isHalf = wantHalf;
+      }
+    }
+  }
+
+  /** Remove everything and release per-view resources (rematch-safe). */
+  dispose(): void {
+    for (const chunk of this.chunks) {
+      this.group.remove(chunk.mesh);
+    }
+    this.chunks.length = 0;
+    for (const d of this.disposables) {
+      if (d instanceof THREE.BufferGeometry) d.dispose();
+      else if (d instanceof THREE.Material) {
+      const map = (d as THREE.MeshStandardMaterial).map;
+      if (map) map.dispose();
+        d.dispose();
+      } else if (d instanceof THREE.Texture) d.dispose();
+      else if (d instanceof THREE.Object3D) {
+        d.traverse((o) => {
+          const m = o as THREE.Mesh;
+          if (m.geometry) m.geometry.dispose();
+          const mat = m.material as THREE.Material | THREE.Material[] | undefined;
+          if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+          else if (mat) mat.dispose();
+        });
+      }
+    }
+    this.disposables.length = 0;
+    this.colliders.length = 0;
+    this.barrelMeshes.clear();
   }
 }
 

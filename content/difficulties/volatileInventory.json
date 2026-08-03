@@ -1,0 +1,9 @@
+{
+  "id": "difficulty.volatileInventory",
+  "label": "Volatile Inventory",
+  "description": "Bigger barrel blasts and longer chain reactions.",
+  "timeScale": 1,
+  "overrides": {
+    "match.barrelRadius": 3.4
+  }
+}

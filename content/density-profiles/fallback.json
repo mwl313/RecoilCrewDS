@@ -1,0 +1,14 @@
+{
+  "id": "densityProfile.fallback",
+  "label": "Legacy Fallback Density",
+  "budgets": {
+    "maxObjects": 0,
+    "maxColliders": 0,
+    "maxBarrels": 0,
+    "maxCrates": 0,
+    "maxRamps": 0,
+    "maxMedium": 0,
+    "maxDecorations": 0,
+    "maxBarrelChain": 3
+  }
+}

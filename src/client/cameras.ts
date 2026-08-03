@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { groundHeightAt } from '../shared/arena';
+import { clientGroundHeightAt } from './groundQuery';
 import { clamp, lerp, wrapAngle } from '../shared/math';
 import { cameraRayHit, rayAabbT, type Collider } from './arenaView';
 
@@ -75,7 +75,7 @@ export class TpsCamera {
     if (hit < dist) {
       eye.copy(origin).addScaledVector(toEye, hit - 0.12);
     }
-    const ground = groundHeightAt(eye.x, eye.z);
+    const ground = clientGroundHeightAt(eye.x, eye.z);
     if (eye.y < ground + 0.35) eye.y = ground + 0.35;
 
     const damp = isPip ? 1 : Math.min(1, dt * 14);
@@ -132,7 +132,7 @@ export class PipCamera {
       .clone()
       .addScaledVector(dir, -6.8)
       .add(new THREE.Vector3(0, role === 'driver' ? 2.7 : 2.3, 0));
-    const ground = groundHeightAt(eye.x, eye.z);
+    const ground = clientGroundHeightAt(eye.x, eye.z);
     if (eye.y < ground + 0.4) eye.y = ground + 0.4;
     this.pos.lerp(eye, Math.min(1, dt * 5));
     if (this.pos.lengthSq() === 0) this.pos.copy(eye);

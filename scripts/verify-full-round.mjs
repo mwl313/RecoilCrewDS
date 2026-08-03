@@ -95,7 +95,7 @@ const playInterval = setInterval(() => {
   driver.send({
     t: 'input',
     seq: driverSeq++,
-    driver: { throttle: 0.85, steer, boost: t % 8 < 1.4, brace: s.turret.jackpotReady },
+    driver: { throttle: 0.85, steer, dashPressed: t % 8 < 0.1, jumpPressed: false },
   });
   let aimYaw = s.tank.yaw + Math.PI / 2;
   let enemy = null;
@@ -110,7 +110,7 @@ const playInterval = setInterval(() => {
   gunner.send({
     t: 'input',
     seq: gunnerSeq++,
-    gunner: { aimYaw, aimPitch: 0.05, mg: t % 3 < 2, cannon, charge: s.turret.jackpotReady },
+    gunner: { aimYaw, aimPitch: 0.05, primary: t % 3 < 2, secondary: cannon, ability: s.turret.jackpotReady },
   });
 }, 100);
 

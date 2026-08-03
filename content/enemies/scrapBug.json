@@ -1,0 +1,33 @@
+{
+  "id": "enemy.scrapBug",
+  "label": "Scrap Bug",
+  "type": "scrapBug",
+  "presentationId": "enemy.scrapBug",
+  "hp": 3,
+  "radius": 0.8,
+  "score": 50,
+  "jackpotGain": 3,
+  "contributionPoints": 2,
+  "dropTableId": "drops.scrapBug",
+  "behaviors": [
+    { "id": "movement.seekTank", "parameters": {} },
+    { "id": "movement.circleTarget", "parameters": {} },
+    { "id": "movement.separation", "parameters": {} },
+    { "id": "movement.obstacleAvoid", "parameters": {} },
+    { "id": "movement.integrate", "parameters": {} },
+    { "id": "attack.contactRam", "parameters": {} }
+  ],
+  "speed": 3.2,
+  "damage": 4,
+  "hitCooldown": 1.0,
+  "circleDistance": 7,
+  "circleStrength": 0.85,
+  "separationDistance": 2.4,
+  "separationStrength": 0.8,
+  "obstacleAvoidTurn": 1.1,
+  "speedWobbleAmplitude": 0.6,
+  "speedWobbleFrequency": 1.7,
+  "ramSpeedThreshold": 5,
+  "ramScore": 20,
+  "ramKnockback": 0.92
+}

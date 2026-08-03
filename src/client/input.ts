@@ -1,5 +1,9 @@
 export class InputManager {
   private keys = new Set<string>();
+  /** Keys currently held down that can re-arm a one-shot action edge. */
+  private actionArmed = new Set<string>();
+  /** Pending one-shot action edges, cleared after the next input frame. */
+  private actionLatches = new Set<string>();
   private mouse = new Set<string>();
   private dx = 0;
   private dy = 0;
@@ -17,9 +21,9 @@ export class InputManager {
     ArrowLeft: 'left',
     KeyD: 'right',
     ArrowRight: 'right',
-    ShiftLeft: 'boost',
-    ShiftRight: 'boost',
-    Space: 'brace',
+    ShiftLeft: 'dash',
+    ShiftRight: 'dash',
+    Space: 'jump',
     Tab: 'swap',
     KeyR: 'recenter',
     KeyQ: 'swap',
@@ -52,6 +56,8 @@ export class InputManager {
 
   private clearAll() {
     this.keys.clear();
+    this.actionArmed.clear();
+    this.actionLatches.clear();
     this.mouse.clear();
     this.dx = 0;
     this.dy = 0;
@@ -95,6 +101,16 @@ export class InputManager {
   private onKeyDown = (e: KeyboardEvent) => {
     if (!this.enabled) return;
     const name = this.keyMap[e.code];
+    if (name === 'dash' || name === 'jump') {
+      e.preventDefault();
+      // Browser key-repeat and any keydown while already held are ignored;
+      // the edge latches once and waits for keyup before re-arming.
+      if (!this.actionArmed.has(name)) {
+        this.actionArmed.add(name);
+        this.actionLatches.add(name);
+      }
+      return;
+    }
     if (name === 'swap') {
       e.preventDefault();
       this.swapPressed = true;
@@ -106,7 +122,6 @@ export class InputManager {
     }
     if (name) {
       this.keys.add(name);
-      if (e.code === 'Space') e.preventDefault();
     }
     if (e.code === 'Escape') {
       this.escapePressed = true;
@@ -116,6 +131,10 @@ export class InputManager {
   private onKeyUp = (e: KeyboardEvent) => {
     if (!this.enabled) return;
     const name = this.keyMap[e.code];
+    if (name === 'dash' || name === 'jump') {
+      this.actionArmed.delete(name);
+      return;
+    }
     if (name) this.keys.delete(name);
   };
 
@@ -133,14 +152,14 @@ export class InputManager {
       this.requestLock();
       return;
     }
-    if (e.button === 0) this.mouse.add('mg');
-    if (e.button === 2) this.mouse.add('cannon');
+    if (e.button === 0) this.mouse.add('primary');
+    if (e.button === 2) this.mouse.add('secondary');
   };
 
   private onMouseUp = (e: MouseEvent) => {
     if (!this.enabled) return;
-    if (e.button === 0) this.mouse.delete('mg');
-    if (e.button === 2) this.mouse.delete('cannon');
+    if (e.button === 0) this.mouse.delete('primary');
+    if (e.button === 2) this.mouse.delete('secondary');
   };
 
   swapPressed = false;
@@ -180,10 +199,21 @@ export class InputManager {
     return this.mouse.has(name);
   }
 
+  /** Latched one-shot action edge (not consumed; survives until the next frame). */
+  edge(name: 'dash' | 'jump'): boolean {
+    return this.actionLatches.has(name);
+  }
+
+  /** Clear pending action edges after a Driver input frame was created. */
+  clearDriverEdges(): void {
+    this.actionLatches.clear();
+  }
+
   /** Test hook: currently held semantic keys/buttons. */
-  debugState(): { keys: string[]; buttons: string[]; enabled: boolean; locked: boolean; recenterPressed: boolean; swapPressed: boolean; escapePressed: boolean } {
+  debugState(): { keys: string[]; latches: string[]; buttons: string[]; enabled: boolean; locked: boolean; recenterPressed: boolean; swapPressed: boolean; escapePressed: boolean } {
     return {
       keys: [...this.keys],
+      latches: [...this.actionLatches],
       buttons: [...this.mouse],
       enabled: this.enabled,
       locked: this.locked,

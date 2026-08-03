@@ -1,6 +1,9 @@
 import { GAME } from '../shared/config';
+import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
+import { selectArenaSessionFromPack } from '../shared/mapgen/arenaSession';
 import { Match } from '../shared/sim/match';
-import { computeResults } from '../shared/sim/results';
+import type { ArenaWorld } from '../shared/sim/arenaWorld';
+import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
 
 export interface SocketLike {
@@ -27,18 +30,32 @@ export interface Client {
 
 export type RoomPhase = 'lobby' | 'countdown' | 'running' | 'results';
 
+/** Content pack metadata broadcast to clients (Phase 1, additive). */
+export interface ContentMetadata {
+  packId: string;
+  version: string;
+  hash: string;
+  modeId: string;
+}
+
 export interface Room {
   code: string;
   driver: Client | null;
   gunner: Client | null;
   phase: RoomPhase;
   match: Match | null;
+  content: ContentMetadata | null;
   ready: { driver: boolean; gunner: boolean };
   rematch: { driver: ModifierId | null; gunner: ModifierId | null };
   rematchModifier: ModifierId;
+  /** Deterministic map seed index: 0 = first round, +1 per rematch. */
+  matchIndex: number;
+  /** Match-scoped generated arena (Phase 3). */
+  arenaSession: ArenaSessionResult | null;
   countdownT: number;
   snapshotT: number;
   snapshotSeq: number;
+  lastMovementRulesRevision: number;
   lastCountdownShown: number;
   createdAt: number;
 }
@@ -69,8 +86,10 @@ function sanitizeDriver(raw: unknown): DriverInput | null {
   return {
     throttle,
     steer,
-    boost: !!r.boost,
-    brace: !!r.brace,
+    // Action edges accept only explicit booleans; anything else is treated
+    // as "not pressed" so clients can never manufacture extra edges.
+    dashPressed: r.dashPressed === true,
+    jumpPressed: r.jumpPressed === true,
   };
 }
 
@@ -79,13 +98,14 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
   const r = raw as Record<string, unknown>;
   const aimYaw = typeof r.aimYaw === 'number' && Number.isFinite(r.aimYaw) ? r.aimYaw : 0;
   const aimPitch = typeof r.aimPitch === 'number' && Number.isFinite(r.aimPitch) ? Math.max(-1.5, Math.min(1.5, r.aimPitch)) : 0;
-  return {
+  const gunner: GunnerInput = {
     aimYaw,
     aimPitch,
-    mg: !!r.mg,
-    cannon: !!r.cannon,
-    charge: !!r.charge,
+    primary: !!r.primary,
+    secondary: !!r.secondary,
+    ability: !!r.ability,
   };
+  return gunner;
 }
 
 export class RoomManager {
@@ -93,10 +113,19 @@ export class RoomManager {
   clients = new Map<string, Client>();
   private events: ManagerEvents = {};
   private now: () => number;
+  private contentMeta: ContentMetadata | null;
+  private pack: ContentPack | null;
 
-  constructor(opts: { events?: ManagerEvents; now?: () => number } = {}) {
+  constructor(opts: {
+    events?: ManagerEvents;
+    now?: () => number;
+    content?: ContentMetadata | null;
+    pack?: ContentPack | null;
+  } = {}) {
     this.events = opts.events ?? {};
     this.now = opts.now ?? (() => Date.now());
+    this.contentMeta = opts.content ?? null;
+    this.pack = opts.pack ?? null;
   }
 
   send(client: Client | null, msg: Record<string, unknown>) {
@@ -138,12 +167,16 @@ export class RoomManager {
       gunner: null,
       phase: 'lobby',
       match: null,
+      content: this.contentMeta,
       ready: { driver: false, gunner: false },
       rematch: { driver: null, gunner: null },
       rematchModifier: 'none',
+      matchIndex: 0,
+      arenaSession: null,
       countdownT: 0,
       snapshotT: 0,
       snapshotSeq: 0,
+      lastMovementRulesRevision: -1,
       lastCountdownShown: 3,
       createdAt: this.now(),
     };
@@ -205,7 +238,14 @@ export class RoomManager {
         candidate.lastMsgAt = this.now();
         candidate.lastInputAt = this.now();
         this.clients.set(candidate.id, candidate);
-        this.send(candidate, { t: 'joined', code, role: candidate.role, sessionId: candidate.sessionId, phase: room.phase });
+        this.send(candidate, {
+          t: 'joined',
+          code,
+          role: candidate.role,
+          sessionId: candidate.sessionId,
+          phase: room.phase,
+          arena: room.arenaSession?.metadata ?? null,
+        });
         this.broadcastPeers(room);
         return candidate;
       }
@@ -359,11 +399,33 @@ export class RoomManager {
   }
 
   private startMatch(room: Room) {
-    room.match = new Match(room.code + '-' + this.now(), room.rematchModifier);
+    const matchIndex = room.matchIndex;
+    room.matchIndex = matchIndex + 1;
+    let world: ArenaWorld | undefined;
+    if (this.pack) {
+      const session = selectArenaSessionFromPack(this.pack, {
+        roomCode: room.code,
+        matchIndex,
+      });
+      room.arenaSession = session;
+      world = session.world;
+    } else {
+      room.arenaSession = null;
+    }
+    room.match = this.pack
+      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world)
+      : new Match(room.code + '-' + this.now(), room.rematchModifier, undefined, world);
     room.phase = 'running';
     room.snapshotT = 0;
     room.ready = { driver: false, gunner: false };
-    this.broadcast(room, { t: 'start', matchId: room.match.state.matchId, modifier: room.rematchModifier });
+    const startMsg: Record<string, unknown> = {
+      t: 'start',
+      matchId: room.match.state.matchId,
+      modifier: room.rematchModifier,
+    };
+    if (room.content) startMsg.content = room.content;
+    if (room.arenaSession) startMsg.arena = room.arenaSession.metadata;
+    this.broadcast(room, startMsg);
     this.broadcastSnapshot(room);
   }
 
@@ -384,7 +446,9 @@ export class RoomManager {
   private broadcastSnapshot(room: Room) {
     if (!room.match) return;
     room.snapshotSeq++;
-    this.broadcast(room, {
+    const rules = room.match.rules;
+    const arena: ArenaMetadata | null = room.arenaSession?.metadata ?? null;
+    const msg: Record<string, unknown> = {
       t: 'snapshot',
       seq: room.snapshotSeq,
       serverTime: room.match.state.time,
@@ -392,7 +456,15 @@ export class RoomManager {
       lastProcessedDriverInputSeq: room.driver?.inputSeq ?? 0,
       lastProcessedGunnerInputSeq: room.gunner?.inputSeq ?? 0,
       state: room.match.state,
-    });
+      rulesRevision: rules.rulesRevision,
+      movementRulesRevision: rules.movementRulesRevision,
+      arena,
+    };
+    if (rules.movementRulesRevision !== room.lastMovementRulesRevision) {
+      room.lastMovementRulesRevision = rules.movementRulesRevision;
+      msg.movement = rules.movementBlock();
+    }
+    this.broadcast(room, msg);
   }
 
   private broadcastLobby(room: Room) {

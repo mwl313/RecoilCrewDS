@@ -68,6 +68,146 @@ test('real Driver keyboard input moves the shared tank online', async ({ browser
   await ctxB.close();
 });
 
+test('real Space press jumps exactly once online and requires a release to jump again', async ({ browser }) => {
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const a = await ctxA.newPage();
+  const b = await ctxB.newPage();
+  const errors: string[] = [];
+  for (const p of [a, b]) {
+    p.on('pageerror', (e) => errors.push(e.message));
+    p.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text());
+    });
+  }
+
+  await createCrew(a, b);
+  await a.evaluate(() => (window as unknown as { __recoil: { setAutoInput(v: boolean): void } }).__recoil.setAutoInput(true));
+  await a.waitForTimeout(500);
+
+  // One press: the authoritative tank must leave the ground.
+  await a.keyboard.press('Space');
+  await a.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { vy: number; grounded: boolean } } | null } }).__recoil.state();
+    return s ? (!s.tank.grounded || s.tank.vy > 1) : false;
+  }, undefined, { timeout: 10000 });
+
+  // Hold for the full airtime plus landing: count apexes above jumpHeight/2.
+  const apexes = await a.evaluate(async () => {
+    const w = window as unknown as { __recoil: { state(): { tank: { y: number } } | null } };
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    let count = 0;
+    let rising = false;
+    for (let i = 0; i < 90; i++) {
+      const s = w.__recoil.state();
+      if (s) {
+        const y = s.tank.y;
+        if (y > 1.1 && !rising) rising = true;
+        if (rising && y < 0.2) {
+          count++;
+          rising = false;
+        }
+      }
+      await delay(30);
+    }
+    return count;
+  });
+  await a.keyboard.up('Space');
+  expect(apexes).toBeLessThanOrEqual(1);
+
+  // Release + repress produces a second jump.
+  await a.keyboard.press('Space');
+  await a.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { vy: number } } | null } }).__recoil.state();
+    return s ? s.tank.vy > 1 : false;
+  }, undefined, { timeout: 10000 });
+  await a.keyboard.up('Space');
+
+  const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU'));
+  expect(critical).toEqual([]);
+  await ctxA.close();
+  await ctxB.close();
+});
+
+test('real Shift press dashes once online, never repeatedly while held', async ({ browser }) => {
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const a = await ctxA.newPage();
+  const b = await ctxB.newPage();
+  const errors: string[] = [];
+  for (const p of [a, b]) {
+    p.on('pageerror', (e) => errors.push(e.message));
+    p.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text());
+    });
+  }
+
+  await createCrew(a, b);
+  await a.evaluate(() => (window as unknown as { __recoil: { setAutoInput(v: boolean): void } }).__recoil.setAutoInput(true));
+  await a.waitForTimeout(500);
+
+  await a.keyboard.down('Shift');
+  await a.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { dashCooldown: number } } | null } }).__recoil.state();
+    return s ? s.tank.dashCooldown > 0 : false;
+  }, undefined, { timeout: 10000 });
+
+  // While Shift is held the tank must never receive a second dash burst:
+  // with throttle 0 the speed only decays after the first burst.
+  const bursts = await a.evaluate(async () => {
+    const w = window as unknown as { __recoil: { state(): { tank: { vx: number; vz: number } } | null } };
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    let prev = 0;
+    let bursts = 0;
+    for (let i = 0; i < 70; i++) {
+      const s = w.__recoil.state();
+      if (s) {
+        const speed = Math.hypot(s.tank.vx, s.tank.vz);
+        if (speed - prev > 3) bursts++;
+        prev = speed;
+      }
+      await delay(30);
+    }
+    return bursts;
+  });
+  await a.keyboard.up('Shift');
+  expect(bursts).toBe(1);
+
+  const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU'));
+  expect(critical).toEqual([]);
+  await ctxA.close();
+  await ctxB.close();
+});
+
+test('HUD and How To Play use JUMP/DASH labels with no active brace/boost text', async ({ browser }) => {
+  const menu = await browser.newPage();
+  await menu.goto('/?test=1');
+  await menu.click('#screen-boot');
+  await menu.click('#screen-main [data-act="howto"]');
+  const howto = await menu.textContent('#screen-howto');
+  expect(howto).toContain('Shift dash');
+  expect(howto).toContain('Space jump');
+  expect(howto).not.toMatch(/brace/i);
+  expect(howto).not.toMatch(/boost/i);
+  await menu.close();
+
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const a = await ctxA.newPage();
+  const b = await ctxB.newPage();
+  await createCrew(a, b);
+
+  // The HUD dash indicator exists and no BRACE/BOOST labels are live.
+  await a.waitForFunction(() => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running');
+  const hudText = await a.textContent('#hud');
+  expect(hudText).toContain('DASH');
+  expect(hudText).not.toMatch(/BRACE/);
+  expect(hudText).not.toMatch(/BOOST/);
+
+  await ctxA.close();
+  await ctxB.close();
+});
+
 test('real Gunner mouse fires the machine gun and aims the turret online', async ({ browser }) => {
   const ctxA = await browser.newContext();
   const ctxB = await browser.newContext();

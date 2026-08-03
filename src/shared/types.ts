@@ -1,19 +1,24 @@
+import type { MovementRulesBlock } from './stats/rulesRevision';
+
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
 
 export interface DriverInput {
   throttle: number; // -1 .. 1 (reverse .. forward)
   steer: number; // -1 .. 1
-  boost: boolean;
-  brace: boolean;
+  /** One-shot action edge: true only for the sequenced frame that latched it. */
+  dashPressed: boolean;
+  /** One-shot action edge: true only for the sequenced frame that latched it. */
+  jumpPressed: boolean;
 }
 
 export interface GunnerInput {
   aimYaw: number; // desired turret yaw, world radians
   aimPitch: number; // desired pitch, radians
-  mg: boolean;
-  cannon: boolean;
-  charge: boolean; // held while JACKPOT ready
+  /** Generic loadout actions (Phase 3+, sole wire contract since Phase 6). */
+  primary: boolean;
+  secondary: boolean;
+  ability: boolean; // held while JACKPOT ready
 }
 
 export interface PlayerInput {
@@ -104,8 +109,10 @@ export interface TankState {
   pitch: number;
   roll: number;
   integrity: number;
-  brace: boolean;
-  boosting: boolean;
+  /** Authoritative time until the next dash may be accepted (seconds). */
+  dashCooldown: number;
+  /** Short presentation window after an accepted dash (seconds). */
+  dashPresentationT: number;
   shieldedT: number;
   deadT: number;
   grounded: boolean;
@@ -164,7 +171,6 @@ export interface MatchConfig {
   cannonBurst: number;
   recoilImpulse: number;
   grip: number;
-  boostGrip: number;
   gravity: number;
   barrelRadius: number;
   pickupMagnet: number;
@@ -213,6 +219,8 @@ export interface MatchResults {
 
 export type SimEventType =
   | 'shot'
+  | 'jump'
+  | 'dash'
   | 'score'
   | 'mgHit'
   | 'kill'
@@ -249,6 +257,7 @@ export interface SimEvent {
   kind?: string;
   value?: number;
   label?: string;
+  yaw?: number;
 }
 
 export interface ClientState {
@@ -272,6 +281,10 @@ export interface SnapshotMessage {
   lastProcessedDriverInputSeq: number;
   lastProcessedGunnerInputSeq: number;
   state: MatchState;
+  /** Phase 2: reliable rules metadata (additive). */
+  rulesRevision?: number;
+  movementRulesRevision?: number;
+  movement?: MovementRulesBlock;
 }
 
 export interface EventMessage {

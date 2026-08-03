@@ -1,0 +1,57 @@
+{
+  "id": "scoring.demoScoreAttack",
+  "label": "Demo Score Attack Scoring",
+  "behaviors": ["behavior.scoring.demo"],
+  "enemyScores": {
+    "enemy.scrapBug": 50,
+    "enemy.rammer": 250,
+    "enemy.gunTower": 400,
+    "enemy.lootTruck": 800
+  },
+  "scrapScores": {
+    "normal": 25,
+    "heavy": 75,
+    "jackpot": 150
+  },
+  "jackpotGains": {
+    "enemy.scrapBug": 3,
+    "enemy.rammer": 8,
+    "enemy.gunTower": 12,
+    "enemy.lootTruck": 18,
+    "normalScrap": 1.5,
+    "heavyScrap": 4,
+    "jackpotScrap": 8,
+    "speedCollect": 2,
+    "ram": 4,
+    "dodge": 3,
+    "linkGain": 4
+  },
+  "combo": {
+    "pointsPerLevel": 3,
+    "max": 5,
+    "decayTime": 6,
+    "bothWindow": 8
+  },
+  "links": {
+    "scrapLoop": 40,
+    "ramFinish": 40
+  },
+  "atSpeed": {
+    "threshold": 12,
+    "bonus": 25
+  },
+  "scrapLoopWindow": 3,
+  "ramScore": 20,
+  "wipeoutPenalty": 0.15,
+  "jackpotCooldown": 12,
+  "assist": {
+    "floor55": 60,
+    "floor66": 85,
+    "floor70": 100,
+    "requireContributions": 2
+  },
+  "finalChaos": {
+    "mult": 1.5,
+    "start": 70
+  }
+}

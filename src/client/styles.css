@@ -395,7 +395,7 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
 .hud-speed { text-align: right; }
 .speed-num { font-family: 'Chakra Petch', monospace; font-size: 27px; color: #fff; }
 .speed-num small { font-size: 12px; color: var(--dim); margin-left: 4px; letter-spacing: 0.14em; }
-.brace-ind {
+.dash-ind {
   margin-top: 6px;
   font-size: 13px;
   letter-spacing: 0.22em;
@@ -405,11 +405,15 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   border-radius: 4px;
   display: inline-block;
 }
-.brace-ind.on {
+.dash-ind.on {
   color: #071014;
-  background: #ffd94d;
-  border-color: #ffd94d;
-  box-shadow: 0 0 14px rgba(255, 217, 77, 0.6);
+  background: #7fd4ff;
+  border-color: #7fd4ff;
+  box-shadow: 0 0 14px rgba(127, 212, 255, 0.6);
+}
+.dash-ind.cool:not(.on) {
+  color: #7fd4ff;
+  border-color: rgba(127, 212, 255, 0.45);
 }
 
 .hud-center {

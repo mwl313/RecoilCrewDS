@@ -1,0 +1,13 @@
+{
+  "id": "validationProfile.fallback",
+  "label": "Legacy Fallback Validation",
+  "heightRange": {
+    "min": -5,
+    "max": 10
+  },
+  "maxSlope": 0.75,
+  "minFeatureSeparation": 0,
+  "maxGenerationMs": 500,
+  "boundsEpsilon": 1e-6,
+  "checkDeterminism": true
+}

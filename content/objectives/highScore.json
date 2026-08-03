@@ -1,0 +1,11 @@
+{
+  "id": "objective.highScore",
+  "label": "High Score",
+  "description": "Score as many points as possible before the timer runs out.",
+  "kind": "scoreAttack",
+  "durationSeconds": 90,
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.demoScoreAttack",
+  "spawnDirector": "spawn.director.demoScoreAttack",
+  "behaviors": ["behavior.objective.scoreAttack"]
+}

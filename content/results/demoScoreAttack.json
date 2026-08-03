@@ -1,0 +1,23 @@
+{
+  "id": "results.demoScoreAttack",
+  "label": "Demo Grade and Title Rules",
+  "behaviors": ["behavior.results.demo"],
+  "grades": [
+    { "grade": "S", "minScore": 12000, "require": { "jackpotFired": 2 } },
+    { "grade": "A", "minScore": 8000, "require": { "bestCombo": 4, "links": 2 } },
+    { "grade": "B", "minScore": 4000, "require": { "jackpotFired": 1 } },
+    { "grade": "C", "minScore": 1500, "require": { "kills": 5 } },
+    { "grade": "D", "minScore": 0 }
+  ],
+  "titles": [
+    { "id": "title.airborneDivision", "text": "Airborne Division", "require": { "wipeouts": 3 } },
+    { "id": "title.recoilAccountants", "text": "Recoil Accountants", "require": { "jackpotFired": 0 } },
+    { "id": "title.friendlyFire", "text": "Friendly Fire Department", "require": { "links": 0 } },
+    { "id": "title.brakesOptional", "text": "The Brakes Were Optional", "require": { "ramKills": 3 } },
+    { "id": "title.oneBrain", "text": "One Brain, Two Browsers", "require": { "minScore": 12000 } },
+    { "id": "title.perfectlyCoordinated", "text": "Perfectly Coordinated Accident", "require": { "grade": "A" } },
+    { "id": "title.unlicensed", "text": "Unlicensed Ballistics", "require": { "grade": "B" } },
+    { "id": "title.brakesOptionalD", "text": "The Brakes Were Optional", "require": { "grade": "D" } },
+    { "id": "title.scrapGoblins", "text": "Scrap Goblins", "require": {} }
+  ]
+}

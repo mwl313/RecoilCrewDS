@@ -1,0 +1,10 @@
+{
+  "id": "item.overdriveCannon",
+  "label": "Overdrive Cannon",
+  "kind": "boost",
+  "behaviors": [],
+  "modifiers": [
+    { "stat": "weapon.cannonDamage", "operation": "multiply", "value": 1.5, "stacking": "replace", "priority": 70 }
+  ],
+  "presentationId": "icon.jackpot"
+}

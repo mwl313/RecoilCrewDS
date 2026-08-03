@@ -1,0 +1,28 @@
+{
+  "id": "enemy.rammer",
+  "label": "Rammer",
+  "type": "rammer",
+  "presentationId": "enemy.rammer",
+  "hp": 14,
+  "radius": 1.05,
+  "score": 250,
+  "jackpotGain": 8,
+  "contributionPoints": 2,
+  "dropTableId": "drops.rammer",
+  "behaviors": [
+    { "id": "attack.telegraphedCharge", "parameters": {} },
+    { "id": "trait.vulnerableRear", "parameters": { "rearBonus": 1.5, "whenState": "recovery" } }
+  ],
+  "approachSpeed": 3.2,
+  "chargeSpeed": 13,
+  "damage": 16,
+  "telegraphTime": 0.75,
+  "chargeTime": 1.25,
+  "recoveryTime": 0.9,
+  "lockTime": 0.45,
+  "lockDistance": 16,
+  "dodgeDistance": 3.6,
+  "knockback": 7,
+  "recoveryDecel": 8,
+  "rearBonus": 1.5
+}

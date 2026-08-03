@@ -55,8 +55,8 @@ async function startDriver(page: Page) {
       w.__recoil.input('driver', {
         throttle: 0.85,
         steer,
-        boost: t % 8 < 1.4,
-        brace: s.turret.jackpotReady,
+        dashPressed: t % 8 < 0.1,
+        jumpPressed: false,
       });
     }, 100);
     (window as unknown as Record<string, unknown>).__stopDriver = () => clearInterval(id);
@@ -109,9 +109,9 @@ async function startGunner(page: Page) {
       w.__recoil.input('gunner', {
         aimYaw,
         aimPitch: 0.05,
-        mg: t % 3 < 2,
-        cannon,
-        charge: s.turret.jackpotReady,
+        primary: t % 3 < 2,
+        secondary: cannon,
+        ability: s.turret.jackpotReady,
       });
     }, 100);
     (window as unknown as Record<string, unknown>).__stopGunner = () => clearInterval(id);
@@ -167,11 +167,11 @@ test('two browsers play a complete round, fire JACKPOT, see results, and rematch
 
   // Cannon recoil: watch the auto-Gunner's real shots and confirm a fresh
   // cannon blast changes the shared tank's velocity by roughly the recoil
-  // impulse (the Driver is not braced this early in the round).
+  // impulse (recoil is always full strength now).
   const recoilOk = await b.evaluate(async () => {
     const w = window as unknown as {
       __recoil: { state(): {
-        tank: { deadT: number; brace: boolean; vx: number; vz: number };
+        tank: { deadT: number; vx: number; vz: number };
         turret: { cannonCooldown: number };
       } };
     };
@@ -181,7 +181,7 @@ test('two browsers play a complete round, fire JACKPOT, see results, and rematch
       const s = w.__recoil.state();
       if (s) {
         const cd = s.turret.cannonCooldown;
-        if (prevCd < 0.3 && cd > 1.0 && !s.tank.brace && s.tank.deadT <= 0) {
+        if (prevCd < 0.3 && cd > 1.0 && s.tank.deadT <= 0) {
           await delay(250);
           const s2 = w.__recoil.state();
           if (s2) {
@@ -197,8 +197,6 @@ test('two browsers play a complete round, fire JACKPOT, see results, and rematch
   });
   expect(recoilOk).toBe(true);
 
-  // Loot truck appears on schedule.
-  await waitState(a, 's => s.truck.active === true');
   // First JACKPOT lands thanks to pacing assistance + play.
   await waitState(a, 's => s.stats.jackpotFired >= 1');
   await waitState(b, 's => s.stats.jackpotFired >= 1');

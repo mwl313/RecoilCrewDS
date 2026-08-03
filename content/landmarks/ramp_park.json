@@ -1,0 +1,8 @@
+{
+  "id": "landmark.rampPark",
+  "label": "Ramp Park",
+  "zoneTag": "rampPark",
+  "source": "ridge",
+  "count": 2,
+  "priority": 6
+}

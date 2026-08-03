@@ -1,0 +1,31 @@
+{
+  "id": "enemy.testHound",
+  "label": "Test Hound",
+  "type": "scrapBug",
+  "presentationId": "enemy.scrapBug",
+  "behaviors": [
+    { "id": "movement.seekTank", "parameters": { "speed": 4.5 } },
+    { "id": "movement.circleTarget", "parameters": { "distance": 5, "strength": 0.6 } },
+    { "id": "movement.integrate", "parameters": {} },
+    { "id": "attack.contactRam", "parameters": { "damage": 3 } }
+  ],
+  "hp": 8,
+  "radius": 0.8,
+  "score": 120,
+  "jackpotGain": 4,
+  "contributionPoints": 2,
+  "dropTableId": "drops.testHound",
+  "speed": 4.5,
+  "damage": 3,
+  "hitCooldown": 1.0,
+  "circleDistance": 5,
+  "circleStrength": 0.6,
+  "separationDistance": 2.4,
+  "separationStrength": 0.8,
+  "obstacleAvoidTurn": 1.1,
+  "speedWobbleAmplitude": 0,
+  "speedWobbleFrequency": 1.7,
+  "ramSpeedThreshold": 5,
+  "ramScore": 20,
+  "ramKnockback": 0.92
+}

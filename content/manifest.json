@@ -1,0 +1,69 @@
+{
+  "pack": {
+    "id": "demo",
+    "version": "1.0.0",
+    "mode": "mode.demoScoreAttack",
+    "files": {
+      "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json"],
+      "objectives": ["objectives/highScore.json", "objectives/truckEscort.json"],
+      "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json"],
+      "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json"],
+      "validationProfiles": ["validation-profiles/primary.json", "validation-profiles/fallback.json"],
+      "landmarks": [
+        "landmarks/basin_center.json",
+        "landmarks/resource_plateau.json",
+        "landmarks/ramp_park.json",
+        "landmarks/open_combat.json"
+      ],
+      "furnitureSets": ["furniture-sets/primary.json", "furniture-sets/fallback.json"],
+      "densityProfiles": ["density-profiles/primary.json", "density-profiles/fallback.json"],
+      "tanks": ["tanks/default.json"],
+      "loadouts": ["loadouts/default.json", "loadouts/truckHunter.json"],
+      "weapons": [
+        "weapons/machineGun.json",
+        "weapons/mainCannon.json",
+        "weapons/jackpotShell.json",
+        "weapons/rapidCannon.json"
+      ],
+      "projectiles": [
+        "projectiles/cannonShell.json",
+        "projectiles/jackpotShell.json",
+        "projectiles/towerShot.json"
+      ],
+      "enemies": [
+        "enemies/scrapBug.json",
+        "enemies/rammer.json",
+        "enemies/gunTower.json",
+        "enemies/lootTruck.json",
+        "enemies/testHound.json"
+      ],
+      "dropTables": [
+        "drop-tables/scrapBug.json",
+        "drop-tables/rammer.json",
+        "drop-tables/gunTower.json",
+        "drop-tables/lootTruck.json",
+        "drop-tables/testHound.json"
+      ],
+      "pickups": [
+        "pickups/normalScrap.json",
+        "pickups/heavyScrap.json",
+        "pickups/jackpotScrap.json"
+      ],
+      "items": ["items/overdriveCannon.json"],
+      "statusEffects": [],
+      "spawnDirectors": ["spawn-directors/demoScoreAttack.json", "spawn-directors/truckHunter.json"],
+      "scoring": ["scoring/demoScoreAttack.json"],
+      "results": ["results/demoScoreAttack.json"],
+      "difficulties": [
+        "difficulties/standard.json",
+        "difficulties/doubleBarrel.json",
+        "difficulties/soapTracks.json",
+        "difficulties/moonYard.json",
+        "difficulties/volatileInventory.json",
+        "difficulties/scrapMagnet.json",
+        "difficulties/overclocked.json"
+      ],
+      "presentation": ["presentation/demoScoreAttack.json"]
+    }
+  }
+}

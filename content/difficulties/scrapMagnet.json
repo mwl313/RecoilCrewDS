@@ -1,0 +1,10 @@
+{
+  "id": "difficulty.scrapMagnet",
+  "label": "Scrap Magnet",
+  "description": "Stronger pickup magnet but shorter pickup life.",
+  "timeScale": 1,
+  "overrides": {
+    "match.pickupMagnet": 2.2,
+    "match.pickupLife": 0.45
+  }
+}

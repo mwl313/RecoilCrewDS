@@ -82,12 +82,93 @@ describe('InputManager', () => {
     windowTarget.dispatch('keydown', keyEvent('KeyW'));
     expect(input.key('forward')).toBe(true);
     windowTarget.dispatch('keydown', keyEvent('KeyA'));
-    windowTarget.dispatch('keydown', keyEvent('Space'));
     expect(input.key('left')).toBe(true);
-    expect(input.key('brace')).toBe(true);
     windowTarget.dispatch('keyup', keyEvent('KeyW'));
     expect(input.key('forward')).toBe(false);
     expect(input.key('left')).toBe(true);
+  });
+
+  it('Space latches exactly one jump edge per press', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    expect(input.edge('jump')).toBe(true);
+    expect(input.edge('dash')).toBe(false);
+    // The latch persists across frames until the input frame consumes it.
+    expect(input.edge('jump')).toBe(true);
+    input.clearDriverEdges();
+    expect(input.edge('jump')).toBe(false);
+  });
+
+  it('holding Space never repeats the jump edge and keyup re-arms it', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    // Browser key-repeat events (no keyup between) must not re-latch.
+    windowTarget.dispatch('keydown', { ...keyEvent('Space'), repeat: true });
+    windowTarget.dispatch('keydown', { ...keyEvent('Space'), repeat: true });
+    input.clearDriverEdges();
+    expect(input.edge('jump')).toBe(false);
+    // Still held: no new edge even after clearing.
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    expect(input.edge('jump')).toBe(false);
+    // Release, then a fresh press produces a new edge.
+    windowTarget.dispatch('keyup', keyEvent('Space'));
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    expect(input.edge('jump')).toBe(true);
+  });
+
+  it('Shift latches exactly one dash edge per press from either Shift key', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    windowTarget.dispatch('keydown', keyEvent('ShiftLeft'));
+    expect(input.edge('dash')).toBe(true);
+    windowTarget.dispatch('keyup', keyEvent('ShiftLeft'));
+    windowTarget.dispatch('keydown', keyEvent('ShiftRight'));
+    expect(input.edge('dash')).toBe(true);
+    input.clearDriverEdges();
+    expect(input.edge('dash')).toBe(false);
+  });
+
+  it('blur, visibility loss, pointer-lock loss, and disable clear latches', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    const relatch = () => {
+      windowTarget.dispatch('keydown', keyEvent('Space'));
+      windowTarget.dispatch('keydown', keyEvent('ShiftLeft'));
+    };
+    relatch();
+    windowTarget.dispatch('blur', {});
+    expect(input.edge('jump')).toBe(false);
+    expect(input.edge('dash')).toBe(false);
+
+    relatch();
+    (documentTarget as unknown as { visibilityState: string }).visibilityState = 'hidden';
+    documentTarget.dispatch('visibilitychange', {});
+    expect(input.edge('jump')).toBe(false);
+    expect(input.edge('dash')).toBe(false);
+    (documentTarget as unknown as { visibilityState: string }).visibilityState = 'visible';
+
+    relatch();
+    input.setEnabled(false);
+    expect(input.edge('jump')).toBe(false);
+    expect(input.edge('dash')).toBe(false);
+    input.setEnabled(true);
+
+    relatch();
+    documentTarget.pointerLockElement = null;
+    documentTarget.dispatch('pointerlockchange', {});
+    expect(input.edge('jump')).toBe(false);
+    expect(input.edge('dash')).toBe(false);
+  });
+
+  it('exposes latched edges in the debug test hook', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    expect(input.debugState().latches).toContain('jump');
+    input.clearDriverEdges();
+    expect(input.debugState().latches).toEqual([]);
   });
 
   it('records swap, recenter, and escape as one-shot flags', () => {
@@ -123,15 +204,15 @@ describe('InputManager', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
     canvas.requestPointerLock();
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
     canvas.dispatch('mousedown', mouseEvent({ button: 2 }));
-    expect(input.button('mg')).toBe(true);
-    expect(input.button('cannon')).toBe(true);
+    expect(input.button('primary')).toBe(true);
+    expect(input.button('secondary')).toBe(true);
     windowTarget.dispatch('mouseup', mouseEvent({ button: 2 }));
-    expect(input.button('cannon')).toBe(false);
-    expect(input.button('mg')).toBe(true);
+    expect(input.button('secondary')).toBe(false);
+    expect(input.button('primary')).toBe(true);
   });
 
   it('requests pointer lock from a canvas click while unlocked', () => {
@@ -142,7 +223,7 @@ describe('InputManager', () => {
     expect(canvas.requestPointerLockCalls).toBe(1);
     expect(input.locked).toBe(true);
     // The click that acquired the lock must not fire a weapon button.
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
   });
 
   it('clears held keys and buttons when pointer lock is lost', () => {
@@ -152,11 +233,11 @@ describe('InputManager', () => {
     canvas.requestPointerLock();
     canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
     expect(input.key('forward')).toBe(true);
-    expect(input.button('mg')).toBe(true);
+    expect(input.button('primary')).toBe(true);
     documentTarget.pointerLockElement = null;
     documentTarget.dispatch('pointerlockchange', {});
     expect(input.locked).toBe(false);
     expect(input.key('forward')).toBe(false);
-    expect(input.button('mg')).toBe(false);
+    expect(input.button('primary')).toBe(false);
   });
 });

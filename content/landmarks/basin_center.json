@@ -1,0 +1,8 @@
+{
+  "id": "landmark.basinCenter",
+  "label": "Basin Center",
+  "zoneTag": "basin",
+  "source": "basin",
+  "count": 1,
+  "priority": 10
+}

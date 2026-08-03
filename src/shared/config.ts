@@ -19,15 +19,23 @@ export interface GameConfig {
     reverseAccel: number;
     steerLow: number;
     steerHigh: number;
-    boostMult: number;
-    boostGrip: number;
     normalGrip: number;
-    braceGrip: number;
-    braceAccelMult: number;
-    braceSteerMult: number;
     airControl: number;
     gravity: number;
-    jumpImpulse: number;
+    /** Approximate vertical rise in world metres for a grounded jump. */
+    jumpHeight: number;
+    /** Launch speed used by ramp launches (preserved legacy ramp behavior). */
+    rampLaunchSpeed: number;
+    /** Forward velocity delta added by a grounded dash (m/s). */
+    dashImpulse: number;
+    /** Minimum authoritative seconds between accepted dashes. */
+    dashCooldown: number;
+    /** Dash strength multiplier while airborne (0 disables air dash). */
+    dashAirMultiplier: number;
+    /** Post-dash horizontal speed cap (preserves direction). */
+    dashMaxHorizontalSpeed: number;
+    /** Presentation window after an accepted dash (seconds). */
+    dashPresentationSeconds: number;
     collisionRadius: number;
     /** Chassis footprint: circle offsets along forward and radii (metres). */
     footprint: { offset: number; radius: number }[];
@@ -46,10 +54,8 @@ export interface GameConfig {
     fallDamage: number;
     recoilImpulse: number;
     recoilSpin: number;
-    braceRecoilMult: number;
     jackpotRecoilImpulse: number;
     jackpotSpin: number;
-    jackpotBraceMult: number;
     mgRecoilImpulse: number;
   };
   weapons: {
@@ -109,7 +115,6 @@ export interface GameConfig {
     normalScrap: number;
     heavyScrap: number;
     jackpotScrap: number;
-    linkBraceShot: number;
     linkScrapLoop: number;
     linkRamFinish: number;
     comboPointsPerLevel: number;
@@ -130,7 +135,7 @@ export interface GameConfig {
     speedCollectGain: number;
     ramGain: number;
     dodgeGain: number;
-    braceShotGain: number;
+    linkGain: number;
     assistFloor55: number;
     assistFloor66: number;
     assistFloor70: number;
@@ -164,15 +169,16 @@ export const BASE_CONFIG: GameConfig = {
     reverseAccel: 10,
     steerLow: 1.5,
     steerHigh: 0.65,
-    boostMult: 1.45,
-    boostGrip: 0.35,
     normalGrip: 2.6,
-    braceGrip: 7.5,
-    braceAccelMult: 0.45,
-    braceSteerMult: 0.5,
     airControl: 0.35,
     gravity: 16,
-    jumpImpulse: 4.5,
+    jumpHeight: 2.2,
+    rampLaunchSpeed: 4.5,
+    dashImpulse: 9.0,
+    dashCooldown: 1.0,
+    dashAirMultiplier: 0.65,
+    dashMaxHorizontalSpeed: 28.0,
+    dashPresentationSeconds: 0.18,
     collisionRadius: 1.35,
     footprint: [
       { offset: -1.0, radius: 0.9 },
@@ -191,10 +197,8 @@ export const BASE_CONFIG: GameConfig = {
     fallDamage: 10,
     recoilImpulse: 7.2,
     recoilSpin: 1.7,
-    braceRecoilMult: 0.35,
     jackpotRecoilImpulse: 17,
     jackpotSpin: 4.5,
-    jackpotBraceMult: 0.32,
     mgRecoilImpulse: 0.07,
   },
   weapons: {
@@ -214,7 +218,7 @@ export const BASE_CONFIG: GameConfig = {
     jackpotSpeed: 38,
     jackpotChargeTime: 1.0,
     jackpotLife: 3.2,
-    turretTurnRate: 4.6,
+  turretTurnRate: 60,
     turretMaxPitch: 0.42,
     turretMinPitch: -0.12,
     barrelHp: 3,
@@ -254,7 +258,6 @@ export const BASE_CONFIG: GameConfig = {
     normalScrap: 25,
     heavyScrap: 75,
     jackpotScrap: 150,
-    linkBraceShot: 50,
     linkScrapLoop: 40,
     linkRamFinish: 40,
     comboPointsPerLevel: 3,
@@ -275,7 +278,7 @@ export const BASE_CONFIG: GameConfig = {
     speedCollectGain: 2,
     ramGain: 4,
     dodgeGain: 3,
-    braceShotGain: 4,
+    linkGain: 4,
     assistFloor55: 60,
     assistFloor66: 85,
     assistFloor70: 100,
@@ -321,7 +324,6 @@ export const MODIFIER_OVERRIDES: Record<ModifierId, Partial<MatchConfig> & { lab
     label: 'Soap Tracks',
     desc: 'Lower grip, wider drifts, less steering control.',
     grip: 0.35,
-    boostGrip: 0.18,
   },
   moonYard: {
     label: 'Moon Yard',
@@ -358,7 +360,6 @@ export function buildMatchConfig(modifier: ModifierId): MatchConfig {
     cannonBurst: 1,
     recoilImpulse: BASE_CONFIG.tank.recoilImpulse,
     grip: BASE_CONFIG.tank.normalGrip,
-    boostGrip: BASE_CONFIG.tank.boostGrip,
     gravity: BASE_CONFIG.tank.gravity,
     barrelRadius: BASE_CONFIG.weapons.barrelRadius,
     pickupMagnet: 1,

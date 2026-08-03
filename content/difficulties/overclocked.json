@@ -1,0 +1,12 @@
+{
+  "id": "difficulty.overclocked",
+  "label": "Overclocked",
+  "description": "Faster machine gun and more enemies.",
+  "timeScale": 1,
+  "overrides": {
+    "match.mgRate": 1.5,
+    "match.maxBugs": 1.4,
+    "match.maxRammers": 1.4,
+    "match.maxTowers": 1.5
+  }
+}

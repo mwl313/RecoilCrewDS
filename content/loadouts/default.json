@@ -1,0 +1,13 @@
+{
+  "id": "loadout.default",
+  "label": "Default Crew Loadout",
+  "primary": "weapon.machineGun",
+  "secondary": "weapon.mainCannon",
+  "ability": "weapon.jackpotShell",
+  "turret": {
+    "turnRate": 60,
+    "pitchFollowRate": 40,
+    "maxPitch": 0.42,
+    "minPitch": -0.12
+  }
+}

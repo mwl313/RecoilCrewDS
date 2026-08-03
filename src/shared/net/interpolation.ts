@@ -1,4 +1,5 @@
 import { angleLerp, clamp, lerp } from '../math';
+import type { MovementRulesBlock } from '../stats/rulesRevision';
 import type { EnemyState, MatchState, ShellState, TruckState } from '../types';
 
 export interface SnapshotEnvelope<T> {
@@ -7,6 +8,9 @@ export interface SnapshotEnvelope<T> {
   state: T;
   lastProcessedDriverInputSeq: number;
   lastProcessedGunnerInputSeq: number;
+  rulesRevision?: number;
+  movementRulesRevision?: number;
+  movement?: MovementRulesBlock;
 }
 
 export interface SnapshotPair<T> {

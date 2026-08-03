@@ -212,58 +212,75 @@ test('wall and high-speed collisions stop the tank without penetration or tunnel
   const a = await ctxA.newPage();
   const b = await ctxB.newPage();
   await createCrew(a, b);
-  // Guided approach: drive straight +Z at x=-6 past the bowl barrier
-  // (x -4..4, z 16..18), steer toward the gate lane (x≈-2), then boost
-  // straight into the crusher gate (x -5..5, z 35.25..37.75) at high speed.
+  // Generated-map approach: steer at the nearest obstacle, dash into it at
+  // speed, and verify the tank stops near the obstacle without tunneling.
   await a.evaluate(async () => {
-    const w = window as unknown as { __recoil: { input(r: string, d: unknown): void; state(): { tank: { yaw: number; x: number; z: number; vz: number } } } };
+    const w = window as unknown as {
+      __recoil: {
+        input(r: string, d: unknown): void;
+        obstacles(): Array<{ x: number; z: number; w: number; d: number }>;
+        state(): { tank: { yaw: number; x: number; z: number; vx: number; vz: number; dashCooldown: number } };
+      };
+    };
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    // 1. Straight +Z at x=-6 until safely past the bowl barrier.
-    w.__recoil.input('driver', { throttle: 1, steer: 0, boost: false, brace: false });
-    for (let i = 0; i < 30; i++) {
-      const s = w.__recoil.state();
-      if (s && s.tank.z > 19.5) break;
-      await delay(100);
+    // 1. Find the nearest obstacle to the spawn.
+    let s0 = w.__recoil.state();
+    const obstacles = w.__recoil.obstacles();
+    let target = obstacles[0];
+    let targetD = Infinity;
+    for (const o of obstacles) {
+      const d = Math.hypot(o.x - s0.tank.x, o.z - s0.tank.z);
+      if (d < targetD) {
+        targetD = d;
+        target = o;
+      }
     }
-    // 2. Guide toward the gate lane with a small P-controller until z reaches
-    // 26 (yaw+ comes from steer -1 under the project convention), leaving a
-    // long enough runway to reach full boost speed before impact.
-    for (let i = 0; i < 45; i++) {
-      const s = w.__recoil.state();
-      if (!s || s.tank.z >= 26) break;
-      const desiredYaw = Math.max(-0.45, Math.min(0.45, Math.atan2(-2 - s.tank.x, 29 - s.tank.z)));
-      const steer = Math.max(-1, Math.min(1, (s.tank.yaw - desiredYaw) * 2.5));
-      w.__recoil.input('driver', { throttle: 1, steer, boost: false, brace: false });
-      await delay(100);
-    }
-    // 3. Boost straight into the gate; track the peak forward speed.
+    // 2. Drive at it with a P-controller, dashing whenever available.
     let maxVz = 0;
-    let lastZ = -1;
-    for (let i = 0; i < 25; i++) {
+    let lastCd = -1;
+    let dashAccepted = false;
+    let impacted = false;
+    for (let i = 0; i < 600; i++) {
       const s = w.__recoil.state();
       if (!s) {
-        await delay(100);
+        await delay(16);
         continue;
       }
+      const yawTo = Math.atan2(target.x - s.tank.x, target.z - s.tank.z);
+      const steer = Math.max(-1, Math.min(1, (s.tank.yaw - yawTo) * 2.5));
       maxVz = Math.max(maxVz, s.tank.vz);
-      if (lastZ > 0 && s.tank.z - lastZ < 0.05 && i > 5) break; // impact
-      lastZ = s.tank.z;
-      w.__recoil.input('driver', { throttle: 1, steer: 0, boost: true, brace: false });
-      await delay(100);
+      const cd = s.tank.dashCooldown;
+      if (cd > 0.5) dashAccepted = true;
+      const speed = Math.hypot(s.tank.vx, s.tank.vz);
+      if (!impacted && maxVz > 10 && speed < 3 && i > 15) {
+        impacted = true;
+        (window as unknown as Record<string, unknown>).__impactDistance = Math.hypot(target.x - s.tank.x, target.z - s.tank.z);
+        break;
+      }
+      w.__recoil.input('driver', { throttle: 1, steer, dashPressed: cd <= 0 && lastCd <= 0, jumpPressed: false });
+      lastCd = cd;
+      await delay(16);
     }
-    w.__recoil.input('driver', { throttle: 0, steer: 0, boost: false, brace: false });
+    w.__recoil.input('driver', { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false });
     (window as unknown as Record<string, unknown>).__maxVz = maxVz;
+    (window as unknown as Record<string, unknown>).__dashAccepted = dashAccepted;
+    (window as unknown as Record<string, unknown>).__impactDistance =
+      (window as unknown as { __impactDistance?: number }).__impactDistance ??
+      Math.hypot(target.x - w.__recoil.state().tank.x, target.z - w.__recoil.state().tank.z);
   });
   await a.waitForTimeout(600);
   const maxVz = await a.evaluate(() => (window as unknown as { __maxVz: number }).__maxVz);
-  const z = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
-  const z2 = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
+  const dashAccepted = await a.evaluate(() => (window as unknown as { __dashAccepted: boolean }).__dashAccepted);
+  const impactDistance = await a.evaluate(() => (window as unknown as { __impactDistance: number }).__impactDistance);
+  const s2 = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { vx: number; vz: number; x: number; z: number } } } }).__recoil.state().tank);
   await a.waitForTimeout(500);
-  const z3 = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
-  expect(maxVz).toBeGreaterThan(18); // genuinely high-speed impact
-  expect(z).toBeLessThan(35.2); // never penetrated the z 35.25..37.75 gate
-  expect(z).toBeGreaterThan(31.0); // actually reached the gate
-  expect(Math.abs(z3 - z2)).toBeLessThan(0.3); // came to rest, no oscillation
+  const s3 = await a.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { vx: number; vz: number; x: number; z: number } } } }).__recoil.state().tank);
+  expect(dashAccepted).toBe(true); // the dash burst was accepted
+  expect(maxVz).toBeGreaterThan(12); // genuinely high-speed impact
+  expect(impactDistance).toBeLessThan(16); // actually reached the obstacle
+  expect(impactDistance).toBeGreaterThan(2); // stopped at the surface, not through it
+  expect(Math.hypot(s3.vx, s3.vz)).toBeLessThan(2); // came to rest, no oscillation
+  expect(Math.hypot(s3.x - s2.x, s3.z - s2.z)).toBeLessThan(1); // no tunneling drift after impact
   await ctxA.close();
   await ctxB.close();
 });

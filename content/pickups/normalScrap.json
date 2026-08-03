@@ -1,0 +1,8 @@
+{
+  "id": "pickup.normalScrap",
+  "label": "Normal Scrap",
+  "kind": "normal",
+  "life": 26,
+  "magnetRadius": 5,
+  "presentationId": "pickup.normalScrap"
+}

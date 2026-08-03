@@ -1,0 +1,27 @@
+{
+  "id": "enemy.gunTower",
+  "label": "Gun Tower",
+  "type": "gunTower",
+  "presentationId": "enemy.gunTower",
+  "hp": 18,
+  "radius": 1.0,
+  "score": 400,
+  "jackpotGain": 12,
+  "contributionPoints": 3,
+  "dropTableId": "drops.gunTower",
+  "behaviors": [
+    { "id": "attack.projectileBurst", "parameters": {} }
+  ],
+  "damage": 5,
+  "shotSpeed": 9,
+  "shotInterval": 0.22,
+  "shotCount": 3,
+  "firePause": 2.4,
+  "telegraphTime": 0.7,
+  "trackRate": 2.2,
+  "idleTime": 1.2,
+  "aimJitter": 0.05,
+  "muzzleOffsetX": 1.3,
+  "muzzleHeight": 2.4,
+  "shotLife": 6
+}

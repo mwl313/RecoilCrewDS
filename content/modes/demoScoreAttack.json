@@ -1,0 +1,24 @@
+{
+  "id": "mode.demoScoreAttack",
+  "label": "Demo Score Attack",
+  "description": "The classic Recoil Crew score-attack loop; the permanent regression fixture.",
+  "difficulty": "difficulty.standard",
+  "tank": "tank.default",
+  "loadout": "loadout.default",
+  "objectives": ["objective.highScore"],
+  "spawnDirector": "spawn.director.demoScoreAttack",
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.demoScoreAttack",
+  "presentation": "presentation.demoScoreAttack",
+  "rematch": {
+    "modifiers": [
+      "difficulty.doubleBarrel",
+      "difficulty.soapTracks",
+      "difficulty.moonYard",
+      "difficulty.volatileInventory",
+      "difficulty.scrapMagnet",
+      "difficulty.overclocked"
+    ]
+  },
+  "behaviors": ["behavior.mode.demoScoreAttack"]
+}

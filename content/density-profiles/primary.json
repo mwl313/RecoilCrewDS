@@ -1,0 +1,14 @@
+{
+  "id": "densityProfile.primary",
+  "label": "Primary 400m Density",
+  "budgets": {
+    "maxObjects": 80,
+    "maxColliders": 60,
+    "maxBarrels": 20,
+    "maxCrates": 12,
+    "maxRamps": 6,
+    "maxMedium": 14,
+    "maxDecorations": 24,
+    "maxBarrelChain": 3
+  }
+}

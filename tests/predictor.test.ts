@@ -6,7 +6,7 @@ import type { TankState } from '../src/shared/types';
 function tank(z: number, yaw = 0, deadT = 0): TankState {
   return {
     x: 0, y: 0, z, vx: 0, vy: 0, vz: 0, yaw, yawVel: 0, pitch: 0, roll: 0,
-    integrity: 100, brace: false, boosting: false, shieldedT: 0, deadT,
+    integrity: 100, dashCooldown: 0, dashPresentationT: 0, shieldedT: 0, deadT,
     grounded: true, drift: false,
   };
 }
@@ -15,7 +15,7 @@ describe('DriverPredictor', () => {
   it('predicts immediately from input and reconciles to authority after ack', () => {
     const p = new DriverPredictor(BASE_CONFIG, 'none');
     p.resetFromAuthority(tank(0));
-    const input = { throttle: 1, steer: 0, boost: false, brace: false };
+    const input = { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false };
     p.pushInput(1, input);
     for (let i = 0; i < 30; i++) p.sampleInput(input, 1 / 30);
     expect(p.predicted.z).toBeGreaterThan(2);
@@ -27,8 +27,8 @@ describe('DriverPredictor', () => {
   it('replays unacknowledged inputs in order after reconciliation', () => {
     const p = new DriverPredictor(BASE_CONFIG, 'none');
     p.resetFromAuthority(tank(0));
-    const fwd = { throttle: 1, steer: 0, boost: false, brace: false };
-    const reverse = { throttle: -1, steer: 0, boost: false, brace: false };
+    const fwd = { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false };
+    const reverse = { throttle: -1, steer: 0, dashPressed: false, jumpPressed: false };
     p.pushInput(1, fwd);
     p.pushInput(2, fwd);
     p.pushInput(3, reverse);
@@ -41,7 +41,7 @@ describe('DriverPredictor', () => {
   it('smooths small error instead of snapping', () => {
     const p = new DriverPredictor(BASE_CONFIG, 'none');
     p.resetFromAuthority(tank(0));
-    const input = { throttle: 1, steer: 0, boost: false, brace: false };
+    const input = { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false };
     for (let i = 0; i < 10; i++) p.sampleInput(input, 1 / 30);
     const predictedZ = p.predicted.z;
     p.display.z = 999;

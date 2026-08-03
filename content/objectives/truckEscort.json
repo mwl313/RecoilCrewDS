@@ -1,0 +1,12 @@
+{
+  "id": "objective.truckEscort",
+  "label": "Truck Escort",
+  "description": "Keep the Loot Truck alive and complete the round when it escapes or is destroyed.",
+  "kind": "scoreAttack",
+  "durationSeconds": 90,
+  "completionOnTruckEscape": true,
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.demoScoreAttack",
+  "spawnDirector": "spawn.director.truckHunter",
+  "behaviors": ["behavior.objective.scoreAttack"]
+}

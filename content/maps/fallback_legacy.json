@@ -1,0 +1,12 @@
+{
+  "id": "map.fallbackLegacy",
+  "label": "Legacy Fixed Arena Fallback",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.fallback",
+  "validationProfileId": "validationProfile.fallback",
+  "furnitureSetId": "furnitureSet.fallback",
+  "densityProfileId": "densityProfile.fallback",
+  "isFallback": true
+}

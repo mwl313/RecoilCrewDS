@@ -1,0 +1,20 @@
+{
+  "id": "weapon.machineGun",
+  "label": "Machine Gun",
+  "behaviorId": "weapon.hitscan",
+  "fireMode": "auto",
+  "cooldownSeconds": 0.09090909090909091,
+  "statBlock": {
+    "weapon.mgDamage": 2,
+    "weapon.mgRate": 11,
+    "weapon.mgRange": 45,
+    "weapon.mgSpread": 0.018,
+    "weapon.mgSpeed": 220,
+    "weapon.mgRecoilImpulse": 0.07,
+    "weapon.mgRecoilSpin": 0.05
+  },
+  "presentation": {
+    "muzzleVfxId": "vfx.machineGunMuzzle",
+    "fireAudioId": "audio.machineGun"
+  }
+}

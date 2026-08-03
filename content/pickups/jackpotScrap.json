@@ -1,0 +1,8 @@
+{
+  "id": "pickup.jackpotScrap",
+  "label": "JACKPOT Scrap",
+  "kind": "jackpot",
+  "life": 16,
+  "magnetRadius": 8,
+  "presentationId": "pickup.jackpotScrap"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "enemy.lootTruck",
+  "label": "Loot Truck",
+  "type": "lootTruck",
+  "presentationId": "enemy.lootTruck",
+  "hp": 26,
+  "radius": 1.8,
+  "score": 800,
+  "jackpotGain": 18,
+  "contributionPoints": 4,
+  "dropTableId": "drops.lootTruck",
+  "behaviors": [
+    { "id": "movement.followRoute", "parameters": {} },
+    { "id": "trait.nonAttackingObjective", "parameters": {} }
+  ],
+  "speed": 7,
+  "spawnTime": 42,
+  "escapeTime": 78,
+  "waypointReach": 2.5,
+  "escapeShortcut": 8,
+  "collisionPushTank": 4,
+  "collisionPushTruck": 0.7,
+  "jackpotScrapCount": 5,
+  "jackpotScrapLife": 16
+}

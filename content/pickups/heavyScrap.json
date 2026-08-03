@@ -1,0 +1,8 @@
+{
+  "id": "pickup.heavyScrap",
+  "label": "Heavy Scrap",
+  "kind": "heavy",
+  "life": 26,
+  "magnetRadius": 6.5,
+  "presentationId": "pickup.heavyScrap"
+}

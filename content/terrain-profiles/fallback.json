@@ -1,0 +1,22 @@
+{
+  "id": "terrainProfile.fallback",
+  "label": "Legacy Fixed Arena Terrain",
+  "baseHeight": 0,
+  "heightRange": {
+    "min": -5,
+    "max": 10
+  },
+  "maxSlope": 0.75,
+  "smoothingPasses": 0,
+  "slopeCorrectionIterations": 0,
+  "retryLimit": 8,
+  "maxGenerationMs": 500,
+  "legacySampled": true,
+  "features": {
+    "basin": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "ridge": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "plateau": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "valley": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "hill": { "count": 0, "minSeparation": 0, "falloff": 0 }
+  }
+}

@@ -9,12 +9,12 @@ export type SoundName =
   | 'rammerTelegraph'
   | 'towerFire'
   | 'truckSiren'
-  | 'brace'
+  | 'dash'
+  | 'jump'
   | 'wipeout'
   | 'jackpotCharge'
   | 'jackpotRelease'
   | 'results'
-  | 'boost'
   | 'drift';
 
 export class AudioManager {
@@ -86,11 +86,11 @@ export class AudioManager {
     this.engineNodes = { osc1, osc2, filter, gain };
   }
 
-  setEngine(speed: number, boost: boolean) {
+  setEngine(speed: number) {
     this.engineSpeed = Math.max(0, Math.min(1, speed));
     if (!this.ctx || !this.engineNodes) return;
     const t = this.ctx.currentTime;
-    const f = 38 + this.engineSpeed * 78 + (boost ? 26 : 0);
+    const f = 38 + this.engineSpeed * 78;
     this.engineNodes.osc1.frequency.setTargetAtTime(f, t, 0.06);
     this.engineNodes.osc2.frequency.setTargetAtTime(f * 0.985, t, 0.06);
     this.engineNodes.filter.frequency.setTargetAtTime(140 + this.engineSpeed * 520, t, 0.08);
@@ -312,17 +312,41 @@ export class AudioManager {
         this.blip(this.sirenToggle ? 620 : 470, t, 0.34, 'sine', 0.16);
         break;
       }
-      case 'brace': {
+      case 'dash': {
         const src = noise();
         const f = ctx.createBiquadFilter();
         f.type = 'bandpass';
-        f.frequency.setValueAtTime(420, t);
-        f.Q.value = 3;
+        f.frequency.setValueAtTime(900, t);
+        f.frequency.exponentialRampToValueAtTime(2400, t + 0.12);
+        f.Q.value = 1.6;
         const g = ctx.createGain();
-        g.gain.setValueAtTime(0.22, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        g.gain.setValueAtTime(0.28, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
         src.connect(f).connect(g).connect(this.master);
-        src.start(t, 0, 0.2);
+        src.start(t, 0, 0.18);
+        this.blip(150, t, 0.08, 'square', 0.08);
+        break;
+      }
+      case 'jump': {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(90, t);
+        osc.frequency.exponentialRampToValueAtTime(210, t + 0.14);
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+        osc.connect(g).connect(this.master);
+        osc.start(t);
+        osc.stop(t + 0.18);
+        const src = noise();
+        const f = ctx.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.value = 500;
+        const ng = ctx.createGain();
+        ng.gain.setValueAtTime(0.12, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+        src.connect(f).connect(ng).connect(this.master);
+        src.start(t, 0, 0.12);
         break;
       }
       case 'wipeout': {
@@ -389,19 +413,6 @@ export class AudioManager {
         for (const [freq, delay] of [[261.6, 0], [329.6, 0.12], [392, 0.24], [523.3, 0.4]] as const) {
           this.blip(freq, t + delay, 0.5, 'triangle', 0.25);
         }
-        break;
-      }
-      case 'boost': {
-        const src = noise();
-        const f = ctx.createBiquadFilter();
-        f.type = 'highpass';
-        f.frequency.setValueAtTime(400, t);
-        f.frequency.exponentialRampToValueAtTime(2600, t + 0.28);
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.2, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        src.connect(f).connect(g).connect(this.master);
-        src.start(t, 0, 0.32);
         break;
       }
       case 'drift': {

@@ -27,6 +27,32 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
   }, z0);
   await page.keyboard.up('w');
 
+  // Space jumps in Practice (edge-triggered). The arena is hostile, so
+  // first wait for an alive, grounded tank before pressing.
+  await page.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { deadT: number; grounded: boolean } } | null } }).__recoil.state();
+    return s ? s.tank.deadT <= 0 && s.tank.grounded : false;
+  });
+  await page.keyboard.press('Space');
+  await page.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { vy: number; grounded: boolean } } | null } }).__recoil.state();
+    return s ? !s.tank.grounded || s.tank.vy > 1 : false;
+  }, undefined, { timeout: 5000 });
+  await page.keyboard.up('Space');
+
+  // Shift dashes in Practice with a cooldown indicator.
+  await page.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { deadT: number; grounded: boolean } } | null } }).__recoil.state();
+    return s ? s.tank.deadT <= 0 && s.tank.grounded : false;
+  });
+  await page.keyboard.press('Shift');
+  await page.waitForFunction(() => {
+    const s = (window as unknown as { __recoil: { state(): { tank: { dashCooldown: number } } | null } }).__recoil.state();
+    return s ? s.tank.dashCooldown > 0 : false;
+  }, undefined, { timeout: 5000 });
+  await page.keyboard.up('Shift');
+  await expect(page.locator('#dash-ind')).toBeVisible();
+
   // Tab swaps practice camera without breaking the loop.
   await page.keyboard.press('Tab');
   await page.waitForTimeout(400);

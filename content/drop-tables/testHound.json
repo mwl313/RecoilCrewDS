@@ -1,0 +1,8 @@
+{
+  "id": "drops.testHound",
+  "label": "Test Hound Drops",
+  "behaviors": [],
+  "entries": [
+    { "kind": "heavy", "count": 1, "offsetX": 0, "offsetZ": 0 }
+  ]
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { Match } from '../src/shared/sim/match';
 import { TAU, angleDiff, dist, dist2 } from '../src/shared/math';
 import { BASE_CONFIG } from '../src/shared/config';
@@ -17,11 +17,11 @@ function step(match: Match, seconds: number, driver?: DriverInput, gunner?: Gunn
 }
 
 function holdGunner(aimYaw = Math.PI / 2): GunnerInput {
-  return { aimYaw, aimPitch: 0.05, mg: false, cannon: false, charge: false };
+  return { aimYaw, aimPitch: 0.05, primary: false, secondary: false, ability: false };
 }
 
 function holdDriver(over: Partial<DriverInput> = {}): DriverInput {
-  return { throttle: 0, steer: 0, boost: false, brace: false, ...over };
+  return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false, ...over };
 }
 
 function nearestEnemy(state: MatchState, type: string) {
@@ -48,7 +48,7 @@ describe('tank movement and input separation', () => {
     const m = new Match('m3');
     const x0 = m.state.tank.x;
     const z0 = m.state.tank.z;
-    step(m, 1.0, undefined, { aimYaw: -2, aimPitch: 0.3, mg: false, cannon: false, charge: false });
+    step(m, 1.0, undefined, { aimYaw: -2, aimPitch: 0.3, primary: false, secondary: false, ability: false });
     expect(m.state.tank.x).toBeCloseTo(x0, 4);
     expect(m.state.tank.z).toBeCloseTo(z0, 4);
   });
@@ -68,8 +68,8 @@ describe('recoil', () => {
   it('cannon recoil pushes the shared tank opposite the barrel', () => {
     const m = new Match('m5');
     // Let the turret settle on the firing direction first.
-    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, mg: false, cannon: false, charge: false });
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false });
+    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
     m.step(DT);
     m.takeEvents();
     const vx0 = m.state.tank.vx;
@@ -79,27 +79,20 @@ describe('recoil', () => {
     expect(vz0).toBeLessThan(-2);
   });
 
-  it('bracing substantially reduces recoil', () => {
-    const unbraced = new Match('m6a');
-    step(unbraced, 1.0, undefined, { aimYaw: 0, aimPitch: 0, mg: false, cannon: false, charge: false });
-    unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false });
-    unbraced.step(DT);
-    unbraced.takeEvents();
-    const uv = Math.hypot(unbraced.state.tank.vx, unbraced.state.tank.vz);
-
-    const braced = new Match('m6b');
-    braced.setDriverInput(holdDriver({ brace: true }));
-    step(braced, 1.0, holdDriver({ brace: true }), { aimYaw: 0, aimPitch: 0, mg: false, cannon: false, charge: false });
-    braced.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false });
-    braced.step(DT);
-    braced.takeEvents();
-    const bv = Math.hypot(braced.state.tank.vx, braced.state.tank.vz);
-    expect(bv).toBeLessThan(uv * BASE_CONFIG.tank.braceRecoilMult * 1.2);
+  it('cannon recoil lands at full impulse (no brace reduction path)', () => {
+    const m = new Match('m6');
+    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
+    m.step(DT);
+    m.takeEvents();
+    const v = Math.hypot(m.state.tank.vx, m.state.tank.vz);
+    expect(v).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.9);
+    expect(v).toBeLessThan(BASE_CONFIG.tank.recoilImpulse * 1.1);
   });
 
   it('machine gun recoil is negligible compared to cannon recoil', () => {
     const m = new Match('m7');
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: true, cannon: false, charge: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: true, secondary: false, ability: false });
     step(m, 0.3);
     expect(Math.hypot(m.state.tank.vx, m.state.tank.vz)).toBeLessThan(1.5);
   });
@@ -108,23 +101,23 @@ describe('recoil', () => {
 describe('weapons', () => {
   it('enforces cannon cooldown', () => {
     const m = new Match('m8');
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
     m.step(DT);
     m.takeEvents();
     const afterFirst = m.state.shells.length;
     // Hold cannon down for another full second: no new shells while cooling down.
-    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false });
+    step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
     expect(m.state.shells.length).toBeLessThanOrEqual(afterFirst + 1);
   });
 
   it('does not double-fire on a held or duplicated cannon input', () => {
     const m = new Match('m9');
-    const fire = { aimYaw: 0, aimPitch: 0, mg: false, cannon: true, charge: false };
+    const fire = { aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false };
     m.setGunnerInput(fire);
     m.step(DT);
     m.takeEvents();
     const shots = m.state.shells.length;
-    // Same "cannon: true" state next tick must not fire again.
+    // Same "secondary: true" state next tick must not fire again.
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(shots);
@@ -133,7 +126,7 @@ describe('weapons', () => {
   it('stale input clearing stops the machine gun and movement', () => {
     const m = new Match('m10');
     m.setDriverInput(holdDriver({ throttle: 1 }));
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, mg: true, cannon: false, charge: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: true, secondary: false, ability: false });
     step(m, 0.5);
     m.takeEvents();
     m.clearInputs();
@@ -261,7 +254,7 @@ describe('JACKPOT', () => {
     const m = new Match('m18');
     m.addJackpot(100);
     expect(m.state.turret.jackpotReady).toBe(true);
-    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, mg: false, cannon: false, charge: true });
+    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: true });
     step(m, 1.1);
     expect(m.state.stats.jackpotFired).toBe(1);
     expect(m.state.stats.jackpotMeter).toBeLessThan(15);
@@ -271,7 +264,7 @@ describe('JACKPOT', () => {
   it('respects the JACKPOT cooldown before the meter can be ready again', () => {
     const m = new Match('m18b');
     m.addJackpot(100);
-    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, mg: false, cannon: false, charge: true });
+    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: true });
     step(m, 1.1);
     expect(m.state.stats.jackpotFired).toBe(1);
     expect(m.state.turret.jackpotReady).toBe(false);
@@ -332,7 +325,7 @@ describe('wipeout, round, and rematch', () => {
   it('round ends with results after 90 seconds', () => {
     const m = new Match('m22');
     m.setDriverInput(holdDriver({ throttle: 0.6 }));
-    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, mg: true, cannon: false, charge: false });
+    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, primary: true, secondary: false, ability: false });
     for (let i = 0; i < 30 * 91; i++) {
       m.step(DT);
       m.takeEvents();
@@ -357,3 +350,4 @@ describe('wipeout, round, and rematch', () => {
     expect(m2.mcfg.modifier).toBe('doubleBarrel');
   });
 });
+
