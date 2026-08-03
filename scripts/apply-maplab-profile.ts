@@ -47,6 +47,70 @@ const MANIFEST_KEYS: Record<string, string> = {
 
 export class ApplyError extends Error {}
 
+/**
+ * Validate a profile bundle without writing anything: format/version,
+ * real Zod schemas, bundle-internal references, and pack references.
+ */
+export function validateProfileBundle(bundle: unknown): { ok: true } | { ok: false; error: string } {
+  try {
+    const rec = bundle as Record<string, unknown>;
+    if (rec.kind !== 'profile-bundle') {
+      return { ok: false, error: `expected kind "profile-bundle", got ${String(rec.kind)}` };
+    }
+    if (typeof rec.formatVersion !== 'number' || rec.formatVersion !== 1) {
+      return { ok: false, error: `unsupported formatVersion ${String(rec.formatVersion)} (expected 1)` };
+    }
+    const defs = rec.bundles as Record<string, unknown> | undefined;
+    if (!defs || typeof defs !== 'object') return { ok: false, error: 'missing bundles object' };
+    const contentDefs = toContentShape(defs);
+
+    // 1. Real schema validation.
+    for (const [key, category] of Object.entries(CATEGORY_SCHEMAS)) {
+      if (key === 'landmark') {
+        const list = contentDefs.landmarks;
+        if (!Array.isArray(list) || list.length === 0) return { ok: false, error: 'missing bundle section: landmarks' };
+        for (const def of list) {
+          const parsed = category.schema.safeParse(def);
+          if (!parsed.success) {
+            return { ok: false, error: `schema validation failed for landmark: ${JSON.stringify(parsed.error).slice(0, 300)}` };
+          }
+        }
+        continue;
+      }
+      const def = contentDefs[key];
+      if (!def) return { ok: false, error: `missing bundle section: ${key}` };
+      const parsed = category.schema.safeParse(def);
+      if (!parsed.success) {
+        return { ok: false, error: `schema validation failed for ${key}: ${JSON.stringify(parsed.error).slice(0, 400)}` };
+      }
+    }
+
+    // 2. Bundle-internal cross-references.
+    const map = defs.map as { id: string; terrainProfileId: string; validationProfileId: string; furnitureSetId: string; densityProfileId: string; fallbackMapId?: string | null };
+    const furnitureSet = defs.furnitureSet as { landmarks: string[] };
+    const landmarkIds = new Set((defs.landmarks as Array<{ id: string }>).map((l) => l.id));
+    const idOf = (section: Record<string, unknown>): string => {
+      const value = (section as { id?: string }).id;
+      if (!value) throw new ApplyError('cannot read id from section');
+      return value;
+    };
+    const terrainId = idOf(defs.terrainProfile as Record<string, unknown>);
+    const validationId = idOf(defs.validationProfile as Record<string, unknown>);
+    const furnitureId = idOf(defs.furnitureSet as Record<string, unknown>);
+    const densityId = idOf(defs.densityProfile as Record<string, unknown>);
+    if (map.terrainProfileId !== terrainId) return { ok: false, error: `map.terrainProfileId ${map.terrainProfileId} != ${terrainId}` };
+    if (map.validationProfileId !== validationId) return { ok: false, error: `map.validationProfileId ${map.validationProfileId} != ${validationId}` };
+    if (map.furnitureSetId !== furnitureId) return { ok: false, error: `map.furnitureSetId ${map.furnitureSetId} != ${furnitureId}` };
+    if (map.densityProfileId !== densityId) return { ok: false, error: `map.densityProfileId ${map.densityProfileId} != ${densityId}` };
+    for (const landmarkRef of furnitureSet.landmarks) {
+      if (!landmarkIds.has(landmarkRef)) return { ok: false, error: `furnitureSet references unknown landmark ${landmarkRef}` };
+    }
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: (error as Error).message };
+  }
+}
+
 export function applyProfileBundle(
   bundle: unknown,
   options: { contentRoot?: string; overwrite?: boolean; writeGenerated?: boolean } = {},
@@ -56,51 +120,15 @@ export function applyProfileBundle(
   const overwrite = options.overwrite ?? false;
   const writeGenerated = options.writeGenerated ?? true;
   const manifestPath = path.join(contentRoot, 'manifest.json');
-  if (rec.kind !== 'profile-bundle') throw new ApplyError(`expected kind "profile-bundle", got ${String(rec.kind)}`);
-  if (typeof rec.formatVersion !== 'number' || rec.formatVersion !== 1) {
-    throw new ApplyError(`unsupported formatVersion ${String(rec.formatVersion)} (expected 1)`);
-  }
+  const validation = validateProfileBundle(bundle);
+  if (!validation.ok) throw new ApplyError(validation.error);
   const defs = rec.bundles as Record<string, unknown> | undefined;
   if (!defs || typeof defs !== 'object') throw new ApplyError('missing bundles object');
   const contentDefs = toContentShape(defs);
 
-  // 1. Real schema validation.
-  for (const [key, category] of Object.entries(CATEGORY_SCHEMAS)) {
-    if (key === 'landmark') {
-      const list = contentDefs.landmarks;
-      if (!Array.isArray(list) || list.length === 0) throw new ApplyError('missing bundle section: landmarks');
-      for (const def of list) {
-        const parsed = category.schema.safeParse(def);
-        if (!parsed.success) throw new ApplyError(`schema validation failed for landmark: ${JSON.stringify(parsed.error).slice(0, 300)}`);
-      }
-      continue;
-    }
-    const def = contentDefs[key];
-    if (!def) throw new ApplyError(`missing bundle section: ${key}`);
-    const parsed = category.schema.safeParse(def);
-    if (!parsed.success) throw new ApplyError(`schema validation failed for ${key}: ${JSON.stringify(parsed.error).slice(0, 400)}`);
-  }
-
-  // 2. Cross-reference validation (bundle-internal + existing pack).
+  // 2. Pack-level reference validation (fallback map exists in the pack).
   const map = defs.map as { id: string; terrainProfileId: string; validationProfileId: string; furnitureSetId: string; densityProfileId: string; fallbackMapId?: string | null };
   const furnitureSet = defs.furnitureSet as { landmarks: string[] };
-  const landmarkIds = new Set((defs.landmarks as Array<{ id: string }>).map((l) => l.id));
-  const idOf = (section: Record<string, unknown>): string => {
-    const value = (section as { id?: string }).id;
-    if (!value) throw new ApplyError(`cannot read id from section`);
-    return value;
-  };
-  const terrainId = idOf(defs.terrainProfile as Record<string, unknown>);
-  const validationId = idOf(defs.validationProfile as Record<string, unknown>);
-  const furnitureId = idOf(defs.furnitureSet as Record<string, unknown>);
-  const densityId = idOf(defs.densityProfile as Record<string, unknown>);
-  if (map.terrainProfileId !== terrainId) throw new ApplyError(`map.terrainProfileId ${map.terrainProfileId} != ${terrainId}`);
-  if (map.validationProfileId !== validationId) throw new ApplyError(`map.validationProfileId ${map.validationProfileId} != ${validationId}`);
-  if (map.furnitureSetId !== furnitureId) throw new ApplyError(`map.furnitureSetId ${map.furnitureSetId} != ${furnitureId}`);
-  if (map.densityProfileId !== densityId) throw new ApplyError(`map.densityProfileId ${map.densityProfileId} != ${densityId}`);
-  for (const landmarkRef of furnitureSet.landmarks) {
-    if (!landmarkIds.has(landmarkRef)) throw new ApplyError(`furnitureSet references unknown landmark ${landmarkRef}`);
-  }
   const pack = loadContentPackFromFilesystem(contentRoot);
   if (map.fallbackMapId && !pack.has('maps', map.fallbackMapId)) {
     throw new ApplyError(`fallbackMapId ${map.fallbackMapId} not found in content pack`);
@@ -161,6 +189,73 @@ export function applyProfileBundle(
     changed.push('src/generated/mapProfiles.generated.ts');
   }
   return { changed, hash };
+}
+
+/**
+ * Save-as-new-profile path: write ONLY the map definition and reuse the
+ * shared terrain/validation/furniture/density/landmark definitions that
+ * already exist in the pack (validated first).
+ */
+export function applyMapProfileOnly(
+  bundle: unknown,
+  options: { contentRoot?: string; overwrite?: boolean } = {},
+): { changed: string[] } {
+  const contentRoot = options.contentRoot ?? CONTENT_ROOT;
+  const overwrite = options.overwrite ?? false;
+  const validation = validateProfileBundle(bundle);
+  if (!validation.ok) throw new ApplyError(validation.error);
+  const defs = (bundle as Record<string, unknown>).bundles as Record<string, unknown>;
+  const map = defs.map as { id: string; fallbackMapId?: string | null; terrainProfileId: string; validationProfileId: string; furnitureSetId: string; densityProfileId: string };
+  const pack = loadContentPackFromFilesystem(contentRoot);
+  if (map.fallbackMapId && !pack.has('maps', map.fallbackMapId)) {
+    throw new ApplyError(`fallbackMapId ${map.fallbackMapId} not found in content pack`);
+  }
+  const refs: Array<[string, string]> = [
+    ['terrainProfiles', map.terrainProfileId],
+    ['validationProfiles', map.validationProfileId],
+    ['furnitureSets', map.furnitureSetId],
+    ['densityProfiles', map.densityProfileId],
+  ];
+  for (const [category, id] of refs) {
+    if (!pack.has(category as never, id)) {
+      throw new ApplyError(`map references missing ${category} definition '${id}'`);
+    }
+  }
+  const existing = scanContentFiles(contentRoot);
+  const existingPath = existing[map.id];
+  if (existingPath && !overwrite) {
+    throw new ApplyError(`id conflict: ${map.id} already exists at ${existingPath} (use --overwrite to replace)`);
+  }
+  const targetPath = existingPath ?? `maps/${slug(map.id)}.json`;
+  const absolute = path.join(contentRoot, targetPath);
+  if (existsSync(absolute) && !overwrite) {
+    throw new ApplyError(`file already exists: ${targetPath} (use --overwrite to replace)`);
+  }
+  writeFileSync(absolute, `${JSON.stringify(map, null, 2)}\n`, 'utf8');
+  const manifestPath = path.join(contentRoot, 'manifest.json');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { pack: { files: Record<string, string[]> } };
+  const list = manifest.pack.files.maps ?? [];
+  if (!list.includes(targetPath)) list.push(targetPath);
+  manifest.pack.files.maps = [...new Set(list)];
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  return { changed: [targetPath, 'content/manifest.json'] };
+}
+
+/** Point the pack's active mode at a map profile and return the changed path. */
+export function setModeMapProfileId(contentRoot: string, mapProfileId: string): string {
+  const pack = loadContentPackFromFilesystem(contentRoot);
+  const modesDir = path.join(contentRoot, 'modes');
+  const candidates = readdirSync(modesDir).filter((f) => f.endsWith('.json'));
+  for (const file of candidates) {
+    const absolute = path.join(modesDir, file);
+    const raw = JSON.parse(readFileSync(absolute, 'utf8')) as { id?: string };
+    if (raw.id !== pack.modeId) continue;
+    const def = JSON.parse(readFileSync(absolute, 'utf8')) as Record<string, unknown>;
+    def.mapProfileId = mapProfileId;
+    writeFileSync(absolute, `${JSON.stringify(def, null, 2)}\n`, 'utf8');
+    return `modes/${file}`;
+  }
+  throw new ApplyError(`mode ${pack.modeId} file not found under content/modes`);
 }
 
 function main(): void {

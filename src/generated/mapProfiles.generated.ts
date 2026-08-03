@@ -6,6 +6,7 @@
  */
 export const MAP_PROFILE_BUNDLE_FORMAT = 1;
 export const MAP_PROFILE_SOURCE_HASH = 'dc4b8625e1d04073425dd6ab6bef5e2158f12b00a975be48c64d276710d1bd50';
+export const DEFAULT_MAP_PROFILE_ID = 'map.arena400Primary';
 
 import type { MapGenerationBundle } from '../shared/mapgen/profiles';
 

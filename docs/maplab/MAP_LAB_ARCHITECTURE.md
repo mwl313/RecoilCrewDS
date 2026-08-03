@@ -25,10 +25,12 @@ content JSON
   reference validation), resolves every map with `resolveMapBundle`,
   canonical-sorts and serializes, and writes a module with
   `MAP_PROFILE_BUNDLE_FORMAT = 1`, a sha256 `MAP_PROFILE_SOURCE_HASH`, and
-  `GENERATED_MAP_PROFILES`.
+  `GENERATED_MAP_PROFILES` plus `DEFAULT_MAP_PROFILE_ID` (resolved from the
+  active mode's optional `mapProfileId`, fallback `map.arena400Primary`).
 - The **server** still resolves from validated JSON; the **client**,
   Practice, reconstruction, and Map Lab consume the generated module via
-  `resolveClientMapBundle`.
+  `resolveClientMapBundle`. Server selection, Practice, and the generated
+  module all share one resolution: `resolveDefaultMapProfileId(pack)`.
 - The manual `LEGACY_MAP_DEFINITIONS` / `LEGACY_MAP_LAYOUT_DEFINITIONS`
   mirrors were deleted. A parity test deep-equals generated and
   server-resolved bundles; a stale test recomputes the source hash from
@@ -176,6 +178,25 @@ Exports (`io/export.ts`):
 7. changed-file report; **no git commit**.
 
 The browser never has filesystem access; all application is CLI-driven.
+
+### Local apply helper (one-click apply)
+
+`scripts/maplab-apply-server.ts` (`npm run maplab:apply-server`) is a
+localhost-only HTTP helper (127.0.0.1:5181) that runs the same validated
+apply pipeline on behalf of the browser:
+
+- `POST / { kind: 'validate', bundle }` — schema/reference validation only;
+- `POST / { kind: 'apply', bundle, overwrite }` — full-bundle apply
+  (used by **Apply to Game**);
+- `POST / { kind: 'apply', bundle, overwrite: false, onlyMap: true,
+  setModeMapProfile: true }` — writes only the new map definition and
+  points the active mode's `mapProfileId` at it (used by
+  **Save as New Profile**).
+
+It honors `MAPLAB_CONTENT_ROOT` / `MAPLAB_APPLY_PORT` (tests) and
+`MAP_PROFILES_OUT` (generated-bundle output override). If the helper is not
+running, the buttons fall back to downloading the bundle and printing the
+equivalent CLI command.
 
 ## Build/test separation
 

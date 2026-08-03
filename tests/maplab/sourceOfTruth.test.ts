@@ -5,9 +5,11 @@ import { describe, expect, it } from 'vitest';
 import { loadContentPackFromFilesystem } from '../../src/shared/content/contentLoader';
 import { resolveMapBundle } from '../../src/shared/mapgen/profiles';
 import {
+  DEFAULT_MAP_PROFILE_ID,
   GENERATED_MAP_PROFILES,
   MAP_PROFILE_SOURCE_HASH,
 } from '../../src/generated/mapProfiles.generated';
+import { resolveDefaultMapProfileId } from '../../src/shared/mapgen/profiles';
 import {
   computeMapProfileSourceHash,
   readGeneratedSourceHash,
@@ -26,6 +28,11 @@ describe('Map Lab single source of truth', () => {
   it('detects a stale generated bundle', () => {
     expect(readGeneratedSourceHash()).toBe(MAP_PROFILE_SOURCE_HASH);
     expect(computeMapProfileSourceHash(CONTENT_ROOT)).toBe(MAP_PROFILE_SOURCE_HASH);
+  });
+
+  it('the default map profile id matches the server-resolved mode value', () => {
+    expect(DEFAULT_MAP_PROFILE_ID).toBe(resolveDefaultMapProfileId(pack));
+    expect(GENERATED_MAP_PROFILES[DEFAULT_MAP_PROFILE_ID]).toBeDefined();
   });
 
   it('no manual profile mirror remains in the client path', () => {

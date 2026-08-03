@@ -93,6 +93,7 @@ export {
   type LandmarkDef,
 } from './phase2Profiles';
 export {
+  DEFAULT_MAP_PROFILE_ID,
   GENERATED_MAP_IDS,
   GENERATED_MAP_PROFILES,
   MAP_PROFILE_BUNDLE_FORMAT,

@@ -26,9 +26,11 @@ import {
   buildProfileBundleExport,
   buildValidationExport,
   downloadJson,
+  type ProfileBundleExport,
 } from './io/export';
 
 const GENERATOR_VERSION = 1;
+const APPLY_HELPER_URL = 'http://127.0.0.1:5181/';
 
 class MapLabApp {
   private readonly state: MapLabState;
@@ -42,6 +44,7 @@ class MapLabApp {
   private latestRequestId = 0;
   private latestArena: GeneratedArena | null = null;
   private generationMs = 0;
+  private lastValidationOk = false;
   private readonly onWorkingChangedRef: () => void;
 
   constructor() {
@@ -78,6 +81,14 @@ class MapLabApp {
       },
       state: () => this.state,
       arenaChecksum: () => this.latestArena?.heightfield.checksum() ?? null,
+      applyHelperAvailable: async () => {
+        try {
+          const res = await fetch(APPLY_HELPER_URL, { method: 'OPTIONS' });
+          return res.status === 204 || res.status === 200;
+        } catch {
+          return false;
+        }
+      },
     };
     void this.regenerate();
   }
@@ -166,6 +177,8 @@ class MapLabApp {
           buildValidationExport(this.state.latestMetadata, this.latestArena, issuesFor(this.latestArena), this.generationMs),
         );
       },
+      onApplyToGame: () => void this.applyToGame(),
+      onSaveAsNewProfile: () => void this.saveAsNewProfile(),
       onFocusIssue: (issue: MapValidationIssue) => {
         this.state.selectedIssueId = issue.id;
         this.viewport.focusIssue(issue);
@@ -253,6 +266,7 @@ class MapLabApp {
     }
     const arena = deserializeArena(result.arena.arena);
     this.latestArena = arena;
+    this.lastValidationOk = arena.validation.ok;
     this.generationMs = result.generationMs ?? 0;
     this.state.latestMetadata = result.arena.metadata;
     this.state.exactBaseSeed = result.arena.metadata.arenaBaseSeed;
@@ -300,6 +314,75 @@ class MapLabApp {
       this.ui.log('draft saved');
     }, 800);
   }
+
+  private async applyToGame(): Promise<void> {
+    await this.regenerate();
+    if (!this.lastValidationOk) {
+      this.ui.log('cannot apply: the generated map is not valid (PASS required)');
+      return;
+    }
+    const exportBundle = buildProfileBundleExport(this.state.sourceProfileId, this.state.workingBundle);
+    const applied = await this.postApply({ kind: 'apply', bundle: exportBundle, overwrite: true });
+    if (!applied) this.fallbackApply(exportBundle);
+  }
+
+  private async saveAsNewProfile(): Promise<void> {
+    await this.regenerate();
+    if (!this.lastValidationOk) {
+      this.ui.log('cannot apply: the generated map is not valid (PASS required)');
+      return;
+    }
+    const suggested = `map.lab${Math.floor(Math.random() * 9000 + 1000)}`;
+    const raw = window.prompt('New profile id (must start with "map."):', suggested);
+    const id = (raw ?? '').trim();
+    if (!/^map\.[A-Za-z0-9_.-]+$/.test(id)) {
+      this.ui.log('invalid profile id — use something like map.lab1234');
+      return;
+    }
+    if (id === this.state.sourceProfileId) {
+      this.ui.log(`${id} already exists — use Apply to Game to overwrite it`);
+      return;
+    }
+    const exportBundle = buildProfileBundleExport(this.state.sourceProfileId, this.state.workingBundle);
+    exportBundle.bundles.map.id = id;
+    const applied = await this.postApply({ kind: 'apply', bundle: exportBundle, overwrite: false, onlyMap: true, setModeMapProfile: true });
+    if (!applied) this.fallbackApply(exportBundle, true);
+  }
+
+  private async postApply(payload: unknown): Promise<boolean> {
+    try {
+      const res = await fetch(APPLY_HELPER_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = (await res.json()) as { ok: boolean; error?: string; changed?: string[]; hash?: string };
+      if (result.ok) {
+        this.ui.log(`applied — changed files:\n${(result.changed ?? []).join('\n')}`);
+        this.ui.log('the game will use the new content after npm run build && npm run server');
+        return true;
+      }
+      this.ui.log(`apply rejected: ${result.error ?? 'unknown error'}`);
+      return false;
+    } catch {
+      this.ui.log('apply helper not reachable — start it with: npm run maplab:apply-server');
+      return false;
+    }
+  }
+
+  private fallbackApply(exportBundle: ProfileBundleExport, isNew = false): void {
+    const id = exportBundle.bundles.map.id;
+    downloadJson(`maplab-profile-${id}.json`, exportBundle);
+    this.ui.log(
+      `downloaded maplab-profile-${id}.json instead; apply it with:\n` +
+        `  npm run maplab:apply -- maplab-profile-${id}.json${isNew ? '' : ' --overwrite'}`,
+    );
+    if (isNew) {
+      this.ui.log(
+        `then point the game at it: set "mapProfileId": "${id}" in content/modes/*.json and run npm run generate:map-profiles`,
+      );
+    }
+  }
 }
 
 function r1(v: number): number {
@@ -316,6 +399,7 @@ declare global {
       setObjectsEnabled(enabled: boolean): void;
       state(): MapLabState;
       arenaChecksum(): number | null;
+      applyHelperAvailable(): Promise<boolean>;
     };
   }
 }

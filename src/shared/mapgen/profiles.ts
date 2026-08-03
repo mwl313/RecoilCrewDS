@@ -10,6 +10,7 @@
  * mirror anymore.
  */
 import type { ContentPack } from '../content/contentPack';
+import type { ModeDefinition } from '../content/schemas/mode';
 import type { FeatureRange, MacroFeatureConfigs } from './features';
 import type { DensityProfileDef, FurnitureSetDef, LandmarkDef } from './phase2Profiles';
 
@@ -60,6 +61,17 @@ export interface MapGenerationBundle {
   furnitureSet: FurnitureSetDef;
   densityProfile: DensityProfileDef;
   landmarks: LandmarkDef[];
+}
+
+/**
+ * Which map profile a pack's active mode asks the game to load. Modes may
+ * declare `mapProfileId`; without it the game keeps the legacy primary map.
+ * Server selection, the generated client bundle, Practice, and Map Lab all
+ * resolve through this single function.
+ */
+export function resolveDefaultMapProfileId(pack: ContentPack): string {
+  const mode = pack.get<ModeDefinition>('modes', pack.modeId);
+  return mode?.mapProfileId ?? 'map.arena400Primary';
 }
 
 /** Resolve a map + its profiles from a validated content pack. */

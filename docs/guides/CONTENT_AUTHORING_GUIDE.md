@@ -53,6 +53,25 @@ conflicts; writes content files; updates `content/manifest.json`;
 regenerates the client bundle; and prints changed files. It never creates a
 git commit. `--overwrite` is required when an id already exists.
 
+For one-click apply from Map Lab, run `npm run maplab:apply-server` and use
+the **Apply to Game** / **Save as New Profile** buttons (localhost only).
+
+### Choosing which map the game loads
+
+Modes may declare an optional `mapProfileId`:
+
+```json
+{
+  "id": "mode.demoScoreAttack",
+  "mapProfileId": "map.arena400Primary"
+}
+```
+
+The server loads that map for online rooms; the client regenerates the same
+id; Practice follows the same default. Omitting the field falls back to
+`map.arena400Primary`. "Save as New Profile" in Map Lab writes a new map
+definition and updates this field automatically.
+
 ## Rules
 
 - IDs are semantic and dot-namespaced (`weapon.mainCannon`,

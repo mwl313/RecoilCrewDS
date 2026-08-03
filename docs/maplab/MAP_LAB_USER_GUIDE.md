@@ -133,6 +133,42 @@ cross-references and id conflicts, writes content files, updates
 files, and never creates a git commit. Then run `npm test` /
 `npm run test:maps` to verify before committing.
 
+### One-click apply (local helper)
+
+For a faster loop, start the local apply helper once:
+
+```bash
+npm run maplab:apply-server    # http://127.0.0.1:5181, localhost only
+```
+
+Then in Map Lab:
+
+- **Apply to Game** — regenerates the arena, requires **PASS**, and saves
+  the working profile **over the current map profile** in `content/`.
+- **Save as New Profile** — asks for a new id (e.g. `map.lab1`), requires
+  **PASS**, writes only the new map definition (reusing the shared terrain/
+  furniture/validation definitions), and **points the active game mode at
+  it** via `content/modes/*.json` → `mapProfileId`.
+
+Both buttons show the exact changed files in the logs. If the helper is not
+running, they fall back to downloading the profile bundle and printing the
+equivalent `maplab:apply` command.
+
+## How the game chooses a map profile
+
+The game is **not** hardcoded anymore. The active **mode definition**
+(`content/modes/*.json`) may declare:
+
+```json
+{ "mapProfileId": "map.arena400Primary" }
+```
+
+The server loads that profile for online rooms; the client reconstructs the
+same id from the generated bundle; Practice uses the same default. If a mode
+omits `mapProfileId`, the game falls back to `map.arena400Primary`. This is
+what "Save as New Profile" updates, so a new profile becomes the map for the
+next server/game restart.
+
 ## Troubleshooting
 
 - **Worker log says "main-thread fallback"**: worker construction failed in

@@ -21,6 +21,8 @@ export interface MapLabUICallbacks {
   onExportProfile(): void;
   onExportArena(): void;
   onExportValidation(): void;
+  onApplyToGame(): void;
+  onSaveAsNewProfile(): void;
   onFocusIssue(issue: MapValidationIssue): void;
   onLayerToggle(id: string, visible: boolean): void;
   onModeChange(mode: 'production' | 'exactCandidate'): void;
@@ -280,6 +282,12 @@ export class MapLabUI {
     const exportValidation = el('button', '', 'Export Validation');
     exportValidation.addEventListener('click', () => this.callbacks.onExportValidation());
     exportValidation.title = 'Download the validation report for this arena.';
+    const applyToGame = el('button', '', 'Apply to Game');
+    applyToGame.addEventListener('click', () => this.callbacks.onApplyToGame());
+    applyToGame.title = 'Save this working profile over the current map profile in content/ (needs npm run maplab:apply-server).';
+    const saveAsNew = el('button', '', 'Save as New Profile');
+    saveAsNew.addEventListener('click', () => this.callbacks.onSaveAsNewProfile());
+    saveAsNew.title = 'Save the working profile as a brand-new map profile and point the game mode at it (needs npm run maplab:apply-server).';
 
     const exactBox = el('span', '');
     exactBox.style.display = 'flex';
@@ -294,7 +302,8 @@ export class MapLabUI {
 
     bar.append(profile, mode, sep(), label('Room', room), label('Match', matchIndex), label('Ver', version),
       sep(), prev, next, random, sep(), regenerate, label('Auto', auto), sep(),
-      undo, redo, reset, sep(), exportProfile, exportArena, exportValidation, sep(), exactBox);
+      undo, redo, reset, sep(), exportProfile, exportArena, exportValidation,
+      applyToGame, saveAsNew, sep(), exactBox);
 
     const fit = el('button', '', 'Fit Map');
     fit.addEventListener('click', () => (window as unknown as { __maplabFit?: () => void }).__maplabFit?.());

@@ -16,12 +16,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadContentPackFromFilesystem } from '../src/shared/content/contentLoader';
 import { canonicalStringify } from '../src/shared/content/hash';
-import { resolveMapBundle, type MapGenerationBundle } from '../src/shared/mapgen/profiles';
+import {
+  resolveDefaultMapProfileId,
+  resolveMapBundle,
+  type MapGenerationBundle,
+} from '../src/shared/mapgen/profiles';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_ROOT = path.join(ROOT, 'content');
 const OUT_DIR = path.join(ROOT, 'src', 'generated');
-const OUT_FILE = path.join(OUT_DIR, 'mapProfiles.generated.ts');
+const OUT_FILE =
+  process.env.MAP_PROFILES_OUT ?? path.join(OUT_DIR, 'mapProfiles.generated.ts');
 
 export const GENERATED_BUNDLE_FORMAT = 1;
 
@@ -39,6 +44,7 @@ export function computeMapProfileSourceHash(contentRoot = CONTENT_ROOT): string 
 export function buildGeneratedMapProfiles(contentRoot = CONTENT_ROOT): {
   format: number;
   sourceHash: string;
+  defaultMapProfileId: string;
   bundles: Record<string, MapGenerationBundle>;
 } {
   const pack = loadContentPackFromFilesystem(contentRoot);
@@ -50,6 +56,7 @@ export function buildGeneratedMapProfiles(contentRoot = CONTENT_ROOT): {
   return {
     format: GENERATED_BUNDLE_FORMAT,
     sourceHash: createHash('sha256').update(canonical, 'utf8').digest('hex'),
+    defaultMapProfileId: resolveDefaultMapProfileId(pack),
     bundles,
   };
 }
@@ -57,6 +64,7 @@ export function buildGeneratedMapProfiles(contentRoot = CONTENT_ROOT): {
 export function renderGeneratedModule(input: {
   format: number;
   sourceHash: string;
+  defaultMapProfileId: string;
   bundles: Record<string, MapGenerationBundle>;
 }): string {
   const header = [
@@ -68,6 +76,7 @@ export function renderGeneratedModule(input: {
     ' */',
     `export const MAP_PROFILE_BUNDLE_FORMAT = ${input.format};`,
     `export const MAP_PROFILE_SOURCE_HASH = '${input.sourceHash}';`,
+    `export const DEFAULT_MAP_PROFILE_ID = '${input.defaultMapProfileId}';`,
     '',
     'import type { MapGenerationBundle } from \'../shared/mapgen/profiles\';',
     '',

@@ -2,6 +2,7 @@
   "id": "mode.demoScoreAttack",
   "label": "Demo Score Attack",
   "description": "The classic Recoil Crew score-attack loop; the permanent regression fixture.",
+  "mapProfileId": "map.arena400Primary",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.default",

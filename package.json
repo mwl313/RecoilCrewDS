@@ -23,6 +23,7 @@
     "build:maplab": "npm run generate:map-profiles && vite build --config tools/maplab/vite.config.ts",
     "test:maplab": "vitest run tests/maplab",
     "maplab:apply": "tsx scripts/apply-maplab-profile.ts",
+    "maplab:apply-server": "tsx scripts/maplab-apply-server.ts",
     "test:e2e": "playwright test",
     "test:loop": "node scripts/verify-full-round.mjs",
     "start": "npm run build && npm run server"

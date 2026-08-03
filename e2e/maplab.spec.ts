@@ -102,6 +102,18 @@ test('Map Lab full flow: generate, edit, toggle, focus, export, draft restore', 
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toContain('maplab-profile');
 
+  // 11b. Apply to Game falls back to a download + CLI hint when the local
+  // apply helper is not running (skipped if a helper happens to be up, so
+  // e2e never writes repository content).
+  const helperUp = await page.evaluate(() => window.__maplab?.applyHelperAvailable() ?? Promise.resolve(false));
+  if (!helperUp) {
+    const applyDownloadPromise = page.waitForEvent('download', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Apply to Game' }).click();
+    const applyDownload = await applyDownloadPromise;
+    expect(applyDownload.suggestedFilename()).toContain('maplab-profile');
+    expect(await page.textContent('.maplab-log')).toContain('maplab:apply');
+  }
+
   // 12. Draft restore after reload (objects off persists).
   await setObjectsEnabled(page, false);
   await page.waitForTimeout(1400); // draft auto-save debounce
@@ -111,7 +123,9 @@ test('Map Lab full flow: generate, edit, toggle, focus, export, draft restore', 
   body = await page.textContent('body');
   expect(body).toContain('objects: 0');
 
-  const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU'));
+  const critical = errors.filter(
+    (e) => !e.includes('WebGL') && !e.includes('GPU') && !e.includes('ERR_CONNECTION_REFUSED'),
+  );
   expect(critical).toEqual([]);
   await page.close();
 });

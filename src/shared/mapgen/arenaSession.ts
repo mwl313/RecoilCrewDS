@@ -12,8 +12,8 @@ import type { ArenaWorld } from '../sim/arenaWorld';
 import { createGeneratedArenaWorld } from '../sim/arenaWorld';
 import { buildLegacyArenaModel, toArenaProps, type ArenaProps } from './compat';
 import type { GeneratedArena } from './generator';
-import { resolveMapBundle, type MapGenerationBundle } from './profiles';
-import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
+import { resolveDefaultMapProfileId, resolveMapBundle, type MapGenerationBundle } from './profiles';
+import { DEFAULT_MAP_PROFILE_ID, GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
 import { ARENA_GENERATOR_VERSION } from './seed';
 import { buildArenaCandidate, generateArenaWithRetry } from './retry';
 import { validateArena } from './validation';
@@ -69,19 +69,24 @@ export function selectArenaSessionFromPack(
   pack: ContentPack,
   options: Omit<ArenaSessionOptions, 'bundle' | 'fallbackBundle'>,
 ): ArenaSessionResult {
-  const bundle = resolveMapBundle(pack, 'map.arena400Primary');
-  const fallbackBundle = resolveMapBundle(pack, bundle.map.fallbackMapId!);
+  const bundle = resolveMapBundle(pack, resolveDefaultMapProfileId(pack));
+  const fallbackBundle = bundle.map.fallbackMapId
+    ? resolveMapBundle(pack, bundle.map.fallbackMapId)
+    : bundle;
   return selectArenaSession({ ...options, bundle, fallbackBundle });
 }
 
 /** Client-safe bundle resolution (mirrors validated content, parity-tested). */
-export function resolveClientMapBundle(mapId = 'map.arena400Primary'): {
+export function resolveClientMapBundle(mapId = DEFAULT_MAP_PROFILE_ID): {
   bundle: MapGenerationBundle;
   fallbackBundle: MapGenerationBundle;
 } {
   const bundle = GENERATED_MAP_PROFILES[mapId];
-  const fallbackBundle = GENERATED_MAP_PROFILES[bundle.map.fallbackMapId!];
-  if (!bundle || !fallbackBundle) throw new Error(`client map bundle missing for ${mapId}`);
+  if (!bundle) throw new Error(`client map bundle missing for ${mapId}`);
+  const fallbackBundle = bundle.map.fallbackMapId
+    ? GENERATED_MAP_PROFILES[bundle.map.fallbackMapId]
+    : bundle;
+  if (!fallbackBundle) throw new Error(`client fallback bundle missing for ${mapId}`);
   return { bundle, fallbackBundle };
 }
 

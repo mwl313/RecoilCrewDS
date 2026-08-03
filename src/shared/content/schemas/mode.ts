@@ -4,6 +4,10 @@ import { commonDefinition } from './common';
 export const modeSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^mode\./, 'mode id must start with mode.'),
+  mapProfileId: z
+    .string()
+    .regex(/^map\./, 'mapProfileId must reference a map definition')
+    .optional(),
   difficulty: z.string().regex(/^difficulty\./, 'difficulty must reference a difficulty definition'),
   tank: z.string().regex(/^tank\./, 'tank must reference a tank definition'),
   loadout: z.string().regex(/^loadout\./, 'loadout must reference a loadout definition'),
