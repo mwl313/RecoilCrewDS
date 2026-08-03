@@ -41,7 +41,8 @@ by `npm run generate:presentation-content`.
    `text`, `button`, `input`, `horizontal`, `vertical`, `grid`, `spacer`,
    `conditional`, `repeater`, `progressBar`, `image`.
 3. Actions reference allowlisted ids only (`app.enter`, `app.back`,
-   `app.createCrew`, ...). Behavior is code-owned in `AppFlowController`.
+   `app.createCrew`, `app.pause`, ...). Behavior is code-owned in
+   `SceneFlowPresenter` + `main.ts` handlers.
 4. Bindings read from the scene's context (`code`, `status`, `message`,
    `value`, `sub`, `score`, `title`, `grade`, `stats`, `modifiers`, ...) —
    never from `MatchState`.

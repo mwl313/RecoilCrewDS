@@ -144,14 +144,57 @@ npm run test:e2e  23/23 PASS (two-browser full flow incl. rematch)
 
 ## 21. Remaining limitations
 
-- Repeater item jobs accumulate per render (bounded by re-renders; results
-  scenes re-render rarely).
-- `audioSource`, `particleEmitter`, `billboard`, and `postProcessPreset`
-  scene components are metadata/no-op in this milestone.
+- Repeater item jobs are scoped and disposed on rebuild (audit P1-2); the
+  remaining cost is bounded by list size.
+- `audioSource`, `particleEmitter`, `billboard`, `postProcessPreset`, and
+  `lookAt` are explicitly reserved/unsupported scene components (warned at
+  runtime, documented for the editor); `lookAt` has a basic target
+  implementation.
 - The HUD projector handles the current HUD surface; new fields require a
   typed projector extension (by design).
-- `test:loop` is seed-flaky for the headless bot (one of three runs scored
-  85 / JACKPOT 0); two of three runs passed (1020/525/1200, JACKPOT ≥1).
+- While the pointer is locked, DOM HUD buttons are unreachable by the
+  browser (input routes to the canvas); players pause with Escape, and the
+  pause button is clickable once the lock is released. The button fires
+  `app.pause` either way.
+
+## 21a. Verification-audit hardening pass (2026-08-04)
+
+The independent audit (`REFRACTOR02_VERIFICATION_AUDIT.md`) found six
+critical and six high-priority defects. All were fixed:
+
+- P0-1 hybrid worlds now `start()` (and dispose) exactly once per show,
+  owned by the flow lifecycle.
+- P0-2 `PresentationWorld` no longer disposes geometry/materials cloned from
+  `AssetService` prototypes (shared gameplay resources stay owned by the
+  asset service).
+- P0-3 project models are registered before the preload pass; the
+  `scene.menuTank` hardcode was removed in favor of catalog-driven
+  `fallbackAssetId` + project transform metadata.
+- P0-4 `SceneRuntime` constructs nodes through `UiComponentRegistry`;
+  every default registration now carries a component-specific Zod schema
+  (no `z.any()`).
+- P0-5 HUD bindings use the real view model paths (`match.comboHot`,
+  `gunner.cooldownRatio`, `gunner.chargeMax`); generator + tests reject any
+  binding/prop source that does not resolve on the empty view model.
+- P0-6 `app.pause` added to the action schema/registry/HUD document/handlers;
+  the gameplay pause button opens the overlay (tested in e2e).
+- P1-1 flow ownership documented: `main.ts` owns application state;
+  `AppFlowController` renamed to `SceneFlowPresenter` and scoped to
+  presentation.
+- P1-2 repeater items get scoped ids (`template::index`) and stale subtrees
+  (instances, jobs, listeners) are disposed before rebuild.
+- P1-3 nested scene entities mount under their parent group (transforms
+  compose).
+- P1-4 cached scenes replay enter/leave transitions per show.
+- P1-5 reserved scene components are explicit (warned, not silently no-op);
+  UI `image` nodes resolve `assetId` → URL through the asset service.
+- P1-6 HUD denominators (`integrityMax`, cannon cooldown, jackpot charge
+  time) come from replicated movement/weapon rules with BASE_CONFIG
+  fallbacks; the server movement block now carries `weapon`.
+
+Regression coverage: `tests/presentation/hardening.test.ts` (10 tests) +
+extended `tests/presentation/schemas.test.ts` + the e2e pause-button flow.
+Full results in `docs/planning/BUILD_STATUS.md`.
 
 ## 22. Recommended Studio editor next phase
 

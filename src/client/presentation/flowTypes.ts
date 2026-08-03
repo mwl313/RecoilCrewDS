@@ -14,6 +14,7 @@ export interface AppFlowHandlers {
   onRetry(): void;
   onMainMenu(): void;
   onResume(): void;
+  onPause(): void;
 }
 
 export type FlowStateId =

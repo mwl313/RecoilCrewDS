@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { clamp } from '../../shared/math';
+import { BASE_CONFIG } from '../../shared/config';
 import { Match } from '../../shared/sim/match';
 import type { ArenaSessionResult } from '../../shared/mapgen/arenaSession';
 import type { ArenaWorld } from '../../shared/sim/arenaWorld';
@@ -198,6 +199,7 @@ export class GameClient {
     this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, this.arenaWorld);
     const turret = this.practiceMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
+    this.prediction.setMovementRules(this.practiceMatch.runtime.rules.movementBlock());
     this.presenter.latest = this.practiceMatch.state;
     this.presenter.interpState = this.practiceMatch.state;
     this.setRole('driver');
@@ -218,7 +220,24 @@ export class GameClient {
     this.prediction.setGround(session.world);
     if (this.mode === 'practice') {
       this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, session.world);
+      this.prediction.setMovementRules(this.practiceMatch.runtime.rules.movementBlock());
     }
+  }
+
+  /**
+   * Resolved HUD denominators: replicated online weapon/tank values when
+   * available, local practice rules otherwise, BASE_CONFIG as the final
+   * fallback (never hardcoded presentation numbers).
+   */
+  getHudRules(): { maxIntegrity: number; cannonCooldown: number; jackpotChargeTime: number } {
+    const block = this.prediction.movementRules();
+    const tank = block?.tank;
+    const weapon = block?.weapon;
+    return {
+      maxIntegrity: tank?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity,
+      cannonCooldown: weapon?.cannonCooldown ?? BASE_CONFIG.weapons.cannonCooldown,
+      jackpotChargeTime: weapon?.jackpotChargeTime ?? BASE_CONFIG.weapons.jackpotChargeTime,
+    };
   }
 
   private resetState(): void {

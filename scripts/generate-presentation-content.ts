@@ -128,6 +128,9 @@ function validateCrossReferences(input: ReturnType<typeof loadPresentationConten
     if (projectIds.has(p.id)) throw new PresentationValidationError(`assets: duplicate project asset ${p.id}`);
     projectIds.add(p.id);
     if (!p.namespace) throw new PresentationValidationError(`assets: project asset ${p.id} requires a namespace`);
+    if (p.fallbackAssetId && !assetIds.has(p.fallbackAssetId)) {
+      throw new PresentationValidationError(`assets: ${p.id} fallbackAssetId unknown id ${p.fallbackAssetId}`);
+    }
     if (builtinIds.has(p.id) && !p.replacesBuiltIn) {
       throw new PresentationValidationError(`assets: ${p.id} collides with a built-in (use replacesBuiltIn to override)`);
     }
@@ -201,6 +204,14 @@ function walkUi(
     if (b.transform === 'booleanClass' || b.transform === 'ratio') {
       if (!b.attribute) throw new PresentationValidationError(`${context}: node ${node.id} transform ${b.transform} requires attribute`);
     }
+  }
+  // Component prop sources (progressBar value/max, repeater list, arcMeter
+  // value) must resolve against the same allowlist as bindings.
+  for (const key of ['valueSource', 'maxSource', 'listSource'] as const) {
+    const src = (node.props as Record<string, unknown> | undefined)?.[key];
+    if (typeof src !== 'string') continue;
+    const sourceOk = src.startsWith('item.') ? opts.allowRepeaterItems || inRepeater : opts.allowedBindings.includes(src as never);
+    if (!sourceOk) throw new PresentationValidationError(`${context}: node ${node.id} invalid prop ${key} source ${src}`);
   }
   if (node.assetId && !opts.assetIds.has(node.assetId)) {
     throw new PresentationValidationError(`${context}: node ${node.id} references unknown asset ${node.assetId}`);

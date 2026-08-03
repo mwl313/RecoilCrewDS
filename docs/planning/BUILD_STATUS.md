@@ -95,16 +95,25 @@
 - **Refractor 02 complete (data-driven scene/HUD/asset authoring)** — all
   ten non-gameplay screens and the gameplay HUD are content documents
   (`content/scenes|hud|scene-flows|themes|assets`), validated by Zod and
-  compiled by `npm run generate:presentation-content`; `AppFlowController`
-  owns flow/actions, `SceneRuntime` renders + disposes component trees,
-  `HudProjector` projects a typed `HudViewModel`, `PresentationWorld`
-  renders hybrid 3D menus, and `tools/presentation-preview/` inspects every
-  scene/HUD state. Built-in asset fallbacks preserved; project assets use
-  namespaces. Verified: `npm run build` PASS; `npm test` **411/411 PASS**
-  (40 files); `npm run test:presentation` **24/24 PASS**; `npm run
-  test:demo` PASS (golden unchanged); `npm run test:e2e` **23/23 PASS**;
-  `npm run test:loop` PASS (2 of 3 runs; one seed flake scored 85/JACKPOT 0
-  in the headless bot); `npm run test:maps` + `test:maplab` PASS;
+  compiled by `npm run generate:presentation-content`; `SceneFlowPresenter`
+  owns the presentation side of flow, `SceneRuntime` renders + disposes
+  component trees through the component registry (scoped repeater
+  lifecycle), `HudProjector` projects a typed `HudViewModel`,
+  `PresentationWorld` renders hybrid 3D menus (started by the flow; asset
+  resources stay owned by `AssetService`), and `tools/presentation-preview/`
+  inspects every scene/HUD state. Built-in asset fallbacks preserved;
+  project assets use namespaces with catalog-driven `fallbackAssetId`.
+  Hardening pass (2026-08-04, audit `REFRACTOR02_VERIFICATION_AUDIT.md`)
+  fixed hybrid-world startup, shared-resource disposal, project-model
+  preload, registry wiring, HUD binding paths, the pause button action,
+  repeater retention, nested entity transforms, enter/leave transitions,
+  and HUD denominators (replicated weapon rules). Verified: `npx tsc
+  --noEmit` PASS; `npm run build` PASS; `npm test` **437/437 PASS**
+  (43 files); `npm run test:presentation` **37/37 PASS**; `npm run
+  test:demo` PASS (golden unchanged); `npm run test:e2e` **24/24 PASS**
+  (includes HUD pause-button flow); `npm run test:loop` PASS (score 1242,
+  JACKPOT ×2); `npm run test:maps` PASS (64/64, 0 fallback);
+  `npm run test:maplab` **32/32 PASS**; `build:maplab` +
   `build:presentation-preview` PASS. Details: `docs/refractor02/`.
 
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,

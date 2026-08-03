@@ -43,7 +43,7 @@
               { "id": "score", "type": "statText", "class": "score", "text": "0", "bindings": [{ "target": "text", "source": "match.scoreText" }] },
               { "id": "combo", "type": "statText", "class": "combo", "text": "×1", "bindings": [
                 { "target": "text", "source": "match.combo", "format": "×{0}" },
-                { "target": "class", "source": "combo.hot", "transform": "booleanClass", "attribute": "hot" }
+                { "target": "class", "source": "match.comboHot", "transform": "booleanClass", "attribute": "hot" }
               ] }
             ]
           }
@@ -89,7 +89,7 @@
                 "children": [
                   { "id": "charge-label", "type": "text", "class": "charge-label", "text": "CHARGING" },
                   { "id": "charge-wrap", "type": "container", "class": "bar", "children": [
-                    { "id": "charge-fill", "type": "progressBar", "class": "bar-fill charge", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeRatio" } }
+                    { "id": "charge-fill", "type": "progressBar", "class": "bar-fill charge", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax" } }
                   ] }
                 ]
               }
@@ -129,7 +129,7 @@
             "bindings": [{ "target": "visible", "source": "crosshairVisible" }],
             "children": [
               { "id": "ch-dot", "type": "container", "class": "ch-dot" },
-              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "cooldownRatio" } }
+              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "gunner.cooldownRatio" } }
             ]
           },
           { "id": "prompt", "type": "text", "class": "prompt", "bindings": [{ "target": "text", "source": "prompt" }] },
@@ -159,7 +159,7 @@
       },
       { "id": "fps", "type": "statText", "class": "fps", "text": "", "bindings": [{ "target": "text", "source": "connection.fps", "format": "{0} FPS", "fallback": "" }] },
       { "id": "popups", "type": "popupLayer", "class": "popups" },
-      { "id": "pause-btn", "type": "pauseButton", "class": "pause-btn", "text": "☰", "props": { "title": "menu" }, "actions": [{ "event": "click", "action": "app.resume" }] }
+      { "id": "pause-btn", "type": "pauseButton", "class": "pause-btn", "text": "☰", "props": { "title": "menu" }, "actions": [{ "event": "click", "action": "app.pause" }] }
     ]
   },
   "previewStates": [
@@ -172,12 +172,11 @@
         "connection": { "peerConnected": true, "pingMs": 24, "fps": 60 },
         "match": { "timeRemaining": 72, "timeUrgent": false, "score": 3200, "scoreText": "3,200", "combo": 3, "comboHot": true },
         "tank": { "integrity": 84, "integrityMax": 100, "integrityLow": false, "speed": 42, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
-        "gunner": { "jackpot": 64, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "cannonCooldown": 0, "cooldownRatio": 0 },
+        "gunner": { "jackpot": 64, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "chargeMax": 1, "cannonCooldown": 0, "cooldownRatio": 0 },
         "prompt": "DRIVE · COLLECT SCRAP",
         "promptSub": "WASD + SHIFT + SPACE",
         "crosshairVisible": false,
         "chargeVisible": false,
-        "cooldownRatio": 0,
         "pointerLocked": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
         "pip": { "visible": true, "roleLabel": "GUNNER FEED", "status": "AIMING", "connected": true, "jackpot": false }
@@ -192,12 +191,11 @@
         "connection": { "peerConnected": true, "pingMs": 31, "fps": 58 },
         "match": { "timeRemaining": 5, "timeUrgent": true, "score": 5210, "scoreText": "5,210", "combo": 5, "comboHot": true },
         "tank": { "integrity": 22, "integrityMax": 100, "integrityLow": true, "speed": 0, "grounded": true, "dashReady": false, "dashActive": false, "dashCooling": true },
-        "gunner": { "jackpot": 100, "jackpotMax": 100, "jackpotReady": true, "chargeRatio": 0.5, "cannonCooldown": 1.0, "cooldownRatio": 0.625 },
+        "gunner": { "jackpot": 100, "jackpotMax": 100, "jackpotReady": true, "chargeRatio": 0.5, "chargeMax": 1, "cannonCooldown": 1.0, "cooldownRatio": 0.625 },
         "prompt": "JACKPOT READY",
         "promptSub": "HOLD RIGHT MOUSE TO CHARGE",
         "crosshairVisible": true,
         "chargeVisible": true,
-        "cooldownRatio": 0.625,
         "pointerLocked": true,
         "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
         "pip": { "visible": true, "roleLabel": "DRIVER FEED", "status": "DRIVING", "connected": true, "jackpot": true }

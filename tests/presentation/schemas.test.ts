@@ -81,6 +81,30 @@ describe('presentation content pipeline', () => {
     }
   });
 
+  it('rejects invalid component prop sources (progressBar/arcMeter/repeater)', () => {
+    const root = tempRoot();
+    try {
+      const hud = JSON.parse(readFileSync(path.join(root, 'hud', 'gameplay.json'), 'utf8'));
+      hud.root.children[1].children[0].children[2].children[1].children[0].props.valueSource = 'not.a.hud.path';
+      writeFileSync(path.join(root, 'hud', 'gameplay.json'), JSON.stringify(hud));
+      expect(() => loadPresentationContent(root)).toThrow(/invalid prop valueSource source/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects unknown fallbackAssetId references', () => {
+    const root = tempRoot();
+    try {
+      const assets = JSON.parse(readFileSync(path.join(root, 'assets', 'project.json'), 'utf8'));
+      assets.project[0].fallbackAssetId = 'missing.model';
+      writeFileSync(path.join(root, 'assets', 'project.json'), JSON.stringify(assets));
+      expect(() => loadPresentationContent(root)).toThrow(/fallbackAssetId unknown id/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('rejects unknown asset references in scenes', () => {
     const root = tempRoot();
     try {

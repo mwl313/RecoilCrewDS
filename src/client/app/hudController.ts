@@ -8,6 +8,7 @@ export interface HudContext {
   fps: number;
   pointerLocked: boolean;
   practice: boolean;
+  rules?: { maxIntegrity?: number; cannonCooldown?: number; jackpotChargeTime?: number };
   objective: { x: number; y: number; visible: boolean } | null;
 }
 

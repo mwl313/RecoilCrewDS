@@ -10,8 +10,8 @@ to a typed, safe `HudViewModel`. Content never reads `MatchState`; the
 `match.{timeRemaining,timeUrgent,score,scoreText,combo,comboHot}`,
 `tank.{integrity,integrityMax,integrityLow,speed,grounded,dashReady,
 dashActive,dashCooling}`,
-`gunner.{jackpot,jackpotMax,jackpotReady,chargeRatio,cannonCooldown,
-cooldownRatio}`,
+`gunner.{jackpot,jackpotMax,jackpotReady,chargeRatio,chargeMax,
+cannonCooldown,cooldownRatio}`,
 `prompt`, `promptSub`, `crosshairVisible`, `chargeVisible`,
 `objective.{visible,screenX,screenY,label}`,
 `pip.{visible,roleLabel,status,connected,jackpot}`.
@@ -22,7 +22,7 @@ Bindings support targets `text`, `value`, `visible`, `class`, `style`,
 
 ## Example 1 — new HUD warning from an existing field
 
-Show a LOW AMMO warning when the machine gun is hot, using the existing
+Show a warning when the round is nearly over, using the existing
 `tank.integrityLow`-style pattern. Add a node to `content/hud/gameplay.json`:
 
 ```json
@@ -30,15 +30,18 @@ Show a LOW AMMO warning when the machine gun is hot, using the existing
   "id": "heat-warning",
   "type": "text",
   "class": "warning hidden",
-  "text": "OVERHEAT — LET OFF THE TRIGGER",
+  "text": "FINAL 5 SECONDS",
   "bindings": [
-    { "target": "visible", "source": "gunner.machineGunHeat", "transform": "booleanClass", "attribute": "hidden", "fallback": true }
+    { "target": "visible", "source": "match.timeUrgent" }
   ]
 }
 ```
 
 No runtime code change is required — the field already exists in the view
-model and the binding path is allowlisted.
+model and the binding path is allowlisted. Every allowlisted HUD path and
+every HUD document binding/prop source is verified against the empty view
+model by `tests/presentation/hardening.test.ts`, so a stale path fails the
+suite instead of silently binding nothing.
 
 ## Example 2 — new HUD field requiring a view-model extension
 
@@ -65,7 +68,13 @@ runtime extension point.
 - The HUD DOM is built once; bindings are compiled into handles.
 - `HudRuntime.apply(vm)` mutates only changed values (cached per binding).
 - Repeaters (results stats, modifier chips) re-render only when the list
-  signature changes.
+  signature changes; stale item subtrees are disposed before rebuilding and
+  item ids are scoped (`templateId::index`).
+- The gameplay pause button fires `app.pause` (same `showPause()` policy as
+  Escape); `app.resume` is only used by the pause overlay's resume button.
+  Note: while the pointer is locked, the browser routes input to the game
+  canvas, so DOM buttons are reachable after the user releases the lock
+  (Escape); Escape itself pauses from either state.
 - Transient effects (score popups, combo pulses, damage flashes, dash
   bursts) are event-driven through `HudRuntime.dispatch`, never per-frame
   bindings.

@@ -54,12 +54,21 @@ export class AssetService {
       }
       service.instances.registerMetadata(entry);
     }
-    await service.instances.preloadModels(service.presentation.models);
-    // Project custom models referenced by scenes resolve with documented
-    // placeholder policy (file → manifest override → built-in fallback).
-    for (const asset of PRESENTATION_ASSET_CATALOG.project) {
-      if (asset.kind === 'model' && asset.file) service.models.registerFile(asset.id, asset.file);
+    // Register project assets BEFORE preload: catalog-driven fallbacks and
+    // transforms must be known before the synchronous model lookup runs.
+    const projectModels = PRESENTATION_ASSET_CATALOG.project.filter((p) => p.kind === 'model');
+    for (const asset of projectModels) {
+      service.instances.registerProject(asset);
+      if (asset.file) service.models.registerFile(asset.id, asset.file);
     }
+    // Preload every model referenced at runtime: built-in presentation
+    // models, project files, and project catalog fallbacks.
+    const preloadIds = new Set<string>(service.presentation.models);
+    for (const asset of projectModels) {
+      if (asset.file) preloadIds.add(asset.id);
+      if (asset.fallbackAssetId) preloadIds.add(asset.fallbackAssetId);
+    }
+    await service.instances.preloadModels([...preloadIds]);
     return service;
   }
 
@@ -71,6 +80,15 @@ export class AssetService {
 
   model(id: string): THREE.Object3D {
     return this.instances.instanceModel(id);
+  }
+
+  /**
+   * Resolve a project asset to its file URL (images/textures and any
+   * file-backed asset). Returns null for built-ins or file-less placeholders.
+   */
+  assetUrl(id: string): string | null {
+    const def = PRESENTATION_ASSET_CATALOG.project.find((p) => p.id === id);
+    return def?.file ?? null;
   }
 
   vfx(id: string): VfxSpec {

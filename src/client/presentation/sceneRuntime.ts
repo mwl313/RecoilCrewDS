@@ -8,6 +8,7 @@ export interface SceneRuntimeServices {
   actions: SceneActionRegistry;
   registry: UiComponentRegistry;
   addPopup?(text: string, kind: string): void;
+  resolveAssetUrl?(id: string): string | null;
 }
 
 /**
@@ -18,10 +19,12 @@ export interface SceneRuntimeServices {
 export class SceneRuntime {
   private readonly instances = new Map<string, UiComponentInstance>();
   private readonly bindingJobs: Array<{ apply(ctx: Record<string, unknown>, el: HTMLElement): void; el: HTMLElement }> = [];
-  private readonly itemJobs: Array<{ apply(ctx: Record<string, unknown>, el: HTMLElement): void; el: HTMLElement }> = [];
+  private itemJobs: Array<{ apply(ctx: Record<string, unknown>, el: HTMLElement): void; el: HTMLElement; scope?: string }> = [];
+  private readonly repeaterItems = new Map<string, UiComponentInstance[]>();
   private context: Record<string, unknown> = {};
   private rootInstance: UiComponentInstance | null = null;
   private scene: SceneDefinition | null = null;
+  private transitionToken = 0;
 
   constructor(
     private readonly services: SceneRuntimeServices,
@@ -43,6 +46,7 @@ export class SceneRuntime {
     const services: UiComponentServices = {
       node: (id) => this.instances.get(id),
       addPopup: (text, kind) => this.services.addPopup?.(text, kind),
+      resolveAssetUrl: (id) => this.services.resolveAssetUrl?.(id) ?? null,
     };
     this.rootInstance = this.buildNode(scene.root, undefined, services);
     if (this.rootInstance) {
@@ -57,13 +61,14 @@ export class SceneRuntime {
     resolveItem: (() => unknown) | undefined,
     services: UiComponentServices,
     inRepeater = false,
+    repeaterScope: string | undefined = undefined,
   ): UiComponentInstance | null {
-    const instance = createUiComponent(node, services);
+    const instance = createUiComponent(node, services, this.services.registry);
     this.instances.set(node.id, instance);
     const appliers = compileNodeBindings(node, instance.element);
     for (const applier of appliers) {
       const job = { apply: applier.apply, el: instance.element };
-      if (inRepeater) this.itemJobs.push(job);
+      if (inRepeater) this.itemJobs.push({ ...job, scope: repeaterScope });
       else this.bindingJobs.push(job);
     }
     const actions = node.actions ?? [];
@@ -85,7 +90,7 @@ export class SceneRuntime {
     }
     if (node.type !== 'repeater') {
       for (const child of node.children ?? []) {
-        const childInstance = this.buildNode(child, undefined, services, inRepeater);
+        const childInstance = this.buildNode(child, undefined, services, inRepeater, repeaterScope);
         childInstance?.mount(instance.element);
       }
     }
@@ -104,11 +109,23 @@ export class SceneRuntime {
     const signature = `${list.length}:${list.map((i) => String(i.id ?? i.label ?? i.value)).join(',')}`;
     if (repeater.element.dataset.repeaterSig === signature) return;
     repeater.element.dataset.repeaterSig = signature;
+    // Dispose the previous item subtree (instances, bindings, listeners)
+    // before rebuilding. Template ids are scoped per item so no stale
+    // instance can shadow a later `getNode()` lookup.
+    for (const previous of this.repeaterItems.get(node.id) ?? []) {
+      this.instances.delete(previous.id);
+      previous.dispose();
+    }
+    this.repeaterItems.set(node.id, []);
+    this.itemJobs = this.itemJobs.filter((job) => job.scope !== node.id);
     repeater.element.textContent = '';
-    for (const item of list) {
-      const itemInstance = this.buildNode(template, () => item, services, true);
+    for (let index = 0; index < list.length; index++) {
+      const item = list[index];
+      const scopedTemplate: UiNodeInput = { ...template, id: `${template.id}::${index}` };
+      const itemInstance = this.buildNode(scopedTemplate, () => item, services, true, node.id);
       if (!itemInstance) continue;
       itemInstance.element.dataset.repeaterItem = '1';
+      this.repeaterItems.get(node.id)?.push(itemInstance);
       const itemCtx = { ...context, item };
       itemInstance.update?.(itemCtx);
       for (const job of this.itemJobs) {
@@ -140,6 +157,32 @@ export class SceneRuntime {
     return this.instances.get(id);
   }
 
+  /** Replay the scene enter transition (scenes are cached between shows). */
+  enter(): void {
+    const element = this.rootInstance?.element;
+    if (!element) return;
+    this.transitionToken++;
+    element.classList.remove('hidden');
+    this.playTransition('enter', this.scene?.enterTransition?.durationMs ?? 0);
+  }
+
+  /** Play the exit transition, then hide (scenes stay cached). */
+  leave(): void {
+    const element = this.rootInstance?.element;
+    if (!element) return;
+    const token = ++this.transitionToken;
+    const durationMs = this.scene?.exitTransition?.durationMs ?? 0;
+    if (durationMs <= 0) {
+      element.classList.add('hidden');
+      return;
+    }
+    element.classList.remove('scene-enter');
+    element.classList.add('scene-exit');
+    window.setTimeout(() => {
+      if (token === this.transitionToken) element.classList.add('hidden');
+    }, durationMs + 40);
+  }
+
   private playTransition(kind: 'enter' | 'exit', durationMs: number): void {
     if (!this.rootInstance) return;
     const element = this.rootInstance.element;
@@ -152,11 +195,12 @@ export class SceneRuntime {
   }
 
   unload(): void {
-    if (this.rootInstance) this.playTransition('exit', this.scene?.exitTransition?.durationMs ?? 0);
+    this.transitionToken++;
     for (const instance of this.instances.values()) instance.dispose();
     this.instances.clear();
     this.bindingJobs.length = 0;
     this.itemJobs.length = 0;
+    this.repeaterItems.clear();
     this.rootInstance = null;
     this.scene = null;
   }

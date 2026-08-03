@@ -6,6 +6,7 @@
       "id": "scene.menuTank",
       "kind": "model",
       "namespace": "scene",
+      "fallbackAssetId": "playerTank.chassis",
       "defaultTransform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1.2, 1.2, 1.2] },
       "materialOverrides": { "roughness": 0.7, "metalness": 0.35 },
       "tags": ["menu", "tank", "preview"],

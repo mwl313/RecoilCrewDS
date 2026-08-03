@@ -46,6 +46,8 @@ export interface UiComponentServices {
   /** Look up an instance by node id (e.g. read an input's value). */
   node(id: string): UiComponentInstance | undefined;
   addPopup(text: string, kind: string): void;
+  /** Resolve a semantic asset id to a URL (images); null when unavailable. */
+  resolveAssetUrl?(id: string): string | null;
 }
 
 export class UiComponentRegistry {

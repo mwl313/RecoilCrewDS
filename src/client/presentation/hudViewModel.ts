@@ -1,4 +1,5 @@
 import type { MatchState, Role } from '../../shared/types';
+import { BASE_CONFIG } from '../../shared/config';
 
 /**
  * Safe, typed projection of authoritative/interpolated state + client
@@ -37,6 +38,7 @@ export interface HudViewModel {
     jackpotMax: number;
     jackpotReady: boolean;
     chargeRatio: number;
+    chargeMax: number;
     cannonCooldown: number;
     cooldownRatio: number;
   };
@@ -66,6 +68,15 @@ export interface HudProjectionContext {
   fps: number;
   pointerLocked: boolean;
   practice: boolean;
+  /**
+   * Resolved gameplay denominators for presentation (replicated online or
+   * local practice rules). Falls back to BASE_CONFIG when absent.
+   */
+  rules?: {
+    maxIntegrity?: number;
+    cannonCooldown?: number;
+    jackpotChargeTime?: number;
+  };
   objective: { x: number; y: number; visible: boolean } | null;
 }
 
@@ -91,6 +102,7 @@ export function emptyHudViewModel(): HudViewModel {
       jackpotMax: 100,
       jackpotReady: false,
       chargeRatio: 0,
+      chargeMax: 1,
       cannonCooldown: 0,
       cooldownRatio: 0,
     },
@@ -113,6 +125,9 @@ export class HudProjector {
     const remaining = Math.max(0, Math.ceil(state.duration - state.time));
     const jp = state.turret.jackpotReady;
     const pipRole: Role = opts.role === 'driver' ? 'gunner' : 'driver';
+    const maxIntegrity = opts.rules?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity;
+    const cannonCooldownMax = opts.rules?.cannonCooldown ?? BASE_CONFIG.weapons.cannonCooldown;
+    const chargeSeconds = opts.rules?.jackpotChargeTime ?? BASE_CONFIG.weapons.jackpotChargeTime;
     let prompt = '';
     let promptSub = '';
     if (jp) {
@@ -149,7 +164,7 @@ export class HudProjector {
       },
       tank: {
         integrity: t.integrity,
-        integrityMax: 100,
+        integrityMax: maxIntegrity,
         integrityLow: t.integrity < 35,
         speed: Math.round(Math.hypot(t.vx, t.vz) * 3.6),
         grounded: t.grounded,
@@ -161,9 +176,10 @@ export class HudProjector {
         jackpot: state.stats.jackpotMeter,
         jackpotMax: 100,
         jackpotReady: jp,
-        chargeRatio: Math.min(1, state.turret.chargeT / 1.0),
+        chargeRatio: Math.min(1, state.turret.chargeT / Math.max(0.001, chargeSeconds)),
+        chargeMax: 1,
         cannonCooldown: state.turret.cannonCooldown,
-        cooldownRatio: Math.max(0, state.turret.cannonCooldown / 1.6),
+        cooldownRatio: Math.max(0, state.turret.cannonCooldown / Math.max(0.001, cannonCooldownMax)),
       },
       prompt,
       promptSub,

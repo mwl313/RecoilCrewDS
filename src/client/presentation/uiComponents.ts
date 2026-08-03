@@ -190,7 +190,10 @@ function popupLayerFactory(node: UiNodeInput, services: UiComponentServices): Ui
 
 function imageFactory(node: UiNodeInput, services: UiComponentServices): UiComponentInstance {
   const instance = base(node, services, { tag: 'img' });
-  (instance.element as HTMLImageElement).alt = node.id;
+  const img = instance.element as HTMLImageElement;
+  img.alt = node.id;
+  const url = services.resolveAssetUrl?.(node.assetId ?? '') ?? null;
+  if (url) img.src = url;
   return instance;
 }
 
@@ -221,12 +224,48 @@ export function createUiComponent(
   return factory ? factory(node, services) : base(node, services);
 }
 
+/** Component-specific property schemas (inspector/editor contract). */
+const componentSchemas: Record<string, z.ZodType> = {
+  container: z.object({}).strict(),
+  panel: z.object({}).strict(),
+  horizontal: z.object({}).strict(),
+  vertical: z.object({}).strict(),
+  grid: z.object({ columns: z.number().optional(), rows: z.number().optional() }).strict(),
+  spacer: z.object({}).strict(),
+  conditional: z.object({}).strict(),
+  repeater: z.object({ listSource: z.string().optional() }).strict(),
+  text: z.object({ tag: z.string().optional() }).strict(),
+  statText: z.object({}).strict(),
+  practiceTag: z.object({}).strict(),
+  roleChip: z.object({}).strict(),
+  objectiveMarker: z.object({}).strict(),
+  button: z.object({ dataAct: z.string().optional(), title: z.string().optional() }).strict(),
+  pauseButton: z.object({ title: z.string().optional() }).strict(),
+  input: z
+    .object({
+      maxlength: z.number().optional(),
+      placeholder: z.string().optional(),
+      autocomplete: z.string().optional(),
+      spellcheck: z.boolean().optional(),
+      enterAction: z.string().optional(),
+    })
+    .strict(),
+  progressBar: z.object({ valueSource: z.string().optional(), maxSource: z.string().optional() }).strict(),
+  arcMeter: z.object({ valueSource: z.string().optional() }).strict(),
+  connectionIndicator: z.object({}).strict(),
+  crosshair: z.object({}).strict(),
+  pipFrame: z.object({}).strict(),
+  popupLayer: z.object({}).strict(),
+  image: z.object({ alt: z.string().optional() }).strict(),
+};
+
 export function registerDefaultUiComponents(registry: UiComponentRegistry): void {
   for (const type of Object.keys(factories)) {
+    const factory = factories[type];
     const registration: UiComponentRegistration = {
       type,
-      schema: z.any(),
-      create: (def: UiNodeInput, services: UiComponentServices) => createUiComponent(def, services),
+      schema: componentSchemas[type] ?? z.record(z.string(), z.unknown()),
+      create: (def: UiNodeInput, services: UiComponentServices) => factory(def, services),
       inspector: inspectorFor(type),
     };
     registry.register(registration);

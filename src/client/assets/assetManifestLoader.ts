@@ -22,7 +22,14 @@ export interface ManifestAssetEntry {
     scale?: number | { x?: number; y?: number; z?: number };
     socket?: string;
   };
-  materials?: Array<{ match?: string; color?: number; emissive?: number; emissiveIntensity?: number }>;
+  materials?: Array<{
+    match?: string;
+    color?: number;
+    emissive?: number;
+    emissiveIntensity?: number;
+    roughness?: number;
+    metalness?: number;
+  }>;
 }
 
 export interface ManifestLoadResult {

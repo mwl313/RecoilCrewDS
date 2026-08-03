@@ -30,6 +30,8 @@ export class AssetTransformResolver {
           if (override.color !== undefined) mat.color.setHex(override.color);
           if (override.emissive !== undefined) mat.emissive.setHex(override.emissive);
           if (override.emissiveIntensity !== undefined) mat.emissiveIntensity = override.emissiveIntensity;
+          if (override.roughness !== undefined) mat.roughness = override.roughness;
+          if (override.metalness !== undefined) mat.metalness = override.metalness;
         }
       });
     }

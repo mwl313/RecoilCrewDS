@@ -7,7 +7,7 @@ import { SceneRuntime } from '../../src/client/presentation/sceneRuntime';
 import { HudProjector, emptyHudViewModel } from '../../src/client/presentation/hudViewModel';
 import type { MatchState } from '../../src/shared/types';
 import { PRESENTATION_SCENES, PRESENTATION_HUDS } from '../../src/generated/presentationContent.generated';
-import { AppFlowController } from '../../src/client/presentation/appFlowController';
+import { SceneFlowPresenter } from '../../src/client/presentation/sceneFlowPresenter';
 
 function makeRuntime(container: HTMLElement): { runtime: SceneRuntime; actions: SceneActionRegistry } {
   const registry = new UiComponentRegistry();
@@ -200,7 +200,7 @@ describe('HudProjector', () => {
   });
 });
 
-describe('AppFlowController overlay visibility', () => {
+describe('SceneFlowPresenter overlay visibility', () => {
   it('game visibility hides every scene overlay (pause/menu regression)', async () => {
     const container = document.createElement('div');
     const themeRoot = document.createElement('div');
@@ -208,7 +208,7 @@ describe('AppFlowController overlay visibility', () => {
     hudEl.id = 'hud';
     const registry = new UiComponentRegistry();
     registerDefaultUiComponents(registry);
-    const flow = new AppFlowController(container, themeRoot, registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
     flow.setHudElement(hudEl);
     flow.bind({} as never);
 

@@ -30,6 +30,7 @@ export class PredictionController {
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
+  private latestMovement: MovementRulesBlock | null = null;
   private ground: GroundQuery = STATIC_GROUND_QUERY;
 
   constructor(
@@ -45,6 +46,7 @@ export class PredictionController {
 
   applyMovementRules(movement: MovementRulesBlock | undefined, revision: number | undefined, modifier: string): void {
     if (!movement || revision === undefined) return;
+    this.latestMovement = movement;
     if (movement.turret) {
       this.turretTurnRate = movement.turret.turnRate;
       this.pitchFollowRate = movement.turret.pitchFollowRate;
@@ -60,6 +62,16 @@ export class PredictionController {
   setTurretRates(turnRate: number, pitchFollowRate: number): void {
     this.turretTurnRate = turnRate;
     this.pitchFollowRate = pitchFollowRate;
+  }
+
+  /** Practice path: expose the local match's resolved movement/weapon block. */
+  setMovementRules(movement: MovementRulesBlock): void {
+    this.latestMovement = movement;
+  }
+
+  /** Latest replicated movement block (online) or local rules (practice). */
+  movementRules(): MovementRulesBlock | null {
+    return this.latestMovement;
   }
 
   ensurePredictor(modifier: string): void {

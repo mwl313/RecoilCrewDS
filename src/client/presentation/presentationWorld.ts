@@ -16,7 +16,9 @@ export class PresentationWorld {
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   private readonly animators: Array<{ update(dt: number): void }> = [];
+  /** Scene-owned objects (lights). Model clones stay owned by AssetService. */
   private readonly disposables: Array<THREE.Object3D | THREE.Material | THREE.BufferGeometry | THREE.Texture> = [];
+  private readonly warnedReserved = new Set<string>();
   private raf = 0;
   private lastT = 0;
   private readonly container: HTMLElement;
@@ -49,7 +51,7 @@ export class PresentationWorld {
     this.camera.position.set(cam?.position?.[0] ?? 0, cam?.position?.[1] ?? 1.2, cam?.position?.[2] ?? 5.5);
     this.camera.lookAt(0, 0, 0);
 
-    for (const entity of definition.entities ?? []) this.buildEntity(entity);
+    for (const entity of definition.entities ?? []) this.buildEntity(entity, this.scene);
     this.resize();
   }
 
@@ -76,13 +78,14 @@ export class PresentationWorld {
     }
   }
 
-  private buildEntity(entity: SceneEntityDefinition): void {
+  private buildEntity(entity: SceneEntityDefinition, parent: THREE.Object3D): void {
     const group = new THREE.Group();
     const t = entity.transform ?? {};
     group.position.set(t.position?.[0] ?? 0, t.position?.[1] ?? 0, t.position?.[2] ?? 0);
     group.rotation.set(t.rotation?.[0] ?? 0, t.rotation?.[1] ?? 0, t.rotation?.[2] ?? 0);
     group.scale.set(t.scale?.[0] ?? 1, t.scale?.[1] ?? 1, t.scale?.[2] ?? 1);
 
+    let lookAtTarget: [number, number, number] | null = null;
     let rotateSpeed = 0;
     let floatAmplitude = 0;
     let floatSpeed = 0;
@@ -98,13 +101,25 @@ export class PresentationWorld {
         floatSpeed = Number(props.speed ?? 1);
       } else if (component.type === 'camera') {
         // Scene camera entity: keep the definition camera (simple pass).
-      } else if (component.type === 'postProcessPreset') {
-        // Presentation presets are CSS/color only in this milestone.
-      } else if (component.type === 'audioSource') {
-        // Audio sources are not instantiated in preview/headless contexts.
-      } else if (component.type === 'particleEmitter' || component.type === 'billboard') {
-        // Reserved presentation components (no-op with warning in console).
+      } else if (component.type === 'lookAt') {
+        lookAtTarget = Array.isArray(props.target)
+          ? (props.target.slice(0, 3) as [number, number, number])
+          : null;
+      } else if (
+        component.type === 'postProcessPreset' ||
+        component.type === 'audioSource' ||
+        component.type === 'particleEmitter' ||
+        component.type === 'billboard'
+      ) {
+        if (!this.warnedReserved.has(component.type)) {
+          console.warn(`[presentation] component '${component.type}' is reserved/unsupported; not rendered`);
+          this.warnedReserved.add(component.type);
+        }
       }
+    }
+    if (lookAtTarget) {
+      const target = new THREE.Vector3(...lookAtTarget);
+      group.lookAt(target);
     }
     if (rotateSpeed !== 0 || floatAmplitude !== 0) {
       const baseY = group.position.y;
@@ -117,18 +132,17 @@ export class PresentationWorld {
         },
       });
     }
-    this.scene.add(group);
+    parent.add(group);
     this.disposables.push(group);
-    for (const child of entity.children ?? []) this.buildEntity(child);
+    // Children mount beneath this entity's group so transforms compose.
+    for (const child of entity.children ?? []) this.buildEntity(child, group);
   }
 
   private elapsed = 0;
 
   private resolveModel(assetId: string): THREE.Object3D {
-    // Project custom assets with no file fall back to a registered built-in
-    // (documented placeholder policy); required gameplay assets keep their
-    // procedural fallbacks inside AssetService.
-    if (assetId === 'scene.menuTank') return this.assets.model('playerTank.chassis');
+    // Project custom assets resolve through the catalog (file → registered
+    // fallbackAssetId → procedural fallback). No hardcoded asset ids here.
     return this.assets.model(assetId);
   }
 
@@ -163,22 +177,17 @@ export class PresentationWorld {
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
-    for (const d of this.disposables) {
-      if (d instanceof THREE.BufferGeometry) d.dispose();
-      else if (d instanceof THREE.Material) d.dispose();
-      else if (d instanceof THREE.Object3D) {
-        d.traverse((o) => {
-          const mesh = o as THREE.Mesh;
-          mesh.geometry?.dispose();
-          const mat = mesh.material as THREE.Material | THREE.Material[] | undefined;
-          if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
-          else mat?.dispose();
-        });
-      }
-    }
+    // Ownership rule (Refractor 02 audit P0-2): models are cloned from
+    // AssetService cached prototypes, so their geometry/materials are shared
+    // with gameplay and MUST NOT be disposed here. Only release the
+    // renderer and scene-owned resources; the clone itself is dropped when
+    // the scene graph is garbage collected.
+    this.scene.clear();
     this.disposables.length = 0;
     this.renderer.dispose();
     this.renderer.domElement.remove();
+    this.animators.length = 0;
+    this.warnedReserved.clear();
   }
 }
 

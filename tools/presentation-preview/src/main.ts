@@ -5,7 +5,6 @@ import {
   PRESENTATION_SCENES,
   PRESENTATION_THEMES,
 } from '@app/generated/presentationContent.generated';
-import { AppFlowController } from '@app/client/presentation/appFlowController';
 import { SceneActionRegistry } from '@app/client/presentation/actionRegistry';
 import { UiComponentRegistry } from '@app/client/presentation/componentRegistry';
 import { registerDefaultUiComponents } from '@app/client/presentation/uiComponents';
@@ -76,9 +75,17 @@ function rebuildScene(): void {
   actions.register('app.rematch', () => undefined);
   actions.register('app.retry', () => undefined);
   actions.register('app.resume', () => undefined);
+  actions.register('app.pause', () => undefined);
   actions.register('app.returnToMenu', () => undefined);
   actions.register('app.copyRoomCode', () => undefined);
-  runtime = new SceneRuntime({ actions, registry }, host);
+  runtime = new SceneRuntime(
+    {
+      actions,
+      registry,
+      resolveAssetUrl: (id) => assets?.assetUrl(id) ?? null,
+    },
+    host,
+  );
   const state = scene.previewStates?.find((s) => s.id === stateId) ?? scene.previewStates?.[0];
   void runtime.load(scene, state?.context ?? {});
   if (scene.type === 'hybrid' && hybrid && assets) {
@@ -250,7 +257,7 @@ function collectBadBindings(node: { id: string; bindings?: Array<{ source: strin
     if (b.source.startsWith('item.')) continue;
     const allowed = kind === 'scene'
       ? ['code', 'status', 'copyLabel', 'copyDisabled', 'message', 'value', 'sub', 'score', 'title', 'grade', 'stats', 'driverReady', 'gunnerReady', 'driverState', 'gunnerState', 'readyLabel', 'myRole', 'roomCode', 'myReady', 'modifiers', 'selectedModifier', 'rematchInfo', 'canLeave']
-      : ['role', 'practice', 'pointerLocked', 'prompt', 'promptSub', 'crosshairVisible', 'chargeVisible', 'cooldownRatio'];
+      : ['role', 'practice', 'pointerLocked', 'prompt', 'promptSub', 'crosshairVisible', 'chargeVisible'];
     if (!allowed.includes(b.source) && !b.source.startsWith('connection.') && !b.source.startsWith('match.') && !b.source.startsWith('tank.') && !b.source.startsWith('gunner.') && !b.source.startsWith('objective.') && !b.source.startsWith('pip.') && !b.source.startsWith('combo.')) {
       out.push(`${node.id}: ${b.source}`);
     }
@@ -298,6 +305,3 @@ void AssetService.load().then((a) => {
 void rebuild();
 
 window.addEventListener('resize', () => world?.resize());
-
-// AppFlowController is imported for type/architecture parity in previews.
-void AppFlowController;

@@ -91,14 +91,19 @@ origin.
   `content/themes/*.json`, `content/assets/*.json`) validated by Zod and
   compiled to `src/generated/presentationContent.generated.ts`
   (`npm run generate:presentation-content`, wired into `build:client`).
-- `AppFlowController` owns flow state, scene selection, safe allowlisted
-  actions, and network-driven transitions; `SceneRuntime` builds component
-  trees once, caches binding handles, and disposes on unload.
+- `SceneFlowPresenter` owns the presentation side of flow (scene runtimes,
+  enter/leave transitions, hybrid presentation worlds, safe allowlisted
+  actions); `src/client/main.ts` remains the authoritative application
+  state machine. `SceneRuntime` builds component trees once through the
+  component registry, caches binding handles, scopes/disposes repeater
+  items, and disposes on unload.
 - `HudProjector` projects `MatchState` into a typed `HudViewModel`;
   `HudRuntime` applies content bindings (text/value/visible/class/style/
   attribute + registered transforms) with per-binding change caching.
 - `PresentationWorld` renders hybrid 3D menu backgrounds (separate renderer,
-  disposed before gameplay) and `tools/presentation-preview/` inspects every
+  started by the flow and disposed before gameplay; model geometry/materials
+  remain owned by `AssetService`, so leaving a menu never disposes shared
+  gameplay resources) and `tools/presentation-preview/` inspects every
   scene/HUD state outside the player bundle.
 - `src/shared/assetCatalog.ts` splits built-in required assets (fallbacks
   preserved) from namespaced project assets (`custom.*`, `scene.*`,

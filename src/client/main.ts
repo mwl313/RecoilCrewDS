@@ -34,6 +34,7 @@ void assetsPromise.then((loadedAssets) => {
       ? null
       : (scene, container) => new PresentationWorld(scene, container, loadedAssets),
   );
+  hud.setAssetUrlResolver((id) => loadedAssets.assetUrl(id));
 });
 
 let assets: AssetService | null = null;
@@ -43,6 +44,10 @@ let sessionId = '';
 let roomCode = '';
 let inGame = false;
 let practice = false;
+// Application state ownership (Refractor 02 audit P1-1): `flow` is the
+// authoritative application state machine. SceneFlowPresenter owns the
+// presentation side (scene runtimes, transitions, hybrid worlds, actions)
+// and mirrors `flow` through showState() for scene selection only.
 let flow: 'boot' | 'main' | 'create' | 'join' | 'ready' | 'game' | 'results' | 'error' = 'boot';
 let lastPingSent = 0;
 let pingMs = 0;
@@ -128,6 +133,9 @@ hud.bind({
     if (flow === 'game') {
       input.requestLock();
     }
+  },
+  onPause: () => {
+    showPause();
   },
 });
 
@@ -422,6 +430,7 @@ function onFrame(g: GameClient, state: MatchState) {
     fps: lastFps,
     pointerLocked: input.locked,
     practice,
+    rules: game?.getHudRules(),
     objective,
   });
   if (input.consumeSwap() && practice) g.togglePracticeView();

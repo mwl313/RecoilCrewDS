@@ -34,8 +34,13 @@ built-in semantic asset set without weakening built-in fallbacks.
 4. `npm run generate:presentation-content` — unknown asset references fail
    at generation time.
 
-Custom scene assets without a `file` use the documented placeholder policy:
-the presentation world falls back to a registered built-in model.
+Custom scene assets without a `file` use the catalog-driven placeholder
+policy: set `fallbackAssetId` to a registered asset whose prototype should
+be cloned (for example `"fallbackAssetId": "playerTank.chassis"`). The
+project's own `defaultTransform`/`materialOverrides` still apply. No code
+path hardcodes menu assets; project model files are registered before the
+preload pass so `AssetService.model(id)` resolves synchronously after
+`AssetService.load()`.
 
 ## Import-ready metadata
 

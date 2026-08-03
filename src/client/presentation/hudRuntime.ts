@@ -14,16 +14,20 @@ export class HudRuntime {
   private readonly runtime: SceneRuntime;
   private readonly actions = new SceneActionRegistry();
   private onResume: (() => void) | null = null;
+  private onPause: (() => void) | null = null;
+  private assetUrlResolver: ((id: string) => string | null) | null = null;
   private readonly themeRoot: HTMLElement;
 
   constructor(container: HTMLElement, registry: UiComponentRegistry, themeRoot: HTMLElement) {
     this.themeRoot = themeRoot;
     this.actions.register('app.resume', () => this.onResume?.());
+    this.actions.register('app.pause', () => this.onPause?.());
     this.runtime = new SceneRuntime(
       {
         actions: this.actions,
         registry,
         addPopup: (text, kind) => this.runtime.dispatch({ type: 'floatText', label: text, kind }),
+        resolveAssetUrl: (id) => this.assetUrlResolver?.(id) ?? null,
       },
       container,
     );
@@ -33,6 +37,14 @@ export class HudRuntime {
 
   setResumeHandler(fn: () => void): void {
     this.onResume = fn;
+  }
+
+  setPauseHandler(fn: () => void): void {
+    this.onPause = fn;
+  }
+
+  setAssetUrlResolver(fn: ((id: string) => string | null) | null): void {
+    this.assetUrlResolver = fn;
   }
 
   get element(): HTMLElement | null {

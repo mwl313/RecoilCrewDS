@@ -258,6 +258,10 @@ export class MatchRules {
         turnRate: this.resolver.resolve('weapon.turretTurnRate'),
         pitchFollowRate: this.loadout.turret.pitchFollowRate ?? 8,
       },
+      weapon: {
+        cannonCooldown: this.resolver.resolve('match.cannonCooldown'),
+        jackpotChargeTime: this.resolver.resolve('weapon.jackpotChargeTime'),
+      },
     });
   }
 

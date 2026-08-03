@@ -352,6 +352,20 @@ test('pause overlay neutralizes gameplay input and one practice click starts one
   const b = await ctxB.newPage();
   await createCrew(a, b);
   await enableRealInput(a);
+  // Refractor 02 hardening P0-6: the gameplay HUD pause button must open
+  // the pause overlay through app.pause (not resume). While pointer-locked
+  // the browser routes input to the canvas (real-world flow: Esc to release
+  // the lock, then the DOM button is clickable; Escape itself also pauses).
+  await a.keyboard.press('Escape');
+  await a.waitForTimeout(200);
+  await a.click('#pause-btn');
+  await a.waitForTimeout(200);
+  await expect(a.locator('#screen-pause:not(.hidden)')).toBeVisible();
+  await a.click('#resume-btn');
+  await a.waitForTimeout(300);
+  await expect(a.locator('#screen-pause')).toHaveClass(/hidden/);
+  await expect(a.locator('#hud:not(.hidden)')).toBeVisible();
+  // Existing Escape path: pause again and verify input is neutralized.
   await a.keyboard.press('Escape');
   await a.waitForTimeout(300);
   await a.keyboard.press('Escape');

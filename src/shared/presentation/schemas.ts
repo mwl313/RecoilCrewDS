@@ -35,6 +35,7 @@ export const UI_COMPONENT_TYPES = [
   'practiceTag',
 ] as const;
 
+/** Scene entity component types with a runtime implementation. */
 export const SCENE_COMPONENT_TYPES = [
   'model',
   'camera',
@@ -43,6 +44,15 @@ export const SCENE_COMPONENT_TYPES = [
   'pointLight',
   'rotateAnimation',
   'floatAnimation',
+] as const;
+
+/**
+ * Reserved scene component types. They remain valid in documents so the
+ * future editor can render/author them, but the runtime does not pretend
+ * to implement them: PresentationWorld logs an explicit unsupported warning
+ * when one is encountered instead of silently no-op'ing.
+ */
+export const SCENE_RESERVED_COMPONENT_TYPES = [
   'lookAt',
   'audioSource',
   'postProcessPreset',
@@ -63,6 +73,7 @@ export const ACTION_IDS = [
   'app.rematch',
   'app.retry',
   'app.resume',
+  'app.pause',
   'app.returnToMenu',
   'app.copyRoomCode',
 ] as const;
@@ -119,8 +130,7 @@ export const HUD_BINDING_PATHS = [
   'match.score',
   'match.scoreText',
   'match.combo',
-  'combo.hot',
-  'match.phase',
+  'match.comboHot',
   'tank.integrity',
   'tank.integrityMax',
   'tank.integrityLow',
@@ -133,9 +143,9 @@ export const HUD_BINDING_PATHS = [
   'gunner.jackpotMax',
   'gunner.jackpotReady',
   'gunner.chargeRatio',
+  'gunner.chargeMax',
   'gunner.cannonCooldown',
-  'gunner.machineGunHeat',
-  'gunner.charging',
+  'gunner.cooldownRatio',
   'objective.visible',
   'objective.screenX',
   'objective.screenY',
@@ -148,11 +158,8 @@ export const HUD_BINDING_PATHS = [
   'pointerLocked',
   'prompt',
   'promptSub',
-  'cooldownRatio',
   'crosshairVisible',
   'chargeVisible',
-  'countdownActive',
-  'countdownValue',
 ] as const;
 
 const idPrefix = (prefix: string) => z.string().regex(new RegExp(`^${prefix.replace(/\./g, '\\.')}`), `id must start with ${prefix}`);
@@ -280,7 +287,7 @@ const transformSchema = z
 
 export const sceneComponentSchema = z
   .object({
-    type: z.enum(SCENE_COMPONENT_TYPES),
+    type: z.enum([...SCENE_COMPONENT_TYPES, ...SCENE_RESERVED_COMPONENT_TYPES]),
     props: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
@@ -437,6 +444,12 @@ export const projectAssetDefinitionSchema = z
     id: z.string(),
     kind: z.enum(projectAssetKinds),
     file: z.string().optional(),
+    /**
+     * Catalog-driven placeholder policy: when a project model has no file
+     * (or its file fails), it resolves to this registered asset's
+     * prototype instead of a hardcoded code path.
+     */
+    fallbackAssetId: z.string().optional(),
     namespace: z
       .enum(['custom', 'scene', 'environment', 'ui'])
       .describe('project asset namespace; built-in ids are protected'),

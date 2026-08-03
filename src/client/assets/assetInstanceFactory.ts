@@ -5,6 +5,7 @@ import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
 import { AssetTransformResolver } from './assetTransformResolver';
 import type { ManifestAssetEntry } from './assetManifestLoader';
 import type { UiPresentation } from './presentationCatalog';
+import type { ProjectAssetDefinition } from '../../shared/presentation/schemas';
 
 /**
  * Produces runtime instances from semantic ids. Models are cloned from cached
@@ -14,6 +15,7 @@ import type { UiPresentation } from './presentationCatalog';
  */
 export class AssetInstanceFactory {
   private readonly metadata = new Map<string, ManifestAssetEntry>();
+  private readonly projectDefs = new Map<string, ProjectAssetDefinition>();
 
   constructor(
     private readonly models: ModelProvider,
@@ -28,19 +30,41 @@ export class AssetInstanceFactory {
     this.metadata.set(entry.id, entry);
   }
 
+  registerProject(def: ProjectAssetDefinition): void {
+    this.projectDefs.set(def.id, def);
+  }
+
   async preloadModels(ids: readonly string[]): Promise<void> {
     await Promise.all(ids.map((id) => this.models.getPrototype(id)));
   }
 
   /** Synchronous after preload; throws a clear error when not loaded. */
   instanceModel(id: string): THREE.Object3D {
-    const proto = this.models.getPrototypeSync(id);
+    const project = this.projectDefs.get(id);
+    let proto = this.models.getPrototypeSync(id);
+    let transform: ManifestAssetEntry['transform'] | undefined;
+    let materials: ManifestAssetEntry['materials'] | undefined;
+    // Catalog-driven placeholder policy: a project model without a file (or
+    // whose file is not preloaded) resolves to its registered fallback
+    // prototype, with the project's own transform/material metadata applied.
+    if (!proto && project?.fallbackAssetId) {
+      proto = this.models.getPrototypeSync(project.fallbackAssetId);
+      transform = toManifestTransform(project.defaultTransform);
+      materials = toManifestMaterials(project.materialOverrides);
+    }
     if (!proto) {
       throw new Error(`model '${id}' is not loaded; await AssetService.load() first`);
     }
-    const clone = proto.clone(true);
     const entry = this.metadata.get(id);
-    this.transforms.apply(clone, id, entry?.transform, entry?.materials);
+    if (project) {
+      if (!transform) transform = entry?.transform;
+      if (!materials) materials = entry?.materials;
+    } else {
+      transform = entry?.transform;
+      materials = entry?.materials;
+    }
+    const clone = proto.clone(true);
+    this.transforms.apply(clone, id, transform, materials);
     return clone;
   }
 
@@ -79,6 +103,28 @@ export class AssetInstanceFactory {
       turretPivot: new THREE.Vector3(0, 1.15, 0),
     };
   }
+}
+
+function toManifestTransform(
+  t: ProjectAssetDefinition['defaultTransform'],
+): ManifestAssetEntry['transform'] | undefined {
+  if (!t) return undefined;
+  return {
+    ...(t.position ? { position: { x: t.position[0], y: t.position[1], z: t.position[2] } } : {}),
+    ...(t.rotation ? { rotation: { x: t.rotation[0], y: t.rotation[1], z: t.rotation[2] } } : {}),
+    ...(t.scale ? { scale: { x: t.scale[0], y: t.scale[1], z: t.scale[2] } } : {}),
+  };
+}
+
+function toManifestMaterials(materials: ProjectAssetDefinition['materialOverrides']): ManifestAssetEntry['materials'] | undefined {
+  if (!materials) return undefined;
+  const entry: NonNullable<ManifestAssetEntry['materials']>[number] = {};
+  if (typeof materials.color === 'number') entry.color = materials.color;
+  if (typeof materials.emissive === 'number') entry.emissive = materials.emissive;
+  if (typeof materials.emissiveIntensity === 'number') entry.emissiveIntensity = materials.emissiveIntensity;
+  if (typeof materials.roughness === 'number') entry.roughness = materials.roughness;
+  if (typeof materials.metalness === 'number') entry.metalness = materials.metalness;
+  return [entry];
 }
 
 export function getMuzzleWorld(rig: TankRig): THREE.Vector3 {

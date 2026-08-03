@@ -1,6 +1,6 @@
 import type { MatchState, ModifierId, Role } from '../shared/types';
 import type { AppFlowHandlers, FlowStateId } from './presentation/flowTypes';
-import { AppFlowController } from './presentation/appFlowController';
+import { SceneFlowPresenter } from './presentation/sceneFlowPresenter';
 import { UiComponentRegistry } from './presentation/componentRegistry';
 import { registerDefaultUiComponents } from './presentation/uiComponents';
 import { HudProjector, type HudProjectionContext } from './presentation/hudViewModel';
@@ -16,13 +16,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string): HTMLEle
 }
 
 /**
- * Presentation facade. Screens are content-driven through AppFlowController
+ * Presentation facade. Screens are content-driven through SceneFlowPresenter
  * + SceneRuntime; the gameplay HUD is content-driven through HudRuntime
  * (content/hud/gameplay.json) and projected through HudProjector.
  */
 export class Hud {
   root: HTMLElement;
-  private readonly flow: AppFlowController;
+  private readonly flow: SceneFlowPresenter;
   private readonly hudRuntime: HudRuntime;
   private readonly projector = new HudProjector();
   private handlers: Partial<HudHandlers> = {};
@@ -40,7 +40,7 @@ export class Hud {
     this.root.appendChild(screens);
     const registry = new UiComponentRegistry();
     registerDefaultUiComponents(registry);
-    this.flow = new AppFlowController(screens, this.root, registry);
+    this.flow = new SceneFlowPresenter(screens, this.root, registry);
     this.flow.setUiSound(() => this.onUiSound?.());
 
     const hudHost = el('div', '');
@@ -51,6 +51,10 @@ export class Hud {
       this.sound();
       this.handlers.onResume?.();
     });
+    this.hudRuntime.setPauseHandler(() => {
+      this.sound();
+      this.handlers.onPause?.();
+    });
   }
 
   bind(h: HudHandlers) {
@@ -60,6 +64,11 @@ export class Hud {
 
   setPresentationFactory(fn: PresentationWorldFactory | null): void {
     this.flow.setPresentationFactory(fn);
+  }
+
+  setAssetUrlResolver(fn: ((id: string) => string | null) | null): void {
+    this.flow.setAssetUrlResolver(fn);
+    this.hudRuntime.setAssetUrlResolver(fn);
   }
 
   showScreen(name: string) {

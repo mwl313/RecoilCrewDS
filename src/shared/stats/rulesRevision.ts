@@ -11,6 +11,12 @@ export interface MovementRulesBlock {
   match: Pick<MatchConfig, 'timeScale' | 'grip' | 'gravity'>;
   /** Turret tracking rates (gunner prediction must mirror authority). */
   turret: { turnRate: number; pitchFollowRate: number };
+  /**
+   * Weapon constants for presentation (HUD denominators). Optional so older
+   * fixtures/rooms without the block keep BASE_CONFIG fallbacks; the server
+   * always sends it with snapshots after a movement-rules revision.
+   */
+  weapon?: { cannonCooldown: number; jackpotChargeTime: number };
 }
 
 /** Reliable metadata attached to snapshots/events (REFACTOR_02 §13). */
