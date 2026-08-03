@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { BASE_CONFIG, buildMatchConfig } from '../src/shared/config';
 import { resolveCircleBox } from '../src/shared/math';
-import { stepTankKinematics, applyVelocityResponse, type TankKinematicState } from '../src/shared/sim/tankKinematics';
+import { resolveTankFootprint, stepTankKinematics, applyVelocityResponse, type TankKinematicState } from '../src/shared/sim/tankKinematics';
+import type { GroundQuery } from '../src/shared/sim/groundQuery';
 
 const DT = 1 / 30;
 
@@ -29,6 +30,17 @@ function step(t: TankKinematicState, input: { throttle: number; steer: number; d
       DT,
     );
   }
+}
+
+function groundWithBounds(bounds: { minX: number; maxX: number; minZ: number; maxZ: number }, half: number): GroundQuery {
+  return {
+    groundHeightAt: () => 0,
+    groundNormalAt: () => ({ nx: 0, ny: 1, nz: 0 }),
+    ramps: [],
+    half,
+    bounds,
+    resolveCircleContacts: (x, z) => ({ x, z, contacts: [] }),
+  };
 }
 
 describe('driver steering semantics', () => {
@@ -88,6 +100,26 @@ describe('circle-box collision', () => {
     const res2 = resolveCircleBox(res.x, res.z, 1, 0, 0, 2, 2);
     expect(res2.x).toBeCloseTo(res.x);
     expect(res2.x).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('arena bounds are axis-aware (any map size)', () => {
+  it('clamps a rectangular arena on the correct axis only', () => {
+    // 300 wide (X) × 600 deep (Z), centered on (0,0).
+    const ground = groundWithBounds({ minX: -150, maxX: 150, minZ: -300, maxZ: 300 }, 150);
+    const t = tank(200, 250); // outside X, inside Z
+    resolveTankFootprint(t, BASE_CONFIG, ground);
+    expect(t.x).toBeCloseTo(149.5); // clamped on the narrow axis
+    expect(t.z).toBeCloseTo(250); // untouched on the long axis
+    expect(t.vx).toBe(0);
+  });
+
+  it('still clamps the default square bounds exactly as before', () => {
+    const ground = groundWithBounds({ minX: -40, maxX: 40, minZ: -40, maxZ: 40 }, 40);
+    const t = tank(100, 10);
+    resolveTankFootprint(t, BASE_CONFIG, ground);
+    expect(t.x).toBeCloseTo(39.5);
+    expect(t.z).toBeCloseTo(10);
   });
 });
 

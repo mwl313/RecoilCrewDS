@@ -14,6 +14,11 @@ export interface GroundQuery {
   groundNormalAt(x: number, z: number): { nx: number; ny: number; nz: number };
   ramps: RampDef[];
   half: number;
+  /**
+   * World-space arena bounds. Generated arenas provide exact rectangular
+   * bounds; when absent, a square centered on (0,0) with `half` is assumed.
+   */
+  bounds?: { minX: number; maxX: number; minZ: number; maxZ: number };
   resolveCircleContacts(
     x: number,
     z: number,
@@ -35,3 +40,17 @@ export const STATIC_GROUND_QUERY: GroundQuery = {
   half: ARENA.half,
   resolveCircleContacts: staticResolveCircleContacts,
 };
+
+/** Resolve the arena boundary from an explicit bounds or the square default. */
+export function resolveArenaBounds(
+  ground: Pick<GroundQuery, 'half' | 'bounds'>,
+): { minX: number; maxX: number; minZ: number; maxZ: number } {
+  return (
+    ground.bounds ?? {
+      minX: -ground.half,
+      maxX: ground.half,
+      minZ: -ground.half,
+      maxZ: ground.half,
+    }
+  );
+}

@@ -74,6 +74,16 @@ export class PredictionController {
     this.predictor?.setGround(ground);
   }
 
+  /** Arena half the predictor is bound to (for diagnostics/tests). */
+  groundHalf(): number {
+    return this.ground.half;
+  }
+
+  /** True when local tank prediction is disabled (wrong-ground fallback). */
+  isPredictionDisabled(): boolean {
+    return this.predictor?.isDisabled ?? false;
+  }
+
   reconcile(state: MatchState, ackSeq: number): void {
     this.ensurePredictor(state.modifier);
     this.predictor?.reconcile(state.tank, ackSeq);
@@ -174,6 +184,9 @@ export class PredictionController {
     this.inputSeq = 0;
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;
-    this.ground = STATIC_GROUND_QUERY;
+    // NOTE: the ground is owned by the arena lifecycle (setGround on
+    // create/start/rematch/reconnect/practice reroll). reset() must NOT
+    // revert it to the legacy static arena, or a 400x400 (or any other)
+    // generated world would predict against the wrong bounds and jitter.
   }
 }

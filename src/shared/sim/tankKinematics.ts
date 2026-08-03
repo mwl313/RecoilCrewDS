@@ -2,7 +2,7 @@ import { pitchFromNormal } from '../arena';
 import type { GameConfig } from '../config';
 import { clamp, lerp, pointInBox } from '../math';
 import type { GroundQuery } from './groundQuery';
-import { STATIC_GROUND_QUERY } from './groundQuery';
+import { resolveArenaBounds, STATIC_GROUND_QUERY } from './groundQuery';
 import type { DriverInput, MatchConfig } from '../types';
 import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 
@@ -251,9 +251,11 @@ export function resolveTankFootprint(
   // position is only returned as a correction when an obstacle box was hit.
   // The gate gaps have no wall box, so clamp the chassis explicitly and stop
   // the outward velocity component to prevent escaping or boundary jitter.
-  const bound = ground.half - 0.5;
-  const clampedX = clamp(t.x, -bound, bound);
-  const clampedZ = clamp(t.z, -bound, bound);
+  // Arena bounds are axis-aware: generated arenas may be rectangular or
+  // offset from the origin, so the clamp must not assume ±(half - 0.5).
+  const b = resolveArenaBounds(ground);
+  const clampedX = clamp(t.x, b.minX + 0.5, b.maxX - 0.5);
+  const clampedZ = clamp(t.z, b.minZ + 0.5, b.maxZ - 0.5);
   if (clampedX !== t.x) t.vx = 0;
   if (clampedZ !== t.z) t.vz = 0;
   t.x = clampedX;

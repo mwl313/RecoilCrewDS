@@ -81,6 +81,7 @@ export function createGeneratedArenaWorld(
     groundNormalAt: (x, z) => queries.groundNormalAt(x, z),
     ramps: props.ramps,
     half: props.half,
+    bounds: props.bounds,
     obstacleAt: (x, z) => queries.obstacleAt(x, z),
     resolveCircleContacts: (x, z, r) => queries.resolveCircleContacts(x, z, r),
     resolveCircle: (x, z, r) => queries.resolveCircle(x, z, r),

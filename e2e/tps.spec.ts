@@ -387,3 +387,65 @@ test('pause overlay neutralizes gameplay input and one practice click starts one
   expect(passesAfter).toBe(2);
   await practice.close();
 });
+
+test('driver tank renders smoothly online (no prediction jitter / backward snapping)', async ({ browser }) => {
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const a = await ctxA.newPage();
+  const b = await ctxB.newPage();
+  await createCrew(a, b);
+  await enableRealInput(a);
+  await a.keyboard.down('w');
+  await a.waitForTimeout(700); // let the tank accelerate
+  await a.evaluate(() => {
+    const w = window as unknown as {
+      __recoil: { renderTank(): { x: number; z: number } | null; state(): { tank: { x: number; z: number } } | null };
+      __stab: { samples: Array<{ rx: number; rz: number; ax: number; az: number }> };
+    };
+    w.__stab = { samples: [] };
+    const start = performance.now();
+    const rec = (now: number): void => {
+      const rt = w.__recoil.renderTank();
+      const st = w.__recoil.state();
+      if (rt && st) w.__stab.samples.push({ rx: rt.x, rz: rt.z, ax: st.tank.x, az: st.tank.z });
+      if (now - start < 1500) requestAnimationFrame(rec);
+    };
+    requestAnimationFrame(rec);
+  });
+  await a.waitForTimeout(2700);
+  await a.keyboard.up('w');
+  const samples = await a.evaluate(() => (window as unknown as { __stab: { samples: Array<{ rx: number; rz: number; ax: number; az: number }> } }).__stab.samples);
+  expect(samples.length).toBeGreaterThan(30);
+  const first = samples[0];
+  const last = samples[samples.length - 1];
+  const axisX = last.ax - first.ax;
+  const axisZ = last.az - first.az;
+  const axisLen = Math.hypot(axisX, axisZ);
+  expect(axisLen).toBeGreaterThan(5); // the server tank actually drove
+  const nx = axisX / axisLen;
+  const nz = axisZ / axisLen;
+  let backward = 0;
+  let maxJump = 0;
+  let renderedTotal = 0;
+  for (let i = 1; i < samples.length; i++) {
+    const drx = samples[i].rx - samples[i - 1].rx;
+    const drz = samples[i].rz - samples[i - 1].rz;
+    const along = drx * nx + drz * nz;
+    renderedTotal += Math.hypot(drx, drz);
+    maxJump = Math.max(maxJump, Math.hypot(drx, drz));
+    if (along < -0.25) backward++;
+  }
+  const authTotal = samples.reduce(
+    (sum, s, i) => (i === 0 ? 0 : sum + Math.hypot(s.ax - samples[i - 1].ax, s.az - samples[i - 1].az)),
+    0,
+  );
+  const startErr = Math.hypot(samples[0].rx - samples[0].ax, samples[0].rz - samples[0].az);
+  const endErr = Math.hypot(last.rx - last.ax, last.rz - last.az);
+  console.log(`[stab] rendered ${renderedTotal.toFixed(1)}m auth ${authTotal.toFixed(1)}m maxJump ${maxJump.toFixed(2)}m backward ${backward} startErr ${startErr.toFixed(2)}m endErr ${endErr.toFixed(2)}m`);
+  expect(backward).toBe(0); // no hard snap-back to authority
+  expect(maxJump).toBeLessThan(2); // no per-frame teleport
+  expect(renderedTotal).toBeGreaterThan(authTotal * 0.5); // no runaway prediction
+  expect(renderedTotal).toBeLessThan(authTotal * 1.5);
+  await ctxA.close();
+  await ctxB.close();
+});

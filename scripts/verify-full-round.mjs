@@ -87,28 +87,56 @@ const playInterval = setInterval(() => {
     const d = Math.hypot(p.x - s.tank.x, p.z - s.tank.z);
     if (!target || d < Math.hypot(target.x - s.tank.x, target.z - s.tank.z)) target = p;
   }
-  // Generated arenas are 400x400 centered on (0,0): hold the center so the
-  // horde converges on the tank, and only leave it to collect dropped scrap.
-  const targetX = target ? target.x : 0;
-  const targetZ = target ? target.z : 0;
+  let enemyTarget = null;
+  if (!target) {
+    let bestD = Infinity;
+    for (const e of s.enemies) {
+      if (!e.alive || e.type === 'lootTruck') continue;
+      const d = Math.hypot(e.x - s.tank.x, e.z - s.tank.z);
+      if (d < bestD) {
+        bestD = d;
+        enemyTarget = e;
+      }
+    }
+  }
+  // Generated arenas are centered on (0,0): hold the center so the horde
+  // converges, but actively close on nearby enemies so the gunner can
+  // score kills (otherwise late-arriving enemies can starve the round).
+  const targetX = target ? target.x : enemyTarget ? enemyTarget.x : 0;
+  const targetZ = target ? target.z : enemyTarget ? enemyTarget.z : 0;
   const yawTo = Math.atan2(targetX - s.tank.x, targetZ - s.tank.z);
   const steer = Math.max(-1, Math.min(1, wrapAngle(yawTo - s.tank.yaw) * 1.8));
   const enemyNear = s.enemies.some(
     (e) => e.alive && e.type !== 'lootTruck' && Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < 45,
   );
-  const throttle = enemyNear && !target ? 0.12 : 0.85;
+  const throttle = enemyTarget && enemyTarget !== null ? 1 : enemyNear && !target ? 0.12 : 0.85;
   driver.send({
     t: 'input',
     seq: driverSeq++,
     driver: { throttle, steer, dashPressed: t % 8 < 0.1, jumpPressed: false },
   });
-  let aimYaw = s.tank.yaw + Math.PI / 2;
+  // Protocol: gunner aimYaw is chassis-local (server adds tank.yaw when
+  // firing). The real client sends turret.desiredYawLocal; the bot must
+  // convert the world aim instead of sending the raw world angle.
+  const toLocal = (world) => {
+    let v = (world - s.tank.yaw) % (Math.PI * 2);
+    if (v > Math.PI) v -= Math.PI * 2;
+    if (v < -Math.PI) v += Math.PI * 2;
+    return v;
+  };
+  let aimYaw = toLocal(s.tank.yaw + Math.PI / 2);
   let enemy = null;
   for (const e of s.enemies) {
     if (!e.alive || e.type === 'lootTruck') continue;
     if (!enemy || Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < Math.hypot(enemy.x - s.tank.x, enemy.z - s.tank.z)) enemy = e;
   }
-  if (enemy) aimYaw = Math.atan2(enemy.x - s.tank.x, enemy.z - s.tank.z);
+  let bugTarget = null;
+  for (const e of s.enemies) {
+    if (!e.alive || e.type !== 'scrapBug') continue;
+    if (!bugTarget || Math.hypot(e.x - s.tank.x, e.z - s.tank.z) < Math.hypot(bugTarget.x - s.tank.x, bugTarget.z - s.tank.z)) bugTarget = e;
+  }
+  const best = bugTarget ?? enemy;
+  if (best) aimYaw = toLocal(Math.atan2(best.x - s.tank.x, best.z - s.tank.z));
   const inRange = enemy && Math.hypot(enemy.x - s.tank.x, enemy.z - s.tank.z) < 80;
   const fire = inRange && s.turret.cannonCooldown <= 0;
   const cannon = fire && !lastCannon;

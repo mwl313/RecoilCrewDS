@@ -31,6 +31,18 @@ aim re-derived against the predicted chassis (smooth 60 fps, still sticky
 to the Gunner's aim, zero extra network traffic); the Gunner uses local
 turret prediction reconciled with snapshots.
 
+Driver tank prediction is bound to the authoritative arena for any map size:
+the prediction ground is set on create/start/rematch/reconnect and survives
+controller resets (it is never reverted to the legacy static arena). Reconcile
+replays at most a bounded number of in-flight inputs, display corrections are
+speed-capped above the vehicle's top speed (smooth convergence, no teleports),
+and if the authoritative tank ever appears outside the prediction ground's
+bounds the client disables local tank prediction and renders the interpolated
+authority instead (no jitter fallback). Arena boundary clamping is axis-aware
+(world-space `bounds` on the ground query), so rectangular or offset arenas
+clamp each axis to its real edge instead of assuming a square centered on the
+origin.
+
 ## Generated arenas (Phases 1-3)
 
 - Every match carries its own `ArenaWorld` (match-scoped; no global arena).

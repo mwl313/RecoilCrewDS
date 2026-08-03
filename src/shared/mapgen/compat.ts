@@ -32,6 +32,8 @@ export interface ArenaProps {
   towerSpots: { x: number; z: number }[];
   truckRoute: { x: number; z: number }[];
   half: number;
+  /** Exact world-space bounds (rectangular arenas included). */
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
 
 export interface ArenaQueries {
@@ -101,6 +103,12 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
     towerSpots: ARENA.towerSpots.map((s) => ({ ...s })),
     truckRoute: ARENA.truckRoute.map((s) => ({ ...s })),
     half: ARENA.half,
+    bounds: {
+      minX: -ARENA.half,
+      maxX: ARENA.half,
+      minZ: -ARENA.half,
+      maxZ: ARENA.half,
+    },
   };
   return {
     baseSeed: 0,
@@ -159,6 +167,12 @@ export function toArenaProps(arena: GeneratedArena): ArenaProps {
   const truckRoute: { x: number; z: number }[] = [];
   const ox = arena.originX;
   const oz = arena.originZ;
+  const bounds = {
+    minX: ox,
+    maxX: ox + arena.widthMeters,
+    minZ: oz,
+    maxZ: oz + arena.depthMeters,
+  };
   const toWorld = (x: number, z: number) => ({ x: x + ox, z: z + oz });
 
   if (layout) {
@@ -216,11 +230,18 @@ export function toArenaProps(arena: GeneratedArena): ArenaProps {
     towerSpots,
     truckRoute,
     half: Math.min(arena.widthMeters, arena.depthMeters) / 2,
+    bounds,
   };
 }
 
 /** Classic query surface parameterized by a generated arena. */
 export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps }): ArenaQueries {
+  const arenaBounds = {
+    minX: arena.originX,
+    maxX: arena.originX + arena.widthMeters,
+    minZ: arena.originZ,
+    maxZ: arena.originZ + arena.depthMeters,
+  };
   const props: ArenaProps = arena.props ?? {
     obstacles: [],
     barrels: [],
@@ -230,6 +251,7 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
     towerSpots: [],
     truckRoute: [],
     half: Math.min(arena.widthMeters, arena.depthMeters) / 2,
+    bounds: arenaBounds,
   };
   const toLocalX = (x: number) => x - arena.originX;
   const toLocalZ = (z: number) => z - arena.originZ;
@@ -291,9 +313,9 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
           contacts.push(res);
         }
       }
-      const half = props.half - 0.5;
-      outX = clamp(outX, -half, half);
-      outZ = clamp(outZ, -half, half);
+      const b = props.bounds ?? arenaBounds;
+      outX = clamp(outX, b.minX + 0.5, b.maxX - 0.5);
+      outZ = clamp(outZ, b.minZ + 0.5, b.maxZ - 0.5);
       return { x: outX, z: outZ, contacts };
     },
     rampAt(x: number, z: number): RampDef | undefined {

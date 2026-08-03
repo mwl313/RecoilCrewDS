@@ -187,6 +187,7 @@ export class GameClient {
     this.mode = 'online';
     this.setRole(role);
     this.resetState();
+    this.prediction.setGround(this.arenaWorld);
     this.running = true;
     this.loop();
   }
@@ -201,6 +202,7 @@ export class GameClient {
     this.presenter.interpState = this.practiceMatch.state;
     this.setRole('driver');
     this.resetState();
+    this.prediction.setGround(this.arenaWorld);
     this.running = true;
     this.loop();
   }
@@ -212,11 +214,11 @@ export class GameClient {
    */
   applyArenaSession(session: ArenaSessionResult): void {
     this.world.rebuildArena(session.world);
+    this.resetState();
     this.prediction.setGround(session.world);
     if (this.mode === 'practice') {
       this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, session.world);
     }
-    this.resetState();
   }
 
   private resetState(): void {
@@ -303,9 +305,15 @@ export class GameClient {
       if (this.mode === 'practice') {
         renderTank = interp.tank;
       } else if (this.role === 'driver') {
-        this.prediction.sampleDriver(this.lastPredictInput, dtRaw);
-        renderTank = this.prediction.renderTank(interp.tank);
-        this.playLocalDriverActions(renderTank);
+        if (this.prediction.isPredictionDisabled()) {
+          // Wrong-ground / pathological divergence fallback: render the
+          // interpolated authority (gunner-style) instead of jittering.
+          renderTank = interp.tank;
+        } else {
+          this.prediction.sampleDriver(this.lastPredictInput, dtRaw);
+          renderTank = this.prediction.renderTank(interp.tank);
+          this.playLocalDriverActions(renderTank);
+        }
       } else {
         renderTank = interp.tank;
       }

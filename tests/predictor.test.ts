@@ -44,11 +44,11 @@ describe('DriverPredictor', () => {
     const input = { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false };
     for (let i = 0; i < 10; i++) p.sampleInput(input, 1 / 30);
     const predictedZ = p.predicted.z;
-    p.display.z = 999;
+    p.display.z = predictedZ + 3; // a few metres of error (below hard-snap)
     p.reconcile(tank(0), 1);
     // Small divergence (≈ predictedZ) should NOT snap instantly; smoothing
     // moves display toward predicted over time.
-    expect(p.display.z).not.toBeCloseTo(p.predicted.z, 0);
+    expect(Math.abs(p.display.z - p.predicted.z)).toBeGreaterThan(1);
     for (let i = 0; i < 60; i++) p.smooth(1 / 30);
     expect(Math.abs(p.display.z - p.predicted.z)).toBeLessThan(0.5);
   });
