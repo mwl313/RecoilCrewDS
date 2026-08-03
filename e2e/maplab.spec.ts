@@ -34,6 +34,20 @@ test('Map Lab full flow: generate, edit, toggle, focus, export, draft restore', 
   // 1-3. Primary profile loads and a production map is generated with PASS.
   await expect(page.locator('.maplab-toolbar')).toBeVisible();
   expect(await waitForStatus(page)).toBe('PASS');
+  // Parameter folders must be populated by the descriptor registry.
+  const folderCounts = await page.evaluate(() => {
+    const out: Record<string, number> = {};
+    for (const el of Array.from(document.querySelectorAll('.tp-fldv'))) {
+      const title = el.querySelector('.tp-fldv_b')?.textContent?.trim() ?? '';
+      out[title] = el.querySelectorAll('input').length;
+    }
+    return out;
+  });
+  expect(folderCounts.BASIC ?? 0).toBeGreaterThan(2);
+  expect(folderCounts.TERRAIN ?? 0).toBeGreaterThan(10);
+  expect(folderCounts.ROUTES ?? 0).toBeGreaterThan(5);
+  expect(folderCounts.OBJECTS ?? 0).toBeGreaterThan(10);
+  expect(folderCounts.VALIDATION ?? 0).toBeGreaterThan(3);
 
   // 4-5. Edit (objects off) -> regenerate shows the change in metrics.
   const checksumBefore = await arenaChecksum(page);

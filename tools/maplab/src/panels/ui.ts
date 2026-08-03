@@ -253,8 +253,13 @@ export class MapLabUI {
       if (descriptor.type === 'select' && descriptor.options) options.options = descriptor.options;
       if (descriptor.type === 'readonly') options.readonly = true;
       const target = this.state.workingBundle as unknown as Record<string, unknown>;
+      const initial = getPath(target, descriptor.path);
+      if (initial === undefined) continue; // optional field not present in this bundle
+      // Tweakpane binds a single property key, so nested JSON paths go
+      // through a per-binding proxy; changes write back via the path.
+      const proxy = { value: initial };
       try {
-        const binding = groups[descriptor.group].addBinding(target, descriptor.path, options);
+        const binding = groups[descriptor.group].addBinding(proxy, 'value', options);
         binding.on('change', (ev) => this.callbacks.onParamChange(descriptor, ev.value));
         this.registry.set(descriptor.path, binding);
       } catch {
