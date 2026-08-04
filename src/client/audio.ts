@@ -459,6 +459,11 @@ export class AudioManager {
     }
   }
 
+  /** Stop the looping cannon-charge sweep (release/reject/cancel). */
+  stopCannonCharge(): void {
+    this.stopCharge();
+  }
+
   private blip(freq: number, t: number, dur: number, type: OscillatorType, gain: number) {
     const ctx = this.ctx!;
     const osc = ctx.createOscillator();

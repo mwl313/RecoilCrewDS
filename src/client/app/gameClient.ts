@@ -62,6 +62,7 @@ export class GameClient {
   private mgDown = false;
   private chargeHoldStart = 0;
   private chargeHoldActive = false;
+  private chargeSoundStarted = false;
   private readonly pendingLocalActions = new Map<number, { action: GunnerActionType; at: number }>();
   private f4: F4Overlay | null = null;
   private inputEnabled = true;
@@ -308,6 +309,7 @@ export class GameClient {
     }
     this.prediction.rejectAction(actionSeq);
     this.pendingLocalActions.delete(actionSeq);
+    this.stopChargeSound();
   }
 
   predictionDebug() {
@@ -341,6 +343,7 @@ export class GameClient {
     this.mgDown = false;
     this.chargeHoldStart = 0;
     this.chargeHoldActive = false;
+    this.chargeSoundStarted = false;
   }
 
   setSnapshot(msg: { seq: number; serverTime: number; state: MatchState; lastProcessedDriverInputSeq: number; lastProcessedGunnerInputSeq: number; lastImpulseSeq?: number; opLog?: unknown; serverTick?: number; tickDurationMs?: number; droppedTimeMs?: number; driftMs?: number; outboundBuffered?: number; rulesRevision?: number; movementRulesRevision?: number; movement?: unknown }): void {
@@ -434,6 +437,7 @@ export class GameClient {
     if (this.presenter.latest) this.onFrame?.(this.presenter.latest);
 
     this.pollGunnerActions();
+    this.updateChargeSound();
     this.prediction.retransmitPendingActions(performance.now());
     // Fade optimistic presentations that never received a confirming event.
     for (const [seq, entry] of [...this.pendingLocalActions]) {
@@ -575,14 +579,16 @@ export class GameClient {
     const charging = state.build.capabilities.includes('cannon.charge');
     const turret = this.prediction.getTurretSpaces();
     if (secondary && !this.secondaryDown) {
-      m.applyGunnerAction('secondaryPressed', undefined, {
-        aimYaw: turret.desiredYawLocal,
-        aimPitch: turret.desiredPitch,
-      });
-      if (charging) {
-        this.audio.play('cannonChargeStart');
+      if (state.turret.cannonCooldown <= 0) {
+        m.applyGunnerAction('secondaryPressed', undefined, {
+          aimYaw: turret.desiredYawLocal,
+          aimPitch: turret.desiredPitch,
+        });
+      }
+      if (charging && state.turret.cannonCooldown <= 0) {
         this.chargeHoldStart = performance.now();
         this.chargeHoldActive = true;
+        this.chargeSoundStarted = false;
       }
     } else if (!secondary && this.secondaryDown) {
       m.applyGunnerAction('secondaryReleased', undefined, {
@@ -591,6 +597,7 @@ export class GameClient {
       });
       this.chargeHoldActive = false;
       this.chargeHoldStart = 0;
+      this.stopChargeSound();
     }
     this.secondaryDown = secondary;
     void dt;
@@ -600,6 +607,9 @@ export class GameClient {
     this.inputEnabled = enabled;
     if (!enabled) {
       this.lastPredictInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+      this.stopChargeSound();
     }
   }
 
@@ -633,19 +643,24 @@ export class GameClient {
     const mg = this.mouseDown('primary');
     const secondary = this.mouseDown('secondary');
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
+    const canCharge = (latest?.turret.cannonCooldown ?? 0) <= 0;
     if (mg && !this.mgDown) this.fireGunnerAction('mgStart');
     if (!mg && this.mgDown) this.fireGunnerAction('mgStop');
     if (secondary && !this.secondaryDown) {
-      this.fireGunnerAction('secondaryPressed', true);
-      if (charging) {
+      if (!charging || canCharge) {
+        this.fireGunnerAction('secondaryPressed', true);
+      }
+      if (charging && canCharge) {
         this.chargeHoldStart = performance.now();
         this.chargeHoldActive = true;
+        this.chargeSoundStarted = false;
       }
     }
     if (!secondary && this.secondaryDown) {
       this.fireGunnerAction('secondaryReleased', true);
       this.chargeHoldActive = false;
       this.chargeHoldStart = 0;
+      this.stopChargeSound();
     }
     this.mgDown = mg;
     this.secondaryDown = secondary;
@@ -667,7 +682,7 @@ export class GameClient {
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     if (action === 'secondaryPressed') {
       if (charging) {
-        this.audio.play('cannonChargeStart');
+        this.chargeSoundStarted = false;
         return;
       }
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
@@ -706,6 +721,32 @@ export class GameClient {
     return { unlocked, held, ratio, full: ratio >= 1 };
   }
 
+  /**
+   * Charge sound starts only after the hold passes the tap threshold (a tap
+   * is silent) and stops the moment the shot launches/cancels.
+   */
+  private updateChargeSound(): void {
+    const latest = this.presenter.latest;
+    if (latest?.tank.deadT && latest.tank.deadT > 0) {
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+      this.stopChargeSound();
+      return;
+    }
+    if (!this.chargeHoldActive || this.chargeSoundStarted) return;
+    const block = this.prediction.movementRules();
+    const tapMax = block?.weapon?.chargeTapMaxSeconds ?? BASE_CONFIG.weapons.chargeTapMaxSeconds;
+    if (performance.now() - this.chargeHoldStart >= tapMax * 1000) {
+      this.audio.play('cannonChargeStart');
+      this.chargeSoundStarted = true;
+    }
+  }
+
+  private stopChargeSound(): void {
+    this.chargeSoundStarted = false;
+    this.audio.stopCannonCharge();
+  }
+
   getCameraState() {
     return this.cameras.getCameraState();
   }
@@ -717,6 +758,7 @@ export class GameClient {
   destroy(): void {
     this.running = false;
     cancelAnimationFrame(this.raf);
+    this.stopChargeSound();
     this.world.arena.dispose();
     this.registry.reset();
     this.world.dispose();
