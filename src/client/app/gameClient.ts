@@ -26,6 +26,7 @@ import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } f
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
 import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
+import { ProgressionOverlay } from '../progression/progressionOverlay';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -69,6 +70,7 @@ export class GameClient {
   private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
   private inputSendT = 0;
   suppressAutoInput = false;
+  private progressionOverlay: ProgressionOverlay | null = null;
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
@@ -187,6 +189,10 @@ export class GameClient {
     deps.quality = quality;
     const game = new GameClient(deps);
     gameRef = game;
+    game.progressionOverlay = new ProgressionOverlay(container, {
+      selectUpgrade: (index) => gameRef!.submitUpgrade(index),
+      skipRelicPresentation: () => undefined,
+    });
     game.f4 = new F4Overlay();
     game.onReadyHook = onReady;
     return game;
@@ -496,6 +502,9 @@ export class GameClient {
       this.presenter.latest = this.singlePlayerMatch.state;
     }
     if (this.session.networked) this.presenter.advanceRenderClock(dtRaw);
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      this.singlePlayerMatch.checkProgressionTimeout(performance.now());
+    }
     this.presenter.computeRemote();
     let renderTank: TankState | null = null;
     const frame = this.presenter.remoteFrame;
@@ -519,7 +528,10 @@ export class GameClient {
       }
     }
     if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
-    if (this.presenter.latest) this.onFrame?.(this.presenter.latest);
+    if (this.presenter.latest) {
+      this.onFrame?.(this.presenter.latest);
+      this.updateProgressionOverlay();
+    }
 
     this.pollGunnerActions();
     this.updateChargeSound();
@@ -803,6 +815,42 @@ export class GameClient {
     return { unlocked, held, ratio, full: ratio >= 1 };
   }
 
+  /** Send/submit the selected upgrade card (authoritative path). */
+  submitUpgrade(cardIndex: number): void {
+    const latest = this.presenter.latest;
+    const selection = latest?.teamProgression.activeSelection;
+    if (!selection || latest?.matchFlow !== 'upgradeSelection') return;
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      this.singlePlayerMatch.submitProgressionSelection('single', selection.offerId, cardIndex);
+    } else if (this.onSendInput) {
+      this.onSendInput({ t: 'selectUpgrade', offerId: selection.offerId, cardIndex });
+    }
+  }
+
+  private updateProgressionOverlay(): void {
+    const latest = this.presenter.latest;
+    if (!latest || !this.progressionOverlay) return;
+    const role = this.session.kind === 'singlePlayer' ? 'single' : this.role;
+    this.progressionOverlay.update(latest, role, performance.now());
+    let debug = '';
+    try {
+      const dbg = this.singlePlayerMatch
+        ? this.singlePlayerMatch.runtime.systems.progression.debugState()
+        : null;
+      if (dbg) {
+        debug =
+          `flow=${dbg.flow} stage=${dbg.stagePhase}\n` +
+          `level=${dbg.team.level} xp=${dbg.team.currentXp}/${dbg.team.xpForNextLevel} pending=${dbg.team.pendingLevelUps}\n` +
+          `chests=${dbg.chestsOpened} offer=${dbg.activeOfferId ?? '-'} timeout=${Math.round(dbg.timeoutMs / 1000)}s\n` +
+          `relics=${JSON.stringify(dbg.relicStacks)}\n` +
+          `roadkill=${JSON.stringify(dbg.roadkill)}`;
+      }
+    } catch {
+      debug = '';
+    }
+    this.progressionOverlay.updateDebug(debug);
+  }
+
   /**
    * Charge sound starts only after the hold passes the tap threshold (a tap
    * is silent) and stops the moment the shot launches/cancels.
@@ -851,6 +899,8 @@ export class GameClient {
     this.stopChargeSound();
     this.world.arena.dispose();
     this.registry.reset();
+    this.progressionOverlay?.dispose();
+    this.progressionOverlay = null;
     this.world.dispose();
   }
 }

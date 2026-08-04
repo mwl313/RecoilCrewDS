@@ -535,6 +535,14 @@ if (TEST_MODE) {
     inputState: () => input.debugState(),
     driverInput: () => game?.singlePlayerMatch?.getDriverInput() ?? null,
     predictionDebug: () => game?.predictionDebug() ?? null,
+    progression: {
+      xp: (value: number) => game?.singlePlayerMatch?.runtime.systems.progression.addXp(value),
+      submitUpgrade: (index: number) => game?.submitUpgrade(index),
+      chest: (x: number, z: number) =>
+        game?.singlePlayerMatch?.runtime.systems.progression.spawnChest('map', x, z)?.id ?? 0,
+      openChest: (id: number) =>
+        game?.singlePlayerMatch?.runtime.systems.progression.openChest(id, Date.now()),
+    },
     arena: () => arenaSession?.metadata ?? null,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],
     groundHeightAt: (x: number, z: number) => arenaSession?.world.groundHeightAt(x, z) ?? 0,

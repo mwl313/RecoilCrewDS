@@ -10,9 +10,8 @@ const DT = 1 / 30;
 
 describe('instant turret response (Combat 05 M3)', () => {
   it('protocol version was bumped for click-time aim', () => {
-    // Animation07 M8 bumped the protocol again for the presentation profile
-    // index on horde materialize records.
-    expect(PROTOCOL_VERSION).toBe(5);
+    // Progression08 M17 bumped the protocol for selectUpgrade messages.
+    expect(PROTOCOL_VERSION).toBe(6);
   });
 
   it('instant client mode makes predicted yaw/pitch equal the mouse target in the same frame', () => {

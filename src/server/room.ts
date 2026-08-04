@@ -398,6 +398,13 @@ export class RoomManager {
       this.applyGunnerAction(client, raw);
       return;
     }
+    if (t === 'selectUpgrade') {
+      if (room.phase !== 'running' || !room.match || !client.role) return;
+      const offerId = typeof raw.offerId === 'string' ? raw.offerId : '';
+      const cardIndex = typeof raw.cardIndex === 'number' ? raw.cardIndex : -1;
+      room.match.submitProgressionSelection(client.role, offerId, cardIndex);
+      return;
+    }
     if (t === 'rematch') {
       if (room.phase !== 'results' || !client.role || !room.match) return;
       const modifier = typeof raw.modifier === 'string' && raw.modifier.length > 0 ? (raw.modifier as ModifierId) : 'none';
@@ -502,6 +509,7 @@ export class RoomManager {
             else if (client.role === 'gunner') room.match.clearGunnerInput();
           }
         }
+        room.match.checkProgressionTimeout(now);
         room.simTick++;
         room.match.step(dt);
         const events = room.match.takeEvents();

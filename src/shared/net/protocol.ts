@@ -16,10 +16,10 @@ export interface HordeStageView {
 }
 
 /**
- * Animation07 M8: horde materialize records carry a presentation profile
- * index (bumped deliberately; action cues are additive on snapshots).
+ * Progression08: selectUpgrade client message added (bumped deliberately;
+ * snapshots already carry the full progression state for reconnect).
  */
-export const PROTOCOL_VERSION = 5;
+export const PROTOCOL_VERSION = 6;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -86,6 +86,12 @@ export interface RematchMessage extends ProtocolEnvelope {
   modifier: ModifierId;
 }
 
+export interface SelectUpgradeMessage extends ProtocolEnvelope {
+  t: 'selectUpgrade';
+  offerId: string;
+  cardIndex: number;
+}
+
 export interface LeaveMessage extends ProtocolEnvelope {
   t: 'leave';
 }
@@ -100,6 +106,7 @@ export type ClientMessage =
   | GunnerInputMessage
   | GunnerActionMessage
   | RematchMessage
+  | SelectUpgradeMessage
   | LeaveMessage;
 
 // Server → Client ---------------------------------------------------------

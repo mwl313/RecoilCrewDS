@@ -113,6 +113,22 @@ export class Match {
     this.runtime.step(dt);
   }
 
+  checkProgressionTimeout(nowMs: number): boolean {
+    return this.runtime.checkProgressionTimeout(nowMs);
+  }
+
+  submitProgressionSelection(
+    role: 'driver' | 'gunner' | 'single',
+    offerId: string,
+    cardIndex: number,
+  ): { accepted: boolean; reason?: string } {
+    return this.runtime.submitProgressionSelection(role, offerId, cardIndex);
+  }
+
+  openProgressionChest(chestId: number, nowMs: number) {
+    return this.runtime.openProgressionChest(chestId, nowMs);
+  }
+
   damageTank(amount: number, source: string): void {
     this.runtime.damageTank(amount, source);
   }
