@@ -12,6 +12,7 @@
   "results": "results.demoScoreAttack",
   "presentation": "presentation.demoScoreAttack",
   "defaultCapabilities": ["cannon.charge"],
+  "progression": true,
   "rematch": {
     "modifiers": ["difficulty.doubleBarrel", "difficulty.moonYard"]
   },

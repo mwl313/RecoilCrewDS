@@ -21,6 +21,19 @@ import type { MovementRulesBlock, RulesRevisionSnapshot, TankRigRulesBlock } fro
 import type { MatchConfig, ModifierId } from '../types';
 import { createLegacyDefaultTankDefinition, createLegacyDemoRulesBundle, createLegacyDemoModeDefinition, type DemoRulesBundle } from './legacyDemoRules';
 import { deepFreeze } from '../content/freeze';
+import type {
+  FirstTreasureRuleDefinition,
+  LevelCurveDefinition,
+  ProgressionDefinition,
+  ProgressionModePolicyDefinition,
+  RelicDefinition,
+  RelicEffectTemplateDefinition,
+  TreasureRarityTableDefinition,
+  UpgradeCategoryDefinition,
+  UpgradeFirstExperienceDefinition,
+  UpgradeRarityTableDefinition,
+  XpPickupDefinition,
+} from '../content/schemas/progression';
 
 /**
  * Immutable, match-scoped rules: ContentPack -> mode -> difficulty ->
@@ -31,6 +44,22 @@ import { deepFreeze } from '../content/freeze';
  * stats, so the existing simulation code reads a fresh per-match object
  * instead of the shared BASE_CONFIG.
  */
+export interface MatchRulesProgressionContent {
+  content: ProgressionDefinition;
+  levelCurve: LevelCurveDefinition;
+  xpPickup: XpPickupDefinition;
+  upgradeRarityTable: UpgradeRarityTableDefinition;
+  upgradeFirstExperience: UpgradeFirstExperienceDefinition;
+  treasureRarityTable: TreasureRarityTableDefinition;
+  firstTreasure: FirstTreasureRuleDefinition;
+  relicPoolIds: string[];
+  relicsById: Map<string, RelicDefinition>;
+  relicEffectTemplatesById: Map<string, RelicEffectTemplateDefinition>;
+  upgradeCategories: Map<string, UpgradeCategoryDefinition>;
+  multiplayerPolicy: ProgressionModePolicyDefinition;
+  singlePlayerPolicy: ProgressionModePolicyDefinition;
+}
+
 export class MatchRules {
   readonly packId: string;
   readonly packVersion: string;
@@ -54,6 +83,20 @@ export class MatchRules {
   readonly tank: TankDefinition;
   readonly hordeDirector: HordeDirectorDefinition | null;
   readonly resolver: StatResolver;
+  readonly progressionContent: ProgressionDefinition | null;
+  readonly progressionEnabled: boolean;
+  readonly levelCurveContent: LevelCurveDefinition | null;
+  readonly xpPickupContent: XpPickupDefinition | null;
+  readonly upgradeRarityTableContent: UpgradeRarityTableDefinition | null;
+  readonly upgradeFirstExperienceContent: UpgradeFirstExperienceDefinition | null;
+  readonly treasureRarityTableContent: TreasureRarityTableDefinition | null;
+  readonly firstTreasureContent: FirstTreasureRuleDefinition | null;
+  readonly relicPoolIds: readonly string[];
+  readonly relicsById: ReadonlyMap<string, RelicDefinition>;
+  readonly relicEffectTemplatesById: ReadonlyMap<string, RelicEffectTemplateDefinition>;
+  readonly upgradeCategories: ReadonlyMap<string, UpgradeCategoryDefinition>;
+  readonly multiplayerProgressionPolicy: ProgressionModePolicyDefinition | null;
+  readonly singlePlayerProgressionPolicy: ProgressionModePolicyDefinition | null;
 
   private readonly baseConfig: GameConfig;
   private readonly baseMatchConfig: MatchConfig;
@@ -81,6 +124,7 @@ export class MatchRules {
     difficultyModifiers: StatModifier[];
     tank: TankDefinition;
     hordeDirector?: HordeDirectorDefinition | null;
+    progression?: MatchRulesProgressionContent;
   }) {
     this.packId = options.packId;
     this.packVersion = options.packVersion;
@@ -105,9 +149,33 @@ export class MatchRules {
     this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
     this.tank = deepFreeze(options.tank);
     this.hordeDirector = options.hordeDirector ?? null;
+    this.progressionContent = options.progression?.content ?? null;
+    this.progressionEnabled = (options.mode?.progression === true) && this.progressionContent !== null;
+    this.levelCurveContent = options.progression?.levelCurve ?? null;
+    this.xpPickupContent = options.progression?.xpPickup ?? null;
+    this.upgradeRarityTableContent = options.progression?.upgradeRarityTable ?? null;
+    this.upgradeFirstExperienceContent = options.progression?.upgradeFirstExperience ?? null;
+    this.treasureRarityTableContent = options.progression?.treasureRarityTable ?? null;
+    this.firstTreasureContent = options.progression?.firstTreasure ?? null;
+    this.relicPoolIds = Object.freeze([...(options.progression?.relicPoolIds ?? [])]);
+    this.relicsById = deepFreeze(new Map(options.progression?.relicsById ?? []));
+    this.relicEffectTemplatesById = deepFreeze(new Map(options.progression?.relicEffectTemplatesById ?? []));
+    this.upgradeCategories = deepFreeze(new Map(options.progression?.upgradeCategories ?? []));
+    this.multiplayerProgressionPolicy = options.progression?.multiplayerPolicy ?? null;
+    this.singlePlayerProgressionPolicy = options.progression?.singlePlayerPolicy ?? null;
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
+    blocks.match = {
+      ...blocks.match,
+      'progression.magnetRadius': 5,
+      'progression.xpMultiplier': 1,
+    };
+    blocks.tank = {
+      ...blocks.tank,
+      'tank.extraJumps': 0,
+      'tank.airDashCharges': 0,
+    };
     const flat: StatBlock = { ...blocks.match, ...blocks.tank, ...blocks.weapon, ...blocks.enemy };
     this.resolver = new StatResolver(flat);
     this.resolver.onChange = (stat) => {
@@ -169,6 +237,9 @@ export class MatchRules {
       difficultyModifiers,
       tank: pack.getTank(mode.tank),
       ...(mode.hordeDirector ? { hordeDirector: pack.getHordeDirector(mode.hordeDirector) } : {}),
+      ...(pack.has('progressionDefinitions', 'progression.mainStage')
+        ? { progression: buildProgressionContent(pack) }
+        : {}),
     });
   }
 
@@ -358,6 +429,36 @@ export class MatchRules {
     this.matchConfigCache = deepFreeze(matchConfig);
     this.dirty = false;
   }
+}
+
+function buildProgressionContent(pack: ContentPack): MatchRulesProgressionContent {
+  const content = pack.getProgressionDefinition('progression.mainStage');
+  const relicPool = pack.getRelicPool(content.relicPoolId);
+  const relicsById = new Map<string, RelicDefinition>();
+  for (const id of relicPool.relicIds) relicsById.set(id, pack.getRelic(id));
+  const relicEffectTemplatesById = new Map<string, RelicEffectTemplateDefinition>();
+  for (const id of pack.ids('relicEffectTemplates')) {
+    relicEffectTemplatesById.set(id, pack.getRelicEffectTemplate(id));
+  }
+  const upgradeCategories = new Map<string, UpgradeCategoryDefinition>();
+  for (const id of pack.ids('upgradeCategories')) {
+    upgradeCategories.set(id, pack.getUpgradeCategory(id));
+  }
+  return {
+    content,
+    levelCurve: pack.getLevelCurve(content.levelCurveId),
+    xpPickup: pack.getXpPickupDefinition(content.xpPickupDefinitionId),
+    upgradeRarityTable: pack.getUpgradeRarityTable(content.upgradeRarityTableId),
+    upgradeFirstExperience: pack.getUpgradeFirstExperience(content.upgradeFirstExperienceRuleId),
+    treasureRarityTable: pack.getTreasureRarityTable(content.treasureRarityTableId),
+    firstTreasure: pack.getFirstTreasureRule(content.firstTreasureRuleId),
+    relicPoolIds: [...relicPool.relicIds],
+    relicsById,
+    relicEffectTemplatesById,
+    upgradeCategories,
+    multiplayerPolicy: pack.getProgressionModePolicy(content.multiplayerPolicyId),
+    singlePlayerPolicy: pack.getProgressionModePolicy(content.singlePlayerPolicyId),
+  };
 }
 
 function loadoutWeaponStatBlocks(

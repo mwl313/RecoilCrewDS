@@ -55,6 +55,8 @@ export const modeSchema = z.object({
   session: modeSessionPolicySchema.optional(),
   /** Capabilities every match of this mode starts with (Combat 05). */
   defaultCapabilities: z.array(z.string().min(1)).optional(),
+  /** Progression08: enable the power-up/relic progression system. */
+  progression: z.boolean().optional(),
   rematch: z
     .object({
       modifiers: z.array(z.string().regex(/^difficulty\./, 'rematch modifiers must reference difficulty definitions')),

@@ -13,6 +13,7 @@
   "results": "results.demoScoreAttack",
   "presentation": "presentation.demoScoreAttack",
   "defaultCapabilities": ["cannon.charge"],
+  "progression": true,
   "session": {
     "kind": "singlePlayer",
     "networkRequired": false,

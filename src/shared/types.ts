@@ -2,6 +2,13 @@ import type { MovementRulesBlock } from './stats/rulesRevision';
 import type { DamageSource } from './damage/damageTypes';
 import type { SpawnOwnership } from './horde/spawnOwnership';
 import type { EnemyActionCue } from './animation/enemyActionCue';
+import type {
+  MatchFlowState,
+  ProgressionSelectionState,
+  RelicRollResult,
+  TeamProgressionState,
+  TreasureChestState,
+} from './progression/progressionTypes';
 
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
@@ -79,6 +86,19 @@ export interface PickupState {
   y: number;
   z: number;
   life: number;
+  collected: boolean;
+}
+
+export interface XpShardState {
+  id: number;
+  value: number;
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  age: number;
   collected: boolean;
 }
 
@@ -238,6 +258,14 @@ export interface MatchState {
   turret: TurretState;
   combo: ComboState;
   build: BuildState;
+  /** Progression08: authoritative match flow gate. */
+  matchFlow: MatchFlowState;
+  /** Progression08: team XP/level/relic state (replicated). */
+  teamProgression: TeamProgressionState;
+  /** Progression08: treasure chest entities (replicated). */
+  chests: TreasureChestState[];
+  /** Progression08: XP shard pickups (replicated). */
+  xpShards: XpShardState[];
   stats: StatsState;
   enemies: EnemyState[];
   pickups: PickupState[];
@@ -250,6 +278,8 @@ export interface MatchState {
   nextEnemyId: number;
   nextPickupId: number;
   nextShellId: number;
+  nextXpShardId: number;
+  nextChestId: number;
 }
 
 export interface MatchResults {
@@ -290,6 +320,7 @@ export type SimEventType =
   | 'crash'
   | 'assist'
   | 'dashContact'
+  | 'roadkillContact'
   | 'tankImpulse';
 
 export interface SimEvent {

@@ -25,6 +25,14 @@ function state(overrides: Partial<MatchState> = {}): MatchState {
     },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
     build: { capabilities: [] },
+    matchFlow: 'playing',
+    teamProgression: {
+      level: 1, currentXp: 0, xpForNextLevel: 20, totalXpCollected: 0, pendingLevelUps: 0,
+      levelUpOffersCompleted: 0, treasureChestsOpened: 0, relicStacks: {},
+      activeSelection: null, lastRelicResult: null,
+    },
+    chests: [],
+    xpShards: [],
     stats: {
       score: 0, chargedCannonShots: 0, fullChargeShots: 0, kills: 0, scrapCollected: 0,
       links: 0, dashKills: 0, dodgeCount: 0, wipeouts: 0, bestCombo: 1, anyContribution: false,
@@ -40,6 +48,8 @@ function state(overrides: Partial<MatchState> = {}): MatchState {
     nextEnemyId: 1,
     nextPickupId: 1,
     nextShellId: 1,
+    nextXpShardId: 1,
+    nextChestId: 1,
     ...overrides,
   };
 }

@@ -26,6 +26,8 @@ import { EnemySpatialIndex } from '../../spatial/enemySpatialIndex';
 import { HordeFlowField } from '../../navigation/hordeFlowField';
 import { HordeSectorAggregator } from '../../horde/hordeSectors';
 import type { MatchState, SimEvent } from '../../types';
+import { ProgressionSystem } from '../../progression/progressionSystem';
+import { XpShardSystem } from '../../pickups/xpShardSystem';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
 import { ScoreSystem } from './scoreSystem';
@@ -78,6 +80,10 @@ export interface SystemContext {
   enemySpatial: EnemySpatialIndex;
   flowField: HordeFlowField | null;
   hordeSectors: HordeSectorAggregator;
+  progression: ProgressionSystem;
+  xpShards: XpShardSystem;
+  /** Progression08: selection execution policy picker. */
+  sessionKind: 'singlePlayer' | 'multiplayer';
 }
 
 export function pushEvent(
@@ -101,6 +107,7 @@ export function createSystemContext(
   impulseEvents: TankImpulseWire[] = [],
   simTick = 0,
   hordeDirector: ResolvedHordeDirector | null = null,
+  sessionKind: 'singlePlayer' | 'multiplayer' = 'multiplayer',
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -137,6 +144,9 @@ export function createSystemContext(
   ctx.enemySpatial = new EnemySpatialIndex();
   ctx.flowField = hordeDirector ? new HordeFlowField(world, hordeDirector.policies.navigation) : null;
   ctx.hordeSectors = new HordeSectorAggregator(ctx);
+  ctx.sessionKind = sessionKind;
+  ctx.xpShards = new XpShardSystem(ctx);
+  ctx.progression = new ProgressionSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);

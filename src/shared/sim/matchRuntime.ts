@@ -88,6 +88,21 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
     },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
     build: { capabilities: [...(rules.mode?.defaultCapabilities ?? [])] },
+    matchFlow: 'playing',
+    teamProgression: {
+      level: 1,
+      currentXp: 0,
+      xpForNextLevel: 20,
+      totalXpCollected: 0,
+      pendingLevelUps: 0,
+      levelUpOffersCompleted: 0,
+      treasureChestsOpened: 0,
+      relicStacks: {},
+      activeSelection: null,
+      lastRelicResult: null,
+    },
+    chests: [],
+    xpShards: [],
     stats: {
       score: 0,
       chargedCannonShots: 0,
@@ -112,6 +127,8 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
     nextEnemyId: 1,
     nextPickupId: 1,
     nextShellId: 1,
+    nextXpShardId: 1,
+    nextChestId: 1,
   };
 }
 
@@ -129,6 +146,7 @@ export class MatchRuntime {
   /** Unified netcode op/ack state (driver seq, gunner seq, impulses). */
   readonly opState = createNetcodeOpState();
   private readonly impulseEvents: TankImpulseWire[] = [];
+  private lastGrounded = true;
   /** Authoritative simulation tick (increments per step). */
   simTick = 0;
   private modeDefinition: DemoScoreAttackModeDefinition | null = null;
@@ -175,6 +193,7 @@ export class MatchRuntime {
       this.impulseEvents,
       this.simTick,
       hordeDirector ?? null,
+      this.rules.sessionPolicy.kind === 'singlePlayer' ? 'singlePlayer' : 'multiplayer',
     );
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
@@ -244,6 +263,7 @@ export class MatchRuntime {
   }
 
   setDriverInput(input: DriverInput, seq?: number) {
+    if (this.systems.progression.isEnabled && this.state.matchFlow !== 'playing') return;
     if (seq !== undefined && seq > this.opState.lastDriverInputSeq) {
       this.opState.lastDriverInputSeq = seq;
       recordOp(this.opState, 'd', seq);
@@ -264,6 +284,7 @@ export class MatchRuntime {
   }
 
   setGunnerInput(input: GunnerInput, seq?: number) {
+    if (this.systems.progression.isEnabled && this.state.matchFlow !== 'playing') return;
     if (seq !== undefined && seq > this.opState.lastGunnerInputSeq) {
       this.opState.lastGunnerInputSeq = seq;
     }
@@ -279,6 +300,9 @@ export class MatchRuntime {
     seq?: number,
     aim?: { aimYaw?: number; aimPitch?: number },
   ): { accepted: boolean; reason?: string } {
+    if (this.systems.progression.isEnabled && this.state.matchFlow !== 'playing') {
+      return { accepted: false, reason: 'paused' };
+    }
     const t = this.state.tank;
     const tur = this.state.turret;
     if (t.deadT > 0) return { accepted: false, reason: 'dead' };
@@ -349,6 +373,14 @@ export class MatchRuntime {
 
   step(dtRaw: number) {
     if (this.state.phase !== 'running' && this.state.phase !== 'countdown') return;
+    // Progression08: authoritative pause during selection — gameplay steps
+    // are skipped entirely; the wall-clock selection timeout drives resume.
+    if (
+      this.systems.progression.isEnabled &&
+      (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicSelection')
+    ) {
+      return;
+    }
     const dt = this.systems.round.advance(dtRaw);
     if (dt === 0) return;
     this.simTick++;
@@ -357,6 +389,7 @@ export class MatchRuntime {
     this.systems.stage.step({ dt, tankDead: s.tank.deadT > 0 });
     if (this.stageEnforced && (this.systems.stage.state.phase === 'clear' || this.systems.stage.state.phase === 'gameOver')) {
       s.phase = 'results';
+      s.matchFlow = this.systems.stage.state.phase === 'clear' ? 'clear' : 'gameOver';
       this.results = this.results ?? this.mode.computeResults();
     }
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
@@ -370,6 +403,7 @@ export class MatchRuntime {
     }
     this.systems.projectiles.update(dt);
     this.systems.pickups.update(dt);
+    this.systems.xpShards.update(dt);
     if (this.systems.horde && this.stageEnforced) {
       this.systems.horde.step(dt);
       this.systems.hordeSectors.update(dt, s.tank.x, s.tank.z);
@@ -383,6 +417,8 @@ export class MatchRuntime {
     if (!this.stageEnforced) {
       this.results = this.mode.checkCompletion() ?? this.results;
     }
+    // Deliver queued gameplay events (progression triggers, wave events).
+    this.eventBus.drain();
   }
 
   // ---------------------------------------------------------------- tank
@@ -420,10 +456,16 @@ export class MatchRuntime {
       {
       onRampLaunch: () => this.push('assist', t.x, t.y, t.z, { label: 'LAUNCHED' }),
         onJump: () => this.push('jump', t.x, t.y, t.z),
-        onDash: () => this.push('dash', t.x, t.y, t.z, { yaw: t.yaw }),
+        onDash: () => {
+          this.push('dash', t.x, t.y, t.z, { yaw: t.yaw });
+          this.systems.progression.notifyDash();
+        },
       },
       this.world,
     );
+    this.systems.progression.notifyAirborneTick(dt, t.grounded);
+    if (!this.lastGrounded && t.grounded) this.systems.progression.notifyLanded();
+    this.lastGrounded = t.grounded;
     // Hard obstacle crash damage (crusher/factory/wall) at speed.
     if (speed > 10 && hits.length > 0) {
       const hardHit = hits.some((hit) => {
@@ -468,6 +510,23 @@ export class MatchRuntime {
     }
     if (best) t.yaw = Math.atan2(best.x - t.x, best.z - t.z);
     this.push('respawn', t.x, t.y, t.z);
+  }
+
+  /** Wall-clock selection timeout (server room + Single Player authority). */
+  checkProgressionTimeout(nowMs: number): boolean {
+    return this.systems.progression.checkSelectionTimeout(nowMs);
+  }
+
+  submitProgressionSelection(
+    role: 'driver' | 'gunner' | 'single',
+    offerId: string,
+    cardIndex: number,
+  ): { accepted: boolean; reason?: string } {
+    return this.systems.progression.submitSelection(role, offerId, cardIndex);
+  }
+
+  openProgressionChest(chestId: number, nowMs: number) {
+    return this.systems.progression.openChest(chestId, nowMs);
   }
 
   damageTank(amount: number, source: string) {

@@ -118,6 +118,22 @@ export class StatResolver {
     return out;
   }
 
+  /** Debug breakdown: base + adds × multiplies → final (before clamp). */
+  breakdown(stat: string): { base: number; adds: number[]; multiplies: number[]; final: number } {
+    const relevant = this.modifiers.filter((m) => m.stat === stat);
+    const adds = relevant.filter((m) => m.operation === 'add').map((m) => m.value);
+    const multiplies = relevant.filter((m) => m.operation === 'multiply').map((m) => m.value);
+    let value = this.getBase(stat);
+    for (const add of adds) value += add;
+    for (const mult of multiplies) value *= mult;
+    const clampers = relevant.find((m) => m.min !== undefined || m.max !== undefined);
+    if (clampers) {
+      if (clampers.min !== undefined) value = Math.max(clampers.min, value);
+      if (clampers.max !== undefined) value = Math.min(clampers.max, value);
+    }
+    return { base: this.getBase(stat), adds, multiplies, final: value };
+  }
+
   hasModifier(id: string): boolean {
     return this.modifiers.some((m) => m.id === id);
   }
