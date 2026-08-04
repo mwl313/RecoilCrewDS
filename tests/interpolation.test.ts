@@ -14,6 +14,7 @@ function state(time: number, z: number, yaw = 0): MatchState {
     },
     turret: { yaw: 0, pitch: 0, chargeT: 0, cannonCooldown: 0, cannonFlash: 0, mgCooldown: 0, mgFiring: false, jackpotReady: false, jackpotCooldown: 0 },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
+    build: { capabilities: [] },
     stats: { score: 0, jackpotMeter: 0, jackpotFired: 0, kills: 0, scrapCollected: 0, links: 0, dashKills: 0, dodgeCount: 0, wipeouts: 0, bestCombo: 1, anyContribution: false },
     enemies: [],
     pickups: [],

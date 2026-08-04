@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'c5ff83ca29b84c3211ce9c94a6d47620aa23a96d265af47cb7132f184b019720';
+export const CONTENT_PACK_SOURCE_HASH = 'a083af58bdbdb0cc78c3602cc3a549b120168edd3c82eeacea296071ce9cf3d4';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = 'bc6942c7ad0a920337a3bae57903941c6ed90f118ca43b1d56662e76d17ca5cd';
+export const CONTENT_PACK_HASH = '55749abaf4e6eedf051a99961e2b342b6a16d440ad512a6965935c70523ed684';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -97,6 +97,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
   ],
   "items": [
     { id: "item.overdriveCannon", definition: {"id":"item.overdriveCannon","label":"Overdrive Cannon","behaviors":[],"kind":"boost","modifiers":[{"stat":"weapon.cannonDamage","operation":"multiply","value":1.5,"priority":70,"stacking":"replace"}],"presentationId":"icon.jackpot"} },
+    { id: "item.relicCannonCharge", definition: {"id":"item.relicCannonCharge","label":"Relic of Cannon Charge","description":"Grants the cannon charge capability (hold RMB to charge, release to fire).","behaviors":[],"kind":"relic","grantsCapabilities":["cannon.charge"],"presentationId":"icon.jackpot"} },
   ],
   "statusEffects": [
   ],

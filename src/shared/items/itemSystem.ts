@@ -21,11 +21,17 @@ export class ItemSystem {
         }),
       );
     }
+    for (const capabilityId of item.grantsCapabilities ?? []) {
+      this.ctx.capabilities.grant(capabilityId, `item:${item.id}`);
+    }
     this.ctx.eventBus.emit('item.applied', { itemId: item.id });
   }
 
   remove(item: ItemDefinition): void {
     this.ctx.rules.removeModifiersBySource(`item:${item.id}`);
+    for (const capabilityId of item.grantsCapabilities ?? []) {
+      this.ctx.capabilities.revokeSource(`item:${item.id}`);
+    }
   }
 }
 

@@ -84,6 +84,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       jackpotCooldown: 0,
     },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
+    build: { capabilities: [] },
     stats: {
       score: 0,
       jackpotMeter: 0,

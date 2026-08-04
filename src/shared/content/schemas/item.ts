@@ -18,6 +18,7 @@ export const itemSchema = z.object({
   duration: positiveNumber.optional(),
   stackable: z.boolean().optional(),
   modifiers: z.array(effectModifierSchema).optional(),
+  grantsCapabilities: z.array(z.string().min(1)).optional(),
   presentationId: z.string().optional(),
 });
 

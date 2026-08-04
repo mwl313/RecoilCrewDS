@@ -160,6 +160,7 @@ describe('HudProjector', () => {
       tank: { x: 0, y: 0, z: 0, vx: 10, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false, deadT: 0, prevOnRamp: false },
       turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 },
       combo: { multiplier: 1 },
+      build: { capabilities: [] },
       stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, bestCombo: 0, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false },
       duration: 90,
       time: 0,

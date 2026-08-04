@@ -1,0 +1,8 @@
+{
+  "id": "item.relicCannonCharge",
+  "label": "Relic of Cannon Charge",
+  "description": "Grants the cannon charge capability (hold RMB to charge, release to fire).",
+  "kind": "relic",
+  "grantsCapabilities": ["cannon.charge"],
+  "presentationId": "icon.jackpot"
+}

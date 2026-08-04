@@ -112,6 +112,7 @@ export interface CanonicalState {
   tank: CanonicalTank;
   turret: CanonicalTurret;
   combo: { multiplier: number; points: number; lastDriverT: number; lastGunnerT: number; lastAnyT: number; best: number };
+  build: { capabilities: string[] };
   stats: {
     score: number; jackpotMeter: number; jackpotFired: number; kills: number;
     scrapCollected: number; links: number; dashKills: number; dodgeCount: number;
@@ -222,6 +223,9 @@ export function canonicalizeState(s: MatchState): CanonicalState {
       lastGunnerT: round(s.combo.lastGunnerT),
       lastAnyT: round(s.combo.lastAnyT),
       best: s.combo.best,
+    },
+    build: {
+      capabilities: [...s.build.capabilities],
     },
     stats: {
       score: s.stats.score,

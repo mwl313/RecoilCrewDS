@@ -49,7 +49,7 @@
         "pickups/heavyScrap.json",
         "pickups/jackpotScrap.json"
       ],
-      "items": ["items/overdriveCannon.json"],
+      "items": ["items/overdriveCannon.json", "items/relicCannonCharge.json"],
       "statusEffects": [],
       "spawnDirectors": ["spawn-directors/demoScoreAttack.json", "spawn-directors/truckHunter.json"],
       "scoring": ["scoring/demoScoreAttack.json"],

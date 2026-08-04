@@ -55,6 +55,7 @@ function state(partial: Partial<Record<string, unknown>> = {}): never {
       ...(partial.turret as Record<string, unknown> | undefined),
     },
     combo: { multiplier: 1, points: 0, lastDriverT: 0, lastGunnerT: 0, lastAnyT: 0, best: 1 },
+    build: { capabilities: [] },
     stats: {
       score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0,
       bestCombo: 1, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false,

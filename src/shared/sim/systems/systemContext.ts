@@ -14,6 +14,7 @@ import { DropTableResolver } from '../../drops/dropTableResolver';
 import { SpawnDirectorRuntime } from '../../spawning/spawnDirectorRuntime';
 import { ItemSystem, StatusEffectSystem } from '../../items/itemSystem';
 import { TankContactCombat } from '../../combat/tankContactCombat';
+import { CapabilitySystem } from '../../items/capabilitySystem';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -60,6 +61,7 @@ export interface SystemContext {
   spawnDirector: SpawnDirectorRuntime;
   items: ItemSystem;
   statusEffects: StatusEffectSystem;
+  capabilities: CapabilitySystem;
   contact: TankContactCombat;
 }
 
@@ -106,6 +108,7 @@ export function createSystemContext(
   ctx.spawnDirector = new SpawnDirectorRuntime(ctx, rules.spawnDirector);
   ctx.items = new ItemSystem(ctx);
   ctx.statusEffects = new StatusEffectSystem(ctx);
+  ctx.capabilities = new CapabilitySystem(state);
   ctx.contact = new TankContactCombat(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);

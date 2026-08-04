@@ -99,7 +99,7 @@ describe('content pack loading (valid Demo pack)', () => {
       'enemy.scrapBug',
       'enemy.testHound',
     ]);
-    expect(pack.ids('items')).toEqual(['item.overdriveCannon']);
+    expect(pack.ids('items')).toEqual(['item.overdriveCannon', 'item.relicCannonCharge']);
     expect(pack.ids('statusEffects')).toEqual([]);
     expect([...pack.ids('spawnDirectors')].sort()).toEqual(['spawn.director.demoScoreAttack', 'spawn.director.truckHunter']);
     expect(pack.ids('scoring')).toEqual(['scoring.demoScoreAttack']);

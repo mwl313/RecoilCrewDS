@@ -155,6 +155,11 @@ export interface ComboState {
   best: number;
 }
 
+/** Authoritative match build state (replicated, resets per match). */
+export interface BuildState {
+  capabilities: string[];
+}
+
 export interface StatsState {
   score: number;
   jackpotMeter: number;
@@ -204,6 +209,7 @@ export interface MatchState {
   tank: TankState;
   turret: TurretState;
   combo: ComboState;
+  build: BuildState;
   stats: StatsState;
   enemies: EnemyState[];
   pickups: PickupState[];
