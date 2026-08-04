@@ -137,3 +137,16 @@ event name to a synth descriptor, so gameplay calls `audio.play('cannon')`
 and never a file path. To use custom audio files, extend
 `AudioManager.play()` to check a file lookup for the named event and play it
 through an `AudioBufferSourceNode`.
+
+## Animation07 — animated enemy models
+
+Skinned GLBs now keep their embedded animation clips
+(`AssetService.modelAsset(id)` returns `LoadedModelAsset` with
+`animations` + `hasSkinnedMesh`). Animated enemy instances use
+`AssetService.createModelInstance(id)` (safe `SkeletonUtils` cloning for
+skinned models, plain clone for rigid). Materials are cloned for animated
+rigs and marked owned; hit flash never leaks between enemies. Presentation
+profiles (`content/enemy-presentation-profiles/`) decide near/far model ids,
+animation profiles, LOD and shadow policies. See
+`docs/animation07/ANIMATION07_CONTENT_AUTHORING_GUIDE.md` and
+`docs/animation07/ANIMATION07_GLTF_EXPORT_GUIDE.md`.

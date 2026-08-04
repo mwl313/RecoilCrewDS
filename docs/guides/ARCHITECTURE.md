@@ -304,3 +304,21 @@ drives the short DASHING presentation window only.
 - `src/shared/net/horde/` — protocol v4 tiered replication (materialize/despawn/death/near/mid/far/sectors/wave) with quantized records and client reconstruction.
 - `src/client/enemies/` — bounded instanced fodder pools; specials keep unique rigs.
 - Legacy demo loop remains the shipped-mode runtime while `horde.mainStage.enforceStage` is `false`; enforcement is tested and ready to flip with a focused golden update.
+
+## Animation07 — presentation-only enemy animation
+
+```text
+content/enemy-presentation-profiles|enemy-animation-profiles|animation-lod-policies|animation-shadow-policies
+  → generate-enemy-animation-content (Zod + reference validation)
+  → src/generated/enemyAnimationContent.generated.ts
+  → resolveEnemyPresentation (profile → model assets + animation profile)
+  → EntityViewFactory (near skinned / far rigid instances)
+  → EnemyAnimationController (semantic roles, cross-fades, death lock)
+  → AnimationLodManager (hero/near/mid/far/aggregate + mixer budgets)
+```
+
+Authority decides position/yaw/attack/damage/death; the client only chooses
+presentation. No bone data is networked; optional compact action cues map to
+roles through content. Horde materialize records carry a presentation
+profile index (protocol v5). See
+`docs/animation07/ANIMATION07_IMPLEMENTATION_REPORT.md`.

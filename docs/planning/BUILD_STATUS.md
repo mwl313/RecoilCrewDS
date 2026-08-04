@@ -219,3 +219,15 @@
 - Pending: flip `horde.mainStage.enforceStage` with a focused demo-golden
   update, far-horde client visuals, two-client soak, and the remaining
   manual verification scenarios.
+
+## Animation07 — rigged enemy animation system (complete)
+
+- **Complete** — content-driven presentation/animation/LOD/shadow profiles,
+  safe skinned cloning, semantic animation controller, authoritative action
+  cues, animation LOD + mixer budgets, near/far model swapping, material
+  ownership, lifecycle cleanup, validation CLI, preview tool, benchmark.
+  Verified: `npm test` **697/697 PASS** (86 files); `npm run test:demo`
+  PASS (golden unchanged); `npm run validate:enemy-animations` PASS;
+  `npm run test:animation:benchmark` PASS (no leaks);
+  `npm run build:animation-preview` PASS.
+  Details: `docs/animation07/ANIMATION07_IMPLEMENTATION_REPORT.md`.

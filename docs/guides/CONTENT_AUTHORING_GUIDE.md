@@ -227,3 +227,13 @@ limits, reward tables, and anchor/navigation/LOD/replication policies live in
 See [the Core Loop 06 authoring guide](../coreloop06/CORELOOP06_AUTHORING_GUIDE.md)
 for the full walkthrough. Both gameplay modes reference one shared
 `horde.mainStage`; enemy `threat` feeds spawn/threat budgets.
+
+## Animation07 — enemy presentation and animation profiles
+
+Enemy visuals are content-driven: `enemyPresentation.*` profiles select
+near/far models plus animation/LOD/shadow policies; `enemyAnimation.*`
+profiles map semantic roles to clip names with fallback chains,
+locomotion references, transitions, and playback settings. Existing enemies
+keep `presentationId` (legacy profiles are generated); new enemies may set
+`presentationProfileId`. Full authoring walkthrough:
+`docs/animation07/ANIMATION07_CONTENT_AUTHORING_GUIDE.md`.
