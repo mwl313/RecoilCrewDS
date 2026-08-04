@@ -157,6 +157,14 @@ export const HUD_BINDING_PATHS = [
   'prompt',
   'promptSub',
   'crosshairVisible',
+  'stage.phase',
+  'stage.farmingLabel',
+  'stage.waveLabel',
+  'stage.waveActive',
+  'stage.leaderHpRatio',
+  'stage.leaderHpMax',
+  'stage.stageClear',
+  'stage.gameOver',
 ] as const;
 
 const idPrefix = (prefix: string) => z.string().regex(new RegExp(`^${prefix.replace(/\./g, '\\.')}`), `id must start with ${prefix}`);

@@ -15,6 +15,13 @@ export interface HudContext {
   localCharge?: { unlocked: boolean; held: boolean; ratio: number; full: boolean };
   rules?: { maxIntegrity?: number; cannonCooldown?: number; chargeTapMaxSeconds?: number; chargeFullSeconds?: number };
   objective: { x: number; y: number; visible: boolean } | null;
+  stage?: {
+    phase: string;
+    farmingTimeRemaining: number;
+    waveId: number | null;
+    leaderHp: number;
+    leaderMaxHp: number;
+  };
 }
 
 /** Projection of authoritative state into the DOM HUD. */

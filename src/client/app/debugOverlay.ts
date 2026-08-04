@@ -13,6 +13,7 @@ export class DebugOverlay {
   private readonly panel: HTMLElement;
   private readonly markers = new THREE.Group();
   private readonly layers: MapLabLayerManager;
+  private baseText = '';
   private session: ArenaSessionResult | null;
   private readonly onKey = (e: KeyboardEvent) => {
     if (e.code === 'F3') {
@@ -21,6 +22,7 @@ export class DebugOverlay {
     }
   };
   private visible = true;
+  private hordeLines: string[] = [];
 
   constructor(
     private readonly game: GameClient,
@@ -39,6 +41,7 @@ export class DebugOverlay {
     this.layers = new MapLabLayerManager(this.markers);
     registerDefaultLayers(this.layers);
     this.rebuild();
+    this.refreshHorde();
   }
 
   setSession(session: ArenaSessionResult): void {
@@ -64,7 +67,7 @@ export class DebugOverlay {
     };
     this.layers.setContext(ctx);
     const issues = issuesFromValidationReports(arena);
-    this.panel.textContent = [
+    this.baseText = [
       `MAPGEN DEBUG`,
       `profile: ${session.metadata.mapProfileId}`,
       `seed: ${session.metadata.arenaBaseSeed}`,
@@ -78,6 +81,29 @@ export class DebugOverlay {
       `slope: ${arena.heightfield.maxSlope().toFixed(3)}`,
       `issues: ${issues.filter((i) => i.severity === 'error').length} errors, ${issues.filter((i) => i.severity === 'warning').length} warnings`,
     ].join('\n');
+    this.panel.textContent = this.baseText;
+  }
+
+  /** Core Loop 06 M11: refresh horde rows (cheap, debug-only). */
+  refreshHorde(): void {
+    const debug = this.game.getHordeDebug();
+    if (!debug) {
+      this.hordeLines = [];
+      return;
+    }
+    this.hordeLines = [
+      `HORDE`,
+      `phase: ${debug.phase}`,
+      `farming: ${debug.farmingTimeRemaining.toFixed(1)}s`,
+      `wave: ${debug.waveId ?? '-'}`,
+      `leader: ${debug.leaderHp.toFixed(0)}/${debug.leaderMaxHp.toFixed(0)}`,
+      `ambient: ${debug.ambient} wave: ${debug.wave} boss: ${debug.boss}`,
+      `sectors: ${debug.sectors}`,
+      `budget: ${debug.spawnBudget.toFixed(2)}`,
+      `anchor failures: ${debug.anchorFailures}`,
+      `tiers: ${debug.tierCounts.join('/')}`,
+    ];
+    this.panel.textContent = [this.baseText, ...this.hordeLines].join('\n');
   }
 
   dispose(): void {

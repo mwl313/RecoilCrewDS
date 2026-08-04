@@ -112,6 +112,29 @@ function waveStateFor(match: Match): HordeWaveState | null {
   };
 }
 
+function stageViewFor(match: Match): {
+  phase: string;
+  farmingTimeRemaining: number;
+  waveId: number | null;
+  leaderHp: number;
+  leaderMaxHp: number;
+} {
+  const stage = match.runtime.systems.stage.state;
+  const horde = match.runtime.systems.horde;
+  const runtime =
+    horde && horde.currentWaveId !== null
+      ? match.runtime.systems.waves.waves.get(horde.currentWaveId)
+      : undefined;
+  const leader = runtime ? match.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
+  return {
+    phase: stage.phase,
+    farmingTimeRemaining: stage.farmingTimeRemaining,
+    waveId: stage.activeWaveId,
+    leaderHp: leader?.hp ?? 0,
+    leaderMaxHp: leader?.maxHp ?? 0,
+  };
+}
+
 function sanitizeDriver(raw: unknown): DriverInput | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
@@ -582,6 +605,7 @@ export class RoomManager {
       opLog: opLogTail(opState),
       state,
       ...(hordeBlock ? { horde: hordeBlock } : {}),
+      ...(hordeBlock ? { stage: stageViewFor(room.match) } : {}),
       rulesRevision: rules.rulesRevision,
       movementRulesRevision: rules.movementRulesRevision,
       tickDurationMs: this.loopMetrics.tickDurationMs,

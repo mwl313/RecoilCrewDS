@@ -292,6 +292,80 @@ export class GameClient {
     };
   }
 
+  /** Core Loop 06 M11: stage HUD view for the local Single Player match. */
+  getSinglePlayerStageView(): {
+    phase: string;
+    farmingTimeRemaining: number;
+    waveId: number | null;
+    leaderHp: number;
+    leaderMaxHp: number;
+  } | undefined {
+    const m = this.singlePlayerMatch;
+    if (!m) return undefined;
+    const stage = m.runtime.systems.stage.state;
+    const horde = m.runtime.systems.horde;
+    const runtime =
+      horde && horde.currentWaveId !== null
+        ? m.runtime.systems.waves.waves.get(horde.currentWaveId)
+        : undefined;
+    const leader = runtime ? m.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
+    return {
+      phase: stage.phase,
+      farmingTimeRemaining: stage.farmingTimeRemaining,
+      waveId: stage.activeWaveId,
+      leaderHp: leader?.hp ?? 0,
+      leaderMaxHp: leader?.maxHp ?? 0,
+    };
+  }
+
+  /** Core Loop 06 M11: horde debug metrics (single player match only). */
+  getHordeDebug(): {
+    phase: string;
+    farmingTimeRemaining: number;
+    waveId: number | null;
+    leaderHp: number;
+    leaderMaxHp: number;
+    ambient: number;
+    wave: number;
+    boss: number;
+    sectors: number;
+    spawnBudget: number;
+    anchorFailures: number;
+    tierCounts: [number, number, number, number];
+  } | null {
+    const m = this.singlePlayerMatch;
+    const horde = m?.runtime.systems.horde;
+    if (!m || !horde) return null;
+    const systems = m.runtime.systems;
+    const stage = systems.stage.state;
+    const runtime =
+      horde.currentWaveId !== null ? systems.waves.waves.get(horde.currentWaveId) : undefined;
+    const leader = runtime ? m.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
+    const counts = { ambient: 0, wave: 0, boss: 0 };
+    const tierCounts: [number, number, number, number] = [0, 0, 0, 0];
+    for (const e of m.state.enemies) {
+      if (!e.alive) continue;
+      const cls = e.ownership?.populationClass ?? 'ambient';
+      counts[cls as keyof typeof counts] = (counts[cls as keyof typeof counts] ?? 0) + 1;
+      tierCounts[systems.enemies.tierFor(e)]++;
+    }
+    const sectorTally = systems.hordeSectors.tally();
+    return {
+      phase: stage.phase,
+      farmingTimeRemaining: stage.farmingTimeRemaining,
+      waveId: stage.activeWaveId,
+      leaderHp: leader?.hp ?? 0,
+      leaderMaxHp: leader?.maxHp ?? 0,
+      ambient: counts.ambient + sectorTally.byClass.ambient.entities,
+      wave: counts.wave + sectorTally.byClass.wave.entities,
+      boss: counts.boss + sectorTally.byClass.boss.entities,
+      sectors: systems.hordeSectors.sectors.size,
+      spawnBudget: horde.spawnBudget,
+      anchorFailures: horde.anchorFailures,
+      tierCounts,
+    };
+  }
+
   handleTankImpulse(wire: TankImpulseWire): void {
     this.presenter.handleTankImpulse(wire);
   }

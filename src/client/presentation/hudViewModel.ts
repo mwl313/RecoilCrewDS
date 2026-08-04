@@ -57,6 +57,17 @@ export interface HudViewModel {
     screenY: number;
     label: string;
   };
+  /** Core Loop 06 M11: stage/wave progression block. */
+  stage: {
+    phase: string;
+    farmingLabel: string;
+    waveLabel: string;
+    waveActive: boolean;
+    leaderHpRatio: number;
+    leaderHpMax: number;
+    stageClear: boolean;
+    gameOver: boolean;
+  };
 }
 
 export interface HudProjectionContext {
@@ -83,6 +94,13 @@ export interface HudProjectionContext {
     chargeFullSeconds?: number;
   };
   objective: { x: number; y: number; visible: boolean } | null;
+  stage?: {
+    phase: string;
+    farmingTimeRemaining: number;
+    waveId: number | null;
+    leaderHp: number;
+    leaderMaxHp: number;
+  };
 }
 
 export function emptyHudViewModel(): HudViewModel {
@@ -115,6 +133,16 @@ export function emptyHudViewModel(): HudViewModel {
     promptSub: '',
     crosshairVisible: false,
     objective: { visible: false, screenX: 0, screenY: 0, label: '' },
+    stage: {
+      phase: 'farming1',
+      farmingLabel: '',
+      waveLabel: '',
+      waveActive: false,
+      leaderHpRatio: 0,
+      leaderHpMax: 1,
+      stageClear: false,
+      gameOver: false,
+    },
   };
 }
 
@@ -154,6 +182,27 @@ export class HudProjector {
       promptSub = '';
     }
     const objectiveVisible = Boolean(opts.objective?.visible && state.truck.active);
+    const stage = opts.stage;
+    const farming = Math.max(0, Math.ceil(stage?.farmingTimeRemaining ?? 0));
+    const mm = Math.floor(farming / 60);
+    const ss = farming % 60;
+    const waveActive = stage !== undefined && stage.waveId !== null;
+    const waveLabel =
+      stage?.phase === 'bossWave'
+        ? 'BOSS WAVE'
+        : stage?.phase === 'wave1'
+          ? 'WAVE 1'
+          : stage?.phase === 'wave2'
+            ? 'WAVE 2'
+            : stage?.phase === 'clear'
+              ? 'STAGE CLEAR'
+              : stage?.phase === 'gameOver'
+                ? 'GAME OVER'
+                : '';
+    const leaderHpRatio =
+      stage && stage.leaderMaxHp > 0
+        ? Math.max(0, Math.min(1, stage.leaderHp / stage.leaderMaxHp))
+        : 0;
     return {
       role: opts.role,
       session: opts.session,
@@ -198,6 +247,16 @@ export class HudProjector {
         screenX: opts.objective?.x ?? 0,
         screenY: opts.objective?.y ?? 0,
         label: 'LOOT TRUCK',
+      },
+      stage: {
+        phase: stage?.phase ?? 'farming1',
+        farmingLabel: !stage ? '' : waveActive ? '' : `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`,
+        waveLabel,
+        waveActive,
+        leaderHpRatio,
+        leaderHpMax: 1,
+        stageClear: stage?.phase === 'clear',
+        gameOver: stage?.phase === 'gameOver',
       },
     };
   }

@@ -7,6 +7,14 @@
 import type { DriverInput, GunnerInput, ModifierId, Role } from '../types';
 import type { HordeSnapshotBlock } from './horde/hordeProtocol';
 
+export interface HordeStageView {
+  phase: string;
+  farmingTimeRemaining: number;
+  waveId: number | null;
+  leaderHp: number;
+  leaderMaxHp: number;
+}
+
 /** Core Loop 06 M9: horde replication block added (bumped deliberately). */
 export const PROTOCOL_VERSION = 4;
 
@@ -109,6 +117,8 @@ export interface SnapshotMessage extends ProtocolEnvelope {
   arena?: unknown;
   /** Tiered horde replication block (replaces the full enemy array). */
   horde?: HordeSnapshotBlock;
+  /** Core Loop 06 M11: stage/wave HUD state for enforced horde matches. */
+  stage?: HordeStageView;
 }
 
 export interface DriverInputRelayMessage extends ProtocolEnvelope {

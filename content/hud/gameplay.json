@@ -58,6 +58,37 @@
         ]
       },
       {
+        "id": "hud-stage",
+        "type": "vertical",
+        "class": "hud-stage",
+        "children": [
+          {
+            "id": "stage-wave-label",
+            "type": "text",
+            "class": "stage-wave-label",
+            "text": "",
+            "bindings": [
+              { "target": "text", "source": "stage.waveLabel" },
+              { "target": "class", "source": "stage.waveActive", "transform": "booleanClass", "attribute": "wave" }
+            ]
+          },
+          {
+            "id": "stage-timer",
+            "type": "statText",
+            "class": "stage-timer",
+            "text": "",
+            "bindings": [{ "target": "text", "source": "stage.farmingLabel" }]
+          },
+          {
+            "id": "stage-leader-hp",
+            "type": "progressBar",
+            "class": "stage-leader-hp",
+            "props": { "valueSource": "stage.leaderHpRatio", "maxSource": "stage.leaderHpMax" },
+            "bindings": [{ "target": "visible", "source": "stage.waveActive" }]
+          }
+        ]
+      },
+      {
         "id": "hud-bottom",
         "type": "horizontal",
         "class": "hud-bottom",
@@ -170,7 +201,8 @@
         "promptSub": "WASD + SHIFT + SPACE",
         "crosshairVisible": false,
         "pointerLocked": true,
-        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
+        "stage": { "phase": "farming1", "farmingTimeRemaining": 72, "waveId": null, "leaderHp": 0, "leaderMaxHp": 0 }
       }
     },
     {
@@ -187,7 +219,8 @@
         "promptSub": "HOLD RIGHT MOUSE TO CHARGE",
         "crosshairVisible": true,
         "pointerLocked": true,
-        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" }
+        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
+        "stage": { "phase": "wave1", "farmingTimeRemaining": 120, "waveId": 1, "leaderHp": 40, "leaderMaxHp": 100 }
       }
     },
     {
@@ -204,7 +237,8 @@
         "promptSub": "WASD · SHIFT · SPACE · LMB · RMB",
         "crosshairVisible": true,
         "pointerLocked": true,
-        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
+        "stage": { "phase": "farming1", "farmingTimeRemaining": 61, "waveId": null, "leaderHp": 0, "leaderMaxHp": 0 }
       }
     }
   ]
