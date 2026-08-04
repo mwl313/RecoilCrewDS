@@ -14,8 +14,6 @@ export class ScoreSystem {
   applyWipeoutPenalty(): void {
     const s = this.ctx.state;
     s.stats.score = Math.floor(s.stats.score * (1 - this.ctx.rules.config.scoring.wipeoutPenalty));
-    s.stats.jackpotMeter *= 0.5;
-    this.ctx.jackpot.updateReady();
     this.ctx.combo.reset();
   }
 
@@ -32,7 +30,6 @@ export class ScoreSystem {
     }
     this.ctx.state.stats.links++;
     this.addScore(value, label);
-    this.ctx.jackpot.addGain(this.ctx.rules.config.jackpot.linkGain);
     pushEvent(this.ctx, 'link', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, { label });
   }
 }

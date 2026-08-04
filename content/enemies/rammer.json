@@ -6,7 +6,6 @@
   "hp": 14,
   "radius": 1.05,
   "score": 250,
-  "jackpotGain": 8,
   "contributionPoints": 2,
   "dropTableId": "drops.rammer",
   "behaviors": [

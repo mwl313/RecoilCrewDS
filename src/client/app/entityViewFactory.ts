@@ -55,7 +55,7 @@ export class EntityViewFactory {
   }
 
   createPickupRig(kind: string, scene: THREE.Scene): PickupRig {
-    const id = kind === 'jackpot' ? 'pickup.jackpotScrap' : kind === 'heavy' ? 'pickup.heavyScrap' : 'pickup.normalScrap';
+    const id = kind === 'heavy' ? 'pickup.heavyScrap' : 'pickup.normalScrap';
     const model = this.assets.model(id).clone(true);
     const group = new THREE.Group();
     group.add(model);
@@ -65,17 +65,19 @@ export class EntityViewFactory {
 
   createShellRig(sh: ShellState, scene: THREE.Scene): ShellRig {
     const group = new THREE.Group();
+    const charged = (sh.chargeRatio ?? 0) > 0;
+    const ratio = Math.max(0, Math.min(1, sh.chargeRatio ?? 0));
     const mat = new THREE.SpriteMaterial({
-      color: sh.kind === 'jackpot' ? 0xfff2b0 : 0xffb45e,
+      color: charged ? 0xfff2b0 : 0xffb45e,
       transparent: true,
       opacity: 0.95,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const glow = new THREE.Sprite(mat);
-    glow.scale.setScalar(sh.kind === 'jackpot' ? 1.6 : 0.7);
+    glow.scale.setScalar(0.7 + (sh.visualScale ?? (1 + ratio)) * 0.5);
     group.add(glow);
-    if (sh.kind === 'jackpot') {
+    if (charged) {
       group.add(new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8), new THREE.MeshBasicMaterial({ color: 0xfff7d0 })));
     } else if (sh.kind === 'tower') {
       group.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff5a4a })));

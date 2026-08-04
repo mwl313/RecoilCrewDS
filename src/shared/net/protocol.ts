@@ -125,7 +125,7 @@ export interface TankImpulseMessage extends ProtocolEnvelope {
   impulseSeq: number;
   opSeq: number;
   simulationTick: number;
-  source: 'recoil' | 'cannon' | 'mg' | 'jackpot' | 'external';
+  source: 'recoil' | 'cannon' | 'mg' | 'external';
   sourceActionSeq?: number;
   deltaVx: number;
   deltaVy: number;

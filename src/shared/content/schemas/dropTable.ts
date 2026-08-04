@@ -7,7 +7,7 @@ export const dropTableSchema = z.object({
   entries: z
     .array(
       z.object({
-        kind: z.enum(['normal', 'heavy', 'jackpot']),
+        kind: z.enum(['normal', 'heavy']),
         count: positiveInt,
         offsetX: z.number().finite().optional(),
         offsetZ: z.number().finite().optional(),

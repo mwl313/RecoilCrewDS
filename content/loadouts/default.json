@@ -3,7 +3,6 @@
   "label": "Default Crew Loadout",
   "primary": "weapon.machineGun",
   "secondary": "weapon.mainCannon",
-  "ability": "weapon.jackpotShell",
   "turret": {
     "responseMode": "instant",
     "turnRate": 60,

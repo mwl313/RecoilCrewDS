@@ -52,14 +52,14 @@ function state(partial: Partial<Record<string, unknown>> = {}): never {
     turret: {
       yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false,
       cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false,
-      chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0,
+      cannonFlash: 0,
       ...(partial.turret as Record<string, unknown> | undefined),
     },
     combo: { multiplier: 1, points: 0, lastDriverT: 0, lastGunnerT: 0, lastAnyT: 0, best: 1 },
     build: { capabilities: [] },
     stats: {
-      score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0,
-      bestCombo: 1, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false,
+      score: 0, chargedCannonShots: 0, fullChargeShots: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0,
+      bestCombo: 1, dashKills: 0, dodgeCount: 0, anyContribution: false,
     },
     duration: 90,
     time: 0,
@@ -275,7 +275,7 @@ describe('Refractor 02 hardening — P1 fixes', () => {
   it('P1-6: HudProjector denominators come from resolved rules and fall back to BASE_CONFIG', () => {
     const projector = new HudProjector();
     const base = projector.project(
-      state({ tank: { integrity: 150 }, turret: { chargeT: 0.25, cannonCooldown: 1.2, jackpotReady: false } }),
+      state({ tank: { integrity: 150 }, turret: { cannonHeld: true, cannonHoldT: 0.25, cannonChargeRatio: 0.25, cannonChargeFull: false, cannonCooldown: 1.2 } }),
       {
         role: 'driver',
         peerConnected: true,
@@ -284,20 +284,18 @@ describe('Refractor 02 hardening — P1 fixes', () => {
         pointerLocked: true,
         session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
         objective: null,
-        rules: { maxIntegrity: 200, cannonCooldown: 2.0, jackpotChargeTime: 0.5 },
+        rules: { maxIntegrity: 200, cannonCooldown: 2.0, chargeTapMaxSeconds: 0.16, chargeFullSeconds: 1.0 },
       },
     );
     expect(base.tank.integrityMax).toBe(200);
     expect(base.gunner.cooldownRatio).toBeCloseTo(0.6);
-    expect(base.gunner.chargeRatio).toBeCloseTo(0.5);
-    expect(base.gunner.chargeMax).toBe(1);
+    expect(base.gunner.chargeRatio).toBeCloseTo(0.25);
 
     const fallback = projector.project(
       state(),
       { role: 'driver', peerConnected: true, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
     );
     expect(fallback.tank.integrityMax).toBe(BASE_CONFIG.tank.maxIntegrity);
-    expect(fallback.gunner.chargeMax).toBe(1);
   });
 
   it('P1-6: the replicated movement block carries weapon values (and modifier changes)', () => {
@@ -305,7 +303,6 @@ describe('Refractor 02 hardening — P1 fixes', () => {
     const none = MatchRules.fromContentPack(pack, 'none');
     expect(none.movementBlock().weapon).toEqual({
       cannonCooldown: BASE_CONFIG.weapons.cannonCooldown,
-      jackpotChargeTime: BASE_CONFIG.weapons.jackpotChargeTime,
       chargeTapMaxSeconds: BASE_CONFIG.weapons.chargeTapMaxSeconds,
       chargeFullSeconds: BASE_CONFIG.weapons.chargeFullSeconds,
     });

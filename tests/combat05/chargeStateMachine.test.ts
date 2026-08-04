@@ -22,6 +22,11 @@ function step(m: Match, n = 1): void {
   }
 }
 
+function shield(m: Match): void {
+  m.state.enemies.length = 0;
+  m.state.tank.shieldedT = 1e9;
+}
+
 describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
   it('without the capability, secondaryPressed fires the normal cannon immediately', () => {
     const m = new Match('no-cap');
@@ -34,6 +39,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('with the capability, secondaryPressed begins a hold and never auto-fires', () => {
     const m = new Match('hold');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 60); // hold 2 s — far past full charge
@@ -45,6 +51,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('a tap release fires a normal shell (ratio 0)', () => {
     const m = new Match('tap');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 2); // 0.0667 s < tapMaxSeconds (0.16)
@@ -58,6 +65,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('a partial hold releases a partial charge linearly', () => {
     const m = new Match('partial');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 20); // 0.6667 s → (0.6667-0.16)/0.84 ≈ 0.603
@@ -71,6 +79,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('full charge clamps at 1 and can be held indefinitely without firing', () => {
     const m = new Match('full-hold');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 300); // 10 s hold
@@ -94,6 +103,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('duplicate release does not fire twice', () => {
     const m = new Match('dup-release');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 10);
@@ -107,6 +117,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('cooldown begins on fire and blocks a new hold', () => {
     const m = new Match('cooldown');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 40);
@@ -120,6 +131,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('death cancels an active hold without firing', () => {
     const m = new Match('death');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 10);
@@ -131,6 +143,7 @@ describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
 
   it('forced input clear cancels the hold (pause/disconnect/leave)', () => {
     const m = new Match('clear');
+    shield(m);
     grantCharge(m);
     press(m);
     step(m, 10);

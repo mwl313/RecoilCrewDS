@@ -87,7 +87,7 @@
         "singleMode": false,
         "stats": [
           { "label": "BEST COMBO", "value": "×5" },
-          { "label": "JACKPOT", "value": "4" },
+          { "label": "CHARGED SHOTS", "value": "4" },
           { "label": "KILLS", "value": "39" }
         ],
         "modifiers": [
@@ -108,7 +108,7 @@
         "singleMode": true,
         "stats": [
           { "label": "BEST COMBO", "value": "×4" },
-          { "label": "JACKPOT", "value": "2" },
+          { "label": "CHARGED SHOTS", "value": "2" },
           { "label": "KILLS", "value": "27" }
         ]
       }

@@ -111,7 +111,7 @@ describe('gunner turret ack replay', () => {
   function stateWithTurret(yaw: number, pitch = 0.05): never {
     return {
       tank: tank(),
-      turret: { yaw, pitch, cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false, chargeT: 0, cannonCooldown: 0, cannonFlash: 0, mgCooldown: 0, mgFiring: false, jackpotReady: false, jackpotCooldown: 0 },
+      turret: { yaw, pitch, cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false, cannonCooldown: 0, cannonFlash: 0, mgCooldown: 0, mgFiring: false },
     } as never;
   }
 

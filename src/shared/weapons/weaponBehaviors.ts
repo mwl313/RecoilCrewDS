@@ -159,47 +159,9 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
           visualScale: profile.visualScale,
         },
       );
+      if (profile.chargeRatio > 0) s.stats.chargedCannonShots++;
+      if (profile.chargeRatio >= 1) s.stats.fullChargeShots++;
       ctx.combo.addContribution('gunner', 1);
-    },
-  });
-
-  registry.register({
-    id: 'weapon.chargeProjectile',
-    fire(ctx, weapon) {
-      const s = ctx.state;
-      const t = s.tank;
-      const tur = s.turret;
-      const muzzle = muzzleWorld(ctx);
-      const actionSeq = ctx.pendingActionSeq;
-      ctx.pendingActionSeq = undefined;
-      s.stats.jackpotFired++;
-      tur.cannonFlash = 0.3;
-      tur.jackpotCooldown = weapon.cooldownSeconds;
-      const impulse = weaponStat(weapon, 'weapon.jackpotRecoilImpulse', ctx.rules.config.tank.jackpotRecoilImpulse);
-      ctx.recoil.apply(
-        {
-          sourceId: weapon.id,
-          kind: 'jackpot',
-          direction: { x: -muzzle.dx, y: -muzzle.dy, z: -muzzle.dz },
-          magnitude: impulse,
-          yawImpulse: (Math.random() - 0.5) * 2 * weaponStat(weapon, 'weapon.jackpotRecoilSpin', ctx.rules.config.tank.jackpotSpin),
-          rollImpulse: (Math.random() - 0.5) * 0.5,
-          verticalScale: weaponStat(weapon, 'weapon.recoilVerticalScale', 1),
-          launchThreshold: weaponStat(weapon, 'weapon.recoilGroundLaunchThreshold', 0.25),
-          sourceActionSeq: actionSeq,
-        },
-      );
-      pushEvent(ctx, 'jackpotFire', muzzle.x, muzzle.y, muzzle.z, {
-        tx: muzzle.dx,
-        ty: muzzle.dy,
-        tz: muzzle.dz,
-        actionSeq,
-      });
-      ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'ability', kind: 'jackpot' });
-      const speed = weaponStat(weapon, 'weapon.jackpotSpeed', ctx.rules.config.weapons.jackpotSpeed);
-      const life = weaponStat(weapon, 'weapon.jackpotLife', ctx.rules.config.weapons.jackpotLife);
-      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'jackpot', life, weapon.id);
-      ctx.combo.addContribution('gunner', 4);
     },
   });
 

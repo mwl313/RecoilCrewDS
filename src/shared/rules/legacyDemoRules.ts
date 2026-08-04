@@ -41,7 +41,6 @@ export const LEGACY_DEMO_CONSTANTS = {
 } as const;
 
 export function createLegacyDemoRulesBundle(): DemoRulesBundle {
-  const j = BASE_CONFIG.jackpot;
   const sc = BASE_CONFIG.scoring;
   const scoring: ScoringDefinition = {
     id: 'scoring.demoScoreAttack',
@@ -52,19 +51,11 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       'enemy.gunTower': sc.towerScore,
       'enemy.lootTruck': sc.truckScore,
     },
-    scrapScores: { normal: sc.normalScrap, heavy: sc.heavyScrap, jackpot: sc.jackpotScrap },
-    jackpotGains: {
-      'enemy.scrapBug': j.bugGain,
-      'enemy.rammer': j.rammerGain,
-      'enemy.gunTower': j.towerGain,
-      'enemy.lootTruck': j.truckGain,
-      normalScrap: j.normalScrapGain,
-      heavyScrap: j.heavyScrapGain,
-      jackpotScrap: j.jackpotScrapGain,
-      speedCollect: j.speedCollectGain,
-      ram: j.ramGain,
-      dodge: j.dodgeGain,
-      linkGain: j.linkGain,
+    scrapScores: { normal: sc.normalScrap, heavy: sc.heavyScrap },
+    comboGains: {
+      dash: 4,
+      dodge: 3,
+      link: 4,
     },
     combo: {
       pointsPerLevel: sc.comboPointsPerLevel,
@@ -80,14 +71,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     scrapLoopWindow: LEGACY_DEMO_CONSTANTS.scrapLoopWindow,
     dashScore: LEGACY_DEMO_CONSTANTS.dashScore,
     wipeoutPenalty: sc.wipeoutPenalty,
-    jackpotCooldown: j.jackpotCooldown,
-    assist: {
-      floor55: j.assistFloor55,
-      floor66: j.assistFloor66,
-      floor70: j.assistFloor70,
-      requireContributions: j.assistRequireContributions,
-    },
-    finalChaos: { mult: j.finalChaosMult, start: j.finalChaosStart },
+    finalChaos: { mult: 1.5, start: 70 },
   };
 
   const objective: ObjectiveDefinition = {
@@ -183,12 +167,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     'weapon.chargeFullKnockbackMinMultiplier': BASE_CONFIG.weapons.chargeFullKnockbackMinMultiplier,
     'weapon.chargeFullKnockbackVerticalMultiplier': BASE_CONFIG.weapons.chargeFullKnockbackVerticalMultiplier,
     'weapon.chargeFullShellVisualScale': BASE_CONFIG.weapons.chargeFullShellVisualScale,
-    'weapon.jackpotDamage': BASE_CONFIG.weapons.jackpotDamage,
-    'weapon.jackpotRadius': BASE_CONFIG.weapons.jackpotRadius,
-    'weapon.jackpotSpeed': BASE_CONFIG.weapons.jackpotSpeed,
-    'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
-    'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
-    'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
   };
 
   const loadout: LoadoutDefinition = {
@@ -197,7 +175,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     behaviors: [],
     primary: 'weapon.machineGun',
     secondary: 'weapon.mainCannon',
-    ability: 'weapon.jackpotShell',
     turret: {
       responseMode: 'instant',
       turnRate: BASE_CONFIG.weapons.turretTurnRate,
@@ -278,35 +255,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       },
       projectileId: 'projectile.cannonShell',
     },
-    'weapon.jackpotShell': {
-      id: 'weapon.jackpotShell',
-      label: 'JACKPOT Shell',
-      behaviors: [],
-      behaviorId: 'weapon.chargeProjectile',
-      fireMode: 'charge',
-      cooldownSeconds: BASE_CONFIG.jackpot.jackpotCooldown,
-      chargeSeconds: BASE_CONFIG.weapons.jackpotChargeTime,
-      statBlock: {
-        'weapon.jackpotDamage': BASE_CONFIG.weapons.jackpotDamage,
-        'weapon.jackpotRadius': BASE_CONFIG.weapons.jackpotRadius,
-        'weapon.jackpotSpeed': BASE_CONFIG.weapons.jackpotSpeed,
-        'weapon.jackpotLife': BASE_CONFIG.weapons.jackpotLife,
-        'weapon.jackpotRecoilImpulse': BASE_CONFIG.tank.jackpotRecoilImpulse,
-        'weapon.jackpotRecoilSpin': BASE_CONFIG.tank.jackpotSpin,
-        'weapon.recoilVerticalScale': 1.0,
-        'weapon.recoilGroundLaunchThreshold': 0.25,
-        'weapon.splashKnockbackRadiusMultiplier': 1.0,
-        'weapon.splashKnockbackMax': 12.0,
-        'weapon.splashKnockbackMin': 2.5,
-        'weapon.splashKnockbackVertical': 4.0,
-        'weapon.splashKnockbackFalloffExponent': 1.25,
-        'weapon.splashTankKnockbackMultiplier': 0.0,
-        'weapon.splashInnerRatio': 0.45,
-        'weapon.splashInnerMultiplier': 1,
-        'weapon.splashOuterMultiplier': 0.65,
-      },
-      projectileId: 'projectile.jackpotShell',
-    },
   };
 
   const enemies: Record<string, EnemyDefinition> = {
@@ -326,7 +274,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       hp: BASE_CONFIG.enemies.bugHp,
       radius: BASE_CONFIG.arena.bugRadius,
       score: BASE_CONFIG.scoring.bugScore,
-      jackpotGain: BASE_CONFIG.jackpot.bugGain,
       contributionPoints: 2,
       dropTableId: 'drops.scrapBug',
       speed: BASE_CONFIG.enemies.bugSpeed,
@@ -360,7 +307,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       hp: BASE_CONFIG.enemies.rammerHp,
       radius: BASE_CONFIG.arena.rammerRadius,
       score: BASE_CONFIG.scoring.rammerScore,
-      jackpotGain: BASE_CONFIG.jackpot.rammerGain,
       contributionPoints: 2,
       dropTableId: 'drops.rammer',
       approachSpeed: BASE_CONFIG.enemies.rammerApproachSpeed,
@@ -392,7 +338,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       hp: BASE_CONFIG.enemies.towerHp,
       radius: BASE_CONFIG.arena.towerRadius,
       score: BASE_CONFIG.scoring.towerScore,
-      jackpotGain: BASE_CONFIG.jackpot.towerGain,
       contributionPoints: 3,
       dropTableId: 'drops.gunTower',
       damage: BASE_CONFIG.enemies.towerShotDamage,
@@ -428,7 +373,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       hp: BASE_CONFIG.enemies.truckHp,
       radius: BASE_CONFIG.arena.truckRadius,
       score: BASE_CONFIG.scoring.truckScore,
-      jackpotGain: BASE_CONFIG.jackpot.truckGain,
       contributionPoints: 4,
       dropTableId: 'drops.lootTruck',
       speed: BASE_CONFIG.enemies.truckSpeed,
@@ -438,8 +382,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       escapeShortcut: 8,
       collisionPushTank: 4,
       collisionPushTruck: 0.7,
-      jackpotScrapCount: 5,
-      jackpotScrapLife: 16,
       knockback: {
         immovable: false,
         horizontalResistance: 0.12,
@@ -477,14 +419,13 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     'drops.lootTruck': {
       id: 'drops.lootTruck',
       behaviors: [],
-      entries: [{ kind: 'jackpot', count: 5, scatter: { minRadius: 1.4, maxRadius: 3.6, angleJitter: 0.6 } }],
+      entries: [{ kind: 'heavy', count: 5, scatter: { minRadius: 1.4, maxRadius: 3.6, angleJitter: 0.6 } }],
     },
   };
 
   const pickups: Record<string, PickupDefinition> = {
     'pickup.normalScrap': { id: 'pickup.normalScrap', kind: 'normal', life: 26, magnetRadius: 5, presentationId: 'pickup.normalScrap', behaviors: [] },
     'pickup.heavyScrap': { id: 'pickup.heavyScrap', kind: 'heavy', life: 26, magnetRadius: 6.5, presentationId: 'pickup.heavyScrap', behaviors: [] },
-    'pickup.jackpotScrap': { id: 'pickup.jackpotScrap', kind: 'jackpot', life: 16, magnetRadius: 8, presentationId: 'pickup.jackpotScrap', behaviors: [] },
   };
 
   return {
@@ -557,8 +498,6 @@ export function createLegacyDefaultTankDefinition(): TankDefinition {
     autoRightRoll: 1.15,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
-    jackpotRecoilImpulse: 17,
-    jackpotSpin: 4.5,
     mgRecoilImpulse: 0.15,
     rig: DEFAULT_TANK_RIG,
   };

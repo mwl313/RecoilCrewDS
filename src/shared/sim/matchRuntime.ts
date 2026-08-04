@@ -79,20 +79,17 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       cannonHoldT: 0,
       cannonChargeRatio: 0,
       cannonChargeFull: false,
-      chargeT: 0,
       cannonCooldown: 0,
       cannonFlash: 0,
       mgCooldown: 0,
       mgFiring: false,
-      jackpotReady: false,
-      jackpotCooldown: 0,
     },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
     build: { capabilities: [] },
     stats: {
       score: 0,
-      jackpotMeter: 0,
-      jackpotFired: 0,
+      chargedCannonShots: 0,
+      fullChargeShots: 0,
       kills: 0,
       scrapCollected: 0,
       links: 0,
@@ -147,7 +144,7 @@ export class MatchRuntime {
   /** Pending one-shot action edges from the newest sequenced Driver frame. */
   private driverEdgesPending: { dash: boolean; jump: boolean } = { dash: false, jump: false };
   private driverEdgesConsumed = true;
-  private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
+  private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false };
   private gunnerEdgeLatches: { mgStart: boolean; mgStop: boolean; secondaryPressed: boolean; secondaryReleased: boolean } = {
     mgStart: false,
     mgStop: false,
@@ -322,7 +319,7 @@ export class MatchRuntime {
 
   clearInputs() {
     this.clearDriverInput();
-    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
+    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false };
     this.weaponSystem.clearActions();
   }
 
@@ -333,7 +330,7 @@ export class MatchRuntime {
   }
 
   clearGunnerInput() {
-    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
+    this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false };
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.weaponSystem.clearActions();
   }
@@ -480,7 +477,7 @@ export class MatchRuntime {
     const dmg = 26;
     b.flash = 0.3;
     this.push('barrelExplode', b.x, 0.8, b.z, { value: radius });
-    this.addContribution('gunner', 3, 0);
+    this.addContribution('gunner', 3);
     for (const e of s.enemies) {
       if (!e.alive) continue;
       const d = dist(b.x, b.z, e.x, e.z);
@@ -520,35 +517,27 @@ export class MatchRuntime {
       s.truck.active = false;
     }
     const sc = this.cfg.scoring;
-    const j = this.cfg.jackpot;
     s.stats.kills++;
     if (source === 'dash') s.stats.dashKills++;
-    const chaosMult = s.time > j.finalChaosStart ? j.finalChaosMult : 1;
     let score = 0;
-    let jackpot = 0;
     let scrap: ScrapKind | null = null;
     let contributionRole: Role = 'gunner';
     let contributionPoints = 2;
     if (e.type === 'scrapBug') {
       score = sc.bugScore;
-      jackpot = j.bugGain;
       scrap = 'normal';
     } else if (e.type === 'rammer') {
       score = sc.rammerScore;
-      jackpot = j.rammerGain;
       scrap = 'heavy';
     } else if (e.type === 'gunTower') {
       score = sc.towerScore;
-      jackpot = j.towerGain;
       scrap = 'heavy';
       contributionPoints = 3;
     } else if (e.type === 'lootTruck') {
       score = sc.truckScore;
-      jackpot = j.truckGain;
       contributionPoints = 4;
     }
     this.systems.score.addScore(score, e.type.toUpperCase());
-    this.systems.jackpot.addGain(jackpot * chaosMult);
     this.systems.combo.addContribution(contributionRole, contributionPoints);
     // Drops react to the kill through the enemy's validated drop table.
     this.systems.drops.resolveFor(e);
@@ -557,13 +546,8 @@ export class MatchRuntime {
   }
 
   // ------------------------------------------------- score/combo (delegated)
-  /** Public legacy API: JACKPOT meter gain (delegates to JackpotSystem). */
-  addJackpot(amount: number) {
-    this.systems.jackpot.addGain(amount);
-  }
-
   /** Public legacy API: role contribution + combo points (delegates). */
-  addContribution(role: Role, points: number, _jackpotExtra?: number) {
+  addContribution(role: Role, points: number) {
     this.systems.combo.addContribution(role, points);
   }
 

@@ -4,7 +4,7 @@ import { commonDefinition, positiveNumber } from './common';
 export const pickupSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^pickup\./, 'pickup id must start with pickup.'),
-  kind: z.enum(['normal', 'heavy', 'jackpot']),
+  kind: z.enum(['normal', 'heavy']),
   life: positiveNumber,
   magnetRadius: positiveNumber,
   presentationId: z.string().optional(),

@@ -31,19 +31,18 @@ function pitchTo(target: { x: number; y: number; z: number }, tank: { x: number;
 }
 
 describe('loadout resolution', () => {
-  it('maps primary/secondary/ability to the Demo weapons on both rule paths', () => {
+  it('maps primary/secondary (and optional ability) on both rule paths', () => {
     const legacy = new Match('loadout-legacy');
     expect(legacy.runtime.loadout.primary.id).toBe('weapon.machineGun');
     expect(legacy.runtime.loadout.secondary.id).toBe('weapon.mainCannon');
-    expect(legacy.runtime.loadout.ability.id).toBe('weapon.jackpotShell');
+    expect(legacy.runtime.loadout.ability).toBeNull();
     expect(legacy.runtime.loadout.primary.definition.behaviorId).toBe('weapon.hitscan');
     expect(legacy.runtime.loadout.secondary.definition.behaviorId).toBe('weapon.projectile');
-    expect(legacy.runtime.loadout.ability.definition.behaviorId).toBe('weapon.chargeProjectile');
 
     const content = MatchRuntime.fromContentPack(pack, 'loadout-content');
     expect(content.loadout.primary.id).toBe('weapon.machineGun');
     expect(content.loadout.secondary.id).toBe('weapon.mainCannon');
-    expect(content.loadout.ability.id).toBe('weapon.jackpotShell');
+    expect(content.loadout.ability).toBeNull();
   });
 
   it('uses the generic primary/secondary/ability wire actions directly', () => {
@@ -56,13 +55,6 @@ describe('loadout resolution', () => {
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(1); // secondary drives the cannon
-    m.addJackpot(100);
-    m.setGunnerInput({ ...aim, ability: true });
-    for (let i = 0; i < 40; i++) {
-      m.step(DT);
-      m.takeEvents();
-    }
-    expect(m.state.stats.jackpotFired).toBe(1); // ability drives JACKPOT
   });
 });
 
@@ -143,7 +135,7 @@ describe('weapon behaviors', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false });
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(1);
@@ -156,32 +148,18 @@ describe('weapon behaviors', () => {
     expect(bug.hp).toBeLessThan(BASE_CONFIG.enemies.bugHp);
   });
 
-  it('chargeProjectile charges and fires exactly one JACKPOT, then cools down', () => {
+  it('charged cannon fires exactly one full-charge shot after an indefinite hold', () => {
     const m = new Match('charge');
-    m.addJackpot(100);
-    expect(m.state.turret.jackpotReady).toBe(true);
-    step(m, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
-    expect(m.state.stats.jackpotFired).toBe(1);
-    // Same-step kills (the JACKPOT recoil can ram a bug) add gains back;
-    // the meter is reset to 0 at fire time and only re-earned after.
-    expect(m.state.stats.jackpotMeter).toBeLessThan(15);
-    expect(m.state.turret.jackpotCooldown).toBeGreaterThan(0);
-    expect(m.state.shells.some((sh) => sh.kind === 'jackpot')).toBe(true);
-    // Recharge is blocked by the cooldown.
-    m.addJackpot(100);
-    step(m, 1.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
-    expect(m.state.stats.jackpotFired).toBe(1);
-  });
-
-  it('releasing the charge early decays it instead of firing', () => {
-    const m = new Match('charge-decay');
-    m.addJackpot(100);
-    step(m, 0.4, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
-    const charged = m.state.turret.chargeT;
-    expect(charged).toBeGreaterThan(0);
-    step(m, 0.2, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: false , primary: false, secondary: false });
-    expect(m.state.turret.chargeT).toBeLessThan(charged);
-    expect(m.state.stats.jackpotFired).toBe(0);
+    m.state.enemies.length = 0;
+    m.state.tank.shieldedT = 1e9;
+    m.runtime.systems.capabilities.grant('cannon.charge', 'test');
+    m.applyGunnerAction('secondaryPressed', 1);
+    step(m, 40);
+    expect(m.state.turret.cannonChargeFull).toBe(true);
+    m.applyGunnerAction('secondaryReleased', 2);
+    step(m, 1);
+    expect(m.state.stats.chargedCannonShots).toBe(1);
+    expect(m.state.stats.fullChargeShots).toBe(1);
   });
 });
 
@@ -257,17 +235,24 @@ describe('recoil parity (unbraced)', () => {
     const uv = Math.hypot(unbraced.state.tank.vx, unbraced.state.tank.vz);
     expect(uv).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.9);
     expect(uv).toBeLessThan(BASE_CONFIG.tank.recoilImpulse * 1.1);
-    // JACKPOT applies its full configured impulse with no Driver reduction.
-    const jackpot = new Match('recoil-jackpot');
+    // A full-charge cannon applies the scaled profile impulse.
+    const charged = new Match('recoil-charged');
     let recoilImpulse = 0;
-    jackpot.runtime.eventBus.subscribe('recoil.applied', (p) => {
+    charged.runtime.eventBus.subscribe('recoil.applied', (p) => {
       recoilImpulse = (p as { impulse: number }).impulse;
     });
-    jackpot.addJackpot(100);
-    step(jackpot, 1.1, { aimYaw: Math.PI / 2, aimPitch: 0.05, ability: true , primary: false, secondary: false });
-    jackpot.runtime.eventBus.drain(); // deliver queued semantic events
-    expect(jackpot.state.stats.jackpotFired).toBe(1);
-    expect(recoilImpulse).toBeCloseTo(BASE_CONFIG.tank.jackpotRecoilImpulse, 6);
+    charged.runtime.systems.capabilities.grant('cannon.charge', 'test');
+    charged.applyGunnerAction('secondaryPressed', 1);
+    for (let i = 0; i < 40; i++) {
+      charged.step(DT);
+      charged.takeEvents();
+    }
+    charged.applyGunnerAction('secondaryReleased', 2);
+    charged.step(DT);
+    charged.takeEvents();
+    charged.runtime.eventBus.drain(); // deliver queued semantic events
+    expect(charged.state.stats.fullChargeShots).toBe(1);
+    expect(recoilImpulse).toBeCloseTo(10.5 * 1.619047619, 6);
   });
 });
 
@@ -306,7 +291,6 @@ describe('a test weapon using an existing behavior without editing MatchRuntime'
       behaviors: [],
       primary: 'weapon.machineGun',
       secondary: 'weapon.testRapidCannon',
-      ability: 'weapon.jackpotShell',
       turret: { turnRate: 4.6, maxPitch: 0.42, minPitch: -0.12 },
     };
     const mode = deepClone(files['modes/demoScoreAttack.json']) as { loadout: string };

@@ -6,7 +6,6 @@
   "hp": 26,
   "radius": 1.8,
   "score": 800,
-  "jackpotGain": 18,
   "contributionPoints": 4,
   "dropTableId": "drops.lootTruck",
   "behaviors": [
@@ -27,7 +26,5 @@
   "waypointReach": 2.5,
   "escapeShortcut": 8,
   "collisionPushTank": 4,
-  "collisionPushTruck": 0.7,
-  "jackpotScrapCount": 5,
-  "jackpotScrapLife": 16
+  "collisionPushTruck": 0.7
 }

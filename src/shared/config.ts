@@ -71,8 +71,6 @@ export interface GameConfig {
     autoRightRoll: number;
     recoilImpulse: number;
     recoilSpin: number;
-    jackpotRecoilImpulse: number;
-    jackpotSpin: number;
     mgRecoilImpulse: number;
   };
   weapons: {
@@ -96,11 +94,6 @@ export interface GameConfig {
     chargeFullKnockbackMinMultiplier: number;
     chargeFullKnockbackVerticalMultiplier: number;
     chargeFullShellVisualScale: number;
-    jackpotDamage: number;
-    jackpotRadius: number;
-    jackpotSpeed: number;
-    jackpotChargeTime: number;
-    jackpotLife: number;
     turretTurnRate: number;
     turretMaxPitch: number;
     turretMinPitch: number;
@@ -140,7 +133,6 @@ export interface GameConfig {
     truckScore: number;
     normalScrap: number;
     heavyScrap: number;
-    jackpotScrap: number;
     linkScrapLoop: number;
     linkRamFinish: number;
     comboPointsPerLevel: number;
@@ -148,26 +140,6 @@ export interface GameConfig {
     comboDecayTime: number;
     comboBothWindow: number;
     wipeoutPenalty: number;
-  };
-  jackpot: {
-    bugGain: number;
-    rammerGain: number;
-    towerGain: number;
-    truckGain: number;
-    normalScrapGain: number;
-    heavyScrapGain: number;
-    jackpotScrapGain: number;
-    jackpotCooldown: number;
-    speedCollectGain: number;
-    ramGain: number;
-    dodgeGain: number;
-    linkGain: number;
-    assistFloor55: number;
-    assistFloor66: number;
-    assistFloor70: number;
-    assistRequireContributions: number;
-    finalChaosMult: number;
-    finalChaosStart: number;
   };
   arena: {
     half: number;
@@ -235,8 +207,6 @@ export const BASE_CONFIG: GameConfig = {
     autoRightRoll: 1.15,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
-    jackpotRecoilImpulse: 17,
-    jackpotSpin: 4.5,
     mgRecoilImpulse: 0.15,
   },
   weapons: {
@@ -260,11 +230,6 @@ export const BASE_CONFIG: GameConfig = {
     chargeFullKnockbackMinMultiplier: 1.6666666667,
     chargeFullKnockbackVerticalMultiplier: 1.6,
     chargeFullShellVisualScale: 1.8,
-    jackpotDamage: 60,
-    jackpotRadius: 9,
-    jackpotSpeed: 38,
-    jackpotChargeTime: 1.0,
-    jackpotLife: 3.2,
   turretTurnRate: 60,
     turretMaxPitch: 0.42,
     turretMinPitch: -1.45,
@@ -304,7 +269,6 @@ export const BASE_CONFIG: GameConfig = {
     truckScore: 800,
     normalScrap: 25,
     heavyScrap: 75,
-    jackpotScrap: 150,
     linkScrapLoop: 40,
     linkRamFinish: 40,
     comboPointsPerLevel: 3,
@@ -312,26 +276,6 @@ export const BASE_CONFIG: GameConfig = {
     comboDecayTime: 6,
     comboBothWindow: 8,
     wipeoutPenalty: 0.15,
-  },
-  jackpot: {
-    bugGain: 3,
-    rammerGain: 8,
-    towerGain: 12,
-    truckGain: 18,
-    normalScrapGain: 1.5,
-    heavyScrapGain: 4,
-    jackpotScrapGain: 8,
-    jackpotCooldown: 12,
-    speedCollectGain: 2,
-    ramGain: 4,
-    dodgeGain: 3,
-    linkGain: 4,
-    assistFloor55: 60,
-    assistFloor66: 85,
-    assistFloor70: 100,
-    assistRequireContributions: 2,
-    finalChaosMult: 1.5,
-    finalChaosStart: 70,
   },
   arena: {
     half: 40,
@@ -415,7 +359,6 @@ export function buildMatchConfig(modifier: ModifierId): MatchConfig {
     maxBugs: 1,
     maxRammers: 1,
     maxTowers: 1,
-    jackpotGainMult: 1,
     ...over,
   };
 }

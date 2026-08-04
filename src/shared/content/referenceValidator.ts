@@ -4,16 +4,6 @@ import type { CategoryRegistries } from './contentPack';
 import { BehaviorRegistry } from './behaviorRegistry';
 import { ContentValidationError } from './errors';
 
-const JACKPOT_GAIN_KEYS = new Set([
-  'normalScrap',
-  'heavyScrap',
-  'jackpotScrap',
-  'speedCollect',
-  'ram',
-  'dodge',
-  'linkGain',
-]);
-
 /**
  * Cross-file reference, behavior, stat, and asset validation. Collects every
  * issue it can find instead of stopping at the first, so error messages are
@@ -58,7 +48,9 @@ export class ReferenceValidator {
       this.checkCommon(issues, loadout, file);
       this.ref(issues, loadout.primary, this.registries.weapons, file, 'primary');
       this.ref(issues, loadout.secondary, this.registries.weapons, file, 'secondary');
-      this.ref(issues, loadout.ability, this.registries.weapons, file, 'ability');
+      if (loadout.ability) {
+        this.ref(issues, loadout.ability, this.registries.weapons, file, 'ability');
+      }
     }
 
     for (const map of this.registries.maps.all()) {
@@ -119,14 +111,6 @@ export class ReferenceValidator {
       this.checkCommon(issues, scoring, file);
       for (const enemyId of Object.keys(scoring.enemyScores)) {
         this.ref(issues, enemyId, this.registries.enemies, file, `enemyScores.${enemyId}`);
-      }
-      for (const key of Object.keys(scoring.jackpotGains)) {
-        const isEnemyRef = key.startsWith('enemy.');
-        if (isEnemyRef) {
-          this.ref(issues, key, this.registries.enemies, file, `jackpotGains.${key}`);
-        } else if (!JACKPOT_GAIN_KEYS.has(key)) {
-          issues.push(`${file}: jackpotGains.${key} — unknown gain key '${key}'`);
-        }
       }
     }
 

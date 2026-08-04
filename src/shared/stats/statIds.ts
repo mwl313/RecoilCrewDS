@@ -21,7 +21,6 @@ export const MATCH_STAT_IDS = [
   'match.maxBugs',
   'match.maxRammers',
   'match.maxTowers',
-  'match.jackpotGainMult',
 ] as const;
 
 export const TANK_STAT_IDS = [
@@ -66,8 +65,6 @@ export const TANK_STAT_IDS = [
   'tank.autoRightRoll',
   'tank.recoilImpulse',
   'tank.recoilSpin',
-  'tank.jackpotRecoilImpulse',
-  'tank.jackpotSpin',
   'tank.mgRecoilImpulse',
 ] as const;
 
@@ -84,11 +81,6 @@ export const WEAPON_STAT_IDS = [
   'weapon.cannonGravity',
   'weapon.cannonLife',
   'weapon.burst',
-  'weapon.jackpotDamage',
-  'weapon.jackpotRadius',
-  'weapon.jackpotSpeed',
-  'weapon.jackpotChargeTime',
-  'weapon.jackpotLife',
   'weapon.turretTurnRate',
   'weapon.turretMaxPitch',
   'weapon.turretMinPitch',
@@ -101,8 +93,6 @@ export const WEAPON_STAT_IDS = [
   'weapon.mgRecoilSpin',
   'weapon.cannonRecoilImpulse',
   'weapon.cannonRecoilSpin',
-  'weapon.jackpotRecoilImpulse',
-  'weapon.jackpotRecoilSpin',
   'weapon.recoilVerticalScale',
   'weapon.recoilGroundLaunchThreshold',
   'weapon.splashKnockbackRadiusMultiplier',

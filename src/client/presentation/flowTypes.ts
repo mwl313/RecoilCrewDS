@@ -34,7 +34,8 @@ export type FlowStateId =
 export interface ResultsPayload {
   score: number;
   bestCombo: number;
-  jackpotFired: number;
+  chargedCannonShots: number;
+  fullChargeShots: number;
   kills: number;
   scrapCollected: number;
   links: number;

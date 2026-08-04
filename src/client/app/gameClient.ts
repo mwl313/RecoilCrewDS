@@ -60,6 +60,8 @@ export class GameClient {
   private contentPack: ContentPack | null = null;
   private secondaryDown = false;
   private mgDown = false;
+  private chargeHoldStart = 0;
+  private chargeHoldActive = false;
   private readonly pendingLocalActions = new Map<number, { action: GunnerActionType; at: number }>();
   private f4: F4Overlay | null = null;
   private inputEnabled = true;
@@ -71,7 +73,7 @@ export class GameClient {
   onPauseRequest: (() => void) | null = null;
   onFrame: ((state: MatchState) => void) | null = null;
   onTrajectoryReticle: ((result: TrajectoryReticleResult) => void) | null = null;
-  onSinglePlayerResults: ((results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
+  onSinglePlayerResults: ((results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
 
   private constructor(deps: {
     container: HTMLElement;
@@ -277,14 +279,15 @@ export class GameClient {
    * available, local Single Player rules otherwise, BASE_CONFIG as the final
    * fallback (never hardcoded presentation numbers).
    */
-  getHudRules(): { maxIntegrity: number; cannonCooldown: number; jackpotChargeTime: number } {
+  getHudRules(): { maxIntegrity: number; cannonCooldown: number; chargeTapMaxSeconds: number; chargeFullSeconds: number } {
     const block = this.prediction.movementRules();
     const tank = block?.tank;
     const weapon = block?.weapon;
     return {
       maxIntegrity: tank?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity,
       cannonCooldown: weapon?.cannonCooldown ?? BASE_CONFIG.weapons.cannonCooldown,
-      jackpotChargeTime: weapon?.jackpotChargeTime ?? BASE_CONFIG.weapons.jackpotChargeTime,
+      chargeTapMaxSeconds: weapon?.chargeTapMaxSeconds ?? BASE_CONFIG.weapons.chargeTapMaxSeconds,
+      chargeFullSeconds: weapon?.chargeFullSeconds ?? BASE_CONFIG.weapons.chargeFullSeconds,
     };
   }
 
@@ -336,6 +339,8 @@ export class GameClient {
     this.pendingLocalActions.clear();
     this.secondaryDown = false;
     this.mgDown = false;
+    this.chargeHoldStart = 0;
+    this.chargeHoldActive = false;
   }
 
   setSnapshot(msg: { seq: number; serverTime: number; state: MatchState; lastProcessedDriverInputSeq: number; lastProcessedGunnerInputSeq: number; lastImpulseSeq?: number; opLog?: unknown; serverTick?: number; tickDurationMs?: number; droppedTimeMs?: number; driftMs?: number; outboundBuffered?: number; rulesRevision?: number; movementRulesRevision?: number; movement?: unknown }): void {
@@ -360,7 +365,6 @@ export class GameClient {
       aimPitch: turret.desiredPitch,
       primary: this.mouseDown('primary'),
       secondary: this.mouseDown('secondary'),
-      ability: false,
     });
     this.singlePlayerAcc += dt;
     const step = 1 / 30;
@@ -484,7 +488,6 @@ export class GameClient {
         aimPitch: turret.desiredPitch,
         primary: this.mouseDown('primary'),
         secondary: this.mouseDown('secondary'),
-        ability: false,
       });
     }
   }
@@ -508,7 +511,6 @@ export class GameClient {
     aimPitch?: number;
     primary?: boolean;
     secondary?: boolean;
-    ability?: boolean;
   }): void {
     if (!this.session.networked || !this.onSendInput) return;
     if (role === 'driver') {
@@ -529,7 +531,6 @@ export class GameClient {
           aimPitch: data.aimPitch ?? turret.desiredPitch,
           primary: data.primary === true,
           secondary: data.secondary === true,
-          ability: false,
         },
       });
     }
@@ -571,20 +572,25 @@ export class GameClient {
     // Single Player drives the same authoritative WeaponSystem state machine
     // through discrete secondary actions (capability gates hold/release).
     const secondary = this.mouseDown('secondary');
+    const charging = state.build.capabilities.includes('cannon.charge');
     const turret = this.prediction.getTurretSpaces();
     if (secondary && !this.secondaryDown) {
       m.applyGunnerAction('secondaryPressed', undefined, {
         aimYaw: turret.desiredYawLocal,
         aimPitch: turret.desiredPitch,
       });
-      if (state.build.capabilities.includes('cannon.charge')) {
-        this.audio.play('jackpotCharge'); // charge-start presentation (renamed in M8)
+      if (charging) {
+        this.audio.play('cannonChargeStart');
+        this.chargeHoldStart = performance.now();
+        this.chargeHoldActive = true;
       }
     } else if (!secondary && this.secondaryDown) {
       m.applyGunnerAction('secondaryReleased', undefined, {
         aimYaw: turret.desiredYawLocal,
         aimPitch: turret.desiredPitch,
       });
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
     }
     this.secondaryDown = secondary;
     void dt;
@@ -623,12 +629,24 @@ export class GameClient {
    */
   private pollGunnerActions(): void {
     if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
+    const latest = this.presenter.latest;
     const mg = this.mouseDown('primary');
     const secondary = this.mouseDown('secondary');
+    const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     if (mg && !this.mgDown) this.fireGunnerAction('mgStart');
     if (!mg && this.mgDown) this.fireGunnerAction('mgStop');
-    if (secondary && !this.secondaryDown) this.fireGunnerAction('secondaryPressed', true);
-    if (!secondary && this.secondaryDown) this.fireGunnerAction('secondaryReleased', true);
+    if (secondary && !this.secondaryDown) {
+      this.fireGunnerAction('secondaryPressed', true);
+      if (charging) {
+        this.chargeHoldStart = performance.now();
+        this.chargeHoldActive = true;
+      }
+    }
+    if (!secondary && this.secondaryDown) {
+      this.fireGunnerAction('secondaryReleased', true);
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+    }
     this.mgDown = mg;
     this.secondaryDown = secondary;
   }
@@ -649,7 +667,7 @@ export class GameClient {
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     if (action === 'secondaryPressed') {
       if (charging) {
-        this.audio.play('jackpotCharge'); // charge-start presentation (renamed in M8)
+        this.audio.play('cannonChargeStart');
         return;
       }
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
@@ -672,6 +690,20 @@ export class GameClient {
 
   getTurretSpaces() {
     return this.prediction.getTurretSpaces();
+  }
+
+  /** Local predicted charge view for the HUD (same-frame while holding). */
+  getLocalChargeView(): { unlocked: boolean; held: boolean; ratio: number; full: boolean } | null {
+    const latest = this.presenter.latest;
+    const unlocked = latest?.build.capabilities.includes('cannon.charge') ?? false;
+    if (!unlocked) return { unlocked: false, held: false, ratio: 0, full: false };
+    const block = this.prediction.movementRules();
+    const tapMax = block?.weapon?.chargeTapMaxSeconds ?? BASE_CONFIG.weapons.chargeTapMaxSeconds;
+    const full = block?.weapon?.chargeFullSeconds ?? BASE_CONFIG.weapons.chargeFullSeconds;
+    const held = this.chargeHoldActive;
+    const heldSeconds = held ? Math.min(full, (performance.now() - this.chargeHoldStart) / 1000) : 0;
+    const ratio = held ? Math.max(0, Math.min(1, (heldSeconds - tapMax) / Math.max(0.001, full - tapMax))) : 0;
+    return { unlocked, held, ratio, full: ratio >= 1 };
   }
 
   getCameraState() {

@@ -69,7 +69,7 @@ export class ProjectileSystem {
       sh.x += sh.vx * dt;
       sh.y += sh.vy * dt;
       sh.z += sh.vz * dt;
-      if (sh.kind === 'cannon' || sh.kind === 'jackpot') {
+      if (sh.kind === 'cannon') {
         sh.vy -= w.cannonGravity * dt;
       }
       if (sh.kind === 'tower') {
@@ -90,7 +90,7 @@ export class ProjectileSystem {
         exploded = true;
       }
       if (!exploded) {
-        const r = sh.kind === 'jackpot' ? 1.4 : 0.9;
+        const r = 0.9;
         for (const o of this.ctx.world.obstacles) {
           if (pointInBox(sh.x, sh.z, o.x, o.z, o.w + r * 2, o.d + r * 2)) {
             exploded = true;
@@ -122,15 +122,9 @@ export class ProjectileSystem {
     const w = this.ctx.rules.config.weapons;
     const resolver = this.ctx.rules.resolver;
     const combat = sh.combat;
-    const isJackpot = sh.kind === 'jackpot' && !combat;
-    const radius = combat?.splashRadius ?? (isJackpot ? w.jackpotRadius : w.cannonRadius);
-    const dmg = combat?.damage ?? (isJackpot ? w.jackpotDamage : w.cannonDamage);
-    if (isJackpot) {
-      pushEvent(this.ctx, 'jackpotImpact', sh.x, sh.y, sh.z, { value: radius });
-      this.ctx.combo.addContribution('gunner', 2);
-    } else {
-      pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon', chargeRatio: sh.chargeRatio });
-    }
+    const radius = combat?.splashRadius ?? w.cannonRadius;
+    const dmg = combat?.damage ?? w.cannonDamage;
+    pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon', chargeRatio: sh.chargeRatio });
     this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z, chargeRatio: sh.chargeRatio });
     const innerRatio = resolver.resolve('weapon.splashInnerRatio');
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
@@ -141,19 +135,19 @@ export class ProjectileSystem {
       const rr = this.ctx.enemies.radiusFor(e);
       if (d < radius + rr) {
         const falloff = d < radius * innerRatio ? innerMult : outerMult;
-        this.ctx.damage.applyEnemy(e, dmg * falloff, combat ? 'cannon' : isJackpot ? 'jackpot' : 'cannon');
+        this.ctx.damage.applyEnemy(e, dmg * falloff, 'cannon');
       }
     }
     for (const b of s.barrels) {
       if (b.exploded) continue;
       const d = dist(sh.x, sh.z, b.x, b.z);
-      if (d < (isJackpot ? w.barrelChainRadius * 2 : this.ctx.rules.matchConfig.barrelRadius) + 0.8) {
+      if (d < this.ctx.rules.matchConfig.barrelRadius + 0.8) {
         this.ctx.damage.applyBarrel(b, 999);
       }
     }
     const tankD = dist(sh.x, sh.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.5) {
-      const tankSplash = combat ? 5 + 7 * (sh.chargeRatio ?? 0) : isJackpot ? 12 : 5;
+      const tankSplash = combat ? 5 + 7 * (sh.chargeRatio ?? 0) : 5;
       this.ctx.damage.applyTank(tankSplash, 'splash');
     }
     // Knockback is a separate effect from damage: radial impulse pushes
@@ -170,7 +164,7 @@ export class ProjectileSystem {
       minImpulse: combat ? combat.knockbackMin : kbStat('weapon.splashKnockbackMin', 1.5),
       verticalImpulse: combat ? combat.knockbackVertical : kbStat('weapon.splashKnockbackVertical', 2.5),
       falloffExponent: combat ? combat.knockbackFalloffExponent : kbStat('weapon.splashKnockbackFalloffExponent', 1.25),
-      source: combat ? 'cannon' : isJackpot ? 'jackpot' : 'cannon',
+      source: 'cannon',
       affectsTank: false,
       affectsEnemies: true,
     });

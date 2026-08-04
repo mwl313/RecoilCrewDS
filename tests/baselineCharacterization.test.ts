@@ -120,7 +120,6 @@ describe('weapon input fields (wire contract)', () => {
         aimPitch: 0.3,
         primary: true,
         secondary: false,
-        ability: false,
         weaponId: 'weapon.mainCannon',
         aimX: 99,
       },
@@ -131,7 +130,6 @@ describe('weapon input fields (wire contract)', () => {
       aimPitch: 0.3,
       primary: true,
       secondary: false,
-      ability: false,
     });
     // Unknown fields must not have triggered a weapon.
     expect(room.match!.state.shells.length).toBe(0);
@@ -149,7 +147,6 @@ describe('weapon input fields (wire contract)', () => {
         aimPitch: 99,
         primary: 1,
         secondary: 'yes' as unknown as boolean,
-        ability: null as unknown as boolean,
       },
     });
     manager.tick(1 / 30);
@@ -157,7 +154,6 @@ describe('weapon input fields (wire contract)', () => {
     expect(input.aimPitch).toBe(1.5); // clamped to [-1.5, 1.5]
     expect(input.primary).toBe(true);
     expect(input.secondary).toBe(true);
-    expect(input.ability).toBe(false);
   });
 
   it('driver input fields are exactly throttle/steer/dashPressed/jumpPressed and are clamped', () => {
@@ -177,7 +173,7 @@ describe('weapon input fields (wire contract)', () => {
     });
   });
 
-  it('cannon is edge-triggered, mg is held state, and charge drives JACKPOT', () => {
+  it('cannon is edge-triggered, mg is held state, and no meter exists', () => {
     const { manager } = makeManager();
     const { b, room } = startCrew(manager);
     const match = room.match!;
@@ -192,11 +188,8 @@ describe('weapon input fields (wire contract)', () => {
     expect(shells).toBeGreaterThan(0);
     manager.tick(1 / 30); // same held cannon state must not double-fire
     expect(match.state.shells.length).toBe(shells);
-    // Charge only matters when the meter is ready.
-    match.addJackpot(100);
-    manager.handle(b, { t: 'input', seq: 3, gunner: { ...neutralGunner, secondary: false, ability: true } });
-    for (let i = 0; i < 40; i++) manager.tick(1 / 30);
-    expect(match.state.stats.jackpotFired).toBe(1);
+    // No meter or ability state remains.
+    expect(match.state.stats.chargedCannonShots).toBe(0);
   });
 });
 
@@ -228,18 +221,17 @@ describe('enemy mapping', () => {
     }
   });
 
-  it('killEnemy maps each type to its score, jackpot gain, contribution, and scrap drops', () => {
+  it('killEnemy maps each type to its score, contribution, and scrap drops', () => {
     const expectations: Array<{
       type: string;
       score: number;
-      jackpot: number;
       contribution: number;
       scrapKinds: string[];
     }> = [
-      { type: 'scrapBug', score: BASE_CONFIG.scoring.bugScore, jackpot: BASE_CONFIG.jackpot.bugGain, contribution: 2, scrapKinds: ['normal'] },
-      { type: 'rammer', score: BASE_CONFIG.scoring.rammerScore, jackpot: BASE_CONFIG.jackpot.rammerGain, contribution: 2, scrapKinds: ['heavy', 'normal'] },
-      { type: 'gunTower', score: BASE_CONFIG.scoring.towerScore, jackpot: BASE_CONFIG.jackpot.towerGain, contribution: 3, scrapKinds: ['heavy', 'normal', 'normal'] },
-      { type: 'lootTruck', score: BASE_CONFIG.scoring.truckScore, jackpot: BASE_CONFIG.jackpot.truckGain, contribution: 4, scrapKinds: ['jackpot', 'jackpot', 'jackpot', 'jackpot', 'jackpot'] },
+      { type: 'scrapBug', score: BASE_CONFIG.scoring.bugScore, contribution: 2, scrapKinds: ['normal'] },
+      { type: 'rammer', score: BASE_CONFIG.scoring.rammerScore, contribution: 2, scrapKinds: ['heavy', 'normal'] },
+      { type: 'gunTower', score: BASE_CONFIG.scoring.towerScore, contribution: 3, scrapKinds: ['heavy', 'normal', 'normal'] },
+      { type: 'lootTruck', score: BASE_CONFIG.scoring.truckScore, contribution: 4, scrapKinds: ['heavy', 'heavy', 'heavy', 'heavy', 'heavy'] },
     ];
     for (const exp of expectations) {
       const m = new Match(`kill-${exp.type}`);
@@ -248,7 +240,6 @@ describe('enemy mapping', () => {
       m.step(1 / 30);
       m.takeEvents();
       expect(m.state.stats.score, exp.type).toBe(exp.score);
-      expect(m.state.stats.jackpotMeter, exp.type).toBeCloseTo(exp.jackpot, 6);
       expect(m.state.combo.points, exp.type).toBe(exp.contribution);
       const drops = m.state.pickups.filter((p) => !p.collected).map((p) => p.kind).sort();
       expect(drops, exp.type).toEqual([...exp.scrapKinds].sort());
@@ -325,7 +316,7 @@ describe('asset manifest behavior', () => {
       expect(assets.vfx('vfx.cannonImpact').count).toBeGreaterThan(0);
       expect(assets.ui('ui.driverTheme').primary).toBe('#35d7e8');
       expect(assets.audio('audio.cannon').kind).toBe('cannon');
-      expect(assets.icon('icon.jackpot').color).toBe('#ffe98a');
+      expect(assets.icon('icon.cannonCharge').color).toBe('#ffe98a');
       expect(assets.cameraImpulse('cameraImpulse.cannon').shake).toBe(0.45);
       expect(() => assets.vfx('vfx.bogus')).toThrow(/unknown vfx/);
     } finally {
@@ -341,7 +332,7 @@ describe('asset manifest behavior', () => {
       expect(assets.manifestLoaded).toBe(false);
       expect(assets.models.getFile('audio.cannon')).toBeNull();
       expect(assets.model('playerTank.chassis')).toBeDefined();
-      expect(assets.vfx('vfx.jackpot')).toBeDefined();
+      expect(assets.vfx('vfx.cannonCharge')).toBeDefined();
       expect(assets.ui('ui.gunnerTheme').name).toBe('GUNNER');
     } finally {
       globalThis.fetch = originalFetch;

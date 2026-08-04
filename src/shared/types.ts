@@ -19,7 +19,8 @@ export interface GunnerInput {
   /** Generic loadout actions (Phase 3+, sole wire contract since Phase 6). */
   primary: boolean;
   secondary: boolean;
-  ability: boolean; // deprecated: removed with the Jackpot subsystem
+  /** Deprecated legacy field (Jackpot removed); retained only for old fixtures. */
+  ability?: boolean;
 }
 
 export interface PlayerInput {
@@ -59,7 +60,7 @@ export interface EnemyState {
   lastImpulseT?: number;
 }
 
-export type ScrapKind = 'normal' | 'heavy' | 'jackpot';
+export type ScrapKind = 'normal' | 'heavy';
 
 export interface PickupState {
   id: number;
@@ -73,7 +74,7 @@ export interface PickupState {
 
 export interface ShellState {
   id: number;
-  kind: 'cannon' | 'jackpot' | 'tower';
+  kind: 'cannon' | 'tower';
   /** Weapon that fired this shell (per-weapon knockback stats). */
   weaponId?: string;
   x: number;
@@ -158,13 +159,10 @@ export interface TurretState {
   cannonHoldT: number;
   cannonChargeRatio: number;
   cannonChargeFull: boolean;
-  chargeT: number;
   cannonCooldown: number;
   cannonFlash: number;
   mgCooldown: number;
   mgFiring: boolean;
-  jackpotReady: boolean;
-  jackpotCooldown: number;
 }
 
 export interface ComboState {
@@ -183,8 +181,8 @@ export interface BuildState {
 
 export interface StatsState {
   score: number;
-  jackpotMeter: number;
-  jackpotFired: number;
+  chargedCannonShots: number;
+  fullChargeShots: number;
   kills: number;
   scrapCollected: number;
   links: number;
@@ -219,7 +217,6 @@ export interface MatchConfig {
   maxBugs: number;
   maxRammers: number;
   maxTowers: number;
-  jackpotGainMult: number;
 }
 
 export interface MatchState {
@@ -248,7 +245,8 @@ export interface MatchState {
 export interface MatchResults {
   score: number;
   bestCombo: number;
-  jackpotFired: number;
+  chargedCannonShots: number;
+  fullChargeShots: number;
   kills: number;
   scrapCollected: number;
   links: number;
@@ -272,9 +270,6 @@ export type SimEventType =
   | 'recoil'
   | 'wipeout'
   | 'respawn'
-  | 'jackpotCharge'
-  | 'jackpotFire'
-  | 'jackpotImpact'
   | 'truckSpawn'
   | 'truckEscape'
   | 'rammerTelegraph'

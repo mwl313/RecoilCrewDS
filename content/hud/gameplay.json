@@ -77,29 +77,6 @@
                     { "id": "integrity", "type": "progressBar", "class": "bar-fill integrity", "props": { "valueSource": "tank.integrity", "maxSource": "tank.integrityMax" }, "bindings": [{ "target": "class", "source": "tank.integrityLow", "transform": "booleanClass", "attribute": "low" }] }
                   ] }
                 ]
-              },
-              {
-                "id": "jackpot-row",
-                "type": "horizontal",
-                "class": "bar-row",
-                "children": [
-                  { "id": "jackpot-label", "type": "text", "class": "bar-label", "text": "JACKPOT" },
-                  { "id": "jackpot-bar", "type": "container", "class": "bar jackpot-bar", "bindings": [{ "target": "class", "source": "gunner.jackpotReady", "transform": "booleanClass", "attribute": "ready" }], "children": [
-                    { "id": "jackpot", "type": "progressBar", "class": "bar-fill jackpot", "props": { "valueSource": "gunner.jackpot", "maxSource": "gunner.jackpotMax" } }
-                  ] }
-                ]
-              },
-              {
-                "id": "charge-row",
-                "type": "horizontal",
-                "class": "charge-row hidden",
-                "bindings": [{ "target": "visible", "source": "chargeVisible" }],
-                "children": [
-                  { "id": "charge-label", "type": "text", "class": "charge-label", "text": "CHARGING" },
-                  { "id": "charge-wrap", "type": "container", "class": "bar", "children": [
-                    { "id": "charge-fill", "type": "progressBar", "class": "bar-fill charge", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax" } }
-                  ] }
-                ]
               }
             ]
           },
@@ -137,7 +114,25 @@
             "bindings": [{ "target": "visible", "source": "crosshairVisible" }],
             "children": [
               { "id": "ch-dot", "type": "container", "class": "ch-dot" },
-              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "gunner.cooldownRatio" } }
+              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "gunner.cooldownRatio" } },
+              {
+                "id": "crosshair-charge",
+                "type": "container",
+                "class": "crosshair-charge",
+                "bindings": [{ "target": "visible", "source": "gunner.chargeUnlocked" }],
+                "children": [
+                  {
+                    "id": "crosshair-charge-fill",
+                    "type": "progressBar",
+                    "class": "crosshair-charge-fill",
+                    "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax", "direction": "vertical" },
+                    "bindings": [
+                      { "target": "class", "source": "gunner.chargeHeld", "transform": "booleanClass", "attribute": "held" },
+                      { "target": "class", "source": "gunner.chargeFull", "transform": "booleanClass", "attribute": "full" }
+                    ]
+                  }
+                ]
+              }
             ]
           },
           { "id": "prompt", "type": "text", "class": "prompt", "bindings": [{ "target": "text", "source": "prompt" }] },
@@ -170,11 +165,10 @@
         "connection": { "peerConnected": true, "pingMs": 24, "fps": 60 },
         "match": { "timeRemaining": 72, "timeUrgent": false, "score": 3200, "scoreText": "3,200", "combo": 3, "comboHot": true },
         "tank": { "integrity": 84, "integrityMax": 100, "integrityLow": false, "speed": 42, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
-        "gunner": { "jackpot": 64, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "chargeMax": 1, "cannonCooldown": 0, "cooldownRatio": 0 },
+        "gunner": { "cannonCooldown": 0, "cooldownRatio": 0, "chargeUnlocked": false, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false },
         "prompt": "DRIVE · COLLECT SCRAP",
         "promptSub": "WASD + SHIFT + SPACE",
         "crosshairVisible": false,
-        "chargeVisible": false,
         "pointerLocked": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
       }
@@ -188,11 +182,10 @@
         "connection": { "peerConnected": true, "pingMs": 31, "fps": 58 },
         "match": { "timeRemaining": 5, "timeUrgent": true, "score": 5210, "scoreText": "5,210", "combo": 5, "comboHot": true },
         "tank": { "integrity": 22, "integrityMax": 100, "integrityLow": true, "speed": 0, "grounded": true, "dashReady": false, "dashActive": false, "dashCooling": true },
-        "gunner": { "jackpot": 100, "jackpotMax": 100, "jackpotReady": true, "chargeRatio": 0.5, "chargeMax": 1, "cannonCooldown": 1.0, "cooldownRatio": 0.625 },
-        "prompt": "JACKPOT READY",
+        "gunner": { "cannonCooldown": 1.0, "cooldownRatio": 0.625, "chargeUnlocked": true, "chargeHeld": true, "chargeRatio": 0.5, "chargeFull": false },
+        "prompt": "HOLD TO CHARGE",
         "promptSub": "HOLD RIGHT MOUSE TO CHARGE",
         "crosshairVisible": true,
-        "chargeVisible": true,
         "pointerLocked": true,
         "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" }
       }
@@ -206,11 +199,10 @@
         "connection": { "peerConnected": false, "pingMs": 0, "fps": 60 },
         "match": { "timeRemaining": 61, "timeUrgent": false, "score": 1940, "scoreText": "1,940", "combo": 2, "comboHot": false },
         "tank": { "integrity": 71, "integrityMax": 100, "integrityLow": false, "speed": 33, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
-        "gunner": { "jackpot": 42, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "chargeMax": 1, "cannonCooldown": 0, "cooldownRatio": 0 },
+        "gunner": { "cannonCooldown": 0, "cooldownRatio": 0, "chargeUnlocked": true, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false },
         "prompt": "DRIVE · AIM · FIRE",
         "promptSub": "WASD · SHIFT · SPACE · LMB · RMB",
         "crosshairVisible": true,
-        "chargeVisible": false,
         "pointerLocked": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
       }

@@ -6,7 +6,6 @@
   "hp": 18,
   "radius": 1.0,
   "score": 400,
-  "jackpotGain": 12,
   "contributionPoints": 3,
   "dropTableId": "drops.gunTower",
   "behaviors": [

@@ -13,7 +13,6 @@ import { MatchRules } from '../src/shared/rules/matchRules';
 import { Match, MatchRuntime } from '../src/shared/sim/match';
 import { computeResults } from '../src/shared/sim/results';
 import { createSystemContext } from '../src/shared/sim/systems';
-import { objectiveWindows } from '../src/shared/sim/systems/objectiveSystem';
 import { GAME } from '../src/shared/config';
 import { withSeededRandom } from './helpers/demoFixture';
 
@@ -66,30 +65,16 @@ describe('DemoScoreAttackModeRuntime', () => {
     ctx.score.addScore(50, 'KILL');
     expect(state.stats.score).toBe(100); // 50 * 2
 
-    // JackpotSystem clamps and gates ready.
-    ctx.jackpot.addGain(150);
-    expect(state.stats.jackpotMeter).toBe(100);
-    expect(state.turret.jackpotReady).toBe(true);
-    ctx.jackpot.addGain(50);
-    expect(state.stats.jackpotMeter).toBe(100);
+    // CapabilitySystem grants and replicates.
+    ctx.capabilities.grant('cannon.charge', 'test');
+    expect(ctx.capabilities.has('cannon.charge')).toBe(true);
+    expect(state.build.capabilities).toEqual(['cannon.charge']);
 
     // ComboSystem decay resets after the window.
     state.time = rules.scoring.combo.decayTime + 1;
     ctx.combo.step(1 / 30);
     expect(state.combo.multiplier).toBe(1);
     expect(state.combo.points).toBe(0);
-  });
-
-  it('objective windows reproduce the legacy assistance pacing exactly', () => {
-    const rules = MatchRules.fromContentPack(pack, 'none');
-    const state = new Match('assist-windows').state;
-    const ctx = createSystemContext(state, rules, []);
-    const windows = objectiveWindows(ctx);
-    expect(windows.map((w) => [w.at, w.until, w.floor, w.label])).toEqual([
-      [55, 66, rules.scoring.assist.floor55, 'JACKPOT ASSIST'],
-      [66, Number.POSITIVE_INFINITY, rules.scoring.assist.floor66, 'JACKPOT ASSIST'],
-      [70, Number.POSITIVE_INFINITY, rules.scoring.assist.floor70, 'JACKPOT READY'],
-    ]);
   });
 
   it('round completion transitions to results and computes them via the mode', () => {
@@ -109,10 +94,10 @@ describe('DemoScoreAttackModeRuntime', () => {
 
   it('results select from the content definition and equal computeResults', () => {
     const match = new Match('results-test');
-    match.addJackpot(100);
     match.state.stats.score = 9000;
     match.state.stats.kills = 20;
-    match.state.stats.jackpotFired = 1;
+    match.state.stats.chargedCannonShots = 1;
+    match.state.stats.fullChargeShots = 1;
     match.state.combo.best = 5;
     match.state.stats.links = 3;
     const fromMode = match.runtime.mode.computeResults();

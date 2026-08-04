@@ -158,20 +158,15 @@ export class FallbackAssetFactory {
       root.add(box(0.25, 0.4, 0.25, emissive(0xff5a2a, 1.8), 1.05, 1.6, -2.1));
       return root;
     };
-    const buildPickup = (kind: 'normal' | 'heavy' | 'jackpot'): THREE.Object3D => {
+    const buildPickup = (kind: 'normal' | 'heavy'): THREE.Object3D => {
       const root = new THREE.Group();
-      const color = kind === 'jackpot' ? 0xffd94d : kind === 'heavy' ? 0x7de05a : 0x4ddb6e;
-      const mat = emissive(color, kind === 'jackpot' ? 2.4 : 1.7);
-      const size = kind === 'normal' ? 0.24 : kind === 'heavy' ? 0.34 : 0.42;
+      const color = kind === 'heavy' ? 0x7de05a : 0x4ddb6e;
+      const mat = emissive(color, kind === 'heavy' ? 2.2 : 1.7);
+      const size = kind === 'normal' ? 0.24 : 0.34;
       root.add(new THREE.Mesh(new THREE.OctahedronGeometry(size), mat));
       const ring = new THREE.Mesh(new THREE.TorusGeometry(size * 1.45, 0.035, 6, 16), emissive(color, 1.0));
       ring.rotation.x = Math.PI / 2;
       root.add(ring);
-      if (kind === 'jackpot') {
-        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.18, 3.4, 8, 1, true), emissive(0xfff2b0, 2));
-        beam.position.y = 1.7;
-        root.add(beam);
-      }
       return root;
     };
     const buildBarrelProp = (): THREE.Object3D => {
@@ -246,7 +241,6 @@ export class FallbackAssetFactory {
       ['enemy.lootTruck', buildLootTruck],
       ['pickup.normalScrap', () => buildPickup('normal')],
       ['pickup.heavyScrap', () => buildPickup('heavy')],
-      ['pickup.jackpotScrap', () => buildPickup('jackpot')],
       ['prop.explosiveBarrel', buildBarrelProp],
       ['prop.barrier', buildBarrier],
       ['prop.tire', buildTireStack],
@@ -267,7 +261,9 @@ export class FallbackAssetFactory {
       ['vfx.cannonImpact', mkVfx(0xff9d45, 0.5, 0.5, 40, 11, 12)],
       ['vfx.enemyDeath', mkVfx(0xff5540, 0.5, 0.55, 34, 9, 10)],
       ['vfx.scrapPickup', mkVfx(0x6fe86f, 0.3, 0.35, 18, 6, 6)],
-      ['vfx.jackpot', mkVfx(0xffe98a, 0.9, 1.0, 80, 14, 8)],
+      ['vfx.cannonCharge', mkVfx(0xffe98a, 0.9, 1.0, 80, 14, 8)],
+      ['vfx.cannonMuzzleCharged', mkVfx(0xfff2b0, 1.4, 0.35, 120, 18, 7)],
+      ['vfx.cannonImpactCharged', mkVfx(0xfff2b0, 2.2, 0.9, 160, 16, 6)],
       ['vfx.dashBurst', mkVfx(0x7fd4ff, 0.34, 0.22, 10, 7)],
       ['vfx.jumpDust', mkVfx(0x9a8462, 0.3, 0.34, 12, 3.4, 2.4)],
     ];
@@ -302,8 +298,12 @@ export class FallbackAssetFactory {
       ['audio.collision', 'collision'], ['audio.machineGun', 'machineGun'], ['audio.cannon', 'cannon'],
       ['audio.enemyHit', 'enemyHit'], ['audio.enemyDeath', 'enemyDeath'], ['audio.scrapPickup', 'scrapPickup'],
       ['audio.rammerTelegraph', 'rammerTelegraph'], ['audio.towerFire', 'towerFire'], ['audio.truckSiren', 'truckSiren'],
-      ['audio.wipeout', 'wipeout'], ['audio.jackpotCharge', 'jackpotCharge'],
-      ['audio.jackpotRelease', 'jackpotRelease'], ['audio.ui', 'ui'], ['audio.results', 'results'], ['audio.music', 'music'],
+      ['audio.wipeout', 'wipeout'],
+      ['audio.cannonChargeStart', 'cannonChargeStart'],
+      ['audio.cannonChargeLoop', 'cannonChargeLoop'],
+      ['audio.cannonChargeFull', 'cannonChargeFull'],
+      ['audio.cannonChargeRelease', 'cannonChargeRelease'],
+      ['audio.ui', 'ui'], ['audio.results', 'results'], ['audio.music', 'music'],
     ];
     for (const [id, kind] of audioIds) this.audio.set(id, () => mkAudio(kind, id));
   }

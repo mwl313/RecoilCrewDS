@@ -51,7 +51,7 @@ describe('instant turret response (Combat 05 M3)', () => {
 
   it('server instant mode applies accepted aim directly (no lerp)', () => {
     const m = new Match('instant-server');
-    m.setGunnerInput({ aimYaw: 2.0, aimPitch: -1.0, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 2.0, aimPitch: -1.0, primary: false, secondary: false });
     m.step(DT);
     expect(m.state.turret.yaw).toBeCloseTo(wrapAngle(2.0), 9);
     expect(m.state.turret.pitch).toBeCloseTo(-1.0, 9);
@@ -59,11 +59,11 @@ describe('instant turret response (Combat 05 M3)', () => {
 
   it('server clamps invalid pitch and ignores non-finite aim', () => {
     const m = new Match('instant-clamp');
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 9, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 9, primary: false, secondary: false });
     m.step(DT);
     expect(m.state.turret.pitch).toBeCloseTo(0.42, 9);
     const yaw0 = m.state.turret.yaw;
-    m.setGunnerInput({ aimYaw: Number.NaN, aimPitch: 0, primary: false, secondary: false, ability: false });
+    m.setGunnerInput({ aimYaw: Number.NaN, aimPitch: 0, primary: false, secondary: false });
     m.step(DT);
     expect(m.state.turret.yaw).toBe(yaw0);
   });
@@ -71,7 +71,7 @@ describe('instant turret response (Combat 05 M3)', () => {
   it('click-time aim on a cannon action fires along the action aim', () => {
     const m = new Match('action-aim');
     m.applyGunnerAction('secondaryPressed', 1, { aimYaw: 0, aimPitch: 0.3 });
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0.3, primary: false, secondary: true, ability: false });
+    m.setGunnerInput({ aimYaw: 0, aimPitch: 0.3, primary: false, secondary: true });
     m.step(DT);
     m.takeEvents();
     expect(m.state.shells.length).toBe(1);

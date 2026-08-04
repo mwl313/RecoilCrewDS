@@ -178,7 +178,7 @@ describe('enemies', () => {
     expect(allStates.has('recovery')).toBe(true);
   });
 
-  it('loot truck spawns mid-round and drops jackpot scrap when destroyed', () => {
+  it('loot truck spawns mid-round and drops heavy scrap when destroyed', () => {
     const m = new Match('m15');
     step(m, 43);
     expect(m.state.truck.active).toBe(true);
@@ -188,8 +188,7 @@ describe('enemies', () => {
     m.step(DT);
     m.takeEvents();
     expect(m.state.truck.active).toBe(false);
-    expect(m.state.pickups.filter((p) => p.kind === 'jackpot' && !p.collected).length).toBeGreaterThanOrEqual(5);
-    expect(m.state.stats.jackpotMeter).toBeGreaterThan(10);
+    expect(m.state.pickups.filter((p) => p.kind === 'heavy' && !p.collected).length).toBeGreaterThanOrEqual(5);
   });
 });
 
@@ -217,21 +216,21 @@ describe('pickups and combo', () => {
 
   it('combo grows beyond x2 only when both roles contribute recently', () => {
     const m = new Match('m16');
-    m.addContribution('gunner', 3, 0);
+    m.addContribution('gunner', 3);
     m.step(DT);
     m.takeEvents();
     expect(m.state.combo.multiplier).toBe(2);
-    m.addContribution('gunner', 3, 0);
+    m.addContribution('gunner', 3);
     m.step(DT);
     m.takeEvents();
     // Still capped at 2 because the Driver has not contributed recently.
     expect(m.state.combo.multiplier).toBe(2);
-    m.addContribution('driver', 3, 0);
+    m.addContribution('driver', 3);
     m.step(DT);
     m.takeEvents();
     expect(m.state.combo.multiplier).toBe(4);
-    m.addContribution('driver', 6, 0);
-    m.addContribution('gunner', 6, 0);
+    m.addContribution('driver', 6);
+    m.addContribution('gunner', 6);
     m.step(DT);
     m.takeEvents();
     expect(m.state.combo.multiplier).toBe(5);
@@ -239,8 +238,8 @@ describe('pickups and combo', () => {
 
   it('combo decays back to x1 after inactivity', () => {
     const m = new Match('m17');
-    m.addContribution('gunner', 3, 0);
-    m.addContribution('driver', 3, 0);
+    m.addContribution('gunner', 3);
+    m.addContribution('driver', 3);
     m.step(DT);
     m.takeEvents();
     expect(m.state.combo.multiplier).toBe(3);
@@ -249,48 +248,19 @@ describe('pickups and combo', () => {
   });
 });
 
-describe('JACKPOT', () => {
-  it('charges, fires, and resets the meter', () => {
+describe('cannon charge (Combat 05)', () => {
+  it('granting the capability enables hold/release with no meter', () => {
     const m = new Match('m18');
-    m.addJackpot(100);
-    expect(m.state.turret.jackpotReady).toBe(true);
-    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: true });
-    step(m, 1.1);
-    expect(m.state.stats.jackpotFired).toBe(1);
-    expect(m.state.stats.jackpotMeter).toBeLessThan(15);
-    expect(m.state.turret.jackpotReady).toBe(false);
-  });
-
-  it('respects the JACKPOT cooldown before the meter can be ready again', () => {
-    const m = new Match('m18b');
-    m.addJackpot(100);
-    m.setGunnerInput({ aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: true });
-    step(m, 1.1);
-    expect(m.state.stats.jackpotFired).toBe(1);
-    expect(m.state.turret.jackpotReady).toBe(false);
-    m.addJackpot(100);
-    expect(m.state.turret.jackpotReady).toBe(false);
-    step(m, BASE_CONFIG.jackpot.jackpotCooldown + 0.2);
-    expect(m.state.turret.jackpotReady).toBe(true);
-  });
-
-  it('provides guaranteed assistance during the pacing window', () => {
-    const m = new Match('m19');
-    // Engage enough to qualify for assistance.
-    const bug = m.state.enemies.find((e) => e.type === 'scrapBug')!;
-    m.damageEnemy(bug, 999, 'cannon');
-    m.step(DT);
-    m.takeEvents();
-    m.state.stats.kills = 4;
-    m.addContribution('gunner', 4, 0);
-    m.addContribution('driver', 2, 0);
-    step(m, 55.5);
-    expect(m.state.stats.jackpotMeter).toBeGreaterThanOrEqual(55);
-    step(m, 12);
-    expect(m.state.stats.jackpotMeter).toBeGreaterThanOrEqual(80);
-    step(m, 4);
-    expect(m.state.stats.jackpotMeter).toBeGreaterThanOrEqual(100);
-    expect(m.state.turret.jackpotReady).toBe(true);
+    m.state.enemies.length = 0;
+    m.state.tank.shieldedT = 1e9;
+    m.runtime.systems.capabilities.grant('cannon.charge', 'test');
+    m.applyGunnerAction('secondaryPressed', 1);
+    step(m, 40);
+    expect(m.state.turret.cannonChargeFull).toBe(true);
+    m.applyGunnerAction('secondaryReleased', 2);
+    step(m, 1);
+    expect(m.state.stats.chargedCannonShots).toBe(1);
+    expect(m.state.stats.fullChargeShots).toBe(1);
   });
 });
 
@@ -338,14 +308,13 @@ describe('wipeout, round, and rematch', () => {
 
   it('rematch starts a fresh zeroed match in the same room', () => {
     const m1 = new Match('room-1', 'doubleBarrel');
-    m1.addJackpot(100);
     m1.damageTank(50, 'test');
     m1.step(DT);
     m1.takeEvents();
     const m2 = new Match('room-1', 'doubleBarrel');
     expect(m2.state.time).toBe(0);
     expect(m2.state.stats.score).toBe(0);
-    expect(m2.state.stats.jackpotMeter).toBe(0);
+    expect(m2.state.stats.chargedCannonShots).toBe(0);
     expect(m2.state.tank.integrity).toBe(100);
     expect(m2.mcfg.modifier).toBe('doubleBarrel');
   });

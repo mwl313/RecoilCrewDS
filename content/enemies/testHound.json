@@ -12,7 +12,6 @@
   "hp": 8,
   "radius": 0.8,
   "score": 120,
-  "jackpotGain": 4,
   "contributionPoints": 2,
   "dropTableId": "drops.testHound",
   "speed": 4.5,

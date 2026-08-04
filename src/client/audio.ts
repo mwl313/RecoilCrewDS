@@ -12,8 +12,10 @@ export type SoundName =
   | 'dash'
   | 'jump'
   | 'wipeout'
-  | 'jackpotCharge'
-  | 'jackpotRelease'
+  | 'cannonChargeStart'
+  | 'cannonChargeLoop'
+  | 'cannonChargeFull'
+  | 'cannonChargeRelease'
   | 'results'
   | 'drift';
 
@@ -264,7 +266,7 @@ export class AudioManager {
         break;
       }
       case 'scrapPickup': {
-        const notes = opts.kind === 'jackpot' ? [660, 880, 1100] : opts.kind === 'heavy' ? [523, 784] : [660, 880];
+        const notes = opts.kind === 'heavy' ? [523, 784] : [660, 880];
         notes.forEach((f, i) => this.blip(f, t + i * 0.055, 0.12, 'sine', 0.22));
         break;
       }
@@ -372,7 +374,8 @@ export class AudioManager {
         osc.stop(t + 1.1);
         break;
       }
-      case 'jackpotCharge': {
+      case 'cannonChargeStart':
+      case 'cannonChargeLoop': {
         this.stopCharge();
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
@@ -392,7 +395,20 @@ export class AudioManager {
         this.chargeGain = g;
         break;
       }
-      case 'jackpotRelease': {
+      case 'cannonChargeFull': {
+        this.stopCharge();
+        const pulse = ctx.createOscillator();
+        const pg = ctx.createGain();
+        pulse.type = 'square';
+        pulse.frequency.setValueAtTime(880, t);
+        pg.gain.setValueAtTime(0.12, t);
+        pg.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        pulse.connect(pg).connect(this.master);
+        pulse.start(t);
+        pulse.stop(t + 0.4);
+        break;
+      }
+      case 'cannonChargeRelease': {
         this.stopCharge();
         const src = noise();
         const f = ctx.createBiquadFilter();

@@ -196,7 +196,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
           e.z += Math.cos(e.yaw) * chargeSpeed * dt;
           if (!ctx.enemies.sharedDodgeAwarded && d < dodgeDistance) {
             ctx.enemies.sharedDodgeAwarded = true;
-            ctx.combo.addDriverContribution(2, ctx.rules.config.jackpot.dodgeGain, 'DODGE');
+            ctx.combo.addDriverContribution(2, 'DODGE');
           }
           const col = ctx.world.resolveCircle(e.x, e.z, r);
           if (col.hit) {

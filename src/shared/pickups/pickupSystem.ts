@@ -15,7 +15,7 @@ export class PickupSystem {
   constructor(private readonly ctx: SystemContext) {}
 
   defFor(kind: ScrapKind): PickupDefinition {
-    const id = kind === 'normal' ? 'pickup.normalScrap' : kind === 'heavy' ? 'pickup.heavyScrap' : 'pickup.jackpotScrap';
+    const id = kind === 'normal' ? 'pickup.normalScrap' : 'pickup.heavyScrap';
     const def = this.ctx.rules.pickups.get(id);
     if (!def) throw new Error(`no pickup definition for kind '${kind}'`);
     return def;
@@ -76,34 +76,25 @@ export class PickupSystem {
   private collect(p: PickupState): void {
     const s = this.ctx.state;
     const sc = this.ctx.rules.config.scoring;
-    const j = this.ctx.rules.config.jackpot;
     const speed = Math.hypot(s.tank.vx, s.tank.vz);
     let score = 0;
-    let jackpot = 0;
     if (p.kind === 'normal') {
       score = sc.normalScrap;
-      jackpot = j.normalScrapGain;
     } else if (p.kind === 'heavy') {
       score = sc.heavyScrap;
-      jackpot = j.heavyScrapGain;
-    } else {
-      score = sc.jackpotScrap;
-      jackpot = j.jackpotScrapGain;
     }
-    this.ctx.score.addScore(score, p.kind === 'jackpot' ? 'JACKPOT SCRAP' : 'SCRAP');
-    this.ctx.jackpot.addGain(jackpot);
+    this.ctx.score.addScore(score, 'SCRAP');
     s.stats.scrapCollected++;
     let extra = '';
     if (speed > this.ctx.rules.scoring.atSpeed.threshold) {
       this.ctx.score.addScore(this.ctx.rules.scoring.atSpeed.bonus, 'AT SPEED');
-      this.ctx.jackpot.addGain(j.speedCollectGain);
       extra = 'SPEED';
     }
     if (s.time - this.lastKillAt < this.ctx.rules.scoring.scrapLoopWindow) {
       this.ctx.score.addLink('scrapLoop');
       extra = extra ? 'LINK' : 'LINK';
     }
-    this.ctx.combo.addContribution('driver', p.kind === 'jackpot' ? 3 : 1);
+    this.ctx.combo.addContribution('driver', p.kind === 'heavy' ? 2 : 1);
     pushEvent(this.ctx, 'pickup', p.x, p.y, p.z, { kind: p.kind, value: score, label: extra });
     this.ctx.eventBus.emit('pickup.collected', { pickupId: p.id, kind: p.kind });
     this.ctx.eventBus.drain(); // deliver synchronously (objectives react in step order)

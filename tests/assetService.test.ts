@@ -83,7 +83,7 @@ describe('AssetService', () => {
     try {
       const assets = await AssetService.load();
       expect(assets.vfx('vfx.cannonMuzzle').color).toBe(0xffb347);
-      expect(assets.audio('audio.jackpotRelease').kind).toBe('jackpotRelease');
+      expect(assets.audio('audio.cannonChargeRelease').kind).toBe('cannonChargeRelease');
       expect(assets.ui('ui.driverTheme').css['--role']).toBe('#35d7e8');
       expect(assets.icon('icon.scrap').color).toBe('#4ddb6e');
       expect(assets.cameraImpulse('cameraImpulse.wipeout').shake).toBe(1.0);

@@ -5,7 +5,7 @@ export interface GradeRule {
   minScore: number;
   require?: {
     kills?: number;
-    jackpotFired?: number;
+    fullChargeShots?: number;
     bestCombo?: number;
     links?: number;
   };
@@ -16,7 +16,8 @@ export interface TitleRule {
   text: string;
   require?: {
     wipeouts?: number;
-    jackpotFired?: number;
+    chargedCannonShots?: number;
+    fullChargeShots?: number;
     links?: number;
     dashKills?: number;
     minScore?: number;
@@ -31,16 +32,16 @@ export interface TitleRule {
  * Match path and the server content path can never diverge.
  */
 export const DEMO_GRADE_RULES: readonly GradeRule[] = [
-  { grade: 'S', minScore: 12000, require: { jackpotFired: 2 } },
+  { grade: 'S', minScore: 12000, require: { fullChargeShots: 2 } },
   { grade: 'A', minScore: 8000, require: { bestCombo: 4, links: 2 } },
-  { grade: 'B', minScore: 4000, require: { jackpotFired: 1 } },
+  { grade: 'B', minScore: 4000, require: { fullChargeShots: 1 } },
   { grade: 'C', minScore: 1500, require: { kills: 5 } },
   { grade: 'D', minScore: 0 },
 ];
 
 export const DEMO_TITLE_RULES: readonly TitleRule[] = [
   { id: 'title.airborneDivision', text: 'Airborne Division', require: { wipeouts: 3 } },
-  { id: 'title.recoilAccountants', text: 'Recoil Accountants', require: { jackpotFired: 0 } },
+  { id: 'title.recoilAccountants', text: 'Recoil Accountants', require: { fullChargeShots: 0 } },
   { id: 'title.friendlyFire', text: 'Friendly Fire Department', require: { links: 0 } },
   { id: 'title.brakesOptional', text: 'The Brakes Were Optional', require: { dashKills: 3 } },
   { id: 'title.oneBrain', text: 'One Brain, Two Browsers', require: { minScore: 12000 } },
@@ -58,7 +59,8 @@ export function computeResults(state: MatchState): MatchResults {
   return {
     score: Math.floor(s.score),
     bestCombo: state.combo.best,
-    jackpotFired: s.jackpotFired,
+    chargedCannonShots: s.chargedCannonShots,
+    fullChargeShots: s.fullChargeShots,
     kills: s.kills,
     scrapCollected: s.scrapCollected,
     links: s.links,
@@ -73,7 +75,7 @@ export function gradeFromRules(state: MatchState, rules: readonly GradeRule[]): 
   for (const rule of rules) {
     if (rule.minScore > state.stats.score) continue;
     if (rule.require?.kills !== undefined && state.stats.kills < rule.require.kills) continue;
-    if (rule.require?.jackpotFired !== undefined && state.stats.jackpotFired < rule.require.jackpotFired) continue;
+    if (rule.require?.fullChargeShots !== undefined && state.stats.fullChargeShots < rule.require.fullChargeShots) continue;
     if (rule.require?.bestCombo !== undefined && state.combo.best < rule.require.bestCombo) continue;
     if (rule.require?.links !== undefined && state.stats.links < rule.require.links) continue;
     return rule.grade;
@@ -89,7 +91,8 @@ export function titleFromRules(
   for (const rule of rules) {
     const req = rule.require ?? {};
     if (req.wipeouts !== undefined && state.stats.wipeouts < req.wipeouts) continue;
-    if (req.jackpotFired !== undefined && state.stats.jackpotFired !== req.jackpotFired) continue;
+    if (req.chargedCannonShots !== undefined && state.stats.chargedCannonShots !== req.chargedCannonShots) continue;
+    if (req.fullChargeShots !== undefined && state.stats.fullChargeShots !== req.fullChargeShots) continue;
     if (req.links !== undefined && state.stats.links !== req.links) continue;
     if (req.dashKills !== undefined && state.stats.dashKills < req.dashKills) continue;
     if (req.minScore !== undefined && state.stats.score < req.minScore) continue;

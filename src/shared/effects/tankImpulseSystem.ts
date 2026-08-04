@@ -1,7 +1,7 @@
 import { recordOp, type NetcodeOpState } from '../sim/opLog';
 import type { SystemContext } from '../sim/systems/systemContext';
 
-export type TankImpulseSource = 'recoil' | 'cannon' | 'mg' | 'jackpot' | 'external';
+export type TankImpulseSource = 'recoil' | 'cannon' | 'mg' | 'external';
 
 /**
  * Typed wire payload for an exact tank impulse. Clients apply this once

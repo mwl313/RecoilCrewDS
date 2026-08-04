@@ -6,7 +6,7 @@ export const loadoutSchema = z.object({
   id: z.string().regex(/^loadout\./, 'loadout id must start with loadout.'),
   primary: z.string().regex(/^weapon\./, 'primary must reference a weapon'),
   secondary: z.string().regex(/^weapon\./, 'secondary must reference a weapon'),
-  ability: z.string().regex(/^weapon\./, 'ability must reference a weapon'),
+  ability: z.string().regex(/^weapon\./, 'ability must reference a weapon').nullable().optional(),
   turret: z.object({
     /** Combat 05: instant follows mouse aim same-frame; rateLimited retains the legacy chase. */
     responseMode: z.enum(['instant', 'rateLimited']).optional(),

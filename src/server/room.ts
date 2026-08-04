@@ -119,7 +119,6 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
     aimPitch,
     primary: !!r.primary,
     secondary: !!r.secondary,
-    ability: !!r.ability,
   };
   return gunner;
 }

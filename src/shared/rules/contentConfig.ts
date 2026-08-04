@@ -17,7 +17,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
   const loadout = pack.getLoadout(mode.loadout);
   const mg = weaponOfKind(pack, loadout.primary, 'weapon.hitscan');
   const cannon = weaponOfKind(pack, loadout.secondary, 'weapon.projectile');
-  const jackpot = weaponOfKind(pack, loadout.ability, 'weapon.chargeProjectile');
   const bug = enemyOfType(pack, 'enemy.scrapBug', 'scrapBug');
   const rammer = enemyOfType(pack, 'enemy.rammer', 'rammer');
   const tower = enemyOfType(pack, 'enemy.gunTower', 'gunTower');
@@ -70,8 +69,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       autoRightRoll: tank.autoRightRoll,
       recoilImpulse: tank.recoilImpulse,
       recoilSpin: tank.recoilSpin,
-      jackpotRecoilImpulse: tank.jackpotRecoilImpulse,
-      jackpotSpin: tank.jackpotSpin,
       mgRecoilImpulse: tank.mgRecoilImpulse,
     },
     weapons: {
@@ -95,11 +92,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       chargeFullKnockbackMinMultiplier: cannon.statBlock['weapon.chargeFullKnockbackMinMultiplier'] ?? cannon.charge?.fullKnockbackMinMultiplier ?? 1,
       chargeFullKnockbackVerticalMultiplier: cannon.statBlock['weapon.chargeFullKnockbackVerticalMultiplier'] ?? cannon.charge?.fullKnockbackVerticalMultiplier ?? 1,
       chargeFullShellVisualScale: cannon.statBlock['weapon.chargeFullShellVisualScale'] ?? cannon.charge?.fullShellVisualScale ?? 1.8,
-      jackpotDamage: stat(jackpot, 'weapon.jackpotDamage'),
-      jackpotRadius: stat(jackpot, 'weapon.jackpotRadius'),
-      jackpotSpeed: stat(jackpot, 'weapon.jackpotSpeed'),
-      jackpotChargeTime: jackpot.chargeSeconds ?? 1,
-      jackpotLife: stat(jackpot, 'weapon.jackpotLife'),
       turretTurnRate: loadout.turret.turnRate,
       turretMaxPitch: loadout.turret.maxPitch,
       turretMinPitch: loadout.turret.minPitch,
@@ -139,7 +131,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       truckScore: scoring.enemyScores['enemy.lootTruck'],
       normalScrap: scoring.scrapScores.normal,
       heavyScrap: scoring.scrapScores.heavy,
-      jackpotScrap: scoring.scrapScores.jackpot,
       linkScrapLoop: scoring.links.scrapLoop,
       linkRamFinish: scoring.links.ramFinish,
       comboPointsPerLevel: scoring.combo.pointsPerLevel,
@@ -147,26 +138,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       comboDecayTime: scoring.combo.decayTime,
       comboBothWindow: scoring.combo.bothWindow,
       wipeoutPenalty: scoring.wipeoutPenalty,
-    },
-    jackpot: {
-      bugGain: scoring.jackpotGains['enemy.scrapBug'],
-      rammerGain: scoring.jackpotGains['enemy.rammer'],
-      towerGain: scoring.jackpotGains['enemy.gunTower'],
-      truckGain: scoring.jackpotGains['enemy.lootTruck'],
-      normalScrapGain: scoring.jackpotGains.normalScrap,
-      heavyScrapGain: scoring.jackpotGains.heavyScrap,
-      jackpotScrapGain: scoring.jackpotGains.jackpotScrap,
-      jackpotCooldown: pack.getWeapon(loadout.ability).cooldownSeconds,
-      speedCollectGain: scoring.jackpotGains.speedCollect,
-      ramGain: scoring.jackpotGains.ram,
-      dodgeGain: scoring.jackpotGains.dodge,
-      linkGain: scoring.jackpotGains.linkGain,
-      assistFloor55: scoring.assist.floor55,
-      assistFloor66: scoring.assist.floor66,
-      assistFloor70: scoring.assist.floor70,
-      assistRequireContributions: scoring.assist.requireContributions,
-      finalChaosMult: scoring.finalChaos.mult,
-      finalChaosStart: scoring.finalChaos.start,
     },
     arena: {
       half: spawn.arena.half,
@@ -214,7 +185,6 @@ export function legacyMatchConfigFromContent(pack: ContentPack, modifier: Modifi
     maxBugs: 1,
     maxRammers: 1,
     maxTowers: 1,
-    jackpotGainMult: 1,
     label: difficulty.label,
     desc: difficulty.description ?? '',
   };
@@ -240,7 +210,7 @@ function legacyModifier(difficultyId: string): ModifierId {
 
 type EnemyOfType<T extends 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck'> = Extract<EnemyDefinition, { type: T }>;
 
-function weaponOfKind<K extends 'weapon.hitscan' | 'weapon.projectile' | 'weapon.chargeProjectile'>(
+function weaponOfKind<K extends 'weapon.hitscan' | 'weapon.projectile'>(
   pack: ContentPack,
   id: string,
   kind: K,

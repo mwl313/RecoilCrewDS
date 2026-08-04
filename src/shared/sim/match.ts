@@ -125,11 +125,7 @@ export class Match {
     this.runtime.damageEnemy(enemy, damage, source);
   }
 
-  addJackpot(amount: number): void {
-    this.runtime.addJackpot(amount);
-  }
-
-  addContribution(role: Role, points: number, jackpotExtra?: number): void {
-    this.runtime.addContribution(role, points, jackpotExtra);
+  addContribution(role: Role, points: number): void {
+    this.runtime.addContribution(role, points);
   }
 }

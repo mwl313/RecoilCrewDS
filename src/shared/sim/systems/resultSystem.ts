@@ -18,7 +18,8 @@ export class ResultSystem {
     return {
       score: Math.floor(s.stats.score),
       bestCombo: s.combo.best,
-      jackpotFired: s.stats.jackpotFired,
+      chargedCannonShots: s.stats.chargedCannonShots,
+      fullChargeShots: s.stats.fullChargeShots,
       kills: s.stats.kills,
       scrapCollected: s.stats.scrapCollected,
       links: s.stats.links,

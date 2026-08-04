@@ -145,7 +145,7 @@ const playInterval = setInterval(() => {
   gunner.send({
     t: 'input',
     seq: gunnerSeq++,
-    gunner: { aimYaw, aimPitch: 0.05, primary: t % 3 < 2, secondary: cannon, ability: s.turret.jackpotReady },
+    gunner: { aimYaw, aimPitch: 0.05, primary: t % 3 < 2, secondary: cannon },
   });
 }, 100);
 
@@ -153,11 +153,11 @@ const startedAt = Date.now();
 const results = await driver.waitFor((m) => m.t === 'results', 150000);
 clearInterval(playInterval);
 const elapsed = (Date.now() - startedAt) / 1000;
-console.log(`[verify] round complete in ${elapsed.toFixed(1)}s — score ${results.results.score}, grade ${results.results.grade}, "${results.results.title}", JACKPOT x${results.results.jackpotFired}, combo x${results.results.bestCombo}`);
+console.log(`[verify] round complete in ${elapsed.toFixed(1)}s — score ${results.results.score}, grade ${results.results.grade}, "${results.results.title}", kills ${results.results.kills}, combo x${results.results.bestCombo}`);
 
 if (results.results.score <= 0) throw new Error('score should be positive');
 if (!['D', 'C', 'B', 'A', 'S'].includes(results.results.grade)) throw new Error('bad grade');
-if (results.results.jackpotFired < 1) throw new Error('first-round JACKPOT should fire');
+if (results.results.kills < 1) throw new Error('first-round should kill enemies');
 
 // Rematch in the same room with a modifier.
 const matchBefore = driver.last('snapshot')?.state.matchId;

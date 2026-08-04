@@ -101,8 +101,6 @@ export const tankSchema = z.object({
   autoRightRoll: nonNegativeNumber,
   recoilImpulse: nonNegativeNumber,
   recoilSpin: nonNegativeNumber,
-  jackpotRecoilImpulse: nonNegativeNumber,
-  jackpotSpin: nonNegativeNumber,
   mgRecoilImpulse: nonNegativeNumber,
   rig: tankRigSchema,
 });

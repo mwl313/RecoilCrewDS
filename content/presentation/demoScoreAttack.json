@@ -12,7 +12,6 @@
       "enemy.lootTruck",
       "pickup.normalScrap",
       "pickup.heavyScrap",
-      "pickup.jackpotScrap",
       "prop.explosiveBarrel",
       "prop.barrier",
       "prop.tire",
@@ -26,7 +25,9 @@
       { "id": "vfx.cannonImpact", "color": 16760645, "size": 0.5, "life": 0.5, "count": 40, "speed": 11, "gravity": 12 },
       { "id": "vfx.enemyDeath", "color": 16724288, "size": 0.5, "life": 0.55, "count": 34, "speed": 9, "gravity": 10 },
       { "id": "vfx.scrapPickup", "color": 7333999, "size": 0.3, "life": 0.35, "count": 18, "speed": 6, "gravity": 6 },
-      { "id": "vfx.jackpot", "color": 16772746, "size": 0.9, "life": 1.0, "count": 80, "speed": 14, "gravity": 8 },
+      { "id": "vfx.cannonCharge", "color": 16772746, "size": 0.9, "life": 1.0, "count": 80, "speed": 14, "gravity": 8 },
+      { "id": "vfx.cannonMuzzleCharged", "color": 16773300, "size": 1.4, "life": 0.35, "count": 120, "speed": 18, "gravity": 7 },
+      { "id": "vfx.cannonImpactCharged", "color": 16774670, "size": 2.2, "life": 0.9, "count": 160, "speed": 16, "gravity": 6 },
       { "id": "vfx.dashBurst", "color": 8377583, "size": 0.34, "life": 0.22, "count": 10, "speed": 7, "gravity": 0 },
       { "id": "vfx.jumpDust", "color": 10128738, "size": 0.3, "life": 0.34, "count": 12, "speed": 3.4, "gravity": 2.4 }
     ],
@@ -65,8 +66,10 @@
       { "id": "audio.towerFire", "kind": "towerFire", "desc": "audio.towerFire" },
       { "id": "audio.truckSiren", "kind": "truckSiren", "desc": "audio.truckSiren" },
       { "id": "audio.wipeout", "kind": "wipeout", "desc": "audio.wipeout" },
-      { "id": "audio.jackpotCharge", "kind": "jackpotCharge", "desc": "audio.jackpotCharge" },
-      { "id": "audio.jackpotRelease", "kind": "jackpotRelease", "desc": "audio.jackpotRelease" },
+      { "id": "audio.cannonChargeStart", "kind": "cannonChargeStart", "desc": "audio.cannonChargeStart" },
+      { "id": "audio.cannonChargeLoop", "kind": "cannonChargeLoop", "desc": "audio.cannonChargeLoop" },
+      { "id": "audio.cannonChargeFull", "kind": "cannonChargeFull", "desc": "audio.cannonChargeFull" },
+      { "id": "audio.cannonChargeRelease", "kind": "cannonChargeRelease", "desc": "audio.cannonChargeRelease" },
       { "id": "audio.ui", "kind": "ui", "desc": "audio.ui" },
       { "id": "audio.results", "kind": "results", "desc": "audio.results" },
       { "id": "audio.music", "kind": "music", "desc": "audio.music" }
@@ -74,12 +77,12 @@
     "icons": [
       { "id": "icon.scrap", "color": "#4ddb6e", "label": "SCRAP" },
       { "id": "icon.heavyScrap", "color": "#7de05a", "label": "HEAVY" },
-      { "id": "icon.jackpot", "color": "#ffe98a", "label": "JACKPOT" },
+      { "id": "icon.cannonCharge", "color": "#ffe98a", "label": "CHARGE SHOT" },
       { "id": "icon.crewLink", "color": "#ffd94d", "label": "CREW LINK" }
     ],
     "cameraImpulses": [
       { "id": "cameraImpulse.cannon", "shake": 0.45 },
-      { "id": "cameraImpulse.jackpot", "shake": 1.1 },
+      { "id": "cameraImpulse.cannonCharge", "shake": 1.1 },
       { "id": "cameraImpulse.wipeout", "shake": 1.0 },
       { "id": "cameraImpulse.crash", "shake": 0.3 },
       { "id": "cameraImpulse.barrelBig", "shake": 0.5 },

@@ -56,7 +56,7 @@ export class TankContactCombat {
         this.ctx.enemyImpulses.apply(e, def, dirX, dirZ, 2.5, 1.1, 'dash');
       }
       this.ctx.score.addScore(this.ctx.rules.scoring.dashScore, 'DASH');
-      this.ctx.combo.addDriverContribution(1, 0, 'DASH');
+      this.ctx.combo.addDriverContribution(1, 'DASH');
       pushEvent(this.ctx, 'dashContact', e.x, e.y, e.z, {
         id: e.id,
         value: dashDamage,

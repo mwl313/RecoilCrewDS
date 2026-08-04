@@ -6,7 +6,6 @@
   "hp": 3,
   "radius": 0.8,
   "score": 50,
-  "jackpotGain": 3,
   "contributionPoints": 2,
   "dropTableId": "drops.scrapBug",
   "behaviors": [

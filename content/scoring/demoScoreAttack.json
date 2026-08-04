@@ -10,21 +10,12 @@
   },
   "scrapScores": {
     "normal": 25,
-    "heavy": 75,
-    "jackpot": 150
+    "heavy": 75
   },
-  "jackpotGains": {
-    "enemy.scrapBug": 3,
-    "enemy.rammer": 8,
-    "enemy.gunTower": 12,
-    "enemy.lootTruck": 18,
-    "normalScrap": 1.5,
-    "heavyScrap": 4,
-    "jackpotScrap": 8,
-    "speedCollect": 2,
-    "ram": 4,
+  "comboGains": {
+    "dash": 4,
     "dodge": 3,
-    "linkGain": 4
+    "link": 4
   },
   "combo": {
     "pointsPerLevel": 3,
@@ -43,13 +34,6 @@
   "scrapLoopWindow": 3,
   "dashScore": 20,
   "wipeoutPenalty": 0.15,
-  "jackpotCooldown": 12,
-  "assist": {
-    "floor55": 60,
-    "floor66": 85,
-    "floor70": 100,
-    "requireContributions": 2
-  },
   "finalChaos": {
     "mult": 1.5,
     "start": 70

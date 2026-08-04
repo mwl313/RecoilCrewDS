@@ -178,7 +178,8 @@ export class SceneFlowPresenter {
       singleMode: false,
       stats: [
         { label: 'BEST COMBO', value: `×${results.bestCombo}` },
-        { label: 'JACKPOT', value: String(results.jackpotFired) },
+        { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
+        { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
         { label: 'KILLS', value: String(results.kills) },
         { label: 'SCRAP', value: String(results.scrapCollected) },
         { label: 'CREW LINKS', value: String(results.links) },
@@ -200,7 +201,8 @@ export class SceneFlowPresenter {
       singleMode: true,
       stats: [
         { label: 'BEST COMBO', value: `×${results.bestCombo}` },
-        { label: 'JACKPOT', value: String(results.jackpotFired) },
+        { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
+        { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
         { label: 'KILLS', value: String(results.kills) },
         { label: 'SCRAP', value: String(results.scrapCollected) },
         { label: 'WIPEOUTS', value: String(results.wipeouts) },

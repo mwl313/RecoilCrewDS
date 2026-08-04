@@ -3,7 +3,6 @@ export type DamageTargetKind = 'enemy' | 'tank' | 'barrel';
 export type DamageSource =
   | 'mg'
   | 'cannon'
-  | 'jackpot'
   | 'barrel'
   | 'tower'
   | 'dash'

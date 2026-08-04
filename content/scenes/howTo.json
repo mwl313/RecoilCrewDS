@@ -34,7 +34,7 @@
                 "type": "container",
                 "children": [
                   { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "class": "orange", "text": "GUNNER" },
-                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "text": "Mouse aim · LMB machine gun\nRMB cannon · Hold RMB charge JACKPOT\nR recenter camera" },
+                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "text": "Mouse aim · LMB machine gun\nRMB cannon · Hold RMB to charge (with relic)\nR recenter camera" },
                   { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "text": "Aim downward and fire the cannon to launch the tank upward. MG fire gives a smaller continuous recoil. Kill everything, chain barrels, and coordinate shots for Crew Links." }
                 ]
               }

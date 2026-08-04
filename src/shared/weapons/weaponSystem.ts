@@ -63,7 +63,6 @@ export class WeaponSystem {
       this.secondaryReleased = false;
       this.loadout.primary.state.edgeDown = input.primary;
       this.loadout.secondary.state.edgeDown = input.secondary;
-      this.loadout.ability.state.edgeDown = input.ability;
       return;
     }
 
@@ -83,7 +82,6 @@ export class WeaponSystem {
     tur.cannonCooldown = Math.max(0, tur.cannonCooldown - dt);
     tur.mgCooldown = Math.max(0, tur.mgCooldown - dt);
     tur.cannonFlash = Math.max(0, tur.cannonFlash - dt);
-    tur.jackpotCooldown = Math.max(0, tur.jackpotCooldown - dt);
     // Cannon hold timer (relic-gated charge state machine).
     if (tur.cannonHeld) {
       tur.cannonHoldT += dt;
@@ -92,7 +90,6 @@ export class WeaponSystem {
 
     this.updatePrimary(dt, input.primary);
     this.updateSecondary(dt, input.secondary);
-    this.updateAbility(dt, input.ability);
   }
 
   private updatePrimary(dt: number, held: boolean): void {
@@ -216,22 +213,4 @@ export class WeaponSystem {
     tur.cannonChargeFull = ratio >= 1;
   }
 
-  private updateAbility(dt: number, held: boolean): void {
-    const s = this.ctx.state;
-    const tur = s.turret;
-    const slot = this.loadout.ability;
-    if (held && tur.jackpotReady) {
-      tur.chargeT += dt;
-      const chargeSeconds = slot.definition.chargeSeconds ?? 1;
-      if (tur.chargeT >= chargeSeconds) {
-        this.behaviors.require(slot.definition.behaviorId).fire(this.ctx, slot.definition, slot.state);
-        tur.chargeT = 0;
-        s.stats.jackpotMeter = 0;
-        tur.jackpotReady = false;
-      }
-    } else if (!held && tur.chargeT > 0) {
-      tur.chargeT = Math.max(0, tur.chargeT - dt * 2);
-    }
-    slot.state.edgeDown = held;
-  }
 }

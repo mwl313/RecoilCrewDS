@@ -65,7 +65,7 @@ describe('deterministic Demo regression harness', () => {
     const reset = output.checkpoints.find((c) => c.label === 'rematchReset')!;
     expect(reset.state).toEqual(initial.state);
     expect(reset.state.stats.score).toBe(0);
-    expect(reset.state.stats.jackpotMeter).toBe(0);
+    expect(reset.state.stats.chargedCannonShots).toBe(0);
     expect(reset.state.tank.integrity).toBe(100);
   });
 
@@ -98,7 +98,7 @@ describe('deterministic Demo regression harness', () => {
       expect(ev).not.toHaveProperty('label');
     }
     expect(output.eventCounts.kill ?? 0).toBeGreaterThan(0);
-    expect(output.eventCounts.jackpotFire ?? 0).toBeGreaterThanOrEqual(1);
+    expect(output.eventCounts.shot ?? 0).toBeGreaterThanOrEqual(1);
     expect(output.eventCounts.truckSpawn ?? 0).toBe(1);
   });
 });

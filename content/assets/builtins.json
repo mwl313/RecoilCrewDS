@@ -3,16 +3,16 @@
   "builtins": [
     "playerTank.chassis", "playerTank.turret", "playerTank.barrel",
     "enemy.scrapBug", "enemy.rammer", "enemy.gunTower", "enemy.lootTruck",
-    "pickup.normalScrap", "pickup.heavyScrap", "pickup.jackpotScrap",
+    "pickup.normalScrap", "pickup.heavyScrap",
     "prop.explosiveBarrel", "prop.barrier", "prop.tire", "prop.container",
     "arena.ramp", "arena.factory",
     "vfx.machineGunMuzzle", "vfx.cannonMuzzle", "vfx.cannonImpact",
-    "vfx.enemyDeath", "vfx.scrapPickup", "vfx.jackpot", "vfx.dashBurst", "vfx.jumpDust",
+    "vfx.enemyDeath", "vfx.scrapPickup", "vfx.cannonCharge", "vfx.cannonMuzzleCharged", "vfx.cannonImpactCharged", "vfx.dashBurst", "vfx.jumpDust",
     "ui.driverTheme", "ui.gunnerTheme",
     "audio.engine", "audio.dash", "audio.jump", "audio.drift", "audio.collision",
     "audio.machineGun", "audio.cannon", "audio.enemyHit", "audio.enemyDeath",
     "audio.scrapPickup", "audio.rammerTelegraph", "audio.towerFire",
-    "audio.truckSiren", "audio.wipeout", "audio.jackpotCharge", "audio.jackpotRelease",
+    "audio.truckSiren", "audio.wipeout", "audio.cannonChargeStart", "audio.cannonChargeLoop", "audio.cannonChargeFull", "audio.cannonChargeRelease",
     "audio.ui", "audio.results", "audio.music"
   ],
   "project": []

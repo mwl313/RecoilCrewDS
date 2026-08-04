@@ -454,6 +454,7 @@ function onFrame(g: GameClient, state: MatchState) {
       showRoleIdentity: sessionKind === 'multiplayer',
       showPeerStatus: sessionKind === 'multiplayer',
     },
+    localCharge: g.getLocalChargeView() ?? undefined,
     rules: game?.getHudRules(),
     objective,
   });

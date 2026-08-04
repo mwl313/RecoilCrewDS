@@ -77,9 +77,9 @@ export interface CanonicalTank {
 
 export interface CanonicalTurret {
   yaw: number; pitch: number; cannonHeld: boolean; cannonHoldT: number;
-  cannonChargeRatio: number; cannonChargeFull: boolean; chargeT: number;
+  cannonChargeRatio: number; cannonChargeFull: boolean;
   cannonCooldown: number; mgCooldown: number;
-  jackpotReady: boolean; jackpotCooldown: number;
+  cannonFlash: number; mgFiring: boolean;
 }
 
 export interface CanonicalEnemy {
@@ -115,7 +115,7 @@ export interface CanonicalState {
   combo: { multiplier: number; points: number; lastDriverT: number; lastGunnerT: number; lastAnyT: number; best: number };
   build: { capabilities: string[] };
   stats: {
-    score: number; jackpotMeter: number; jackpotFired: number; kills: number;
+    score: number; chargedCannonShots: number; fullChargeShots: number; kills: number;
     scrapCollected: number; links: number; dashKills: number; dodgeCount: number;
     wipeouts: number; bestCombo: number; anyContribution: boolean;
   };
@@ -134,7 +134,7 @@ export interface CanonicalEvent {
 }
 
 export interface CanonicalResults {
-  score: number; bestCombo: number; jackpotFired: number; kills: number;
+  score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number;
   scrapCollected: number; links: number; wipeouts: number;
   grade: string; title: string; modifier: string;
 }
@@ -215,11 +215,10 @@ export function canonicalizeState(s: MatchState): CanonicalState {
       cannonHoldT: round(s.turret.cannonHoldT),
       cannonChargeRatio: round(s.turret.cannonChargeRatio),
       cannonChargeFull: s.turret.cannonChargeFull,
-      chargeT: round(s.turret.chargeT),
       cannonCooldown: round(s.turret.cannonCooldown),
+      cannonFlash: round(s.turret.cannonFlash),
       mgCooldown: round(s.turret.mgCooldown),
-      jackpotReady: s.turret.jackpotReady,
-      jackpotCooldown: round(s.turret.jackpotCooldown),
+      mgFiring: s.turret.mgFiring,
     },
     combo: {
       multiplier: s.combo.multiplier,
@@ -234,8 +233,8 @@ export function canonicalizeState(s: MatchState): CanonicalState {
     },
     stats: {
       score: s.stats.score,
-      jackpotMeter: round(s.stats.jackpotMeter),
-      jackpotFired: s.stats.jackpotFired,
+      chargedCannonShots: s.stats.chargedCannonShots,
+      fullChargeShots: s.stats.fullChargeShots,
       kills: s.stats.kills,
       scrapCollected: s.stats.scrapCollected,
       links: s.stats.links,
@@ -270,7 +269,8 @@ export function canonicalizeResults(r: MatchResults): CanonicalResults {
   return {
     score: r.score,
     bestCombo: r.bestCombo,
-    jackpotFired: r.jackpotFired,
+    chargedCannonShots: r.chargedCannonShots,
+    fullChargeShots: r.fullChargeShots,
     kills: r.kills,
     scrapCollected: r.scrapCollected,
     links: r.links,
@@ -329,7 +329,7 @@ export function scriptedGunner(state: MatchState, t: number, lastCannonSent: boo
       aimPitch: 0.05,
       primary: t % 3 < 2,
       secondary: cannon,
-      ability: state.turret.jackpotReady,
+      ability: false,
     },
     cannonSent: ready,
   };

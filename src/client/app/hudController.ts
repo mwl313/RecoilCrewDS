@@ -12,7 +12,8 @@ export interface HudContext {
     showRoleIdentity: boolean;
     showPeerStatus: boolean;
   };
-  rules?: { maxIntegrity?: number; cannonCooldown?: number; jackpotChargeTime?: number };
+  localCharge?: { unlocked: boolean; held: boolean; ratio: number; full: boolean };
+  rules?: { maxIntegrity?: number; cannonCooldown?: number; chargeTapMaxSeconds?: number; chargeFullSeconds?: number };
   objective: { x: number; y: number; visible: boolean } | null;
 }
 

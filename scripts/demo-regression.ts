@@ -32,7 +32,7 @@ function summarize(out: DemoFixtureOutput): void {
   console.log(`[demo] events: ${out.eventTrace.length} (${Object.keys(out.eventCounts).length} types)`);
   console.log(
     `[demo] results: score=${out.results.score} grade=${out.results.grade} "${out.results.title}" ` +
-    `jackpot x${out.results.jackpotFired} combo x${out.results.bestCombo} kills=${out.results.kills}`,
+    `charged x${out.results.chargedCannonShots} full x${out.results.fullChargeShots} combo x${out.results.bestCombo} kills=${out.results.kills}`,
   );
 }
 

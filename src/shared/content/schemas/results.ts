@@ -4,7 +4,8 @@ import { commonDefinition, nonNegativeInt } from './common';
 const gradeRequire = z
   .object({
     kills: nonNegativeInt.optional(),
-    jackpotFired: nonNegativeInt.optional(),
+    chargedCannonShots: nonNegativeInt.optional(),
+    fullChargeShots: nonNegativeInt.optional(),
     bestCombo: nonNegativeInt.optional(),
     links: nonNegativeInt.optional(),
   })
@@ -13,7 +14,8 @@ const gradeRequire = z
 const titleRequire = z
   .object({
     wipeouts: nonNegativeInt.optional(),
-    jackpotFired: nonNegativeInt.optional(),
+    chargedCannonShots: nonNegativeInt.optional(),
+    fullChargeShots: nonNegativeInt.optional(),
     links: nonNegativeInt.optional(),
     dashKills: nonNegativeInt.optional(),
     minScore: nonNegativeInt.optional(),

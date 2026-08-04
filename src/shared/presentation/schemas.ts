@@ -142,13 +142,13 @@ export const HUD_BINDING_PATHS = [
   'tank.dashReady',
   'tank.dashActive',
   'tank.dashCooling',
-  'gunner.jackpot',
-  'gunner.jackpotMax',
-  'gunner.jackpotReady',
-  'gunner.chargeRatio',
-  'gunner.chargeMax',
   'gunner.cannonCooldown',
   'gunner.cooldownRatio',
+  'gunner.chargeUnlocked',
+  'gunner.chargeHeld',
+  'gunner.chargeRatio',
+  'gunner.chargeFull',
+  'gunner.chargeMax',
   'objective.visible',
   'objective.screenX',
   'objective.screenY',
@@ -157,7 +157,6 @@ export const HUD_BINDING_PATHS = [
   'prompt',
   'promptSub',
   'crosshairVisible',
-  'chargeVisible',
 ] as const;
 
 const idPrefix = (prefix: string) => z.string().regex(new RegExp(`^${prefix.replace(/\./g, '\\.')}`), `id must start with ${prefix}`);

@@ -17,22 +17,22 @@ export interface LoadoutSlot {
 export class LoadoutRuntime {
   readonly primary: LoadoutSlot;
   readonly secondary: LoadoutSlot;
-  readonly ability: LoadoutSlot;
+  readonly ability: LoadoutSlot | null;
 
-  constructor(definitions: ReadonlyMap<string, WeaponDefinition>, loadout: { primary: string; secondary: string; ability: string }) {
+  constructor(definitions: ReadonlyMap<string, WeaponDefinition>, loadout: { primary: string; secondary: string; ability?: string | null }) {
     this.primary = this.slot('primary', loadout.primary, definitions);
     this.secondary = this.slot('secondary', loadout.secondary, definitions);
-    this.ability = this.slot('ability', loadout.ability, definitions);
+    this.ability = loadout.ability ? this.slot('ability', loadout.ability, definitions) : null;
   }
 
   clear(): void {
     this.primary.state.clear();
     this.secondary.state.clear();
-    this.ability.state.clear();
+    this.ability?.state.clear();
   }
 
   slots(): LoadoutSlot[] {
-    return [this.primary, this.secondary, this.ability];
+    return [this.primary, this.secondary, ...(this.ability ? [this.ability] : [])];
   }
 
   private slot(slotName: 'primary' | 'secondary' | 'ability', id: string, defs: ReadonlyMap<string, WeaponDefinition>): LoadoutSlot {

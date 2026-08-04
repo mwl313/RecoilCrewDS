@@ -285,7 +285,6 @@ export class MatchRules {
       },
       weapon: {
         cannonCooldown: this.resolver.resolve('match.cannonCooldown'),
-        jackpotChargeTime: this.resolver.resolve('weapon.jackpotChargeTime'),
         chargeTapMaxSeconds: this.resolver.resolve('weapon.chargeTapMaxSeconds'),
         chargeFullSeconds: this.resolver.resolve('weapon.chargeFullSeconds'),
       },
@@ -358,12 +357,12 @@ export class MatchRules {
 
 function loadoutWeaponStatBlocks(
   pack: ContentPack,
-  loadout: { primary: string; secondary: string; ability: string },
+  loadout: { primary: string; secondary: string; ability?: string | null },
 ): StatBlock {
   const merged: StatBlock = {};
   // Secondary (cannon) statBlock wins shared keys so the cannon charge
   // profile resolves its own knockback/splash values (Combat 05 M6).
-  for (const id of [loadout.primary, loadout.ability, loadout.secondary]) {
+  for (const id of [loadout.primary, ...(loadout.ability ? [loadout.ability] : []), loadout.secondary]) {
     Object.assign(merged, pack.getWeapon(id).statBlock);
   }
   return merged;

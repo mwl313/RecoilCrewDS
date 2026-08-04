@@ -16,9 +16,8 @@ export class ComboSystem {
     this.recalc();
   }
 
-  addDriverContribution(points: number, jackpotGain: number, label: string): void {
+  addDriverContribution(points: number, label: string): void {
     this.addContribution('driver', points);
-    this.ctx.jackpot.addGain(jackpotGain);
     if (label) {
       pushEvent(this.ctx, 'score', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {
         value: 0,

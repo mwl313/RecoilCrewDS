@@ -258,7 +258,7 @@ function collectBadBindings(node: { id: string; bindings?: Array<{ source: strin
     if (b.source.startsWith('item.')) continue;
     const allowed = kind === 'scene'
       ? ['code', 'status', 'copyLabel', 'copyDisabled', 'message', 'value', 'sub', 'score', 'title', 'grade', 'stats', 'driverReady', 'gunnerReady', 'driverState', 'gunnerState', 'readyLabel', 'myRole', 'roomCode', 'myReady', 'modifiers', 'selectedModifier', 'rematchInfo', 'canLeave', 'crewMode', 'singleMode']
-      : ['role', 'pointerLocked', 'prompt', 'promptSub', 'crosshairVisible', 'chargeVisible'];
+      : ['role', 'pointerLocked', 'prompt', 'promptSub', 'crosshairVisible'];
     if (!allowed.includes(b.source) && !b.source.startsWith('connection.') && !b.source.startsWith('match.') && !b.source.startsWith('tank.') && !b.source.startsWith('gunner.') && !b.source.startsWith('objective.') && !b.source.startsWith('pip.') && !b.source.startsWith('combo.') && !b.source.startsWith('session.')) {
       out.push(`${node.id}: ${b.source}`);
     }

@@ -14,7 +14,6 @@ const enemyBase = {
   hp: positiveNumber,
   radius: positiveNumber,
   score: nonNegativeInt,
-  jackpotGain: nonNegativeNumber,
   contributionPoints: nonNegativeInt,
   dropTableId: z.string().regex(/^drops\./, 'dropTableId must reference a drop table'),
   behaviors: z
@@ -94,8 +93,6 @@ export const enemySchema = z.discriminatedUnion('type', [
     escapeShortcut: positiveNumber,
     collisionPushTank: nonNegativeNumber,
     collisionPushTruck: nonNegativeNumber,
-    jackpotScrapCount: positiveInt,
-    jackpotScrapLife: positiveNumber,
   }),
 ]);
 

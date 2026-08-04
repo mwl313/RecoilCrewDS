@@ -19,7 +19,7 @@ export const weaponChargeSchema = z
 export const weaponSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^weapon\./, 'weapon id must start with weapon.'),
-  behaviorId: z.enum(['weapon.hitscan', 'weapon.projectile', 'weapon.chargeProjectile']),
+  behaviorId: z.enum(['weapon.hitscan', 'weapon.projectile']),
   fireMode: z.enum(['auto', 'semi', 'charge']),
   cooldownSeconds: nonNegativeNumber,
   chargeSeconds: positiveNumber.optional(),

@@ -2,7 +2,7 @@
  * Ramp/platform placement with approach, flight, and landing validation.
  *
  * Flight bounds come from the shared movement parameters (normal top speed,
- * dash, jump-assisted launch, cannon/JACKPOT recoil, Moon Yard gravity) so
+ * dash, jump-assisted launch, cannon/charged-cannon recoil, Moon Yard gravity) so
  * every accepted ramp is landable by every supported movement profile.
  */
 import { BASE_CONFIG } from '../config';
@@ -22,7 +22,6 @@ export const MOVEMENT_BOUNDS = {
   gravityNormal: BASE_CONFIG.tank.gravity,
   gravityMoon: 6.5,
   cannonRecoilImpulse: BASE_CONFIG.tank.recoilImpulse,
-  jackpotRecoilImpulse: BASE_CONFIG.tank.jackpotRecoilImpulse,
   airLiftFactor: 1.8,
   airLiftClamp: 1.4,
 } as const;
@@ -177,7 +176,7 @@ export function validateRamp(
   const jumpVelocity = Math.sqrt(2 * MOVEMENT_BOUNDS.gravityMoon * MOVEMENT_BOUNDS.jumpHeight);
   const maxAirLift =
     MOVEMENT_BOUNDS.airLiftFactor *
-    Math.min(MOVEMENT_BOUNDS.airLiftClamp, MOVEMENT_BOUNDS.jackpotRecoilImpulse / 7);
+    Math.min(MOVEMENT_BOUNDS.airLiftClamp, MOVEMENT_BOUNDS.cannonRecoilImpulse / 7);
   const launchVy =
     MOVEMENT_BOUNDS.rampLaunchSpeed + jumpVelocity + maxAirLift;
   const flightTime = (2 * launchVy) / MOVEMENT_BOUNDS.gravityMoon;

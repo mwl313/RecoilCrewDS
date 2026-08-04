@@ -5,8 +5,12 @@ export const scoringSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^scoring\./, 'scoring id must start with scoring.'),
   enemyScores: z.record(z.string().regex(/^enemy\./), nonNegativeInt),
-  scrapScores: z.record(z.enum(['normal', 'heavy', 'jackpot']), nonNegativeInt),
-  jackpotGains: z.record(z.string(), nonNegativeNumber),
+  scrapScores: z.record(z.enum(['normal', 'heavy']), nonNegativeInt),
+  comboGains: z.object({
+    dash: nonNegativeNumber,
+    dodge: nonNegativeNumber,
+    link: nonNegativeNumber,
+  }),
   combo: z.object({
     pointsPerLevel: positiveNumber,
     max: positiveInt,
@@ -24,13 +28,6 @@ export const scoringSchema = z.object({
   scrapLoopWindow: positiveNumber,
   dashScore: nonNegativeInt,
   wipeoutPenalty: probability,
-  jackpotCooldown: nonNegativeNumber,
-  assist: z.object({
-    floor55: nonNegativeNumber,
-    floor66: nonNegativeNumber,
-    floor70: nonNegativeNumber,
-    requireContributions: nonNegativeInt,
-  }),
   finalChaos: z.object({
     mult: positiveNumber,
     start: positiveNumber,

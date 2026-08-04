@@ -165,11 +165,11 @@ test('rematch rerolls the arena seed and does not leak scene objects', async ({ 
     (window as unknown as Record<string, unknown>).__stop = () => clearInterval(id);
   });
   await b.evaluate(() => {
-    const w = window as unknown as { __recoil: { input(r: string, d: unknown): void; state(): { turret: { cannonCooldown: number; jackpotReady: boolean } } } };
+    const w = window as unknown as { __recoil: { input(r: string, d: unknown): void; state(): { turret: { cannonCooldown: number } } } };
     const id = setInterval(() => {
       const s = w.__recoil.state();
       if (!s) return;
-      w.__recoil.input('gunner', { aimYaw: 0, aimPitch: 0.05, primary: true, secondary: false, ability: s.turret.jackpotReady });
+      w.__recoil.input('gunner', { aimYaw: 0, aimPitch: 0.05, primary: true, secondary: false });
     }, 100);
     (window as unknown as Record<string, unknown>).__stop = () => clearInterval(id);
   });

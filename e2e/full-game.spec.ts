@@ -24,7 +24,7 @@ async function startDriver(page: Page) {
         input(role: string, data: unknown): void;
         state(): {
           tank: { x: number; z: number; yaw: number };
-          turret: { jackpotReady: boolean };
+          turret: { cannonHeld: boolean };
           pickups: { collected: boolean; x: number; z: number }[];
         };
       };
@@ -70,7 +70,7 @@ async function startGunner(page: Page) {
         input(role: string, data: unknown): void;
         state(): {
           tank: { x: number; z: number; yaw: number };
-          turret: { cannonCooldown: number; jackpotReady: boolean };
+          turret: { cannonCooldown: number; cannonHeld: boolean };
           enemies: { type: string; alive: boolean; x: number; z: number }[];
         };
       };
@@ -111,14 +111,13 @@ async function startGunner(page: Page) {
         aimPitch: 0.05,
         primary: t % 3 < 2,
         secondary: cannon,
-        ability: s.turret.jackpotReady,
       });
     }, 100);
     (window as unknown as Record<string, unknown>).__stopGunner = () => clearInterval(id);
   });
 }
 
-test('two browsers play a complete round, fire JACKPOT, see results, and rematch', async ({ browser }) => {
+test('two browsers play a complete round, see results, and rematch', async ({ browser }) => {
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const ctxB = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const a = await ctxA.newPage();
@@ -197,9 +196,8 @@ test('two browsers play a complete round, fire JACKPOT, see results, and rematch
   });
   expect(recoilOk).toBe(true);
 
-  // First JACKPOT lands thanks to pacing assistance + play.
-  await waitState(a, 's => s.stats.jackpotFired >= 1');
-  await waitState(b, 's => s.stats.jackpotFired >= 1');
+  // More enemies die as the round progresses.
+  await waitState(a, 's => s.stats.kills >= 5');
 
   // Round completes to results on both clients.
   await waitState(a, 's => s.phase === "results"');

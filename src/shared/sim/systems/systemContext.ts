@@ -20,7 +20,6 @@ import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
 import { ScoreSystem } from './scoreSystem';
 import { ComboSystem } from './comboSystem';
-import { JackpotSystem } from './jackpotSystem';
 import { ResultSystem } from './resultSystem';
 import { createNetcodeOpState, type NetcodeOpState } from '../opLog';
 
@@ -39,7 +38,6 @@ export interface SystemContext {
   objective: ObjectiveSystem;
   score: ScoreSystem;
   combo: ComboSystem;
-  jackpot: JackpotSystem;
   results: ResultSystem;
   damage: DamageSystem;
   projectiles: ProjectileSystem;
@@ -114,7 +112,6 @@ export function createSystemContext(
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);
   ctx.combo = new ComboSystem(ctx);
-  ctx.jackpot = new JackpotSystem(ctx);
   ctx.results = new ResultSystem(ctx);
   return ctx;
 }

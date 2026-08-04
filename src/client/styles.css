@@ -381,15 +381,38 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
 }
 .bar-fill.integrity { background: linear-gradient(90deg, #d94f4f, #e77b52); box-shadow: 0 0 10px rgba(217, 79, 79, 0.5); }
 .bar-fill.integrity.low { animation: blink 0.7s infinite; }
-.bar-fill.jackpot { background: linear-gradient(90deg, #ffe27a, #ffd94d); box-shadow: 0 0 14px rgba(255, 217, 77, 0.65); }
-.jackpot-bar.ready { border-color: #ffd94d; animation: glow 0.8s infinite alternate; }
 @keyframes glow {
   from { box-shadow: 0 0 6px rgba(255, 217, 77, 0.3); }
   to { box-shadow: 0 0 22px rgba(255, 217, 77, 0.85); }
 }
-.bar-fill.charge { background: linear-gradient(90deg, #ffe98a, #fff8dc); }
-.charge-row { display: flex; align-items: center; gap: 10px; animation: blink 0.7s infinite; }
-.charge-label { font-size: 12px; letter-spacing: 0.2em; color: #ffe98a; min-width: 78px; }
+.crosshair-charge {
+  position: absolute;
+  left: calc(50% + 32px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 233, 138, 0.45);
+  border-radius: 4px;
+  opacity: 0.45;
+  overflow: hidden;
+}
+.crosshair-charge-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(0deg, #ffd94d, #fff8dc);
+  box-shadow: 0 0 8px rgba(255, 217, 77, 0.6);
+  transition: height 0.05s linear;
+}
+.crosshair-charge-fill.held { opacity: 1; }
+.crosshair-charge-fill.full {
+  background: linear-gradient(0deg, #ffe27a, #fff2b0);
+  animation: glow 0.8s infinite alternate;
+}
 
 .hud-speed { text-align: right; }
 .speed-num { font-family: 'Chakra Petch', monospace; font-size: 27px; color: #fff; }
@@ -462,10 +485,6 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   letter-spacing: 0.18em;
   color: #fff;
   text-shadow: 0 0 18px rgba(53, 215, 232, 0.5);
-}
-.prompt.jackpot {
-  color: #ffe98a;
-  animation: glowtext 0.9s infinite alternate;
 }
 @keyframes glowtext {
   from { text-shadow: 0 0 12px rgba(255, 217, 77, 0.5); }

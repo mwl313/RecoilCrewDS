@@ -152,13 +152,17 @@ function inputFactory(node: UiNodeInput, services: UiComponentServices): UiCompo
 }
 
 function progressBarFactory(node: UiNodeInput, services: UiComponentServices): UiComponentInstance {
-  const props = (node.props ?? {}) as { valueSource: string; maxSource: string };
+  const props = (node.props ?? {}) as { valueSource: string; maxSource: string; direction?: 'horizontal' | 'vertical' };
   const instance = base(node, services);
   instance.update = (context) => {
     const value = Number(getPath(context, props.valueSource) ?? 0);
     const max = Number(getPath(context, props.maxSource) ?? 1);
     const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
-    instance.element.style.width = `${ratio * 100}%`;
+    if (props.direction === 'vertical') {
+      instance.element.style.height = `${ratio * 100}%`;
+    } else {
+      instance.element.style.width = `${ratio * 100}%`;
+    }
   };
   return instance;
 }

@@ -104,10 +104,10 @@ describe('drop tables', () => {
     expectDrops('scrapBug', ['normal']);
     expectDrops('rammer', ['heavy', 'normal']);
     expectDrops('gunTower', ['heavy', 'normal', 'normal']);
-    const truckPickups = expectDrops('lootTruck', ['jackpot', 'jackpot', 'jackpot', 'jackpot', 'jackpot']);
+    const truckPickups = expectDrops('lootTruck', ['heavy', 'heavy', 'heavy', 'heavy', 'heavy']);
     // Scatter is deterministic under the seed.
     const positions = truckPickups.map((p) => `${p.x.toFixed(4)},${p.z.toFixed(4)}`);
-    const again = expectDrops('lootTruck', ['jackpot', 'jackpot', 'jackpot', 'jackpot', 'jackpot']);
+    const again = expectDrops('lootTruck', ['heavy', 'heavy', 'heavy', 'heavy', 'heavy']);
     expect(again.map((p) => `${p.x.toFixed(4)},${p.z.toFixed(4)}`)).toEqual(positions);
   });
 
@@ -116,12 +116,12 @@ describe('drop tables', () => {
     const rules = m.runtime.rules;
     for (const table of rules.dropTables.values()) {
       for (const entry of table.entries) {
-        const id = entry.kind === 'normal' ? 'pickup.normalScrap' : entry.kind === 'heavy' ? 'pickup.heavyScrap' : 'pickup.jackpotScrap';
+        const id = entry.kind === 'normal' ? 'pickup.normalScrap' : 'pickup.heavyScrap';
         expect(rules.pickups.has(id)).toBe(true);
       }
     }
     expect(rules.pickups.get('pickup.normalScrap')!.magnetRadius).toBe(5);
-    expect(rules.pickups.get('pickup.jackpotScrap')!.life).toBe(16);
+    expect(rules.pickups.get('pickup.heavyScrap')!.life).toBe(26);
   });
 });
 
@@ -227,11 +227,9 @@ describe('spawn director', () => {
       }
     });
     expect(m.state.phase).toBe('results');
-    // Truck spawned (42) and escpaed/killed during the round.
+    // Truck spawned (42) and escaped/killed during the round.
     expect(m.runtime.systems.spawnDirector.truckSpawned).toBe(true);
-    expect(m.state.stats.jackpotFired).toBeGreaterThanOrEqual(1);
-    // Assistance floors guaranteed a ready meter.
-    expect(m.state.turret.jackpotReady || m.state.stats.jackpotMeter > 0).toBe(true);
+    expect(m.state.stats.kills).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -254,7 +252,6 @@ describe('a test enemy composed from existing behaviors without EnemySystem edit
       hp: 10,
       radius: 0.8,
       score: 100,
-      jackpotGain: 5,
       contributionPoints: 2,
       dropTableId: 'drops.testBug',
       speed: 5,

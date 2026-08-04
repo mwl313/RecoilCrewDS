@@ -302,8 +302,6 @@ describe('difficulty and content data', () => {
       autoRightRoll: 1.15,
       recoilImpulse: 7.2,
       recoilSpin: 1.7,
-      jackpotRecoilImpulse: 17,
-      jackpotSpin: 4.5,
       mgRecoilImpulse: 0.07,
       rig: DEFAULT_TANK_RIG,
     };

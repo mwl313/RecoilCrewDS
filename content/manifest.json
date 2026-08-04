@@ -22,12 +22,10 @@
       "weapons": [
         "weapons/machineGun.json",
         "weapons/mainCannon.json",
-        "weapons/jackpotShell.json",
         "weapons/rapidCannon.json"
       ],
       "projectiles": [
         "projectiles/cannonShell.json",
-        "projectiles/jackpotShell.json",
         "projectiles/towerShot.json"
       ],
       "enemies": [
@@ -46,8 +44,7 @@
       ],
       "pickups": [
         "pickups/normalScrap.json",
-        "pickups/heavyScrap.json",
-        "pickups/jackpotScrap.json"
+        "pickups/heavyScrap.json"
       ],
       "items": ["items/overdriveCannon.json", "items/relicCannonCharge.json"],
       "statusEffects": [],

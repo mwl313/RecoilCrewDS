@@ -112,7 +112,7 @@ export class Hud {
   }
 
   showResults(
-    results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
+    results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
     rematch: { driver: boolean; gunner: boolean; modifier: string },
   ) {
     this.flow.showResults(results, rematch);
@@ -120,7 +120,7 @@ export class Hud {
   }
 
   showSinglePlayerResults(
-    results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
+    results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
   ) {
     this.flow.showSinglePlayerResults(results);
     this.onUiSound?.();

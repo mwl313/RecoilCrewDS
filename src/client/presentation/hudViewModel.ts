@@ -38,18 +38,19 @@ export interface HudViewModel {
     dashCooling: boolean;
   };
   gunner: {
-    jackpot: number;
-    jackpotMax: number;
-    jackpotReady: boolean;
-    chargeRatio: number;
-    chargeMax: number;
     cannonCooldown: number;
     cooldownRatio: number;
+    chargeUnlocked: boolean;
+    chargeHeld: boolean;
+    chargeRatio: number;
+    chargeFull: boolean;
+    chargeMax: number;
   };
+  /** Local predicted charge (same-frame for Gunner/Single Player). */
+  localCharge?: { unlocked: boolean; held: boolean; ratio: number; full: boolean };
   prompt: string;
   promptSub: string;
   crosshairVisible: boolean;
-  chargeVisible: boolean;
   objective: {
     visible: boolean;
     screenX: number;
@@ -69,6 +70,8 @@ export interface HudProjectionContext {
     showRoleIdentity: boolean;
     showPeerStatus: boolean;
   };
+  /** Local predicted charge (same-frame for Gunner/Single Player). */
+  localCharge?: { unlocked: boolean; held: boolean; ratio: number; full: boolean };
   /**
    * Resolved gameplay denominators for presentation (replicated online or
    * local Single Player rules). Falls back to BASE_CONFIG when absent.
@@ -76,7 +79,8 @@ export interface HudProjectionContext {
   rules?: {
     maxIntegrity?: number;
     cannonCooldown?: number;
-    jackpotChargeTime?: number;
+    chargeTapMaxSeconds?: number;
+    chargeFullSeconds?: number;
   };
   objective: { x: number; y: number; visible: boolean } | null;
 }
@@ -99,18 +103,17 @@ export function emptyHudViewModel(): HudViewModel {
       dashCooling: false,
     },
     gunner: {
-      jackpot: 0,
-      jackpotMax: 100,
-      jackpotReady: false,
-      chargeRatio: 0,
-      chargeMax: 1,
       cannonCooldown: 0,
       cooldownRatio: 0,
+      chargeUnlocked: false,
+      chargeHeld: false,
+      chargeRatio: 0,
+      chargeFull: false,
+      chargeMax: 1,
     },
     prompt: '',
     promptSub: '',
     crosshairVisible: false,
-    chargeVisible: false,
     objective: { visible: false, screenX: 0, screenY: 0, label: '' },
   };
 }
@@ -124,21 +127,27 @@ export class HudProjector {
     const t = state.tank;
     const single = opts.session.kind === 'singlePlayer';
     const remaining = Math.max(0, Math.ceil(state.duration - state.time));
-    const jp = state.turret.jackpotReady;
+    const chargeUnlocked = state.build.capabilities.includes('cannon.charge');
+    const local = opts.localCharge;
+    const chargeHeld = local?.held ?? state.turret.cannonHeld;
+    const chargeRatio = local?.ratio ?? state.turret.cannonChargeRatio;
+    const chargeFull = local?.full ?? (chargeUnlocked && state.turret.cannonChargeFull);
     const maxIntegrity = opts.rules?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity;
     const cannonCooldownMax = opts.rules?.cannonCooldown ?? BASE_CONFIG.weapons.cannonCooldown;
-    const chargeSeconds = opts.rules?.jackpotChargeTime ?? BASE_CONFIG.weapons.jackpotChargeTime;
     let prompt = '';
     let promptSub = '';
-    if (jp) {
-      prompt = 'JACKPOT READY';
+    if (chargeFull) {
+      prompt = 'CHARGE READY';
       promptSub = single ? 'HOLD RIGHT MOUSE TO CHARGE' : opts.role === 'driver' ? 'GUNNER — HOLD RIGHT MOUSE TO CHARGE' : 'HOLD RIGHT MOUSE TO CHARGE';
+    } else if (chargeUnlocked && chargeHeld) {
+      prompt = 'HOLD TO CHARGE';
+      promptSub = 'RELEASE TO FIRE';
     } else if (state.time < 8) {
       prompt = single ? 'DRIVE · AIM · FIRE' : opts.role === 'driver' ? 'DRIVE · COLLECT SCRAP' : 'FIRE · KILL ENEMIES';
       promptSub = single ? 'WASD · SHIFT · SPACE · LMB · RMB' : opts.role === 'driver' ? 'WASD + SHIFT + SPACE' : 'LMB MG · RMB CANNON';
     } else if (state.time > 40 && state.truck.active) {
       prompt = 'LOOT TRUCK';
-      promptSub = 'DESTROY IT FOR JACKPOT SCRAP';
+      promptSub = 'DESTROY IT FOR LOOT SCRAP';
     }
     if (!opts.pointerLocked) {
       prompt = 'CLICK TO AIM';
@@ -173,18 +182,17 @@ export class HudProjector {
         dashCooling: t.dashCooldown > 0,
       },
       gunner: {
-        jackpot: state.stats.jackpotMeter,
-        jackpotMax: 100,
-        jackpotReady: jp,
-        chargeRatio: Math.min(1, state.turret.chargeT / Math.max(0.001, chargeSeconds)),
-        chargeMax: 1,
         cannonCooldown: state.turret.cannonCooldown,
         cooldownRatio: Math.max(0, state.turret.cannonCooldown / Math.max(0.001, cannonCooldownMax)),
+        chargeUnlocked,
+        chargeHeld,
+        chargeRatio,
+        chargeFull,
+        chargeMax: 1,
       },
       prompt,
       promptSub,
       crosshairVisible: single || opts.role === 'gunner',
-      chargeVisible: state.turret.chargeT > 0,
       objective: {
         visible: objectiveVisible,
         screenX: opts.objective?.x ?? 0,

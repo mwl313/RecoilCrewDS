@@ -86,12 +86,11 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(pack.ids('tanks')).toEqual(['tank.default']);
     expect([...pack.ids('loadouts')].sort()).toEqual(['loadout.default', 'loadout.truckHunter']);
     expect([...pack.ids('weapons')].sort()).toEqual([
-      'weapon.jackpotShell',
       'weapon.machineGun',
       'weapon.mainCannon',
       'weapon.rapidCannon',
     ]);
-    expect(pack.ids('projectiles')).toHaveLength(3);
+    expect(pack.ids('projectiles')).toHaveLength(2);
     expect([...pack.ids('enemies')].sort()).toEqual([
       'enemy.gunTower',
       'enemy.lootTruck',
@@ -122,16 +121,16 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(cannon.behaviorId).toBe('weapon.projectile');
     expect(cannon.cooldownSeconds).toBe(BASE_CONFIG.weapons.cannonCooldown);
     expect(cannon.projectileId).toBe('projectile.cannonShell');
-    const jackpot = pack.getWeapon('weapon.jackpotShell');
-    expect(jackpot.behaviorId).toBe('weapon.chargeProjectile');
-    expect(jackpot.chargeSeconds).toBe(BASE_CONFIG.weapons.jackpotChargeTime);
+    const cannonCharge = pack.getWeapon('weapon.mainCannon').charge;
+    expect(cannonCharge?.capabilityId).toBe('cannon.charge');
+    expect(cannonCharge?.tapMaxSeconds).toBe(BASE_CONFIG.weapons.chargeTapMaxSeconds);
     const rammer = pack.getEnemy('enemy.rammer');
     expect((rammer as { chargeSpeed: number }).chargeSpeed).toBe(BASE_CONFIG.enemies.rammerChargeSpeed);
     const truck = pack.getEnemy('enemy.lootTruck');
     expect((truck as { spawnTime: number }).spawnTime).toBe(BASE_CONFIG.enemies.truckSpawnTime);
     const scoring = pack.getScoring('scoring.demoScoreAttack');
     expect(scoring.enemyScores['enemy.scrapBug']).toBe(BASE_CONFIG.scoring.bugScore);
-    expect(scoring.jackpotGains.normalScrap).toBe(BASE_CONFIG.jackpot.normalScrapGain);
+    expect(scoring.comboGains.dash).toBe(4);
     const spawn = pack.getSpawnDirector('spawn.director.demoScoreAttack');
     expect(spawn.rammerSpawns).toEqual([22, 34, 50]);
     expect(spawn.towerSpawns).toEqual([26, 58]);

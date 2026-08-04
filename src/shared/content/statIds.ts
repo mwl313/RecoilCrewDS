@@ -22,7 +22,6 @@ const CATEGORY_RENAMES: Record<string, string> = {
   weapons: 'weapon',
   enemies: 'enemy',
   scoring: 'scoring',
-  jackpot: 'jackpot',
   arena: 'arena',
 };
 

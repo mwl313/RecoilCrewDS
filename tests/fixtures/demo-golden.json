@@ -25,6 +25,7 @@
           "integrity": 100,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 2,
           "deadT": 0,
           "grounded": true,
@@ -34,11 +35,14 @@
         "turret": {
           "yaw": 1.570796,
           "pitch": 0.05,
-          "chargeT": 0,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 0,
+          "cannonFlash": 0,
           "mgCooldown": 0,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": false
         },
         "combo": {
           "multiplier": 1,
@@ -48,14 +52,17 @@
           "lastAnyT": -99,
           "best": 1
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 0,
-          "jackpotMeter": 0,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 0,
           "scrapCollected": 0,
           "links": 0,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 0,
           "bestCombo": 1,
@@ -258,6 +265,7 @@
           "integrity": 82,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 0,
           "deadT": 0,
           "grounded": true,
@@ -267,11 +275,14 @@
         "turret": {
           "yaw": -2.179902,
           "pitch": 0.05,
-          "chargeT": 0,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 1.4,
+          "cannonFlash": 0,
           "mgCooldown": 0.024242,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": true
         },
         "combo": {
           "multiplier": 2,
@@ -281,14 +292,17 @@
           "lastAnyT": 9.833333,
           "best": 2
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 50,
-          "jackpotMeter": 3,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 1,
           "scrapCollected": 0,
           "links": 0,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 0,
           "bestCombo": 1,
@@ -539,6 +553,7 @@
           "integrity": 31,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 0,
           "deadT": 0,
           "grounded": true,
@@ -548,11 +563,14 @@
         "turret": {
           "yaw": -1.986572,
           "pitch": 0.05,
-          "chargeT": 0,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 1.033333,
+          "cannonFlash": 0,
           "mgCooldown": 0,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": false
         },
         "combo": {
           "multiplier": 2,
@@ -562,14 +580,17 @@
           "lastAnyT": 29.433333,
           "best": 2
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 1450,
-          "jackpotMeter": 33,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 8,
           "scrapCollected": 0,
           "links": 0,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 0,
           "bestCombo": 1,
@@ -1004,17 +1025,18 @@
         "modifier": "none",
         "countdown": 0,
         "tank": {
-          "x": -5.019018,
+          "x": -5.019169,
           "y": 0.854462,
-          "z": 38.899843,
-          "vx": -15.208154,
+          "z": 38.89984,
+          "vx": -15.208484,
           "vy": 7.641935,
-          "vz": -0.251537,
-          "yaw": -1.64069,
+          "vz": -0.253539,
+          "yaw": -1.640694,
           "yawVel": -0.052391,
           "integrity": 0,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 0,
           "deadT": 1.1,
           "grounded": false,
@@ -1022,13 +1044,16 @@
           "prevOnRamp": false
         },
         "turret": {
-          "yaw": -2.618338,
+          "yaw": -2.61834,
           "pitch": 0.05,
-          "chargeT": 0.7,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 0.4,
+          "cannonFlash": 0,
           "mgCooldown": 0.057576,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": true
         },
         "combo": {
           "multiplier": 1,
@@ -1038,14 +1063,17 @@
           "lastAnyT": 41.366667,
           "best": 5
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 5971,
-          "jackpotMeter": 50,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 14,
           "scrapCollected": 7,
           "links": 5,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 1,
           "bestCombo": 1,
@@ -1055,10 +1083,10 @@
           {
             "id": 11,
             "type": "scrapBug",
-            "x": -2.858813,
+            "x": -2.858905,
             "y": 0,
             "z": 34.45,
-            "yaw": -0.705506,
+            "yaw": -0.705528,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1074,10 +1102,10 @@
           {
             "id": 12,
             "type": "scrapBug",
-            "x": -26.64599,
+            "x": -26.645994,
             "y": 0,
-            "z": -22.582716,
-            "yaw": 0.33824,
+            "z": -22.582709,
+            "yaw": 0.338237,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1093,10 +1121,10 @@
           {
             "id": 14,
             "type": "scrapBug",
-            "x": 4.385841,
+            "x": 4.385764,
             "y": 0,
             "z": 34.45,
-            "yaw": -0.029578,
+            "yaw": -0.029582,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1114,8 +1142,8 @@
             "type": "scrapBug",
             "x": 11.8,
             "y": 0,
-            "z": 25.562587,
-            "yaw": -1.962073,
+            "z": 25.562562,
+            "yaw": -1.962076,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1131,10 +1159,10 @@
           {
             "id": 18,
             "type": "scrapBug",
-            "x": 12.669101,
+            "x": 12.669077,
             "y": 0,
-            "z": 31.193713,
-            "yaw": -0.040203,
+            "z": 31.193698,
+            "yaw": -0.040206,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1150,10 +1178,10 @@
           {
             "id": 20,
             "type": "scrapBug",
-            "x": 15.43874,
+            "x": 15.438736,
             "y": 0,
-            "z": 32.989487,
-            "yaw": -1.478996,
+            "z": 32.989474,
+            "yaw": -1.478997,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1169,10 +1197,10 @@
           {
             "id": 21,
             "type": "scrapBug",
-            "x": 16.487714,
+            "x": 16.487712,
             "y": 0,
-            "z": 35.178631,
-            "yaw": -1.399467,
+            "z": 35.178622,
+            "yaw": -1.399468,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1290,25 +1318,25 @@
           {
             "id": 10,
             "kind": "normal",
-            "x": 9.048483,
+            "x": 9.048481,
             "y": 0.647698,
-            "z": 39.122559,
+            "z": 39.12256,
             "life": 20.366667,
             "collected": true
           },
           {
             "id": 11,
             "kind": "normal",
-            "x": 4.798377,
+            "x": 4.798395,
             "y": 0.620284,
-            "z": 39.365925,
+            "z": 39.365942,
             "life": 15.7,
             "collected": true
           },
           {
             "id": 12,
             "kind": "normal",
-            "x": 9.003134,
+            "x": 9.003133,
             "y": 0.647698,
             "z": 39.493868,
             "life": 22.1,
@@ -1319,7 +1347,7 @@
             "kind": "normal",
             "x": 9.981663,
             "y": 0.647698,
-            "z": 39.076088,
+            "z": 39.076086,
             "life": 25.666667,
             "collected": true
           },
@@ -1328,43 +1356,43 @@
             "kind": "normal",
             "x": 11.8,
             "y": 0.55,
-            "z": 33.23714,
+            "z": 33.237139,
             "life": 23.133333,
             "collected": false
           },
           {
             "id": 15,
             "kind": "heavy",
-            "x": 10.009209,
+            "x": 10.009213,
             "y": 0.59065,
-            "z": 39.263557,
+            "z": 39.263552,
             "life": 25.9,
             "collected": true
           },
           {
             "id": 16,
             "kind": "normal",
-            "x": 10.203593,
+            "x": 10.2036,
             "y": 0.611426,
-            "z": 39.202555,
+            "z": 39.202551,
             "life": 25.833333,
             "collected": true
           },
           {
             "id": 17,
             "kind": "heavy",
-            "x": 7.503204,
+            "x": 7.503238,
             "y": 0.652928,
-            "z": 39.453602,
+            "z": 39.453589,
             "life": 25.633333,
             "collected": true
           },
           {
             "id": 18,
             "kind": "normal",
-            "x": -1.772285,
+            "x": -1.771914,
             "y": 0.782432,
-            "z": 39.265344,
+            "z": 39.26536,
             "life": 24.766667,
             "collected": false
           }
@@ -1516,15 +1544,16 @@
         "tank": {
           "x": -36.600425,
           "y": 0,
-          "z": 37.127503,
+          "z": 37.127565,
           "vx": 0,
           "vy": 0,
-          "vz": 0.044252,
-          "yaw": -1.541654,
+          "vz": 0.044309,
+          "yaw": -1.541645,
           "yawVel": -0.012993,
           "integrity": 17,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 0,
           "deadT": 0,
           "grounded": true,
@@ -1532,30 +1561,36 @@
           "prevOnRamp": false
         },
         "turret": {
-          "yaw": 3.132444,
+          "yaw": 3.13244,
           "pitch": 0.05,
-          "chargeT": 0,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 0.166667,
+          "cannonFlash": 0,
           "mgCooldown": 0,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": false
         },
         "combo": {
           "multiplier": 2,
-          "points": 16,
+          "points": 17,
           "lastDriverT": 45.566667,
           "lastGunnerT": 58.6,
           "lastAnyT": 58.6,
           "best": 5
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 6396,
-          "jackpotMeter": 63,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 17,
           "scrapCollected": 8,
           "links": 5,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 1,
           "bestCombo": 1,
@@ -1565,9 +1600,9 @@
           {
             "id": 12,
             "type": "scrapBug",
-            "x": -31.837703,
+            "x": -31.837672,
             "y": 0,
-            "z": 25.201159,
+            "z": 25.201148,
             "yaw": -0.380065,
             "hp": 3,
             "maxHp": 3,
@@ -1584,10 +1619,10 @@
           {
             "id": 17,
             "type": "scrapBug",
-            "x": -21.067638,
+            "x": -21.067655,
             "y": 0,
-            "z": 22.817046,
-            "yaw": -0.826541,
+            "z": 22.817065,
+            "yaw": -0.826539,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1603,10 +1638,10 @@
           {
             "id": 18,
             "type": "scrapBug",
-            "x": -19.939967,
+            "x": -19.938824,
             "y": 0,
-            "z": 37.546445,
-            "yaw": -1.596206,
+            "z": 37.546508,
+            "yaw": -1.596205,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1622,10 +1657,10 @@
           {
             "id": 21,
             "type": "scrapBug",
-            "x": -13.596909,
+            "x": -13.596943,
             "y": 0,
-            "z": 24.511583,
-            "yaw": -1.069405,
+            "z": 24.511607,
+            "yaw": -1.069403,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1660,10 +1695,10 @@
           {
             "id": 23,
             "type": "scrapBug",
-            "x": -4.205355,
+            "x": -4.205364,
             "y": 0,
-            "z": 27.251334,
-            "yaw": -1.275008,
+            "z": 27.25134,
+            "yaw": -1.275007,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1679,9 +1714,9 @@
           {
             "id": 24,
             "type": "rammer",
-            "x": -31.931308,
+            "x": -31.931287,
             "y": 0,
-            "z": 0.283483,
+            "z": 0.283482,
             "yaw": -0.126057,
             "hp": 14,
             "maxHp": 14,
@@ -1698,10 +1733,10 @@
           {
             "id": 25,
             "type": "scrapBug",
-            "x": -25.614154,
+            "x": -25.614216,
             "y": 0,
-            "z": 37.444798,
-            "yaw": -1.600072,
+            "z": 37.444807,
+            "yaw": -1.600068,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1717,10 +1752,10 @@
           {
             "id": 26,
             "type": "scrapBug",
-            "x": 18.784404,
+            "x": 18.784405,
             "y": 0,
-            "z": -16.857336,
-            "yaw": -0.79824,
+            "z": -16.857335,
+            "yaw": -0.798239,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -1744,7 +1779,7 @@
             "maxHp": 18,
             "state": "fire",
             "stateT": 0.1,
-            "aimYaw": -0.737833,
+            "aimYaw": -0.737832,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
@@ -1811,7 +1846,7 @@
           {
             "id": 7,
             "kind": "heavy",
-            "x": -5.634288,
+            "x": -5.634287,
             "y": 0.645932,
             "z": 10.7396,
             "life": 12.033333,
@@ -1838,25 +1873,25 @@
           {
             "id": 10,
             "kind": "normal",
-            "x": 9.048483,
+            "x": 9.048481,
             "y": 0.647698,
-            "z": 39.122559,
+            "z": 39.12256,
             "life": 20.366667,
             "collected": true
           },
           {
             "id": 11,
             "kind": "normal",
-            "x": 4.798377,
+            "x": 4.798395,
             "y": 0.620284,
-            "z": 39.365925,
+            "z": 39.365942,
             "life": 15.7,
             "collected": true
           },
           {
             "id": 12,
             "kind": "normal",
-            "x": 9.003134,
+            "x": 9.003133,
             "y": 0.647698,
             "z": 39.493868,
             "life": 22.1,
@@ -1867,7 +1902,7 @@
             "kind": "normal",
             "x": 9.981663,
             "y": 0.647698,
-            "z": 39.076088,
+            "z": 39.076086,
             "life": 25.666667,
             "collected": true
           },
@@ -1876,70 +1911,70 @@
             "kind": "normal",
             "x": 11.8,
             "y": 0.55,
-            "z": 33.23714,
+            "z": 33.237139,
             "life": 8.2,
             "collected": false
           },
           {
             "id": 15,
             "kind": "heavy",
-            "x": 10.009209,
+            "x": 10.009213,
             "y": 0.59065,
-            "z": 39.263557,
+            "z": 39.263552,
             "life": 25.9,
             "collected": true
           },
           {
             "id": 16,
             "kind": "normal",
-            "x": 10.203593,
+            "x": 10.2036,
             "y": 0.611426,
-            "z": 39.202555,
+            "z": 39.202551,
             "life": 25.833333,
             "collected": true
           },
           {
             "id": 17,
             "kind": "heavy",
-            "x": 7.503204,
+            "x": 7.503238,
             "y": 0.652928,
-            "z": 39.453602,
+            "z": 39.453589,
             "life": 25.633333,
             "collected": true
           },
           {
             "id": 18,
             "kind": "normal",
-            "x": -1.772285,
+            "x": -1.771914,
             "y": 0.782432,
-            "z": 39.265344,
+            "z": 39.26536,
             "life": 9.833333,
             "collected": false
           },
           {
             "id": 19,
             "kind": "normal",
-            "x": -5.642463,
+            "x": -5.642549,
             "y": 0.55,
-            "z": 27.374491,
+            "z": 27.374478,
             "life": 13.133333,
             "collected": false
           },
           {
             "id": 20,
             "kind": "normal",
-            "x": -7.544273,
+            "x": -7.544303,
             "y": 0.55,
-            "z": 31.099528,
+            "z": 31.099508,
             "life": 16.666667,
             "collected": false
           },
           {
             "id": 21,
             "kind": "normal",
-            "x": -8.440902,
+            "x": -8.440808,
             "y": 0.55,
-            "z": 36.572197,
+            "z": 36.572105,
             "life": 20.033333,
             "collected": false
           }
@@ -2089,17 +2124,18 @@
         "modifier": "none",
         "countdown": 0,
         "tank": {
-          "x": -36.795105,
+          "x": -39.5,
           "y": 0,
-          "z": -36.983775,
-          "vx": -0.371502,
+          "z": -10.415809,
+          "vx": 0,
           "vy": 0,
           "vz": 0,
-          "yaw": -2.234736,
-          "yawVel": -0.013678,
-          "integrity": 47,
+          "yaw": -2.32429,
+          "yawVel": 0.064163,
+          "integrity": 55,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 0,
           "deadT": 0,
           "grounded": true,
@@ -2107,32 +2143,38 @@
           "prevOnRamp": false
         },
         "turret": {
-          "yaw": 2.137564,
+          "yaw": 2.951924,
           "pitch": 0.05,
-          "chargeT": 0,
-          "cannonCooldown": 0.933333,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
+          "cannonCooldown": 0.7,
+          "cannonFlash": 0,
           "mgCooldown": 0,
-          "jackpotReady": false,
-          "jackpotCooldown": 6.1
+          "mgFiring": false
         },
         "combo": {
-          "multiplier": 2,
-          "points": 48,
-          "lastDriverT": 45.566667,
-          "lastGunnerT": 89.366667,
-          "lastAnyT": 89.366667,
+          "multiplier": 5,
+          "points": 25,
+          "lastDriverT": 88.6,
+          "lastGunnerT": 89.333333,
+          "lastAnyT": 89.333333,
           "best": 5
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
-          "score": 7956,
-          "jackpotMeter": 100,
-          "jackpotFired": 2,
-          "kills": 30,
-          "scrapCollected": 8,
+          "score": 6855,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
+          "kills": 29,
+          "scrapCollected": 9,
           "links": 5,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
-          "wipeouts": 2,
+          "wipeouts": 3,
           "bestCombo": 1,
           "anyContribution": true
         },
@@ -2140,18 +2182,18 @@
           {
             "id": 24,
             "type": "rammer",
-            "x": -37.55,
+            "x": -38.17206,
             "y": 0,
-            "z": -20.796829,
-            "yaw": 3.094104,
-            "hp": 2,
+            "z": -8.761406,
+            "yaw": -2.465226,
+            "hp": 14,
             "maxHp": 14,
-            "state": "telegraph",
-            "stateT": 0.1,
-            "aimYaw": 3.094104,
+            "state": "lock",
+            "stateT": 0.4,
+            "aimYaw": -2.465226,
             "speed": 0,
             "alive": true,
-            "telegraph": 0.65,
+            "telegraph": 0,
             "spawnT": 50.033333,
             "hitCd": 0,
             "shotsFired": null
@@ -2159,17 +2201,17 @@
           {
             "id": 28,
             "type": "scrapBug",
-            "x": -27.965283,
+            "x": -28.614276,
             "y": 0,
-            "z": -9.506609,
-            "yaw": -2.830945,
-            "hp": 3,
+            "z": 0.230554,
+            "yaw": -2.346267,
+            "hp": -4.8,
             "maxHp": 3,
-            "state": "hunt",
-            "stateT": 29.7,
+            "state": "dead",
+            "stateT": 0.7,
             "aimYaw": 0,
             "speed": 0,
-            "alive": true,
+            "alive": false,
             "telegraph": 0,
             "spawnT": 60.333333,
             "hitCd": 0,
@@ -2178,10 +2220,10 @@
           {
             "id": 30,
             "type": "scrapBug",
-            "x": 11.501467,
+            "x": 2.941844,
             "y": 0,
-            "z": 36.623323,
-            "yaw": -1.457384,
+            "z": 31.200638,
+            "yaw": -2.346541,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
@@ -2195,97 +2237,154 @@
             "shotsFired": null
           },
           {
-            "id": 33,
+            "id": 31,
             "type": "scrapBug",
-            "x": 7.052468,
+            "x": -35.063727,
             "y": 0,
-            "z": 0.272396,
-            "yaw": -2.275255,
+            "z": -9.408338,
+            "yaw": -0.943472,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
-            "stateT": 16.866667,
+            "stateT": 24.9,
             "aimYaw": 0,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
-            "spawnT": 73.166667,
+            "spawnT": 65.133333,
+            "hitCd": 0,
+            "shotsFired": null
+          },
+          {
+            "id": 32,
+            "type": "scrapBug",
+            "x": -21.751243,
+            "y": 0,
+            "z": -14.486922,
+            "yaw": -1.346054,
+            "hp": 3,
+            "maxHp": 3,
+            "state": "hunt",
+            "stateT": 18.433333,
+            "aimYaw": 0,
+            "speed": 0,
+            "alive": true,
+            "telegraph": 0,
+            "spawnT": 71.6,
+            "hitCd": 0,
+            "shotsFired": null
+          },
+          {
+            "id": 33,
+            "type": "rammer",
+            "x": -30.525797,
+            "y": 0,
+            "z": -17.5209,
+            "yaw": -0.903251,
+            "hp": -1.6,
+            "maxHp": 14,
+            "state": "dead",
+            "stateT": 2.433333,
+            "aimYaw": -0.903251,
+            "speed": 0,
+            "alive": false,
+            "telegraph": 0.15,
+            "spawnT": 78.766667,
+            "hitCd": 0,
+            "shotsFired": null
+          },
+          {
+            "id": 35,
+            "type": "scrapBug",
+            "x": -17.633319,
+            "y": 0,
+            "z": 13.447288,
+            "yaw": -2.400111,
+            "hp": 3,
+            "maxHp": 3,
+            "state": "hunt",
+            "stateT": 9.066667,
+            "aimYaw": 0,
+            "speed": 0,
+            "alive": true,
+            "telegraph": 0,
+            "spawnT": 80.966667,
             "hitCd": 0,
             "shotsFired": null
           },
           {
             "id": 36,
             "type": "scrapBug",
-            "x": 9.8,
+            "x": -35.146803,
             "y": 0,
-            "z": -23.871547,
-            "yaw": -0.737309,
+            "z": 8.000075,
+            "yaw": -2.909637,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
-            "stateT": 8.366667,
+            "stateT": 7.3,
             "aimYaw": 0,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
-            "spawnT": 81.666667,
+            "spawnT": 82.733333,
             "hitCd": 0,
             "shotsFired": null
           },
           {
             "id": 37,
             "type": "scrapBug",
-            "x": 17.631451,
+            "x": -37.392015,
             "y": 0,
-            "z": 16.887211,
-            "yaw": -2.351181,
+            "z": -22.058896,
+            "yaw": -0.185137,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
-            "stateT": 5.466667,
+            "stateT": 4.066667,
             "aimYaw": 0,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
-            "spawnT": 84.566667,
+            "spawnT": 85.966667,
             "hitCd": 0,
             "shotsFired": null
           },
           {
             "id": 38,
-            "type": "scrapBug",
-            "x": -31.513574,
-            "y": 0.997285,
-            "z": 13.391235,
-            "yaw": -3.037273,
-            "hp": 3,
-            "maxHp": 3,
-            "state": "hunt",
-            "stateT": 5.433333,
-            "aimYaw": 0,
+            "type": "rammer",
+            "x": -38.881625,
+            "y": 0,
+            "z": -8.141415,
+            "yaw": -2.724207,
+            "hp": 14,
+            "maxHp": 14,
+            "state": "recovery",
+            "stateT": 0.833333,
+            "aimYaw": -2.724207,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
-            "spawnT": 84.6,
+            "spawnT": 87.233333,
             "hitCd": 0,
             "shotsFired": null
           },
           {
             "id": 39,
             "type": "scrapBug",
-            "x": -12.477004,
+            "x": -30.221015,
             "y": 0,
-            "z": -36.796476,
-            "yaw": -1.578744,
+            "z": -27.665172,
+            "yaw": -0.493867,
             "hp": 3,
             "maxHp": 3,
             "state": "hunt",
-            "stateT": 3.533333,
+            "stateT": 0.7,
             "aimYaw": 0,
             "speed": 0,
             "alive": true,
             "telegraph": 0,
-            "spawnT": 86.5,
+            "spawnT": 89.333333,
             "hitCd": 0,
             "shotsFired": null
           }
@@ -2348,7 +2447,7 @@
           {
             "id": 7,
             "kind": "heavy",
-            "x": -5.634288,
+            "x": -5.634287,
             "y": 0.645932,
             "z": 10.7396,
             "life": 12.033333,
@@ -2375,25 +2474,25 @@
           {
             "id": 10,
             "kind": "normal",
-            "x": 9.048483,
+            "x": 9.048481,
             "y": 0.647698,
-            "z": 39.122559,
+            "z": 39.12256,
             "life": 20.366667,
             "collected": true
           },
           {
             "id": 11,
             "kind": "normal",
-            "x": 4.798377,
+            "x": 4.798395,
             "y": 0.620284,
-            "z": 39.365925,
+            "z": 39.365942,
             "life": 15.7,
             "collected": true
           },
           {
             "id": 12,
             "kind": "normal",
-            "x": 9.003134,
+            "x": 9.003133,
             "y": 0.647698,
             "z": 39.493868,
             "life": 22.1,
@@ -2404,7 +2503,7 @@
             "kind": "normal",
             "x": 9.981663,
             "y": 0.647698,
-            "z": 39.076088,
+            "z": 39.076086,
             "life": 25.666667,
             "collected": true
           },
@@ -2413,81 +2512,81 @@
             "kind": "normal",
             "x": 11.8,
             "y": 0.55,
-            "z": 33.23714,
+            "z": 33.237139,
             "life": 0,
             "collected": true
           },
           {
             "id": 15,
             "kind": "heavy",
-            "x": 10.009209,
+            "x": 10.009213,
             "y": 0.59065,
-            "z": 39.263557,
+            "z": 39.263552,
             "life": 25.9,
             "collected": true
           },
           {
             "id": 16,
             "kind": "normal",
-            "x": 10.203593,
+            "x": 10.2036,
             "y": 0.611426,
-            "z": 39.202555,
+            "z": 39.202551,
             "life": 25.833333,
             "collected": true
           },
           {
             "id": 17,
             "kind": "heavy",
-            "x": 7.503204,
+            "x": 7.503238,
             "y": 0.652928,
-            "z": 39.453602,
+            "z": 39.453589,
             "life": 25.633333,
             "collected": true
           },
           {
             "id": 18,
             "kind": "normal",
-            "x": -1.772285,
+            "x": -1.771914,
             "y": 0.782432,
-            "z": 39.265344,
+            "z": 39.26536,
             "life": 0,
             "collected": true
           },
           {
             "id": 19,
             "kind": "normal",
-            "x": -5.642463,
+            "x": -5.642549,
             "y": 0.55,
-            "z": 27.374491,
+            "z": 27.374478,
             "life": 0,
             "collected": true
           },
           {
             "id": 20,
             "kind": "normal",
-            "x": -7.544273,
+            "x": -7.544303,
             "y": 0.55,
-            "z": 31.099528,
+            "z": 31.099508,
             "life": 0,
             "collected": true
           },
           {
             "id": 21,
             "kind": "normal",
-            "x": -8.440902,
+            "x": -8.440808,
             "y": 0.55,
-            "z": 36.572197,
+            "z": 36.572105,
             "life": 0,
             "collected": true
           },
           {
             "id": 22,
             "kind": "normal",
-            "x": -26.750807,
+            "x": -26.750869,
             "y": 0.55,
-            "z": 37.413327,
-            "life": 0,
-            "collected": true
+            "z": 37.413342,
+            "life": 2.333333,
+            "collected": false
           },
           {
             "id": 23,
@@ -2495,8 +2594,8 @@
             "x": 18,
             "y": 0.55,
             "z": -22,
-            "life": 0,
-            "collected": true
+            "life": 2.633333,
+            "collected": false
           },
           {
             "id": 24,
@@ -2504,8 +2603,8 @@
             "x": 19,
             "y": 0.55,
             "z": -22,
-            "life": 0,
-            "collected": true
+            "life": 2.633333,
+            "collected": false
           },
           {
             "id": 25,
@@ -2513,133 +2612,115 @@
             "x": 17,
             "y": 0.55,
             "z": -22,
-            "life": 0,
-            "collected": true
+            "life": 2.633333,
+            "collected": false
           },
           {
             "id": 26,
             "kind": "normal",
-            "x": -34.334919,
+            "x": -34.334894,
             "y": 0.55,
-            "z": 30.850581,
-            "life": 0.866667,
+            "z": 30.850568,
+            "life": 3.9,
             "collected": false
           },
           {
             "id": 27,
             "kind": "normal",
-            "x": -30.848706,
+            "x": -30.847563,
             "y": 0.55,
-            "z": 36.665206,
-            "life": 2.5,
+            "z": 36.665264,
+            "life": 5.533333,
             "collected": false
           },
           {
             "id": 28,
             "kind": "normal",
-            "x": -32.390103,
+            "x": -32.390122,
             "y": 0.55,
-            "z": 34.817272,
-            "life": 4.1,
+            "z": 34.817288,
+            "life": 7.133333,
             "collected": false
           },
           {
             "id": 29,
             "kind": "normal",
-            "x": -0.387817,
-            "y": 0.13174,
-            "z": -0.305555,
-            "life": 7.2,
-            "collected": false
+            "x": -0.227489,
+            "y": 0.326643,
+            "z": -3.681532,
+            "life": 22.7,
+            "collected": true
           },
           {
             "id": 30,
-            "kind": "normal",
-            "x": -20.979895,
+            "kind": "heavy",
+            "x": -28.8,
             "y": 0.55,
-            "z": -7.396738,
-            "life": 9.1,
+            "z": -30,
+            "life": 13.966667,
             "collected": false
           },
           {
             "id": 31,
-            "kind": "heavy",
-            "x": -28.8,
-            "y": 0.55,
-            "z": -31.013844,
-            "life": 13.966667,
+            "kind": "normal",
+            "x": -32.624032,
+            "y": 0.699417,
+            "z": -4.490079,
+            "life": 15.266667,
             "collected": false
           },
           {
             "id": 32,
             "kind": "normal",
-            "x": -37.3,
+            "x": -33.009645,
             "y": 0.55,
-            "z": -22.206493,
-            "life": 15.7,
+            "z": -0.598261,
+            "life": 16.9,
             "collected": false
           },
           {
             "id": 33,
-            "kind": "heavy",
-            "x": -4,
-            "y": 0.463655,
-            "z": 4,
-            "life": 16.166667,
+            "kind": "normal",
+            "x": -28.218704,
+            "y": 0.55,
+            "z": -10.366286,
+            "life": 18.666667,
             "collected": false
           },
           {
             "id": 34,
             "kind": "normal",
-            "x": -3,
-            "y": 0.421429,
-            "z": 4,
-            "life": 16.166667,
+            "x": -29.899091,
+            "y": 0.55,
+            "z": -6.315845,
+            "life": 21.9,
             "collected": false
           },
           {
             "id": 35,
-            "kind": "normal",
-            "x": -5,
-            "y": 0.511629,
-            "z": 4,
-            "life": 16.166667,
+            "kind": "heavy",
+            "x": -30.525797,
+            "y": 0.55,
+            "z": -17.5209,
+            "life": 23.533333,
             "collected": false
           },
           {
             "id": 36,
             "kind": "normal",
-            "x": -21.349183,
+            "x": -29.325797,
             "y": 0.55,
-            "z": -12.836848,
-            "life": 17.6,
+            "z": -17.5209,
+            "life": 23.533333,
             "collected": false
           },
           {
             "id": 37,
             "kind": "normal",
-            "x": -14.584564,
+            "x": -28.614276,
             "y": 0.55,
-            "z": -33.136765,
-            "life": 20.5,
-            "collected": false
-          },
-          {
-            "id": 38,
-            "kind": "normal",
-            "x": -15.526669,
-            "y": 0.55,
-            "z": -37.272449,
-            "life": 20.5,
-            "collected": false
-          },
-          {
-            "id": 39,
-            "kind": "normal",
-            "x": -24.444275,
-            "y": 0.55,
-            "z": -15.796501,
-            "life": 22.433333,
+            "z": 0.230554,
+            "life": 25.266667,
             "collected": false
           }
         ],
@@ -2689,9 +2770,9 @@
             "id": 5,
             "x": -4,
             "z": -8,
-            "exploded": true,
-            "fuseT": -0.026667,
-            "hp": 999
+            "exploded": false,
+            "fuseT": 0,
+            "hp": 0
           },
           {
             "id": 6,
@@ -2770,8 +2851,8 @@
           "active": false,
           "x": -28.8,
           "y": 0,
-          "z": -31.013844,
-          "yaw": 1.553458,
+          "z": -30,
+          "yaw": 1.570796,
           "hp": 26,
           "waypoint": 1,
           "escaped": true
@@ -2799,6 +2880,7 @@
           "integrity": 100,
           "dashCooldown": 0,
           "dashPresentationT": 0,
+          "dashDamageT": 0,
           "shieldedT": 2,
           "deadT": 0,
           "grounded": true,
@@ -2808,11 +2890,14 @@
         "turret": {
           "yaw": 1.570796,
           "pitch": 0.05,
-          "chargeT": 0,
+          "cannonHeld": false,
+          "cannonHoldT": 0,
+          "cannonChargeRatio": 0,
+          "cannonChargeFull": false,
           "cannonCooldown": 0,
+          "cannonFlash": 0,
           "mgCooldown": 0,
-          "jackpotReady": false,
-          "jackpotCooldown": 0
+          "mgFiring": false
         },
         "combo": {
           "multiplier": 1,
@@ -2822,14 +2907,17 @@
           "lastAnyT": -99,
           "best": 1
         },
+        "build": {
+          "capabilities": []
+        },
         "stats": {
           "score": 0,
-          "jackpotMeter": 0,
-          "jackpotFired": 0,
+          "chargedCannonShots": 0,
+          "fullChargeShots": 0,
           "kills": 0,
           "scrapCollected": 0,
           "links": 0,
-          "ramKills": 0,
+          "dashKills": 0,
           "dodgeCount": 0,
           "wipeouts": 0,
           "bestCombo": 1,
@@ -3013,40 +3101,38 @@
     }
   ],
   "results": {
-    "score": 7956,
+    "score": 6855,
     "bestCombo": 5,
-    "jackpotFired": 2,
-    "kills": 30,
-    "scrapCollected": 8,
+    "chargedCannonShots": 0,
+    "fullChargeShots": 0,
+    "kills": 29,
+    "scrapCollected": 9,
     "links": 5,
-    "wipeouts": 2,
-    "grade": "B",
-    "title": "Unlicensed Ballistics",
+    "wipeouts": 3,
+    "grade": "C",
+    "title": "Airborne Division",
     "modifier": "none"
   },
   "eventCounts": {
     "jump": 14,
     "dash": 12,
-    "shot": 640,
-    "recoil": 614,
-    "enemyExplosion": 61,
-    "hit": 96,
-    "score": 45,
-    "comboChange": 7,
-    "kill": 30,
-    "crash": 46,
-    "rammerTelegraph": 10,
-    "towerFire": 9,
-    "pickup": 8,
+    "shot": 617,
+    "recoil": 590,
+    "enemyExplosion": 56,
+    "hit": 111,
+    "score": 46,
+    "comboChange": 13,
+    "kill": 29,
+    "crash": 59,
+    "rammerTelegraph": 15,
+    "towerFire": 6,
+    "pickup": 9,
     "link": 5,
-    "assist": 8,
     "truckSpawn": 1,
-    "wipeout": 2,
-    "respawn": 2,
-    "jackpotFire": 2,
-    "jackpotImpact": 2,
-    "barrelExplode": 2,
-    "truckEscape": 1
+    "wipeout": 3,
+    "respawn": 3,
+    "truckEscape": 1,
+    "barrelExplode": 1
   },
   "eventTrace": [
     {
@@ -6264,9 +6350,6 @@
       "value": 200
     },
     {
-      "type": "assist"
-    },
-    {
       "type": "link"
     },
     {
@@ -6358,6 +6441,10 @@
     {
       "type": "score",
       "value": 75
+    },
+    {
+      "type": "comboChange",
+      "value": 2
     },
     {
       "type": "pickup",
@@ -6499,10 +6586,6 @@
       "kind": "cannon"
     },
     {
-      "type": "comboChange",
-      "value": 2
-    },
-    {
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
@@ -6516,6 +6599,10 @@
     {
       "type": "score",
       "value": 100
+    },
+    {
+      "type": "comboChange",
+      "value": 3
     },
     {
       "type": "kill",
@@ -6604,10 +6691,6 @@
     {
       "type": "shot",
       "kind": "cannon"
-    },
-    {
-      "type": "comboChange",
-      "value": 3
     },
     {
       "type": "enemyExplosion",
@@ -8031,12 +8114,6 @@
       "type": "wipeout"
     },
     {
-      "type": "assist"
-    },
-    {
-      "type": "assist"
-    },
-    {
       "type": "rammerTelegraph",
       "id": 24
     },
@@ -8141,9 +8218,6 @@
       "kind": "mg"
     },
     {
-      "type": "assist"
-    },
-    {
       "type": "recoil",
       "value": 0.15
     },
@@ -8225,40 +8299,135 @@
     },
     {
       "type": "recoil",
-      "value": 17
+      "value": 10.5
     },
     {
-      "type": "jackpotFire"
+      "type": "shot",
+      "kind": "cannon"
+    },
+    {
+      "type": "enemyExplosion",
+      "kind": "cannon",
+      "value": 3.4
+    },
+    {
+      "type": "hit",
+      "kind": "scrapBug",
+      "id": 26,
+      "value": 12
+    },
+    {
+      "type": "score",
+      "value": 50
     },
     {
       "type": "comboChange",
       "value": 2
     },
     {
-      "type": "assist"
-    },
-    {
-      "type": "assist"
-    },
-    {
-      "type": "jackpotImpact",
-      "value": 9
-    },
-    {
-      "type": "hit",
-      "kind": "scrapBug",
-      "id": 26,
-      "value": 60
-    },
-    {
-      "type": "score",
-      "value": 100
-    },
-    {
       "type": "kill",
       "kind": "scrapBug",
       "id": 26,
       "value": 50
+    },
+    {
+      "type": "jump"
+    },
+    {
+      "type": "dash"
+    },
+    {
+      "type": "shot",
+      "kind": "mgStart"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
     },
     {
       "type": "recoil",
@@ -8279,18 +8448,13 @@
       "value": 5
     },
     {
-      "type": "barrelExplode",
-      "value": 2.4
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
     },
     {
-      "type": "jump"
-    },
-    {
-      "type": "dash"
-    },
-    {
-      "type": "shot",
-      "kind": "mgStart"
+      "type": "crash",
+      "value": 4
     },
     {
       "type": "recoil",
@@ -8341,20 +8505,13 @@
       "kind": "mg"
     },
     {
-      "type": "recoil",
-      "value": 0.15
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
     },
     {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
+      "type": "crash",
+      "value": 4
     },
     {
       "type": "recoil",
@@ -8365,12 +8522,199 @@
       "kind": "mg"
     },
     {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
       "type": "recoil",
       "value": 0.15
     },
     {
       "type": "shot",
       "kind": "mg"
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "crash",
+      "value": 4
     },
     {
       "type": "recoil",
@@ -8381,20 +8725,13 @@
       "kind": "cannon"
     },
     {
-      "type": "recoil",
-      "value": 0.15
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
     },
     {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
+      "type": "crash",
+      "value": 4
     },
     {
       "type": "enemyExplosion",
@@ -8403,336 +8740,33 @@
     },
     {
       "type": "hit",
-      "kind": "scrapBug",
-      "id": 29,
-      "value": 7.8
+      "kind": "lootTruck",
+      "id": 22,
+      "value": 12
+    },
+    {
+      "type": "hit",
+      "kind": "crash",
+      "value": 4
+    },
+    {
+      "type": "wipeout"
+    },
+    {
+      "type": "crash",
+      "value": 4
+    },
+    {
+      "type": "respawn"
     },
     {
       "type": "score",
-      "value": 100
+      "value": 25
     },
     {
-      "type": "kill",
-      "kind": "scrapBug",
-      "id": 29,
-      "value": 50
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "barrelExplode",
-      "value": 2.4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "crash",
-      "kind": "truck",
-      "value": 0
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "crash",
-      "kind": "truck",
-      "value": 0
-    },
-    {
-      "type": "crash",
-      "kind": "truck",
-      "value": 0
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 10.5
-    },
-    {
-      "type": "shot",
-      "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "shot",
-      "kind": "mgStart"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 10.5
-    },
-    {
-      "type": "shot",
-      "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 10.5
-    },
-    {
-      "type": "shot",
-      "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
+      "type": "pickup",
+      "kind": "normal",
+      "value": 25
     },
     {
       "type": "truckEscape"
@@ -8753,9 +8787,294 @@
       "kind": "mg"
     },
     {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 10.5
+    },
+    {
+      "type": "shot",
+      "kind": "cannon"
+    },
+    {
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
+    },
+    {
+      "type": "hit",
+      "kind": "scrapBug",
+      "id": 21,
+      "value": 12
+    },
+    {
+      "type": "score",
+      "value": 50
+    },
+    {
+      "type": "comboChange",
+      "value": 2
+    },
+    {
+      "type": "kill",
+      "kind": "scrapBug",
+      "id": 21,
+      "value": 50
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "dash"
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 24
+    },
+    {
+      "type": "recoil",
+      "value": 10.5
+    },
+    {
+      "type": "shot",
+      "kind": "cannon"
+    },
+    {
+      "type": "enemyExplosion",
+      "kind": "cannon",
+      "value": 3.4
+    },
+    {
+      "type": "hit",
+      "kind": "scrapBug",
+      "id": 34,
+      "value": 12
+    },
+    {
+      "type": "score",
+      "value": 100
+    },
+    {
+      "type": "comboChange",
+      "value": 3
+    },
+    {
+      "type": "kill",
+      "kind": "scrapBug",
+      "id": 34,
+      "value": 50
+    },
+    {
+      "type": "hit",
+      "kind": "splash",
+      "value": 5
+    },
+    {
+      "type": "shot",
+      "kind": "mgStart"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
     },
     {
       "type": "recoil",
@@ -8815,56 +9134,7 @@
     },
     {
       "type": "rammerTelegraph",
-      "kind": "tower",
-      "id": 34
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
+      "id": 33
     },
     {
       "type": "recoil",
@@ -8891,33 +9161,12 @@
       "kind": "cannon"
     },
     {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
       "type": "recoil",
       "value": 0.15
     },
     {
       "type": "shot",
       "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "towerFire",
-      "id": 34
     },
     {
       "type": "enemyExplosion",
@@ -8927,185 +9176,21 @@
     {
       "type": "hit",
       "kind": "scrapBug",
-      "id": 32,
+      "id": 29,
       "value": 12
     },
     {
       "type": "score",
-      "value": 100
+      "value": 150
     },
     {
-      "type": "kill",
-      "kind": "scrapBug",
-      "id": 32,
-      "value": 50
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "hit",
-      "kind": "gunTower",
-      "id": 34,
-      "value": 7.8
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "towerFire",
-      "id": 34
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "hit",
-      "kind": "gunTower",
-      "id": 34,
-      "value": 7.8
-    },
-    {
-      "type": "dash"
-    },
-    {
-      "type": "towerFire",
-      "id": 34
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "hit",
-      "kind": "gunTower",
-      "id": 34,
-      "value": 7.8
-    },
-    {
-      "type": "score",
-      "value": 800
-    },
-    {
-      "type": "kill",
-      "kind": "gunTower",
-      "id": 34,
-      "value": 400
-    },
-    {
-      "type": "shot",
-      "kind": "mgStart"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 10.5
-    },
-    {
-      "type": "shot",
-      "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
+      "type": "comboChange",
       "value": 4
     },
     {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
-    },
-    {
-      "type": "hit",
-      "kind": "scrapBug",
-      "id": 23,
-      "value": 12
-    },
-    {
-      "type": "score",
-      "value": 100
-    },
-    {
       "type": "kill",
       "kind": "scrapBug",
-      "id": 23,
+      "id": 29,
       "value": 50
     },
     {
@@ -9125,20 +9210,12 @@
       "kind": "mg"
     },
     {
-      "type": "recoil",
-      "value": 0.15
+      "type": "barrelExplode",
+      "value": 2.4
     },
     {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
+      "type": "comboChange",
+      "value": 5
     },
     {
       "type": "recoil",
@@ -9147,92 +9224,6 @@
     {
       "type": "shot",
       "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 10.5
-    },
-    {
-      "type": "shot",
-      "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "enemyExplosion",
-      "kind": "cannon",
-      "value": 3.4
     },
     {
       "type": "jump"
@@ -9251,52 +9242,6 @@
     },
     {
       "type": "recoil",
-      "value": 17
-    },
-    {
-      "type": "jackpotFire"
-    },
-    {
-      "type": "assist"
-    },
-    {
-      "type": "assist"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
       "value": 0.15
     },
     {
@@ -9312,107 +9257,6 @@
       "kind": "cannon"
     },
     {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "jackpotImpact",
-      "value": 9
-    },
-    {
-      "type": "hit",
-      "kind": "scrapBug",
-      "id": 31,
-      "value": 60
-    },
-    {
-      "type": "score",
-      "value": 100
-    },
-    {
-      "type": "kill",
-      "kind": "scrapBug",
-      "id": 31,
-      "value": 50
-    },
-    {
-      "type": "hit",
-      "kind": "scrapBug",
-      "id": 35,
-      "value": 60
-    },
-    {
-      "type": "score",
-      "value": 100
-    },
-    {
-      "type": "kill",
-      "kind": "scrapBug",
-      "id": 35,
-      "value": 50
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
       "type": "recoil",
       "value": 0.15
     },
@@ -9424,6 +9268,92 @@
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
+    },
+    {
+      "type": "hit",
+      "kind": "rammer",
+      "id": 33,
+      "value": 7.8
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 24
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 33
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
     },
     {
       "type": "recoil",
@@ -9499,6 +9429,14 @@
       "value": 4
     },
     {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
@@ -9506,18 +9444,30 @@
     {
       "type": "hit",
       "kind": "scrapBug",
-      "id": 21,
+      "id": 23,
       "value": 12
     },
     {
       "type": "score",
-      "value": 100
+      "value": 250
+    },
+    {
+      "type": "comboChange",
+      "value": 2
     },
     {
       "type": "kill",
       "kind": "scrapBug",
-      "id": 21,
+      "id": 23,
       "value": 50
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 24
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 33
     },
     {
       "type": "shot",
@@ -9565,44 +9515,11 @@
     },
     {
       "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
-    },
-    {
-      "type": "recoil",
       "value": 10.5
     },
     {
       "type": "shot",
       "kind": "cannon"
-    },
-    {
-      "type": "hit",
-      "kind": "crash",
-      "value": 4
-    },
-    {
-      "type": "crash",
-      "value": 4
-    },
-    {
-      "type": "recoil",
-      "value": 0.15
-    },
-    {
-      "type": "shot",
-      "kind": "mg"
     },
     {
       "type": "recoil",
@@ -9616,6 +9533,50 @@
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
+    },
+    {
+      "type": "hit",
+      "kind": "rammer",
+      "id": 33,
+      "value": 7.8
+    },
+    {
+      "type": "score",
+      "value": 500
+    },
+    {
+      "type": "kill",
+      "kind": "rammer",
+      "id": 33,
+      "value": 250
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "rammerTelegraph",
+      "id": 38
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
+    },
+    {
+      "type": "recoil",
+      "value": 0.15
+    },
+    {
+      "type": "shot",
+      "kind": "mg"
     },
     {
       "type": "recoil",
@@ -9677,12 +9638,29 @@
       "kind": "mg"
     },
     {
+      "type": "comboChange",
+      "value": 5
+    },
+    {
+      "type": "score",
+      "value": 0
+    },
+    {
       "type": "recoil",
       "value": 0.15
     },
     {
       "type": "shot",
       "kind": "mg"
+    },
+    {
+      "type": "hit",
+      "kind": "rammer",
+      "value": 16
+    },
+    {
+      "type": "crash",
+      "value": 16
     },
     {
       "type": "recoil",
@@ -9726,19 +9704,34 @@
       "value": 4
     },
     {
+      "type": "hit",
+      "kind": "rammer",
+      "value": 16
+    },
+    {
+      "type": "crash",
+      "value": 16
+    },
+    {
       "type": "enemyExplosion",
       "kind": "cannon",
       "value": 3.4
     },
     {
       "type": "hit",
-      "kind": "rammer",
-      "id": 24,
-      "value": 12
+      "kind": "scrapBug",
+      "id": 28,
+      "value": 7.8
     },
     {
-      "type": "rammerTelegraph",
-      "id": 24
+      "type": "score",
+      "value": 250
+    },
+    {
+      "type": "kill",
+      "kind": "scrapBug",
+      "id": 28,
+      "value": 50
     }
   ]
 }
