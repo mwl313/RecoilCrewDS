@@ -28,8 +28,8 @@ function state(overrides: Partial<MatchState> = {}): MatchState {
     matchFlow: 'playing',
     teamProgression: {
       level: 1, currentXp: 0, xpForNextLevel: 20, totalXpCollected: 0, pendingLevelUps: 0,
-      levelUpOffersCompleted: 0, treasureChestsOpened: 0, relicStacks: {},
-      activeSelection: null, lastRelicResult: null,
+      levelUpOffersCompleted: 0, treasureChestsOpened: 0, relicAcquisitionSequence: 0, relicStacks: {},
+      activeSelection: null, lastRelicResult: null, pendingRelicResults: [],
     },
     chests: [],
     xpShards: [],
