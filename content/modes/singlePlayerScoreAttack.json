@@ -1,0 +1,24 @@
+{
+  "id": "mode.singlePlayerScoreAttack",
+  "label": "Single Player Score Attack",
+  "description": "Local combined-control score attack.",
+  "mapProfileId": "map.arena400Primary",
+  "difficulty": "difficulty.standard",
+  "tank": "tank.default",
+  "loadout": "loadout.default",
+  "objectives": ["objective.highScore"],
+  "spawnDirector": "spawn.director.demoScoreAttack",
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.demoScoreAttack",
+  "presentation": "presentation.demoScoreAttack",
+  "session": {
+    "kind": "singlePlayer",
+    "networkRequired": false,
+    "controlScheme": "combinedDriverAndGunner",
+    "showRoleIdentity": false,
+    "showPeerStatus": false,
+    "allowRoleSwap": false,
+    "resultsFlow": "localRestart"
+  },
+  "behaviors": ["behavior.mode.demoScoreAttack"]
+}

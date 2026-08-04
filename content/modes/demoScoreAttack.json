@@ -11,6 +11,15 @@
   "scoring": "scoring.demoScoreAttack",
   "results": "results.demoScoreAttack",
   "presentation": "presentation.demoScoreAttack",
+  "session": {
+    "kind": "multiplayer",
+    "networkRequired": true,
+    "controlScheme": "assignedRole",
+    "showRoleIdentity": true,
+    "showPeerStatus": true,
+    "allowRoleSwap": false,
+    "resultsFlow": "crewRematchVote"
+  },
   "rematch": {
     "modifiers": [
       "difficulty.doubleBarrel",

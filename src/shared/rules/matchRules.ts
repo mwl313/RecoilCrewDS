@@ -3,6 +3,7 @@ import type { ContentPack } from '../content/contentPack';
 import type { DropTableDefinition } from '../content/schemas/dropTable';
 import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
+import type { ModeDefinition, ModeSessionPolicy } from '../content/schemas/mode';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
 import type { PickupDefinition } from '../content/schemas/pickup';
 import type { ResultsDefinition } from '../content/schemas/results';
@@ -33,6 +34,7 @@ export class MatchRules {
   readonly packVersion: string;
   readonly contentHash: string;
   readonly modeId: string;
+  readonly mode: ModeDefinition | null;
   readonly modifier: ModifierId;
   readonly difficultyId: string;
   readonly difficultyLabel: string;
@@ -62,6 +64,7 @@ export class MatchRules {
     packVersion: string;
     contentHash: string;
     modeId: string;
+    mode?: ModeDefinition | null;
     modifier: ModifierId;
     difficultyId: string;
     difficultyLabel: string;
@@ -76,6 +79,7 @@ export class MatchRules {
     this.packVersion = options.packVersion;
     this.contentHash = options.contentHash;
     this.modeId = options.modeId;
+    this.mode = options.mode ?? null;
     this.modifier = options.modifier;
     this.difficultyId = options.difficultyId;
     this.difficultyLabel = options.difficultyLabel;
@@ -133,6 +137,7 @@ export class MatchRules {
       packVersion: pack.version,
       contentHash: pack.hash,
       modeId,
+      mode,
       modifier,
       difficultyId,
       difficultyLabel: difficulty.label ?? difficulty.id,
@@ -183,6 +188,7 @@ export class MatchRules {
       packVersion: '0',
       contentHash: 'legacy-config',
       modeId: 'mode.demoScoreAttack',
+      mode: null,
       modifier,
       difficultyId: `difficulty.${modifier}`,
       difficultyLabel: legacyOverrides?.label ?? 'Standard Rules',
@@ -276,6 +282,21 @@ export class MatchRules {
       rulesRevision: this.rulesRev,
       movementRulesRevision: this.movementRev,
     });
+  }
+
+  /** Resolved mode session policy (legacy/default = multiplayer). */
+  get sessionPolicy(): ModeSessionPolicy {
+    return (
+      this.mode?.session ?? {
+        kind: 'multiplayer',
+        networkRequired: true,
+        controlScheme: 'assignedRole',
+        showRoleIdentity: true,
+        showPeerStatus: true,
+        allowRoleSwap: false,
+        resultsFlow: 'crewRematchVote',
+      }
+    );
   }
 
   private refreshProjections(): void {

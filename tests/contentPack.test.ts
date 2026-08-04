@@ -48,7 +48,11 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(pack.version).toBe('1.0.0');
     expect(pack.modeId).toBe('mode.demoScoreAttack');
     expect(pack.hash).toMatch(/^[0-9a-f]{64}$/);
-    expect([...pack.ids('modes')].sort()).toEqual(['mode.demoScoreAttack', 'mode.truckHunter']);
+    expect([...pack.ids('modes')].sort()).toEqual([
+      'mode.demoScoreAttack',
+      'mode.singlePlayerScoreAttack',
+      'mode.truckHunter',
+    ]);
     expect([...pack.ids('objectives')].sort()).toEqual(['objective.highScore', 'objective.truckEscort']);
     expect([...pack.ids('maps')].sort()).toEqual([
       'map.arena400Primary',

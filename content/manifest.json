@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "mode": "mode.demoScoreAttack",
     "files": {
-      "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json"],
+      "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json", "modes/singlePlayerScoreAttack.json"],
       "objectives": ["objectives/highScore.json", "objectives/truckEscort.json"],
       "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json", "maps/dramatic_highlands.json", "maps/cliff_arena.json", "maps/megaBonkHighlands.json"],
       "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json", "terrain-profiles/dramatic_highlands.json", "terrain-profiles/cliff_arena.json", "terrain-profiles/megaBonkHighlands.json"],
