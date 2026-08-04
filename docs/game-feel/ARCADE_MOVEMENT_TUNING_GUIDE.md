@@ -53,6 +53,16 @@ MovementRulesBlock → stepTankKinematics (server + predictor + Practice)
 - `gravityScale` — airborne fall rate.
 - `fallDamageSpeed` / `fallDamage` — landing impact threshold/damage.
 
+## Loadout (`content/loadouts/default.json`)
+
+- `turret.minPitch` is **−1.45 rad** (≈ −83°), so the gun can aim almost
+  straight down. Recoil is the inverse muzzle vector, so a near-vertical
+  downward shot is a near-vertical upward launch (~10.5 m/s of vertical
+  velocity at the default cannon recoil) — a cannon takeoff.
+- The shell still explodes at the ground for such shots, so vertical
+  takeoffs also cost the normal cannon self-splash damage (5 integrity).
+  The muzzle safety clamp keeps the shell from spawning inside terrain.
+
 ## Tuning tips
 
 - Raising `airControl`/`airGripMultiplier` makes air steering snappier but

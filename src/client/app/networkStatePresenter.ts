@@ -273,7 +273,8 @@ export class NetworkStatePresenter {
       const flat = Math.hypot(dx, dz) || 0.001;
       const worldYaw = Math.atan2(dx, dz);
       const chassisYaw = deps.mode() === 'practice' ? frame.tank.yaw : yaw;
-      const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), -0.4, 0.42);
+      const limits = deps.prediction.turretPitchLimits();
+      const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), limits.minPitch, limits.maxPitch);
       deps.prediction.updateTurretTarget(worldYaw, pitch, chassisYaw, dt);
       deps.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
       deps.tankRig.barrel.rotation.x = -deps.prediction.getTurretSpaces().predictedPitch;

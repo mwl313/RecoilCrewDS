@@ -105,8 +105,8 @@ export function tankSpeedRatio(t: TankState): number {
 }
 
 export function clampAimPitch(pitch: number): number {
-  // Resolved loadout pitch limits (content/legacy parity: -0.4..0.42).
-  return clamp(pitch, -0.4, 0.42);
+  // Resolved loadout pitch limits (content/legacy parity: -1.45..0.42).
+  return clamp(pitch, -1.45, 0.42);
 }
 
 export type { MatchState };

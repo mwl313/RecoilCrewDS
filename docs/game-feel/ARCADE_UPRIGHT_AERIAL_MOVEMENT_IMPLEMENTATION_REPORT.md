@@ -16,9 +16,12 @@ Contract: `ARCADE_UPRIGHT_AERIAL_MOVEMENT_DESIGN.md` · Plan:
   gravity 13.50, jumpHeight 3.00, rampLaunchSpeed 6.50, dashImpulse 13.00,
   dashCooldown 0.80, dashAirMultiplier 0.80, dashMaxHorizontalSpeed 33.00,
   hard cap 35.00, cannon recoil 10.50, MG recoil 0.15.
-- Loadout turret `minPitch` −0.40; `minPitch`/`maxPitch` replicate through
-  `MovementRulesBlock.turret`; client predictor and camera no longer
-  hardcode −0.45/0.5 clamps.
+- Loadout turret `minPitch` **−1.45 rad** (≈ −83° near-vertical);
+  `minPitch`/`maxPitch` replicate through `MovementRulesBlock.turret` and
+  the client aim clamps read the resolved limits (no hardcoded −0.4).
+  A near-vertical downward shot produces a near-vertical upward recoil
+  (~10.5 m/s launch) — a cannon takeoff; the shell still explodes at the
+  ground for such shots, costing the normal 5 self-splash damage.
 - Content and legacy (`MatchRules.fromContentPack` vs `fromLegacyConfig`)
   parity asserted by the existing equality tests plus new movement tests.
 

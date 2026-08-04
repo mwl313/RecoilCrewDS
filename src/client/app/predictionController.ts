@@ -37,8 +37,8 @@ export class PredictionController {
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
-  private turretMinPitch = -0.4;
-  private turretMaxPitch = 0.5;
+  private turretMinPitch = -1.45;
+  private turretMaxPitch = 0.42;
   private latestMovement: MovementRulesBlock | null = null;
   private ground: GroundQuery = STATIC_GROUND_QUERY;
 
@@ -230,6 +230,11 @@ export class PredictionController {
       desiredPitch: this.desiredTurretPitch,
       predictedPitch: this.predictedTurretPitch,
     };
+  }
+
+  /** Resolved turret pitch limits (server parity via movement block). */
+  turretPitchLimits(): { minPitch: number; maxPitch: number } {
+    return { minPitch: this.turretMinPitch, maxPitch: this.turretMaxPitch };
   }
 
   updateTurretTarget(worldYaw: number, pitch: number, chassisYaw: number, dt: number): void {

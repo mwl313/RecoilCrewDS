@@ -73,7 +73,7 @@ describe('arcade movement values are content-driven', () => {
     expect(block.tank.airYawDamping).toBe(2.2);
     expect(block.tank.hardHorizontalSpeedCap).toBe(35.0);
     expect(block.tank.landingGripSeconds).toBe(0.12);
-    expect(block.turret.minPitch).toBe(-0.4);
+    expect(block.turret.minPitch).toBe(-1.45);
     expect(block.turret.maxPitch).toBe(0.42);
   });
 });
@@ -215,6 +215,24 @@ describe('3D recoil and traversal', () => {
     combo.step(1 / 30);
     combo.runtime.systems.recoil.apply(recoilSpec({ x: 0, y: 1, z: 0 }));
     expect(combo.state.tank.vy).toBeGreaterThan(jumpVy + 9);
+  });
+
+  it('near-vertical downward aim gives almost pure vertical takeoff', () => {
+    const match = new Match('m', 'none');
+    // Recoil is the inverse of a ~straight-down shot → ~straight up.
+    match.runtime.systems.recoil.apply({
+      sourceId: 'weapon.mainCannon',
+      kind: 'cannon',
+      direction: { x: 0, y: 1, z: 0 },
+      magnitude: 10.5,
+      yawImpulse: 0,
+      rollImpulse: 0,
+      verticalScale: 1,
+      launchThreshold: 0.25,
+    });
+    expect(match.state.tank.vy).toBeCloseTo(10.5, 5);
+    expect(match.state.tank.grounded).toBe(false);
+    expect(Math.hypot(match.state.tank.vx, match.state.tank.vz)).toBeLessThan(0.001);
   });
 
   it('MG applies small repeated recoil impulses', () => {
