@@ -301,7 +301,15 @@ export class GameClient {
   }
 
   handleActionResult(actionSeq: number, accepted: boolean): void {
+    const pending = this.pendingLocalActions.get(actionSeq);
     if (accepted) {
+      // A charging press only becomes real when the server accepts it, so a
+      // press during cooldown can never start a local charge.
+      if (pending?.action === 'secondaryPressed' && (this.presenter.latest?.build.capabilities.includes('cannon.charge') ?? false)) {
+        this.chargeHoldStart = performance.now();
+        this.chargeHoldActive = true;
+        this.chargeSoundStarted = false;
+      }
       // Keep the pending entry: the tagged authoritative shot/impulse event
       // confirms (and suppresses) the local presentation.
       netcodeMetrics.markActionLatency(performance.now() - (this.pendingLocalActions.get(actionSeq)?.at ?? performance.now()));
@@ -309,6 +317,8 @@ export class GameClient {
     }
     this.prediction.rejectAction(actionSeq);
     this.pendingLocalActions.delete(actionSeq);
+    this.chargeHoldActive = false;
+    this.chargeHoldStart = 0;
     this.stopChargeSound();
   }
 
@@ -650,14 +660,11 @@ export class GameClient {
       if (!charging || canCharge) {
         this.fireGunnerAction('secondaryPressed', true);
       }
-      if (charging && canCharge) {
-        this.chargeHoldStart = performance.now();
-        this.chargeHoldActive = true;
-        this.chargeSoundStarted = false;
-      }
     }
     if (!secondary && this.secondaryDown) {
-      this.fireGunnerAction('secondaryReleased', true);
+      if (this.chargeHoldActive || !charging) {
+        this.fireGunnerAction('secondaryReleased', true);
+      }
       this.chargeHoldActive = false;
       this.chargeHoldStart = 0;
       this.stopChargeSound();
@@ -728,6 +735,14 @@ export class GameClient {
   private updateChargeSound(): void {
     const latest = this.presenter.latest;
     if (latest?.tank.deadT && latest.tank.deadT > 0) {
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+      this.stopChargeSound();
+      return;
+    }
+    if (this.chargeHoldActive && (latest?.turret.cannonCooldown ?? 0) > 0) {
+      // Authoritative cooldown while holding means the press was rejected or
+      // stale; never let a charge continue through cooldown.
       this.chargeHoldActive = false;
       this.chargeHoldStart = 0;
       this.stopChargeSound();

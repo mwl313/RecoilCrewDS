@@ -18,6 +18,7 @@ export class WeaponSystem {
   private mgStop = false;
   private secondaryPressed = false;
   private secondaryReleased = false;
+  private secondaryHeld = false;
 
   constructor(
     private readonly ctx: SystemContext,
@@ -33,6 +34,7 @@ export class WeaponSystem {
     this.mgStop = false;
     this.secondaryPressed = false;
     this.secondaryReleased = false;
+    this.secondaryHeld = false;
     const tur = this.ctx.state.turret;
     tur.cannonHeld = false;
     tur.cannonHoldT = 0;
@@ -122,6 +124,11 @@ export class WeaponSystem {
     const tur = this.ctx.state.turret;
     const slot = this.loadout.secondary;
     const charged = this.ctx.capabilities.has('cannon.charge');
+    // A hold may only begin on the frame the secondary button transitions
+    // false→true. A press that started during cooldown must never start a
+    // hold later, when the cooldown happens to expire while still held.
+    const pressEdge = held && !this.secondaryHeld;
+    this.secondaryHeld = held;
 
     if (this.secondaryReleased) {
       this.secondaryReleased = false;
@@ -155,7 +162,7 @@ export class WeaponSystem {
 
     // Periodic-input fallback (tests/fixtures that do not use actions).
     if (charged) {
-      if (held && !tur.cannonHeld && tur.cannonCooldown <= 0) {
+      if (pressEdge && tur.cannonCooldown <= 0) {
         tur.cannonHeld = true;
         tur.cannonHoldT = 0;
       } else if (!held && tur.cannonHeld) {
@@ -167,7 +174,7 @@ export class WeaponSystem {
         tur.cannonChargeFull = false;
         this.fireSecondary(ratio);
       }
-    } else if (held && !slot.state.edgeDown && tur.cannonCooldown <= 0) {
+    } else if (pressEdge && tur.cannonCooldown <= 0) {
       this.fireSecondary(0);
     }
     if (slot.state.burstsRemaining > 0) {
