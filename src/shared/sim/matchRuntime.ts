@@ -18,6 +18,7 @@ import { WeaponSystem } from '../weapons/weaponSystem';
 import type { GunnerActionType } from '../net/protocol';
 import { createNetcodeOpState, recordOp } from './opLog';
 import type { TankImpulseWire } from '../effects/tankImpulseSystem';
+import type { StageEvent } from '../stage/stageTypes';
 import type {
   BarrelState,
   DriverInput,
@@ -186,6 +187,24 @@ export class MatchRuntime {
     // (telemetry); enforcement is enabled once a mode references a horde
     // director (Milestone 3+), so the legacy Demo round stays byte-identical.
     this.systems.stage.start();
+    // Temporary adapter: when a mode enables the stage (horde director),
+    // requested waves open a placeholder leader + opening cohort until the
+    // HordeDirector becomes authoritative (Milestone 3+).
+    this.systems.eventBus.subscribe('stageEvent', (payload) => {
+      const event = payload as StageEvent;
+      if (event.type !== 'waveRequested' || !this.stageEnforced) return;
+      const runtime = this.systems.waves.openWave({
+        definitionId: event.waveId === 3 ? 'boss.placeholder' : 'wave.placeholder',
+        leaderEnemyId: 'enemy.rammer',
+        openingThreat: 8,
+        reinforcementThreat: 20,
+        reinforcementThreatPerSecond: 1,
+        maximumActiveWaveThreat: 50,
+        maximumActiveWaveEntities: 30,
+        boss: event.waveId === 3,
+      });
+      this.systems.waves.spawnCohort(runtime.waveId, 'enemy.scrapBug', 4, 4);
+    });
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */

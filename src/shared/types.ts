@@ -1,5 +1,6 @@
 import type { MovementRulesBlock } from './stats/rulesRevision';
 import type { DamageSource } from './damage/damageTypes';
+import type { SpawnOwnership } from './horde/spawnOwnership';
 
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
@@ -58,6 +59,8 @@ export interface EnemyState {
   impulseGrounded?: boolean;
   lastImpulseSource?: DamageSource;
   lastImpulseT?: number;
+  /** Core Loop 06 population ownership (ambient/wave/boss cohort). */
+  ownership?: SpawnOwnership;
 }
 
 export type ScrapKind = 'normal' | 'heavy';

@@ -5,6 +5,7 @@ import type { EnemyState, EnemyType } from '../types';
 import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
+import type { SpawnOwnership } from '../horde/spawnOwnership';
 
 /** Wire type -> definition id (documented engine default mapping). */
 const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
@@ -63,7 +64,7 @@ export class EnemySystem {
   }
 
   /** Spawn by validated definition id (used by content-composed enemies). */
-  spawnEnemyDef(def: EnemyDefinition, x?: number, z?: number): EnemyState | null {
+  spawnEnemyDef(def: EnemyDefinition, x?: number, z?: number, ownership?: SpawnOwnership): EnemyState | null {
     const s = this.ctx.state;
     const type = def.type;
     let sx = x;
@@ -108,6 +109,7 @@ export class EnemySystem {
       impulseVz: 0,
       impulseGrounded: true,
       lastImpulseT: 0,
+      ...(ownership ? { ownership } : {}),
     };
     if (type === 'gunTower') {
       enemy.x = x ?? 0;
@@ -144,5 +146,18 @@ export class EnemySystem {
     for (const id of [...this.runtimes.keys()]) {
       if (!s.enemies.some((e) => e.id === id)) this.runtimes.delete(id);
     }
+  }
+
+  /** Remove enemies directly (cohort purge): no kill hooks, XP, or drops. */
+  purge(predicate: (e: EnemyState) => boolean): EnemyState[] {
+    const removed: EnemyState[] = [];
+    const keep: EnemyState[] = [];
+    for (const e of this.ctx.state.enemies) {
+      if (predicate(e)) removed.push(e);
+      else keep.push(e);
+    }
+    this.ctx.state.enemies = keep;
+    for (const e of removed) this.runtimes.delete(e.id);
+    return removed;
   }
 }

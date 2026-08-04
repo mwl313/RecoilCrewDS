@@ -17,6 +17,7 @@ import { TankContactCombat } from '../../combat/tankContactCombat';
 import { CapabilitySystem } from '../../items/capabilitySystem';
 import { StageDirector } from '../../stage/stageDirector';
 import { DEFAULT_STAGE_SEQUENCE } from '../../stage/stageTypes';
+import { WaveController } from '../../horde/waveController';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -64,6 +65,7 @@ export interface SystemContext {
   capabilities: CapabilitySystem;
   contact: TankContactCombat;
   stage: StageDirector;
+  waves: WaveController;
 }
 
 export function pushEvent(
@@ -112,6 +114,7 @@ export function createSystemContext(
   ctx.capabilities = new CapabilitySystem(state);
   ctx.contact = new TankContactCombat(ctx);
   ctx.stage = new StageDirector(DEFAULT_STAGE_SEQUENCE, eventBus);
+  ctx.waves = new WaveController(ctx, (waveId) => ctx.stage.notifyLeaderKilled());
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);
