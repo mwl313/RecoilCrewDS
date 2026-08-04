@@ -294,3 +294,13 @@ drives the short DASHING presentation window only.
 - Arena obstacle/barrel/ramp/route layout remains hardcoded in `arena.ts`
   (visual/static geometry, not gameplay rules).
 - One dodge-credit flag per match (legacy parity), documented in status.
+
+## Core Loop 06 horde architecture
+
+- `src/shared/stage/` — `StageDirector`/`FarmingClock` own phase progression (180/120/60/0 farming countdown, waves pause it, boss clear and tank game-over end the match). They never spawn.
+- `src/shared/horde/` — `HordeDirector` (budgets/packs), `WaveController` (tagged cohorts, finite reinforcement, leader-death purge), `PopulationManager` (caps incl. sectors), `SpawnPlanner`/`spawnAnchors` (terrain-aware deterministic plans), `hordeSectors` (far aggregation).
+- `src/shared/navigation/hordeFlowField.ts` — one low-resolution reverse field from the tank; ordinary horde movement reads it instead of individual A*.
+- `src/shared/spatial/enemySpatialIndex.ts` — all area combat queries (Dash contact, splash, barrels, density steering).
+- `src/shared/net/horde/` — protocol v4 tiered replication (materialize/despawn/death/near/mid/far/sectors/wave) with quantized records and client reconstruction.
+- `src/client/enemies/` — bounded instanced fodder pools; specials keep unique rigs.
+- Legacy demo loop remains the shipped-mode runtime while `horde.mainStage.enforceStage` is `false`; enforcement is tested and ready to flip with a focused golden update.

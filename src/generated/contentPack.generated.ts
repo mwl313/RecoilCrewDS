@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '46edd8083f4fdbdaa4914603a39f5ae687bbf8de5e91abf990ccec4625efa114';
+export const CONTENT_PACK_SOURCE_HASH = '370bdcb4eaccd2cd1a820127fccdf3948efc5643357380df23c290c10f28a510';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '47a4075f150d4eb8efcdd135b9d26dc29cf751a8fdcc5e6c4a7647426b2ecb5f';
+export const CONTENT_PACK_HASH = '0f033bcfc3c8d222b76908b9402e6c20f44040fbd4836a7b119855eee7df1513';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -115,7 +115,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "horde.mainStage", definition: {"id":"horde.mainStage","label":"Main Stage Horde Director","behaviors":[],"stageSequenceId":"horde.stageSequence.main","farmingPhaseIds":["horde.farming.phase1","horde.farming.phase2","horde.farming.phase3"],"waveIds":["wave.vanguard","wave.encirclement"],"bossWaveId":"horde.bossWave.main","packIds":["pack.wanderingCluster","pack.vanguardWall","pack.escortRing","pack.reinforcementColumn","pack.bossGuard"],"limitsId":"horde.populationLimits.main","lodPolicyId":"horde.lodPolicy.main","replicationPolicyId":"horde.replicationPolicy.main","navigationPolicyId":"horde.navigationPolicy.main","spawnAnchorPolicyId":"horde.anchorPolicy.main","enforceStage":false} },
   ],
   "populationLimits": [
-    { id: "horde.populationLimits.main", definition: {"id":"horde.populationLimits.main","label":"Main Stage Population Limits","behaviors":[],"hardEntityCap":200,"ambientSoftEntityCap":60,"ambientSoftThreatCap":80,"waveSoftEntityCap":80,"waveSoftThreatCap":100,"eliteAndBossReserve":12,"technicalEmergencyReserve":8,"aggregateVisualCap":400,"maximumStoredBudget":40} },
+    { id: "horde.populationLimits.main", definition: {"id":"horde.populationLimits.main","label":"Main Stage Population Limits","behaviors":[],"hardEntityCap":300,"ambientSoftEntityCap":80,"ambientSoftThreatCap":100,"waveSoftEntityCap":100,"waveSoftThreatCap":120,"eliteAndBossReserve":16,"technicalEmergencyReserve":8,"aggregateVisualCap":500,"maximumStoredBudget":40} },
   ],
   "spawnPacks": [
     { id: "pack.bossGuard", definition: {"id":"pack.bossGuard","label":"Boss Guard","behaviors":[],"tags":["boss"],"entries":[{"enemyId":"enemy.scrapBugHorde","count":8,"formationRole":"guard"}],"threatCost":8,"entityCost":8,"formation":"ring","spacing":2.2,"radius":10,"anchorRequirements":{"minimumTankDistance":20,"maximumTankDistance":80}} },

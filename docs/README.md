@@ -202,3 +202,10 @@ public/       optional custom assets + manifest
 
 The simulation runs identically on the server (online) and in the browser
 (practice), so gameplay logic is tested once in Node.
+
+## Core Loop 06
+
+- [Implementation report](coreloop06/CORELOOP06_IMPLEMENTATION_REPORT.md)
+- [Authoring guide](coreloop06/CORELOOP06_AUTHORING_GUIDE.md)
+- [Network and capacity report](coreloop06/CORELOOP06_NETWORK_AND_CAPACITY_REPORT.md)
+- [Performance report](coreloop06/CORELOOP06_PERFORMANCE_REPORT.md)

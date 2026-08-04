@@ -104,3 +104,15 @@ one-shot edges: the server accepts only explicit booleans and consumes each
 sequenced edge exactly once, so holding a key never repeats the action.
 Clients can never author content: all definitions load server-side from
 validated files.
+
+## Core Loop 06 replication (protocol v4)
+
+`PROTOCOL_VERSION` is 4. For enforced-horde matches the server sends a typed
+`horde` block instead of the full enemy array: materialize/despawn/death
+events plus quantized near/mid/far deltas, far-horde sectors, and wave/leader
+state. Near/mid rates come from `horde.replicationPolicy.main`; far records
+are change-driven and coalesced. Critical events (leader death, tank damage,
+enemy death) are never delayed. Clients reconstruct remote enemies through
+`HordeReplicationClient` and interpolate normally. The `stage` block carries
+the farming countdown and wave/leader HUD state. Combat 05 action-time aim
+protocol is unchanged.

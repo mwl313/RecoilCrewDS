@@ -203,3 +203,16 @@
   per the design document.
 - No dedicated public matchmaking lobby; rooms are created and shared via
   six-character codes as designed.
+
+## Core Loop 06 status
+
+- M0–M11 implemented on `combat-rework`: stage director, wave/ownership,
+  data-driven packs, spawn anchors/planner, spatial index, flow field,
+  instanced fodder, simulation LOD, protocol v4 tiered replication, far-horde
+  sectors, stage HUD + horde debug overlay. `npm test` 623 passing.
+- M12 capacity: engineering caps selected from measurements (hard 300,
+  aggregate visual 500); final release cap pending two-client soak.
+- Pending: flip `horde.mainStage.enforceStage` with a focused demo-golden
+  update, far-horde client visuals, full command gate re-run
+  (demo/e2e/loop/maps/maplab/presentation/netcode/netcode:e2e), two-client
+  soak, and the remaining manual verification scenarios.

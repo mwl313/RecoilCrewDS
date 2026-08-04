@@ -243,3 +243,15 @@ code is selected in a textarea fallback so it can still be copied manually.
   90-second round and rematch.
 - `npm run test:maps`, `npm run test:maps:sweep` — deterministic mapgen
   suites + 1000-seed sweep report.
+
+## Core Loop 06 horde smoke
+
+- `npm run test:coreloop` — stage director/farming clock suite.
+- `npm run test:horde` — waves, purge suppression, spawn planner, spatial
+  index, flow field, LOD, replication codecs, sectors, instanced renderer.
+- `npm run test:horde:benchmark` — controlled population ladder (25–500).
+- Manual: full loop to boss clear on primary + dramatic maps, Wave 1 fast and
+  slow clears, tank death in farming and in waves, leader death surrounded by
+  ambient enemies, purge with 100+ wave monsters, dense Charge Shot splash,
+  Dash through a dense pack, Single Player, two-client Multiplayer at
+  100/150 ms RTT.

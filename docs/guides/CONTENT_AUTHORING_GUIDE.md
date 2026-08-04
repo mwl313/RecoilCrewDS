@@ -218,3 +218,12 @@ Difficulty overrides may target `match.*` or `tank.*` stat ids:
 
 Soap Tracks overrides ordinary `match.grip`; there is no held-boost stat
 anymore.
+
+## Core Loop 06 horde content
+
+Stage sequences, farming phases, spawn packs, waves, boss waves, population
+limits, reward tables, and anchor/navigation/LOD/replication policies live in
+`content/horde/` and are validated by `src/shared/content/schemas/horde.ts`.
+See [the Core Loop 06 authoring guide](../coreloop06/CORELOOP06_AUTHORING_GUIDE.md)
+for the full walkthrough. Both gameplay modes reference one shared
+`horde.mainStage`; enemy `threat` feeds spawn/threat budgets.
