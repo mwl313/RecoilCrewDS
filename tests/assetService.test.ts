@@ -111,12 +111,14 @@ describe('entity factory and registry', () => {
       expect(rig.group).toBeDefined();
       expect(rig.materials.length).toBeGreaterThan(0);
       const registry = new EntityViewRegistry(scene, factory);
-      registry.createEnemy(bug);
+      expect(registry.upsertFodder(bug, 0)).toBe(true);
+      registry.createEnemy({ ...bug, id: 2, type: 'rammer' });
       registry.createPickup({ id: 1, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
       registry.createShell({ id: 1, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
       expect(registry.enemyRigs.size).toBe(1);
       expect(registry.pickupRigs.size).toBe(1);
       expect(registry.shellRigs.size).toBe(1);
+      expect(registry.fodder.activeCount).toBe(1);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -134,12 +136,14 @@ describe('entity factory and registry', () => {
     };
     for (let round = 0; round < 3; round++) {
       for (let i = 0; i < 5; i++) {
-        registry.createEnemy({ ...bug, id: round * 10 + i });
+        registry.createEnemy({ ...bug, id: round * 10 + i, type: 'rammer' });
+        registry.upsertFodder({ ...bug, id: round * 10 + i + 100 }, 0);
         registry.createPickup({ id: round * 10 + i, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
         registry.createShell({ id: round * 10 + i, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
       }
       registry.reset();
       expect(registry.enemyRigs.size).toBe(0);
+      expect(registry.fodder.activeCount).toBe(0);
       expect(registry.pickupRigs.size).toBe(0);
       expect(registry.shellRigs.size).toBe(0);
     }

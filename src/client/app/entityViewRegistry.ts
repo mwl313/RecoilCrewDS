@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import type { EnemyState, PickupState, ShellState } from '../../shared/types';
 import type { EntityViewFactory } from './entityViewFactory';
+import {
+  createScrapBugInstancedHost,
+  InstancedEnemyRenderer,
+} from '../enemies/instancedEnemyRenderer';
 
 export interface EnemyRig {
   group: THREE.Group;
@@ -32,6 +36,7 @@ export class EntityViewRegistry {
   readonly enemyRigs = new Map<number, EnemyRig>();
   readonly pickupRigs = new Map<number, PickupRig>();
   readonly shellRigs = new Map<number, ShellRig>();
+  readonly fodder: InstancedEnemyRenderer;
   readonly barrelMeshes = new Map<number, THREE.Object3D>();
   truckRig: THREE.Group;
   truckMarker: THREE.Group;
@@ -41,6 +46,10 @@ export class EntityViewRegistry {
     private readonly scene: THREE.Scene,
     private readonly factory: EntityViewFactory,
   ) {
+    this.fodder = new InstancedEnemyRenderer(
+      createScrapBugInstancedHost(scene, factory.assets, FODDER_CAPACITY),
+      FODDER_CAPACITY,
+    );
     this.truckRig = new THREE.Group();
     this.truckMarker = factory.makeMarker(0xffd94d, 1.3, scene);
     this.truckMarker.visible = false;
@@ -62,9 +71,26 @@ export class EntityViewRegistry {
   }
 
   createEnemy(e: EnemyState): EnemyRig {
+    // Presenters route fodder through the instanced path first; this unique
+    // path remains as an overflow fallback and for special rigs.
     const rig = this.factory.createEnemyRig(e, this.scene);
     this.enemyRigs.set(e.id, rig);
     return rig;
+  }
+
+  upsertFodder(e: EnemyState, dt: number): boolean {
+    return this.fodder.upsert(e, dt);
+  }
+
+  removeFodder(id: number): void {
+    this.fodder.remove(id);
+  }
+
+  /** Release instanced slots whose enemy is no longer present. */
+  sweepFodder(seen: ReadonlySet<number>): void {
+    for (const id of this.fodder.ids()) {
+      if (!seen.has(id)) this.fodder.remove(id);
+    }
   }
 
   createPickup(p: PickupState): PickupRig {
@@ -85,6 +111,7 @@ export class EntityViewRegistry {
       this.scene.remove(rig.telegraph);
     }
     this.enemyRigs.clear();
+    this.fodder.reset();
     for (const rig of this.pickupRigs.values()) this.scene.remove(rig.group);
     this.pickupRigs.clear();
     for (const rig of this.shellRigs.values()) this.scene.remove(rig.group);
@@ -119,3 +146,5 @@ export class EntityViewRegistry {
     }
   }
 }
+
+const FODDER_CAPACITY = 512;

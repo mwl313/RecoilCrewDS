@@ -8,6 +8,7 @@ import type { CameraCollisionQuery } from '../cameraCollision';
 import type { EnemyState, MatchState, Role, SimEvent, TankState } from '../../shared/types';
 import type { CameraManager } from './cameraManager';
 import type { EntityViewRegistry } from './entityViewRegistry';
+import { InstancedEnemyRenderer } from '../enemies/instancedEnemyRenderer';
 import type { PredictionController } from './predictionController';
 import type { RenderWorld } from './renderWorld';
 import { RemoteEntityInterpolator, type RemoteFrame } from '../prediction/remoteInterpolator';
@@ -206,6 +207,10 @@ export class NetworkStatePresenter {
     const seen = new Set<number>();
     for (const e of frame.enemies) {
       seen.add(e.id);
+      if (InstancedEnemyRenderer.isFodder(e.type)) {
+        registry.upsertFodder(e, dt);
+        continue;
+      }
       let rig = registry.enemyRigs.get(e.id);
       if (!rig) rig = registry.createEnemy(e);
       rig.group.visible = e.alive || e.state === 'dead';
@@ -237,6 +242,7 @@ export class NetworkStatePresenter {
     for (const id of [...registry.enemyRigs.keys()]) {
       if (!seen.has(id)) registry.removeEnemy(id);
     }
+    registry.sweepFodder(seen);
 
     const seenPickups = new Set<number>();
     for (const p of frame.pickups) {

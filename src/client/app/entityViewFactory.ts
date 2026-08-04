@@ -8,7 +8,7 @@ import type { EnemyRig, PickupRig, ShellRig } from './entityViewRegistry';
  * presentation concern only (socket resolver), never gameplay.
  */
 export class EntityViewFactory {
-  constructor(private readonly assets: AssetService) {}
+  constructor(readonly assets: AssetService) {}
 
   createEnemyRig(e: EnemyState, scene: THREE.Scene): EnemyRig {
     const id = this.enemyModelId(e.type);
