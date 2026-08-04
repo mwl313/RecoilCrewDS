@@ -55,6 +55,11 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
     blocked: false,
     worldPoint: { x: 0, y: 0, z: 0 },
   };
+  if (input.renderWidth <= 0 || input.renderHeight <= 0) {
+    out.visible = false;
+    out.blocked = false;
+    return out;
+  }
   const mount = computeWeaponMountWorldPose(input.tank, { yaw: input.turretLocalYaw, pitch: input.turretPitch }, input.rig);
   const origin = scratchOrigin.set(mount.muzzle.x, mount.muzzle.y, mount.muzzle.z);
   const dir = scratchDir.set(mount.direction.x, mount.direction.y, mount.direction.z);
