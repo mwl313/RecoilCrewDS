@@ -5,15 +5,17 @@ weapon. Author it through content, never gameplay code.
 
 ## Capability ID
 
-`cannon.charge` gates the hold/release behavior. The default run does not
-own it. Grant it through any item with:
+`cannon.charge` gates the hold/release behavior. Every mode currently grants
+it by default through `mode.defaultCapabilities`, so the charge shot is ON
+out of the box. You can also grant it through any item with:
 
 ```json
 { "grantsCapabilities": ["cannon.charge"] }
 ```
 
 Example: `content/items/relicCannonCharge.json`. `WeaponSystem` only checks
-`ctx.capabilities.has('cannon.charge')`.
+`ctx.capabilities.has('cannon.charge')`. To make a mode charge-free, omit
+`defaultCapabilities` from its JSON.
 
 ## Tap threshold and full charge time
 

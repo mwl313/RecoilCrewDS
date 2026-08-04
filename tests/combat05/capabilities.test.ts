@@ -8,24 +8,29 @@ const CONTENT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const pack = new ContentLoader().loadFromFilesystem(CONTENT_ROOT);
 
 describe('capability system (Combat 05 M4)', () => {
-  it('a fresh match owns no capabilities by default', () => {
+  it('a fresh match owns cannon.charge by default (content and legacy)', () => {
     const m = new Match('fresh');
-    expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(false);
-    expect(m.state.build.capabilities).toEqual([]);
+    expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(true);
+    expect(m.state.build.capabilities).toEqual(['cannon.charge']);
+    const content = new Match('fresh-content', 'none', pack);
+    expect(content.runtime.systems.capabilities.has('cannon.charge')).toBe(true);
+    expect(content.state.build.capabilities).toEqual(['cannon.charge']);
   });
 
-  it('applying the charge relic grants cannon.charge and replicates through state', () => {
+  it('applying the charge relic keeps the capability and replicates through state', () => {
     const m = new Match('relic', 'none', pack);
     m.runtime.systems.items.apply(pack.getItem('item.relicCannonCharge'));
     expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(true);
     expect(m.state.build.capabilities).toEqual(['cannon.charge']);
   });
 
-  it('removing the source revokes the capability', () => {
+  it('removing the relic source leaves the default capability; revoke removes it', () => {
     const m = new Match('relic-remove', 'none', pack);
     const relic = pack.getItem('item.relicCannonCharge');
     m.runtime.systems.items.apply(relic);
     m.runtime.systems.items.remove(relic);
+    expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(true);
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(false);
     expect(m.state.build.capabilities).toEqual([]);
   });
@@ -38,6 +43,8 @@ describe('capability system (Combat 05 M4)', () => {
     m.runtime.systems.capabilities.revokeSource('source.a');
     expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(true);
     m.runtime.systems.capabilities.revokeSource('source.b');
+    expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(true); // default remains
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     expect(m.runtime.systems.capabilities.has('cannon.charge')).toBe(false);
     expect(m.state.build.capabilities).toEqual([]);
   });

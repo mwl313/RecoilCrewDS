@@ -175,7 +175,8 @@
   actions (protocol v3); fall damage deleted for tank/enemies/source; the
   Jackpot subsystem is removed and replaced by a generic `CapabilitySystem`
   + `cannon.charge` hold/release cannon with linear charge scaling and a
-  compact reticle charge meter. Unit gates: `npx tsc --noEmit` PASS;
+  compact reticle charge meter (charge ON by default via
+  `mode.defaultCapabilities`). Unit gates: `npx tsc --noEmit` PASS;
   `npm test` **555/555 PASS** (63 files); `npm run test:demo` PASS (golden
   intentionally regenerated: grade C, charged 0, kills 29). Details:
   `docs/combat05/`.

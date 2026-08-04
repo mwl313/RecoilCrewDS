@@ -18,7 +18,7 @@ import type { StatModifier } from '../stats/statModifier';
 import { StatResolver } from '../stats/statResolver';
 import type { MovementRulesBlock, RulesRevisionSnapshot, TankRigRulesBlock } from '../stats/rulesRevision';
 import type { MatchConfig, ModifierId } from '../types';
-import { createLegacyDefaultTankDefinition, createLegacyDemoRulesBundle, type DemoRulesBundle } from './legacyDemoRules';
+import { createLegacyDefaultTankDefinition, createLegacyDemoRulesBundle, createLegacyDemoModeDefinition, type DemoRulesBundle } from './legacyDemoRules';
 import { deepFreeze } from '../content/freeze';
 
 /**
@@ -194,7 +194,7 @@ export class MatchRules {
       packVersion: '0',
       contentHash: 'legacy-config',
       modeId: 'mode.demoScoreAttack',
-      mode: null,
+      mode: createLegacyDemoModeDefinition(),
       modifier,
       difficultyId: `difficulty.${modifier}`,
       difficultyLabel: legacyOverrides?.label ?? 'Standard Rules',

@@ -67,6 +67,7 @@ describe('tank movement and input separation', () => {
 describe('recoil', () => {
   it('cannon recoil pushes the shared tank opposite the barrel', () => {
     const m = new Match('m5');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     // Let the turret settle on the firing direction first.
     step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
     m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
@@ -81,6 +82,7 @@ describe('recoil', () => {
 
   it('cannon recoil lands at full impulse (no brace reduction path)', () => {
     const m = new Match('m6');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     step(m, 1.0, undefined, { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false });
     m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
     m.step(DT);
@@ -101,6 +103,7 @@ describe('recoil', () => {
 describe('weapons', () => {
   it('enforces cannon cooldown', () => {
     const m = new Match('m8');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false });
     m.step(DT);
     m.takeEvents();
@@ -112,6 +115,7 @@ describe('weapons', () => {
 
   it('does not double-fire on a held or duplicated cannon input', () => {
     const m = new Match('m9');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     const fire = { aimYaw: 0, aimPitch: 0, primary: false, secondary: true, ability: false };
     m.setGunnerInput(fire);
     m.step(DT);

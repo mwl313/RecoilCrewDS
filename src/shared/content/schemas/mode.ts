@@ -51,6 +51,8 @@ export const modeSchema = z.object({
   results: z.string().regex(/^results\./, 'results must reference a results definition'),
   presentation: z.string().regex(/^presentation\./, 'presentation must reference a presentation definition'),
   session: modeSessionPolicySchema.optional(),
+  /** Capabilities every match of this mode starts with (Combat 05). */
+  defaultCapabilities: z.array(z.string().min(1)).optional(),
   rematch: z
     .object({
       modifiers: z.array(z.string().regex(/^difficulty\./, 'rematch modifiers must reference difficulty definitions')),

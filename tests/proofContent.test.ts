@@ -47,6 +47,7 @@ describe('alternate mode (Truck Hunter)', () => {
 describe('proof weapon (Rapid Cannon)', () => {
   it('fires through the existing projectile behavior with its own cooldown', () => {
     const runtime = MatchRuntime.fromContentPack(pack, 'truck-hunter', 'none', 'mode.truckHunter');
+    runtime.systems.capabilities.revoke('cannon.charge');
     const cannon = runtime.rules.weapons.get('weapon.rapidCannon')!;
     expect(cannon.behaviorId).toBe('weapon.projectile');
     expect(cannon.cooldownSeconds).toBe(0.5);

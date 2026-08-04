@@ -12,7 +12,9 @@ export class CapabilitySystem {
 
   constructor(private readonly state: MatchState) {
     for (const id of state.build.capabilities) {
-      if (!this.byCapability.has(id)) this.byCapability.set(id, new Map());
+      // Default capabilities behave like an implicit source so revoking a
+      // relic source never removes a capability the mode grants by default.
+      if (!this.byCapability.has(id)) this.byCapability.set(id, new Map([['__default__', 1]]));
     }
   }
 
@@ -45,5 +47,11 @@ export class CapabilitySystem {
     if (changed) {
       this.state.build.capabilities = [...this.byCapability.keys()];
     }
+  }
+
+  /** Unconditional revoke (tests/future gameplay); removes the capability. */
+  revoke(id: string): void {
+    if (!this.byCapability.delete(id)) return;
+    this.state.build.capabilities = [...this.byCapability.keys()];
   }
 }

@@ -63,6 +63,7 @@ describe('cannon charge profile (Combat 05 M6)', () => {
 
   it('a normal cannon shell carries ratio 0 and its combat payload', () => {
     const m = new Match('normal-shell', 'none', pack);
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.applyGunnerAction('secondaryPressed', 1);
     m.step(DT);
     m.takeEvents();

@@ -31,17 +31,18 @@ function startRunning(): { manager: RoomManager; driver: FakeSocket; gunner: Fak
 }
 
 describe('gunner discrete actions', () => {
-  it('secondaryPressed is accepted immediately and produces one recoil impulse tagged with the actionSeq', () => {
+  it('secondaryPressed + secondaryReleased produce one recoil impulse tagged with the release seq', () => {
     const { manager, gunner } = startRunning();
     gunner.sent = [];
     manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'secondaryPressed', aimYaw: 0, aimPitch: 0.05 });
-    const result = gunner.last('actionResult')!;
-    expect(result.actionSeq).toBe(1);
-    expect(result.accepted).toBe(true);
+    expect(gunner.last('actionResult')!.accepted).toBe(true);
+    manager.tick(1 / 30);
+    manager.handle(gunner, { t: 'action', actionSeq: 2, action: 'secondaryReleased', aimYaw: 0, aimPitch: 0.05 });
+    expect(gunner.last('actionResult')!.accepted).toBe(true);
     for (let i = 0; i < 4; i++) manager.tick(1 / 30);
     const impulses = gunner.sent.filter((m) => m.t === 'tankImpulse');
     expect(impulses.length).toBeGreaterThanOrEqual(1);
-    expect(impulses[0].sourceActionSeq).toBe(1);
+    expect(impulses[0].sourceActionSeq).toBe(2);
     expect(typeof impulses[0].impulseSeq).toBe('number');
     expect(typeof impulses[0].opSeq).toBe('number');
     expect(typeof impulses[0].simulationTick).toBe('number');
@@ -50,10 +51,12 @@ describe('gunner discrete actions', () => {
   it('rejects secondaryPressed while the cannon is cooling down', () => {
     const { manager, gunner } = startRunning();
     manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'secondaryPressed' });
+    manager.tick(1 / 30);
+    manager.handle(gunner, { t: 'action', actionSeq: 2, action: 'secondaryReleased' });
     for (let i = 0; i < 3; i++) manager.tick(1 / 30); // cooldown takes effect
-    manager.handle(gunner, { t: 'action', actionSeq: 2, action: 'secondaryPressed' });
+    manager.handle(gunner, { t: 'action', actionSeq: 3, action: 'secondaryPressed' });
     const result = gunner.last('actionResult')!;
-    expect(result.actionSeq).toBe(2);
+    expect(result.actionSeq).toBe(3);
     expect(result.accepted).toBe(false);
     expect(result.reason).toBe('cooldown');
   });

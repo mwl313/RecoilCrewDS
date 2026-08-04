@@ -47,6 +47,7 @@ describe('loadout resolution', () => {
 
   it('uses the generic primary/secondary/ability wire actions directly', () => {
     const m = new Match('loadout-actions');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.setGunnerInput({ ...aim, primary: true });
     m.step(DT);
     m.takeEvents();
@@ -61,6 +62,7 @@ describe('loadout resolution', () => {
 describe('cooldown authority and duplicate prevention', () => {
   it('cannon fires on the edge and honors the authoritative cooldown', () => {
     const m = new Match('cooldown');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.setGunnerInput({ ...aim, secondary: true });
     m.step(DT);
     m.takeEvents();
@@ -81,6 +83,7 @@ describe('cooldown authority and duplicate prevention', () => {
 
   it('generic secondary input drives the same authoritative cannon', () => {
     const m = new Match('generic-cannon');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.setGunnerInput({ ...aim, secondary: true });
     m.step(DT);
     m.takeEvents();
@@ -130,6 +133,7 @@ describe('weapon behaviors', () => {
 
   it('projectile behavior spawns an arcing shell that explodes and damages enemies', () => {
     const m = new Match('projectile');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     const bug = m.spawnEnemy('scrapBug', 14, 0)!;
     m.state.tank.x = 0;
     m.state.tank.z = 0;
@@ -208,6 +212,7 @@ describe('damage, kill, and semantic events', () => {
 
   it('a cannon shell explosion emits projectile.impacted and splashes enemies', () => {
     const m = new Match('impact');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     const seen: string[] = [];
     m.runtime.eventBus.subscribe('projectile.impacted', () => seen.push('impacted'));
     m.spawnEnemy('scrapBug', 10, 0);
@@ -228,6 +233,7 @@ describe('damage, kill, and semantic events', () => {
 describe('recoil parity (unbraced)', () => {
   it('cannon recoil applies the full configured impulse', () => {
     const unbraced = new Match('recoil-unbraced');
+    unbraced.runtime.systems.capabilities.revoke('cannon.charge');
     step(unbraced, 0.5, { aimYaw: 0, aimPitch: 0, secondary: false , primary: false, ability: false });
     unbraced.setGunnerInput({ aimYaw: 0, aimPitch: 0, secondary: true , primary: false, ability: false });
     unbraced.step(DT);
@@ -299,6 +305,7 @@ describe('a test weapon using an existing behavior without editing MatchRuntime'
 
     const variant = new ContentLoader().loadFromRecords(m, files);
     const runtime = MatchRuntime.fromContentPack(variant, 'test-weapon');
+    runtime.systems.capabilities.revoke('cannon.charge');
     expect(runtime.loadout.secondary.id).toBe('weapon.testRapidCannon');
     expect(runtime.mcfg.cannonCooldown).toBe(0.4); // resolved from the new weapon
 

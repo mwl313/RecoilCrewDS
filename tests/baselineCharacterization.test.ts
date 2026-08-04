@@ -177,6 +177,7 @@ describe('weapon input fields (wire contract)', () => {
     const { manager } = makeManager();
     const { b, room } = startCrew(manager);
     const match = room.match!;
+    match.runtime.systems.capabilities.revoke('cannon.charge');
     // MG hold.
     manager.handle(b, { t: 'input', seq: 1, gunner: { ...neutralGunner, primary: true } });
     manager.tick(1 / 30);

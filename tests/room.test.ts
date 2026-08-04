@@ -188,6 +188,7 @@ describe('input handling', () => {
     advance(1);
     const room = manager.getClient(b)!.room!;
     const match = room.match!;
+    match.runtime.systems.capabilities.revoke('cannon.charge');
     manager.handle(b, {
       t: 'input',
       seq: 1,
@@ -216,6 +217,7 @@ describe('input handling', () => {
     advance(GAME.inputTimeout * 1000 + 500);
     const room = manager.getClient(b)!.room!;
     const match = room.match!;
+    match.runtime.systems.capabilities.revoke('cannon.charge');
     manager.handle(b, {
       t: 'input',
       seq: 1,

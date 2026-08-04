@@ -80,8 +80,10 @@ Fix:
   `MatchState.build.capabilities`.
 - `ItemDefinition.grantsCapabilities`; `ItemSystem` grants/revokes by item
   source. `content/items/relicCannonCharge.json` grants `cannon.charge`.
-- Default runs own no capabilities. `WeaponSystem` checks only
-  `ctx.capabilities.has('cannon.charge')` — no hardcoded relic id.
+- Modes grant `cannon.charge` by default via `mode.defaultCapabilities`
+  (content + legacy), so the charge shot is ON by default. `WeaponSystem`
+  checks only `ctx.capabilities.has('cannon.charge')` — no hardcoded relic
+  id. Omit `defaultCapabilities` (or revoke) to disable charge.
 
 ## 7. Charge state machine
 
@@ -157,7 +159,7 @@ Milestone 9 verification; see the command-gate section of this report.
 11. Enemy fall damage deleted                            DONE
 12. Fall damage config/source deleted                    DONE
 13. Charge capability generic + relic-grantable          DONE
-14. Charge off by default                                DONE
+14. Charge on by default (mode defaultCapabilities)      DONE
 15. No-capability cannon fires immediately               DONE
 16. Tap release fires normal cannon                      DONE
 17. Partial charge fires on release                      DONE

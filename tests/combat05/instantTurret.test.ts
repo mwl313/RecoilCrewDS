@@ -70,6 +70,7 @@ describe('instant turret response (Combat 05 M3)', () => {
 
   it('click-time aim on a cannon action fires along the action aim', () => {
     const m = new Match('action-aim');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     m.applyGunnerAction('secondaryPressed', 1, { aimYaw: 0, aimPitch: 0.3 });
     m.setGunnerInput({ aimYaw: 0, aimPitch: 0.3, primary: false, secondary: true });
     m.step(DT);

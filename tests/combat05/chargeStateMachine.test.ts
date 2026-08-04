@@ -30,6 +30,7 @@ function shield(m: Match): void {
 describe('secondary cannon hold/release state machine (Combat 05 M5)', () => {
   it('without the capability, secondaryPressed fires the normal cannon immediately', () => {
     const m = new Match('no-cap');
+    m.runtime.systems.capabilities.revoke('cannon.charge');
     press(m);
     step(m);
     expect(m.state.shells.length).toBe(1);

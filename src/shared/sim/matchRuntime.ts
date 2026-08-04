@@ -85,7 +85,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       mgFiring: false,
     },
     combo: { multiplier: 1, points: 0, lastDriverT: -99, lastGunnerT: -99, lastAnyT: -99, best: 1 },
-    build: { capabilities: [] },
+    build: { capabilities: [...(rules.mode?.defaultCapabilities ?? [])] },
     stats: {
       score: 0,
       chargedCannonShots: 0,

@@ -516,6 +516,7 @@ export function createLegacyDemoModeDefinition(): ModeDefinition {
     scoring: 'scoring.demoScoreAttack',
     results: 'results.demoScoreAttack',
     presentation: 'presentation.demoScoreAttack',
+    defaultCapabilities: ['cannon.charge'],
     rematch: {
       modifiers: [
         'difficulty.doubleBarrel',
