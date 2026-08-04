@@ -221,6 +221,20 @@ export class EnemyAnimationController {
     return this.resolver.resolvedNames(this.profile);
   }
 
+  /** Preview/debug API: play a semantic role directly with default fade. */
+  previewRole(role: EnemyAnimationRole): void {
+    const anim = this.instance;
+    if (role === 'death') {
+      this.playRole(role, { force: true, duration: this.profile.transitions.deathCrossFadeSeconds });
+      anim.dead = true;
+      return;
+    }
+    anim.dead = false;
+    this.playRole(role, { force: true, duration: this.transitionDuration(anim.currentRole, role) });
+    this.applyLocomotion(role, 0);
+    this.updateMixer(0);
+  }
+
   dispose(): void {
     disposeAnimationInstance(this.instance);
   }

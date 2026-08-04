@@ -1,0 +1,68 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #0b1216;
+  color: #d7edf3;
+  font: 13px/1.4 system-ui, sans-serif;
+}
+#app {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  grid-template-rows: 44px 1fr;
+}
+header {
+  grid-column: 1/4;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 0 12px;
+  background: #142028;
+  border-bottom: 1px solid #22333d;
+}
+aside {
+  padding: 10px;
+  border-right: 1px solid #22333d;
+  overflow: auto;
+}
+aside h3 {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7fc9d8;
+  margin: 12px 0 4px;
+}
+aside label {
+  display: block;
+  margin: 6px 0;
+}
+aside select,
+aside input[type='number'],
+aside input[type='range'] {
+  width: 100%;
+  box-sizing: border-box;
+}
+#viewport {
+  position: relative;
+  overflow: hidden;
+  background: #0b1216;
+}
+#viewport canvas {
+  display: block;
+}
+#info {
+  padding: 10px;
+  border-left: 1px solid #22333d;
+  overflow: auto;
+  font: 11px/1.5 ui-monospace, monospace;
+  color: #9fc4cf;
+  white-space: pre;
+}
+#info .ok {
+  color: #4ddb6e;
+}
+#info .bad {
+  color: #ff5a4a;
+}
