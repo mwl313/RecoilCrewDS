@@ -9,6 +9,7 @@ import { PresentationCatalog, type CameraImpulsePresentation, type IconPresentat
 import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
 import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.generated';
 import { assertResolvableAssetId, resolveProjectAsset } from '../../shared/assetCatalog';
+import type { TankRigDefinition } from '../../shared/content/schemas/tank';
 
 export { buildTankRig, getMuzzleWorld };
 
@@ -111,7 +112,7 @@ export class AssetService {
     return this.presentation.cameraImpulseFor(id);
   }
 
-  tankRig(): TankRig {
-    return this.instances.buildTankRig();
+  tankRig(rig?: TankRigDefinition): TankRig {
+    return this.instances.buildTankRig(rig);
   }
 }

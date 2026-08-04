@@ -9,6 +9,7 @@ import { Match } from '../src/shared/sim/match';
 import { statModifier } from '../src/shared/stats/statModifier';
 import { RoomManager, type SocketLike } from '../src/server/room';
 import type { DriverInput, ModifierId } from '../src/shared/types';
+import { DEFAULT_TANK_RIG } from '../src/shared/vehicle/tankRigTypes';
 
 const DT = 1 / 30;
 const CONTENT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../content');
@@ -301,6 +302,7 @@ describe('difficulty and content data', () => {
       jackpotRecoilImpulse: 17,
       jackpotSpin: 4.5,
       mgRecoilImpulse: 0.07,
+      rig: DEFAULT_TANK_RIG,
     };
     expect(tankSchema.safeParse(bad).success).toBe(false);
     expect(tankSchema.safeParse({ ...bad, jumpHeight: 2.2 }).success).toBe(true);

@@ -46,5 +46,16 @@
   "recoilSpin": 1.7,
   "jackpotRecoilImpulse": 17,
   "jackpotSpin": 4.5,
-  "mgRecoilImpulse": 0.15
+  "mgRecoilImpulse": 0.15,
+  "rig": {
+    "chassisAssetId": "playerTank.chassis",
+    "turretAssetId": "playerTank.turret",
+    "barrelAssetId": "playerTank.barrel",
+    "turretPivot": [0, 1.15, 0],
+    "barrelPivot": [0, 0.62, 0],
+    "muzzleLocal": [0, 0.75, 2.9],
+    "aimPivotLocal": [0, 1.15, 0],
+    "cameraAnchorLocal": [0, 1.35, 0],
+    "forwardAxis": [0, 0, 1]
+  }
 }

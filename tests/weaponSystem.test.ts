@@ -6,6 +6,8 @@ import { BASE_CONFIG } from '../src/shared/config';
 import { ContentLoader } from '../src/shared/content/contentLoader';
 import { Match, MatchRuntime } from '../src/shared/sim/match';
 import type { GunnerInput } from '../src/shared/types';
+import { computeWeaponMountWorldPose } from '../src/shared/vehicle/tankRigGeometry';
+import { DEFAULT_TANK_RIG } from '../src/shared/vehicle/tankRigTypes';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_ROOT = path.join(ROOT, 'content');
@@ -21,6 +23,12 @@ function step(match: Match, seconds: number, input?: GunnerInput) {
 }
 
 const aim = { aimYaw: 0, aimPitch: 0, primary: false, secondary: false, ability: false };
+
+/** Pitch that points the resolved muzzle at a world target (turret yaw 0). */
+function pitchTo(target: { x: number; y: number; z: number }, tank: { x: number; y: number; z: number; yaw: number }): number {
+  const mount = computeWeaponMountWorldPose({ x: tank.x, y: tank.y, z: tank.z, yaw: tank.yaw }, { yaw: 0, pitch: 0 }, DEFAULT_TANK_RIG);
+  return Math.atan2(target.y - mount.muzzle.y, Math.hypot(target.x - mount.muzzle.x, target.z - mount.muzzle.z));
+}
 
 describe('loadout resolution', () => {
   it('maps primary/secondary/ability to the Demo weapons on both rule paths', () => {
@@ -112,17 +120,19 @@ describe('weapon behaviors', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    step(m, 0.6, { aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
+    const bugPitch = pitchTo({ x: 12, y: 0.6, z: 0 }, m.state.tank);
+    step(m, 0.6, { aimYaw: 0, aimPitch: bugPitch, primary: true , secondary: false, ability: false });
     expect(bug.hp).toBeLessThan(BASE_CONFIG.enemies.bugHp);
     expect(tower.hp).toBe(BASE_CONFIG.enemies.towerHp); // towers are MG-immune
 
     const barrelMatch = new Match('barrel');
     const barrel = barrelMatch.state.barrels.find((b) => b.x === -4 && b.z === -8)!;
     barrelMatch.state.tank.x = -4;
-    barrelMatch.state.tank.z = -12;
+    barrelMatch.state.tank.z = -22;
     barrelMatch.state.tank.yaw = 0;
     barrelMatch.state.turret.yaw = 0;
-    step(barrelMatch, 0.5, { aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
+    const barrelPitch = pitchTo({ x: -4, y: 0.7, z: -8 }, barrelMatch.state.tank);
+    step(barrelMatch, 0.5, { aimYaw: 0, aimPitch: barrelPitch, primary: true , secondary: false, ability: false });
     expect(barrel.hp ?? 0).toBeGreaterThan(0);
   });
 
@@ -201,7 +211,8 @@ describe('damage, kill, and semantic events', () => {
     m.state.tank.z = 0;
     m.state.tank.yaw = Math.PI / 2;
     m.state.turret.yaw = 0;
-    m.setGunnerInput({ aimYaw: 0, aimPitch: 0, primary: true , secondary: false, ability: false });
+    const bugPitch = pitchTo({ x: 12, y: 0.6, z: 0 }, m.state.tank);
+    m.setGunnerInput({ aimYaw: 0, aimPitch: bugPitch, primary: true , secondary: false, ability: false });
     for (let i = 0; i < 60; i++) {
       m.step(DT);
       m.takeEvents();

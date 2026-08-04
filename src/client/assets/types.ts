@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { TankRigDefinition } from '../../shared/content/schemas/tank';
 
 export interface VfxSpec {
   color: number;
@@ -28,6 +29,12 @@ export interface TankRig {
   chassis: THREE.Object3D;
   turret: THREE.Object3D;
   barrel: THREE.Object3D;
+  /** The resolved data-driven rig this instance was built from. */
+  rigDefinition: TankRigDefinition;
   muzzleLocal: THREE.Vector3;
   turretPivot: THREE.Vector3;
+  barrelPivot: THREE.Vector3;
+  aimPivotLocal: THREE.Vector3;
+  cameraAnchorLocal: THREE.Vector3 | null;
+  forwardAxis: THREE.Vector3 | null;
 }

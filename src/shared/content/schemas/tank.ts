@@ -1,6 +1,40 @@
 import { z } from 'zod';
 import { commonDefinition, nonNegativeNumber, positiveInt, positiveNumber } from './common';
 
+const vec3 = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
+
+/**
+ * Shared weapon-mount geometry. The server simulation, client rig
+ * construction, local VFX, and the trajectory crosshair all read this one
+ * block; numeric offsets are authoritative and asset node names are only
+ * optional client binding aids.
+ */
+export const tankRigSchema = z
+  .object({
+    chassisAssetId: z.string(),
+    turretAssetId: z.string(),
+    barrelAssetId: z.string(),
+    turretPivot: vec3,
+    barrelPivot: vec3,
+    muzzleLocal: vec3,
+    aimPivotLocal: vec3,
+    cameraAnchorLocal: vec3.optional(),
+    /** Local forward axis of the chassis/barrel (default +Z). */
+    forwardAxis: vec3.optional(),
+    socketBindings: z
+      .object({
+        turretPivotNode: z.string().optional(),
+        barrelPivotNode: z.string().optional(),
+        muzzleNode: z.string().optional(),
+        cameraAnchorNode: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export type TankRigDefinition = z.infer<typeof tankRigSchema>;
+
 export const tankSchema = z.object({
   ...commonDefinition,
   id: z.string().regex(/^tank\./, 'tank id must start with tank.'),
@@ -62,6 +96,7 @@ export const tankSchema = z.object({
   jackpotRecoilImpulse: nonNegativeNumber,
   jackpotSpin: nonNegativeNumber,
   mgRecoilImpulse: nonNegativeNumber,
+  rig: tankRigSchema,
 });
 
 export type TankDefinition = z.infer<typeof tankSchema>;

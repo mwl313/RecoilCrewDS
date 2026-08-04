@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'dff0f1e26db5fb0e165de40eb38d2e438eb063b769bb49091ad3739208efe4de';
+export const CONTENT_PACK_SOURCE_HASH = '8d986e1d76db936183ff8b63d34d02167048de14fbd2b94674aade7857a593c6';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '152d9687d6b95a2a5f28ec88771f1738de473d44073110ab8fcbf50bb397bd6f';
+export const CONTENT_PACK_HASH = '1a0d16e8bc3cd486620cd5bd7c5f92507c02dc766fd0ded4607db3d14b6f66e2';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -59,7 +59,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "densityProfile.primary", definition: {"id":"densityProfile.primary","label":"Primary 400m Density","behaviors":[],"budgets":{"maxObjects":80,"maxColliders":60,"maxBarrels":20,"maxCrates":12,"maxRamps":6,"maxMedium":14,"maxDecorations":24,"maxBarrelChain":3}} },
   ],
   "tanks": [
-    { id: "tank.default", definition: {"id":"tank.default","label":"Default Tank","behaviors":[],"forwardSpeed":18,"reverseSpeed":8,"accel":14,"reverseAccel":10,"steerLow":1.5,"steerHigh":0.9,"normalGrip":2.1,"airControl":0.55,"airGripMultiplier":0.35,"groundYawDamping":3.2,"airYawDamping":2.2,"hardHorizontalSpeedCap":35,"maxVisualAirPitch":0.22,"maxVisualAirRoll":0.28,"visualAirLevelRate":4,"landingGripSeconds":0.12,"landingGripMultiplier":0.35,"gravity":13.5,"jumpHeight":3,"rampLaunchSpeed":6.5,"dashImpulse":13,"dashCooldown":0.8,"dashAirMultiplier":0.8,"dashMaxHorizontalSpeed":33,"dashPresentationSeconds":0.18,"collisionRadius":1.35,"footprint":[{"offset":-1,"radius":0.9},{"offset":0,"radius":1.15},{"offset":1,"radius":0.9}],"maxSafeStep":0.45,"maxSubsteps":8,"reverseSteerMult":0.7,"maxIntegrity":100,"respawnTime":3,"shieldTime":2,"autoRightTime":1.2,"autoRightRoll":1.15,"fallDamageSpeed":14,"fallDamage":10,"recoilImpulse":10.5,"recoilSpin":1.7,"jackpotRecoilImpulse":17,"jackpotSpin":4.5,"mgRecoilImpulse":0.15} },
+    { id: "tank.default", definition: {"id":"tank.default","label":"Default Tank","behaviors":[],"forwardSpeed":18,"reverseSpeed":8,"accel":14,"reverseAccel":10,"steerLow":1.5,"steerHigh":0.9,"normalGrip":2.1,"airControl":0.55,"airGripMultiplier":0.35,"groundYawDamping":3.2,"airYawDamping":2.2,"hardHorizontalSpeedCap":35,"maxVisualAirPitch":0.22,"maxVisualAirRoll":0.28,"visualAirLevelRate":4,"landingGripSeconds":0.12,"landingGripMultiplier":0.35,"gravity":13.5,"jumpHeight":3,"rampLaunchSpeed":6.5,"dashImpulse":13,"dashCooldown":0.8,"dashAirMultiplier":0.8,"dashMaxHorizontalSpeed":33,"dashPresentationSeconds":0.18,"collisionRadius":1.35,"footprint":[{"offset":-1,"radius":0.9},{"offset":0,"radius":1.15},{"offset":1,"radius":0.9}],"maxSafeStep":0.45,"maxSubsteps":8,"reverseSteerMult":0.7,"maxIntegrity":100,"respawnTime":3,"shieldTime":2,"autoRightTime":1.2,"autoRightRoll":1.15,"fallDamageSpeed":14,"fallDamage":10,"recoilImpulse":10.5,"recoilSpin":1.7,"jackpotRecoilImpulse":17,"jackpotSpin":4.5,"mgRecoilImpulse":0.15,"rig":{"chassisAssetId":"playerTank.chassis","turretAssetId":"playerTank.turret","barrelAssetId":"playerTank.barrel","turretPivot":[0,1.15,0],"barrelPivot":[0,0.62,0],"muzzleLocal":[0,0.75,2.9],"aimPivotLocal":[0,1.15,0],"cameraAnchorLocal":[0,1.35,0],"forwardAxis":[0,0,1]}} },
   ],
   "loadouts": [
     { id: "loadout.default", definition: {"id":"loadout.default","label":"Default Crew Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.mainCannon","ability":"weapon.jackpotShell","turret":{"turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-1.45}} },

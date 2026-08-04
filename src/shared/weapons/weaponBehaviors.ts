@@ -3,26 +3,22 @@ import type { WeaponDefinition } from './weaponDefinition';
 import { weaponStat } from './weaponDefinition';
 import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
 import type { WeaponRuntimeState } from './weaponRuntimeState';
+import { computeWeaponMountWorldPose } from '../vehicle/tankRigGeometry';
 
-/** World muzzle origin + direction (legacy offsets, exactly as before). */
+/**
+ * World muzzle origin + direction resolved from the shared tank rig
+ * geometry (gameplay04 M4/M5). Every weapon behavior reads this one source
+ * so authoritative shots and rendered VFX use identical geometry.
+ */
 export function muzzleWorld(ctx: SystemContext): { x: number; y: number; z: number; dx: number; dy: number; dz: number } {
-  const t = ctx.state.tank;
-  const tur = ctx.state.turret;
-  const yaw = t.yaw + tur.yaw;
-  const pitch = tur.pitch;
-  const dx = Math.cos(pitch) * Math.sin(yaw);
-  const dy = Math.sin(pitch);
-  const dz = Math.cos(pitch) * Math.cos(yaw);
-  // Muzzle safety: never start a shell inside the terrain or under the
-  // chassis, especially when aiming steeply downward on slopes/ramps.
-  const groundY = ctx.world.groundHeightAt(t.x, t.z);
+  const mount = computeWeaponMountWorldPose(ctx.state.tank, ctx.state.turret, ctx.rules.tank.rig);
   return {
-    x: t.x + dx * 2.7,
-    y: Math.max(t.y + 1.55 + dy * 1.4, groundY + 0.25),
-    z: t.z + dz * 2.7,
-    dx,
-    dy,
-    dz,
+    x: mount.muzzle.x,
+    y: mount.muzzle.y,
+    z: mount.muzzle.z,
+    dx: mount.direction.x,
+    dy: mount.direction.y,
+    dz: mount.direction.z,
   };
 }
 

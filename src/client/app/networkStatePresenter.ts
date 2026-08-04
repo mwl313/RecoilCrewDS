@@ -16,6 +16,8 @@ import type { DriverInput } from '../../shared/types';
 import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
 import type { GameSessionContext } from '../../shared/session/gameSessionKind';
+import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
+import { computeAimPivotWorld } from '../../shared/vehicle/tankRigGeometry';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -36,6 +38,7 @@ export interface PresenterDeps {
   cameraQuery: () => CameraCollisionQuery | null;
   input: InputSource;
   audio: AudioManager;
+  onTankRig?: (block: TankRigRulesBlock) => void;
   session: () => GameSessionContext;
   role: () => Role;
   singlePlayerMatch: () => { state: MatchState } | null;
@@ -67,7 +70,17 @@ export class NetworkStatePresenter {
     interpolated: false,
   };
 
-  constructor(private readonly deps: PresenterDeps) {}
+  private tankRig: TankRig;
+  private tankRigRevision = 0;
+
+  constructor(private readonly deps: PresenterDeps) {
+    this.tankRig = deps.tankRig;
+  }
+
+  /** Swap the resolved tank rig (Single Player start / replicated block). */
+  setTankRig(rig: TankRig): void {
+    this.tankRig = rig;
+  }
 
   setSnapshot(msg: SnapshotEnvelope<MatchState> & {
     lastImpulseSeq?: number;
@@ -91,6 +104,11 @@ export class NetworkStatePresenter {
     }
     if (this.deps.session().networked) {
       this.deps.prediction.applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier);
+      const block = msg.movement?.tankRig;
+      if (block && block.revision !== this.tankRigRevision) {
+        this.tankRigRevision = block.revision;
+        this.deps.onTankRig?.(block);
+      }
     }
     if (!this.renderClockStarted) {
       this.renderClockStarted = true;
@@ -163,21 +181,21 @@ export class NetworkStatePresenter {
     this.lastRenderTank = renderTank;
     const pos = new THREE.Vector3(t.x, t.y, t.z);
     const yaw = t.yaw;
-    deps.tankRig.chassis.position.copy(pos);
-    deps.tankRig.chassis.rotation.set(-t.pitch, yaw, t.roll);
+    this.tankRig.chassis.position.copy(pos);
+    this.tankRig.chassis.rotation.set(-t.pitch, yaw, t.roll);
     const usePredictedTurret = deps.session().kind === 'singlePlayer' || deps.role() === 'gunner';
     const turretSpaces = deps.prediction.getTurretSpaces();
     if (usePredictedTurret) {
-      deps.tankRig.turret.rotation.y = turretSpaces.predictedYawLocal;
-      deps.tankRig.barrel.rotation.x = -turretSpaces.predictedPitch;
+      this.tankRig.turret.rotation.y = turretSpaces.predictedYawLocal;
+      this.tankRig.barrel.rotation.x = -turretSpaces.predictedPitch;
     } else {
       // Driver online: the gunner's world aim is already in every snapshot.
       // Interpolate it client-side and re-derive the local yaw against the
       // predicted chassis, so the turret moves in real time (60 fps, still
       // sticky to the gunner's aim) with zero extra network traffic.
       const worldAim = wrapAngle(yaw + frame.turret.yaw);
-      deps.tankRig.turret.rotation.y = wrapAngle(worldAim - yaw);
-      deps.tankRig.barrel.rotation.x = -frame.turret.pitch;
+      this.tankRig.turret.rotation.y = wrapAngle(worldAim - yaw);
+      this.tankRig.barrel.rotation.x = -frame.turret.pitch;
     }
     deps.registry.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
     deps.registry.shieldMesh.visible = t.shieldedT > 0;
@@ -268,7 +286,11 @@ export class NetworkStatePresenter {
     if (deps.session().kind === 'singlePlayer' || deps.role() === 'gunner') {
       const groundY = renderTank.y;
       const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
-      const pivot = pos.clone().add(new THREE.Vector3(0, 1.15, 0));
+      const pivotWorld = computeAimPivotWorld(
+        { x: pos.x, y: pos.y, z: pos.z, yaw },
+        this.tankRig.rigDefinition,
+      );
+      const pivot = new THREE.Vector3(pivotWorld.x, pivotWorld.y, pivotWorld.z);
       const dx = aim.x - pivot.x;
       const dz = aim.z - pivot.z;
       const flat = Math.hypot(dx, dz) || 0.001;
@@ -277,8 +299,8 @@ export class NetworkStatePresenter {
       const limits = deps.prediction.turretPitchLimits();
       const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), limits.minPitch, limits.maxPitch);
       deps.prediction.updateTurretTarget(worldYaw, pitch, chassisYaw, dt);
-      deps.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
-      deps.tankRig.barrel.rotation.x = -deps.prediction.getTurretSpaces().predictedPitch;
+      this.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
+      this.tankRig.barrel.rotation.x = -deps.prediction.getTurretSpaces().predictedPitch;
     }
     if (deps.session().kind === 'singlePlayer') {
       deps.applySinglePlayerWeapons(dt);

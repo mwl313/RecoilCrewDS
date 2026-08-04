@@ -23,6 +23,8 @@ import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
 import type { DriverInput } from '../../shared/types';
 import type { ContentPack } from '../../shared/content/contentPack';
 import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } from '../../shared/session/gameSessionKind';
+import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
+import { getMuzzleWorld } from '../assets';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -36,9 +38,10 @@ export class GameClient {
   private readonly cameras: CameraManager;
   private readonly prediction: PredictionController;
   private readonly presenter: NetworkStatePresenter;
+  private readonly assets: AssetService;
   private readonly router: PresentationEventRouter;
   private readonly quality: QualityManager;
-  private readonly tankRig: TankRig;
+  private tankRig: TankRig;
   private readonly audio: AudioManager;
   private readonly input: InputSource;
   private readonly container: HTMLElement;
@@ -84,6 +87,7 @@ export class GameClient {
     tankRig: TankRig;
     arenaWorld: ArenaWorld;
   }) {
+    this.assets = deps.assets;
     this.container = deps.container;
     this.world = deps.world;
     this.registry = deps.registry;
@@ -165,6 +169,7 @@ export class GameClient {
       cameraQuery: () => renderWorld.arena.cameraQuery,
       input,
       audio,
+      onTankRig: (block) => gameRef?.applyTankRigBlock(block),
       session: () => gameRef!.session,
       role: () => gameRef!.role,
       singlePlayerMatch: () => gameRef!.singlePlayerMatch,
@@ -215,6 +220,7 @@ export class GameClient {
     const turret = this.singlePlayerMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
     this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
+    this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
     this.presenter.latest = this.singlePlayerMatch.state;
     this.presenter.remoteFrame = null;
     this.setRole('driver');
@@ -242,7 +248,26 @@ export class GameClient {
         SINGLE_PLAYER_SESSION.rulesModeId,
       );
       this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
+      this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
     }
+  }
+
+  /** Replicated rig block (online) → rebuild the visual tank rig. */
+  applyTankRigBlock(block: TankRigRulesBlock): void {
+    this.applyTankRig(block.rig);
+  }
+
+  /** Rebuild the visual tank rig from resolved data (no hardcoded pivots). */
+  private applyTankRig(rig: TankRig['rigDefinition']): void {
+    const next = this.assets.tankRig(rig);
+    this.installTankRig(next);
+  }
+
+  private installTankRig(next: TankRig): void {
+    this.world.scene.remove(this.tankRig.chassis);
+    this.tankRig = next;
+    this.presenter.setTankRig(next);
+    this.world.scene.add(next.chassis);
   }
 
   /**
@@ -546,13 +571,14 @@ export class GameClient {
     const cannon = this.mouseDown('secondary') && !state.turret.jackpotReady;
     const charge = this.mouseDown('secondary') && state.turret.jackpotReady;
     if (mg && state.turret.mgCooldown <= 0) {
-      const muzzle = this.tankRig.barrel.localToWorld(new THREE.Vector3(0, 0.75, 2.9).clone());
+      this.tankRig.chassis.updateMatrixWorld(true);
+      const muzzle = getMuzzleWorld(this.tankRig);
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
       this.audio.play('machineGun');
     }
     if (cannon && !this.cannonDown && state.turret.cannonCooldown <= 0) {
       this.tankRig.chassis.updateMatrixWorld(true);
-      const muzzle = this.tankRig.barrel.localToWorld(new THREE.Vector3(0, 0.75, 2.9).clone());
+      const muzzle = getMuzzleWorld(this.tankRig);
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.audio.play('cannon');
       this.cameras.addImpulse(0.45);
@@ -628,7 +654,7 @@ export class GameClient {
   private playLocalGunnerAction(action: GunnerActionType): void {
     const latest = this.presenter.latest;
     this.tankRig.chassis.updateMatrixWorld(true);
-    const muzzle = this.tankRig.barrel.localToWorld(new THREE.Vector3(0, 0.75, 2.9).clone());
+    const muzzle = getMuzzleWorld(this.tankRig);
     if (action === 'cannonPressed') {
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);

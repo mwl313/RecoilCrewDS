@@ -1,5 +1,13 @@
 import type { GameConfig } from '../config';
 import type { MatchConfig } from '../types';
+import type { TankRigDefinition } from '../content/schemas/tank';
+
+/** Typed tank-rig delivery block (gameplay04 M4). */
+export interface TankRigRulesBlock {
+  revision: number;
+  tankId: string;
+  rig: TankRigDefinition;
+}
 
 /**
  * Compact resolved movement block replicated to clients (REFACTOR_02 §13).
@@ -17,6 +25,8 @@ export interface MovementRulesBlock {
    * always sends it with snapshots after a movement-rules revision.
    */
   weapon?: { cannonCooldown: number; jackpotChargeTime: number };
+  /** Resolved tank rig geometry; the server always sends it with the block. */
+  tankRig?: TankRigRulesBlock;
 }
 
 /** Reliable metadata attached to snapshots/events (REFACTOR_02 §13). */

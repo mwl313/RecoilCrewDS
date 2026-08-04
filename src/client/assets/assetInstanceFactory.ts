@@ -6,6 +6,8 @@ import { AssetTransformResolver } from './assetTransformResolver';
 import type { ManifestAssetEntry } from './assetManifestLoader';
 import type { UiPresentation } from './presentationCatalog';
 import type { ProjectAssetDefinition } from '../../shared/presentation/schemas';
+import type { TankRigDefinition } from '../../shared/content/schemas/tank';
+import { DEFAULT_TANK_RIG } from '../../shared/vehicle/tankRigTypes';
 
 /**
  * Produces runtime instances from semantic ids. Models are cloned from cached
@@ -87,20 +89,29 @@ export class AssetInstanceFactory {
     return this.audioCatalog(id);
   }
 
-  buildTankRig(): TankRig {
-    const chassis = this.instanceModel('playerTank.chassis');
-    const turret = this.instanceModel('playerTank.turret');
-    const barrel = this.instanceModel('playerTank.barrel');
-    turret.position.set(0, 1.15, 0);
+  buildTankRig(rig: TankRigDefinition = DEFAULT_TANK_RIG): TankRig {
+    const chassis = this.instanceModel(rig.chassisAssetId);
+    const turret = this.instanceModel(rig.turretAssetId);
+    const barrel = this.instanceModel(rig.barrelAssetId);
+    turret.position.set(rig.turretPivot[0], rig.turretPivot[1], rig.turretPivot[2]);
     chassis.add(turret);
-    barrel.position.set(0, 0.62, 0);
+    barrel.position.set(rig.barrelPivot[0], rig.barrelPivot[1], rig.barrelPivot[2]);
     turret.add(barrel);
     return {
       chassis,
       turret,
       barrel,
-      muzzleLocal: new THREE.Vector3(0, 0.75, 2.9),
-      turretPivot: new THREE.Vector3(0, 1.15, 0),
+      rigDefinition: rig,
+      muzzleLocal: new THREE.Vector3(rig.muzzleLocal[0], rig.muzzleLocal[1], rig.muzzleLocal[2]),
+      turretPivot: new THREE.Vector3(rig.turretPivot[0], rig.turretPivot[1], rig.turretPivot[2]),
+      barrelPivot: new THREE.Vector3(rig.barrelPivot[0], rig.barrelPivot[1], rig.barrelPivot[2]),
+      aimPivotLocal: new THREE.Vector3(rig.aimPivotLocal[0], rig.aimPivotLocal[1], rig.aimPivotLocal[2]),
+      cameraAnchorLocal: rig.cameraAnchorLocal
+        ? new THREE.Vector3(rig.cameraAnchorLocal[0], rig.cameraAnchorLocal[1], rig.cameraAnchorLocal[2])
+        : null,
+      forwardAxis: rig.forwardAxis
+        ? new THREE.Vector3(rig.forwardAxis[0], rig.forwardAxis[1], rig.forwardAxis[2])
+        : null,
     };
   }
 }
@@ -132,6 +143,6 @@ export function getMuzzleWorld(rig: TankRig): THREE.Vector3 {
 }
 
 /** Build a tank rig from preloaded semantic models (synchronous). */
-export function buildTankRig(factory: AssetInstanceFactory): TankRig {
-  return factory.buildTankRig();
+export function buildTankRig(factory: AssetInstanceFactory, rig?: TankRigDefinition): TankRig {
+  return factory.buildTankRig(rig);
 }

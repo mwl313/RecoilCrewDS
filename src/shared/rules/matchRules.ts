@@ -9,15 +9,16 @@ import type { PickupDefinition } from '../content/schemas/pickup';
 import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
+import type { TankDefinition } from '../content/schemas/tank';
 import type { WeaponDefinition } from '../content/schemas/weapon';
 import { legacyGameConfigFromContent, legacyMatchConfigFromContent } from './contentConfig';
 import { baseStatBlocksFromConfig, type StatBlock } from '../stats/statBlock';
 import { ENEMY_STAT_IDS, MATCH_STAT_IDS, MOVEMENT_STAT_IDS, TANK_STAT_IDS, WEAPON_STAT_IDS } from '../stats/statIds';
 import type { StatModifier } from '../stats/statModifier';
 import { StatResolver } from '../stats/statResolver';
-import type { MovementRulesBlock, RulesRevisionSnapshot } from '../stats/rulesRevision';
+import type { MovementRulesBlock, RulesRevisionSnapshot, TankRigRulesBlock } from '../stats/rulesRevision';
 import type { MatchConfig, ModifierId } from '../types';
-import { createLegacyDemoRulesBundle, type DemoRulesBundle } from './legacyDemoRules';
+import { createLegacyDefaultTankDefinition, createLegacyDemoRulesBundle, type DemoRulesBundle } from './legacyDemoRules';
 import { deepFreeze } from '../content/freeze';
 
 /**
@@ -49,6 +50,7 @@ export class MatchRules {
   readonly enemies: ReadonlyMap<string, EnemyDefinition>;
   readonly dropTables: ReadonlyMap<string, DropTableDefinition>;
   readonly pickups: ReadonlyMap<string, PickupDefinition>;
+  readonly tank: TankDefinition;
   readonly resolver: StatResolver;
 
   private readonly baseConfig: GameConfig;
@@ -57,6 +59,7 @@ export class MatchRules {
   private matchConfigCache: MatchConfig | null = null;
   private rulesRev = 1;
   private movementRev = 1;
+  private tankRigRev = 1;
   private dirty = false;
 
   private constructor(options: {
@@ -74,6 +77,7 @@ export class MatchRules {
     baseMatchConfig: MatchConfig;
     bundle: DemoRulesBundle;
     difficultyModifiers: StatModifier[];
+    tank: TankDefinition;
   }) {
     this.packId = options.packId;
     this.packVersion = options.packVersion;
@@ -96,6 +100,7 @@ export class MatchRules {
     this.enemies = deepFreeze(new Map(Object.entries(options.bundle.enemies)));
     this.dropTables = deepFreeze(new Map(Object.entries(options.bundle.dropTables)));
     this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
+    this.tank = deepFreeze(options.tank);
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
@@ -158,6 +163,7 @@ export class MatchRules {
         pickups: packPickups(pack),
       },
       difficultyModifiers,
+      tank: pack.getTank(mode.tank),
     });
   }
 
@@ -198,6 +204,7 @@ export class MatchRules {
       baseMatchConfig,
       bundle,
       difficultyModifiers,
+      tank: createLegacyDefaultTankDefinition(),
     });
   }
 
@@ -223,6 +230,15 @@ export class MatchRules {
 
   get movementRulesRevision(): number {
     return this.movementRev;
+  }
+
+  /** Resolved tank rig block (gameplay04 M4); revision mirrors rules. */
+  tankRigBlock(): TankRigRulesBlock {
+    return deepFreeze({
+      revision: this.tankRigRev,
+      tankId: this.tank.id,
+      rig: this.tank.rig,
+    });
   }
 
   addModifier(modifier: StatModifier): void {
@@ -270,6 +286,7 @@ export class MatchRules {
         cannonCooldown: this.resolver.resolve('match.cannonCooldown'),
         jackpotChargeTime: this.resolver.resolve('weapon.jackpotChargeTime'),
       },
+      tankRig: this.tankRigBlock(),
     });
   }
 

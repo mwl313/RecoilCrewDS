@@ -11,6 +11,8 @@ import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
 import type { WeaponDefinition } from '../content/schemas/weapon';
 import type { StatBlock } from '../stats/statBlock';
+import type { TankDefinition } from '../content/schemas/tank';
+import { DEFAULT_TANK_RIG } from '../vehicle/tankRigTypes';
 
 /**
  * Client-safe Demo rules bundle synthesized from the legacy constants.
@@ -465,7 +467,78 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     'pickup.jackpotScrap': { id: 'pickup.jackpotScrap', kind: 'jackpot', life: 16, magnetRadius: 8, presentationId: 'pickup.jackpotScrap', behaviors: [] },
   };
 
-  return { objective, scoring, results, spawnDirector, weaponStatBlocks, loadout, weapons, enemies, dropTables, pickups };
+  return {
+    objective,
+    scoring,
+    results,
+    spawnDirector,
+    weaponStatBlocks,
+    loadout,
+    weapons,
+    enemies,
+    dropTables,
+    pickups,
+  };
+}
+
+/**
+ * Client-safe default tank definition mirroring content/tanks/default.json
+ * (parity is tested). Includes the shared rig block so legacy and content
+ * paths resolve identical weapon geometry.
+ */
+export function createLegacyDefaultTankDefinition(): TankDefinition {
+  return {
+    id: 'tank.default',
+    label: 'Default Tank',
+    behaviors: [],
+    forwardSpeed: 18,
+    reverseSpeed: 8,
+    accel: 14,
+    reverseAccel: 10,
+    steerLow: 1.5,
+    steerHigh: 0.9,
+    normalGrip: 2.1,
+    airControl: 0.55,
+    airGripMultiplier: 0.35,
+    groundYawDamping: 3.2,
+    airYawDamping: 2.2,
+    hardHorizontalSpeedCap: 35.0,
+    maxVisualAirPitch: 0.22,
+    maxVisualAirRoll: 0.28,
+    visualAirLevelRate: 4.0,
+    landingGripSeconds: 0.12,
+    landingGripMultiplier: 0.35,
+    gravity: 13.5,
+    jumpHeight: 3.0,
+    rampLaunchSpeed: 6.5,
+    dashImpulse: 13.0,
+    dashCooldown: 0.8,
+    dashAirMultiplier: 0.8,
+    dashMaxHorizontalSpeed: 33.0,
+    dashPresentationSeconds: 0.18,
+    collisionRadius: 1.35,
+    footprint: [
+      { offset: -1.0, radius: 0.9 },
+      { offset: 0, radius: 1.15 },
+      { offset: 1.0, radius: 0.9 },
+    ],
+    maxSafeStep: 0.45,
+    maxSubsteps: 8,
+    reverseSteerMult: 0.7,
+    maxIntegrity: 100,
+    respawnTime: 3,
+    shieldTime: 2,
+    autoRightTime: 1.2,
+    autoRightRoll: 1.15,
+    fallDamageSpeed: 14,
+    fallDamage: 10,
+    recoilImpulse: 10.5,
+    recoilSpin: 1.7,
+    jackpotRecoilImpulse: 17,
+    jackpotSpin: 4.5,
+    mgRecoilImpulse: 0.15,
+    rig: DEFAULT_TANK_RIG,
+  };
 }
 
 /** Mode definition for the client-safe path (mirrors content/modes). */
