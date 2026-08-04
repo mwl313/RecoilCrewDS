@@ -122,6 +122,7 @@ export class EnemySystem {
 
   update(dt: number): void {
     const s = this.ctx.state;
+    this.ctx.enemySpatial.rebuild(s.enemies);
     for (const e of s.enemies) {
       if (!e.alive) {
         e.stateT += dt;
@@ -143,8 +144,10 @@ export class EnemySystem {
       this.ctx.enemyImpulses.update(e, def, dt);
     }
     s.enemies = s.enemies.filter((e) => e.alive || e.stateT <= 2.5);
+    const live = new Set<number>();
+    for (const e of s.enemies) live.add(e.id);
     for (const id of [...this.runtimes.keys()]) {
-      if (!s.enemies.some((e) => e.id === id)) this.runtimes.delete(id);
+      if (!live.has(id)) this.runtimes.delete(id);
     }
   }
 

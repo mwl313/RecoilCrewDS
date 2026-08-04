@@ -501,7 +501,8 @@ export class MatchRuntime {
     b.flash = 0.3;
     this.push('barrelExplode', b.x, 0.8, b.z, { value: radius });
     this.addContribution('gunner', 3);
-    for (const e of s.enemies) {
+    const nearby = this.systems.enemySpatial.queryCircle(b.x, b.z, radius + 4);
+    for (const e of nearby) {
       if (!e.alive) continue;
       const d = dist(b.x, b.z, e.x, e.z);
       if (d < radius + this.systems.enemies.radiusFor(e)) {

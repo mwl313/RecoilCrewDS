@@ -47,13 +47,15 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
     },
   });
 
+  const densityScratch: EnemyState[] = [];
   registry.register({
-    id: 'movement.separation',
+    id: 'movement.densitySteering',
     update(ctx, e, runtime) {
       const def = ctx.enemies.defFor(e);
-      const distance = behaviorParam(def, 'movement.separation', 'distance', 2.4);
-      const strength = behaviorParam(def, 'movement.separation', 'strength', 0.8);
-      for (const o of ctx.state.enemies) {
+      const distance = behaviorParam(def, 'movement.densitySteering', 'distance', 2.4);
+      const strength = behaviorParam(def, 'movement.densitySteering', 'strength', 0.8);
+      const nearby = ctx.enemySpatial.queryCircle(e.x, e.z, distance, densityScratch);
+      for (const o of nearby) {
         if (o === e || !o.alive || o.type !== e.type) continue;
         const ox = e.x - o.x;
         const oz = e.z - o.z;

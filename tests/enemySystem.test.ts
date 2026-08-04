@@ -27,7 +27,7 @@ describe('enemy definition composition', () => {
     expect(rules.enemies.get('enemy.scrapBug')!.behaviors.map((b) => b.id)).toEqual([
       'movement.seekTank',
       'movement.circleTarget',
-      'movement.separation',
+      'movement.densitySteering',
       'movement.obstacleAvoid',
       'movement.integrate',
       'attack.contactRam',

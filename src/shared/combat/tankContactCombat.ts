@@ -1,4 +1,5 @@
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
+import type { EnemyState } from '../types';
 
 /**
  * Authoritative tank-vs-enemy contact combat (Combat 05 M1).
@@ -11,6 +12,7 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 export class TankContactCombat {
   /** Per-enemy last Dash-hit time (bounded by cooldown pruning). */
   private readonly lastDashHit = new Map<number, number>();
+  private readonly nearby: EnemyState[] = [];
 
   constructor(private readonly ctx: SystemContext) {}
 
@@ -31,7 +33,9 @@ export class TankContactCombat {
       if (s.time - at >= perTargetCooldown) this.lastDashHit.delete(id);
     }
 
-    for (const e of s.enemies) {
+    const queryRadius = tankR + 0.4 + 4;
+    const nearby = this.ctx.enemySpatial.queryCircle(t.x, t.z, queryRadius, this.nearby);
+    for (const e of nearby) {
       if (!e.alive) continue;
       const def = this.ctx.enemies.defFor(e);
       // Gun Towers are immovable turrets, not contact targets.

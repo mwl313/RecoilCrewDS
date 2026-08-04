@@ -99,7 +99,8 @@ export class ProjectileSystem {
         }
       }
       if (!exploded) {
-        for (const e of s.enemies) {
+        const nearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, 4.7);
+        for (const e of nearby) {
           if (!e.alive || e.type === 'gunTower') continue;
           const rr = this.ctx.enemies.radiusFor(e) + 0.7;
           if (dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
@@ -129,7 +130,8 @@ export class ProjectileSystem {
     const innerRatio = resolver.resolve('weapon.splashInnerRatio');
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
     const outerMult = resolver.resolve('weapon.splashOuterMultiplier');
-    for (const e of s.enemies) {
+    const splashNearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, radius + 4);
+    for (const e of splashNearby) {
       if (!e.alive) continue;
       const d = dist(sh.x, sh.z, e.x, e.z);
       const rr = this.ctx.enemies.radiusFor(e);

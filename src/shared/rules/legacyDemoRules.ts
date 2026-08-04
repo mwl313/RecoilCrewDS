@@ -266,7 +266,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       behaviors: [
         { id: 'movement.seekTank', parameters: {} },
         { id: 'movement.circleTarget', parameters: {} },
-        { id: 'movement.separation', parameters: {} },
+        { id: 'movement.densitySteering', parameters: {} },
         { id: 'movement.obstacleAvoid', parameters: {} },
         { id: 'movement.integrate', parameters: {} },
         { id: 'attack.contactRam', parameters: {} },

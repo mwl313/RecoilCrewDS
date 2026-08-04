@@ -84,7 +84,7 @@ export function createBuiltinBehaviorRegistry(): BehaviorRegistry {
   registry.register({ id: 'movement.seekTank', kind: 'movement', description: 'Seek the tank with optional speed wobble' });
   registry.register({ id: 'movement.followRoute', kind: 'movement', description: 'Follow a waypoint route (Loot Truck)' });
   registry.register({ id: 'movement.circleTarget', kind: 'movement', description: 'Circle the tank while closing' });
-  registry.register({ id: 'movement.separation', kind: 'movement', description: 'Separate from same-kind enemies' });
+  registry.register({ id: 'movement.densitySteering', kind: 'movement', description: 'Spatial-index density steering (M5)' });
   registry.register({ id: 'movement.obstacleAvoid', kind: 'movement', description: 'Turn away from obstacles ahead' });
   registry.register({ id: 'movement.integrate', kind: 'movement', description: 'Integrate movement + ground + collision' });
   registry.register({ id: 'attack.telegraphedCharge', kind: 'attack', description: 'Rammer lock/telegraph/charge/recovery state machine' });

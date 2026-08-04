@@ -22,6 +22,7 @@ import { HordeDirector, type ResolvedHordeDirector } from '../../horde/hordeDire
 import { buildSpawnAnchors } from '../../horde/spawnAnchors';
 import { SpawnPlanner } from '../../horde/spawnPlanner';
 import { hash32 } from '../../mapgen/seed';
+import { EnemySpatialIndex } from '../../spatial/enemySpatialIndex';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -72,6 +73,7 @@ export interface SystemContext {
   waves: WaveController;
   horde: HordeDirector | null;
   spawnPlanner: SpawnPlanner;
+  enemySpatial: EnemySpatialIndex;
 }
 
 export function pushEvent(
@@ -128,6 +130,7 @@ export function createSystemContext(
     hash32('spawn-planner', state.matchId),
     buildSpawnAnchors(world).anchors,
   );
+  ctx.enemySpatial = new EnemySpatialIndex();
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);
