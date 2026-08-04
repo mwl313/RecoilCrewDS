@@ -43,6 +43,16 @@ export class CameraManager {
     this.activeCam = role === 'driver' ? this.driverCam : this.gunnerCam;
   }
 
+  /**
+   * Practice lets one player test both roles, so its Driver view also gets
+   * the wide gunner pitch floor (near-vertical cannon takeoffs). Online
+   * Driver keeps the normal −35° floor.
+   */
+  setPracticeMode(practice: boolean): void {
+    const floor = practice ? (-77 * Math.PI) / 180 : (-35 * Math.PI) / 180;
+    this.driverCam.setMinPitch(floor);
+  }
+
   resize(aspect: number): void {
     this.driverCam.resize(aspect);
     this.gunnerCam.resize(aspect);

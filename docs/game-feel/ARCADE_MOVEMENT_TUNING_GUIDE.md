@@ -64,7 +64,9 @@ MovementRulesBlock → stepTankKinematics (server + predictor + Practice)
   The muzzle safety clamp keeps the shell from spawning inside terrain.
 - The **Gunner camera** pitch floor is −77° (Driver stays at −35°), so a
   mouse can actually aim down far enough to reach the near-vertical turret
-  range; the turret (−83°) remains the final authority.
+  range; the turret (−83°) remains the final authority. **Practice mode**
+  widens its Driver view to the same −77° floor (Tab still switches to the
+  Gunner view), so both practice views can test the takeoff.
 
 ## Tuning tips
 

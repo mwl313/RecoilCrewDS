@@ -7,6 +7,7 @@ import {
   worldYawToLocal,
   type TpsCameraTuning,
 } from '../src/client/tpsCamera';
+import { CameraManager } from '../src/client/app/cameraManager';
 
 const TUNING: TpsCameraTuning = {
   fov: 70,
@@ -78,6 +79,15 @@ describe('TPS camera direction conventions', () => {
     gunner.applyMouseDelta(0, 100000);
     expect(gunner.pitch).toBeLessThan((-60 * Math.PI) / 180);
     expect(gunner.pitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
+  });
+
+  it('practice mode widens the driver camera floor; online restores it', () => {
+    const cm = new CameraManager();
+    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
+    cm.setPracticeMode(true);
+    expect(cm.driverCam.minPitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
+    cm.setPracticeMode(false);
+    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
   });
 });
 

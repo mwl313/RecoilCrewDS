@@ -23,7 +23,9 @@ Contract: `ARCADE_UPRIGHT_AERIAL_MOVEMENT_DESIGN.md` · Plan:
   (~10.5 m/s launch) — a cannon takeoff; the shell still explodes at the
   ground for such shots, costing the normal 5 self-splash damage.
   The Gunner camera pitch floor was lowered to −77° (Driver unchanged at
-  −35°) so a mouse can reach the near-vertical aim range.
+  −35°) so a mouse can reach the near-vertical aim range; Practice widens
+  its Driver view to the same −77° floor so both practice views can aim
+  down (Tab still switches to the Gunner view).
 - Content and legacy (`MatchRules.fromContentPack` vs `fromLegacyConfig`)
   parity asserted by the existing equality tests plus new movement tests.
 

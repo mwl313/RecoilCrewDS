@@ -117,6 +117,16 @@ export class TpsCameraController {
     this.pitch = this.tuning.minPitch * 0.2;
   }
 
+  get minPitch(): number {
+    return this.tuning.minPitch;
+  }
+
+  /** Change the camera pitch floor (Practice uses the wide gunner range). */
+  setMinPitch(min: number): void {
+    this.tuning.minPitch = min;
+    if (this.pitch < min) this.pitch = min;
+  }
+
   setFollowPose(position: THREE.Vector3, chassisYaw: number): void {
     this.followPos.copy(position);
     this.chassisYaw = chassisYaw;

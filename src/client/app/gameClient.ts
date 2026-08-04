@@ -203,6 +203,7 @@ export class GameClient {
 
   startOnline(role: Role): void {
     this.mode = 'online';
+    this.cameras.setPracticeMode(false);
     this.setRole(role);
     this.resetState();
     this.prediction.setGround(this.arenaWorld);
@@ -212,6 +213,7 @@ export class GameClient {
 
   startPractice(): void {
     this.mode = 'practice';
+    this.cameras.setPracticeMode(true);
     this.practiceViewRole = 'driver';
     this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, this.arenaWorld);
     const turret = this.practiceMatch.runtime.rules.loadout.turret;
