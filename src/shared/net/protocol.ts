@@ -15,8 +15,11 @@ export interface HordeStageView {
   leaderMaxHp: number;
 }
 
-/** Core Loop 06 M9: horde replication block added (bumped deliberately). */
-export const PROTOCOL_VERSION = 4;
+/**
+ * Animation07 M8: horde materialize records carry a presentation profile
+ * index (bumped deliberately; action cues are additive on snapshots).
+ */
+export const PROTOCOL_VERSION = 5;
 
 export interface ProtocolEnvelope {
   protocol: number;

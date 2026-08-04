@@ -1,6 +1,7 @@
 import type { EnemyState } from '../../types';
 import type { HordeSectorState } from '../../horde/hordeSectors';
 import type { PopulationClass } from '../../horde/spawnOwnership';
+import { ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER } from '../../../generated/enemyAnimationContent.generated';
 
 /**
  * Core Loop 06 M9: typed horde replication records. Enemy transforms are
@@ -18,7 +19,7 @@ export interface HordeWaveState {
 
 export interface HordeSnapshotBlock {
   seq: number;
-  /** [id, type, xq, zq, yawq, hpq, maxHpq, flags] for newly seen enemies. */
+  /** [id, type, xq, zq, yawq, hpq, maxHpq, flags, profileIndex] for newly seen enemies. */
   materialize: number[][];
   /** Enemy ids removed (purge/cleanup) — never a kill, no reward semantics. */
   despawn: number[];
@@ -83,7 +84,20 @@ export function encodeMaterialize(e: EnemyState): number[] {
     quantizeHp(e.hp),
     quantizeHp(e.maxHp),
     flagsFor(e),
+    presentationProfileIndex(e),
   ];
+}
+
+/** 0 = legacy/type default; otherwise 1-based index into the profile order. */
+export function presentationProfileIndex(e: EnemyState): number {
+  if (!e.presentationProfileId) return 0;
+  const i = ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER.indexOf(e.presentationProfileId);
+  return i < 0 ? 0 : i + 1;
+}
+
+export function presentationProfileIdForIndex(index: number): string | undefined {
+  if (!Number.isInteger(index) || index <= 0) return undefined;
+  return ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER[index - 1];
 }
 
 export function encodeDelta(e: EnemyState): number[] {

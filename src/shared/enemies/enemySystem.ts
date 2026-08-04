@@ -113,6 +113,7 @@ export class EnemySystem {
       impulseVz: 0,
       impulseGrounded: true,
       lastImpulseT: 0,
+      ...(def.presentationProfileId ? { presentationProfileId: def.presentationProfileId } : {}),
       ...(ownership ? { ownership } : {}),
     };
     if (type === 'gunTower') {

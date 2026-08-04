@@ -12,6 +12,7 @@ import {
   HORDE_FLAG_FLASH,
   HORDE_FLAG_TELEGRAPH,
   materializeTypeName,
+  presentationProfileIdForIndex,
   quantizeHp,
   quantizeXZ,
   quantizeYaw,
@@ -168,7 +169,7 @@ export class HordeReplicationClient {
 
   apply(block: HordeSnapshotBlock, time: number): EnemyState[] {
     for (const rec of block.materialize) {
-      const [id, typeIndex, xq, zq, yawq, hpq, maxHpq] = rec;
+      const [id, typeIndex, xq, zq, yawq, hpq, maxHpq, , profileIndex] = rec;
       const x = dequantizeXZ(xq);
       const z = dequantizeXZ(zq);
       const type = materializeTypeName(typeIndex) as EnemyType;
@@ -191,6 +192,9 @@ export class HordeReplicationClient {
         flash: 0,
         spawnT: time,
         hitCd: 0,
+        ...(presentationProfileIdForIndex(profileIndex)
+          ? { presentationProfileId: presentationProfileIdForIndex(profileIndex) }
+          : {}),
       };
       this.enemies.set(id, enemy);
     }

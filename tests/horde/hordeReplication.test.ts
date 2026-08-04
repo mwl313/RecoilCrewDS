@@ -10,10 +10,13 @@ import {
   encodeDelta,
   encodeMaterialize,
   flagsFor,
+  presentationProfileIdForIndex,
+  presentationProfileIndex,
   quantizeXZ,
   quantizeYaw,
   type HordeSnapshotBlock,
 } from '../../src/shared/net/horde/hordeProtocol';
+import { ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER } from '../../src/generated/enemyAnimationContent.generated';
 
 function enemy(id: number, x: number, z: number, yaw: number, hp: number, alive = true): EnemyState {
   return {
@@ -58,6 +61,19 @@ describe('horde record codec', () => {
     const d = encodeDelta(e);
     expect(d[0]).toBe(7);
     expect(flagsFor(e)).toBe(1);
+  });
+
+  it('encodes and decodes the presentation profile index', () => {
+    const legacy = enemy(7, 0, 0, 0, 10);
+    expect(presentationProfileIndex(legacy)).toBe(0);
+    const witch = { ...legacy, presentationProfileId: 'enemyPresentation.witch.common' };
+    const idx = presentationProfileIndex(witch);
+    expect(idx).toBeGreaterThan(0);
+    expect(presentationProfileIdForIndex(idx)).toBe('enemyPresentation.witch.common');
+    expect(presentationProfileIdForIndex(0)).toBeUndefined();
+    const m = encodeMaterialize(witch);
+    expect(m[8]).toBe(idx);
+    expect(ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER).toContain('enemyPresentation.witch.common');
   });
 });
 
@@ -151,6 +167,27 @@ describe('HordeReplicationClient (client, M9)', () => {
     expect(updated.x).toBeCloseTo(12, 5);
     expect(updated.yaw).toBeCloseTo(0.5, 2);
     expect(updated.y).toBe(2.5);
+  });
+
+  it('restores presentationProfileId from the materialize profile index', () => {
+    const client = new HordeReplicationClient(() => 0);
+    const profileId = 'enemyPresentation.witch.common';
+    const idx = ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER.indexOf(profileId) + 1;
+    const a = enemy(9, 0, 0, 0, 10);
+    const rec = encodeMaterialize(a);
+    rec[8] = idx;
+    client.apply({
+      seq: 1,
+      materialize: [rec],
+      despawn: [],
+      death: [],
+      near: [],
+      mid: [],
+      far: [],
+      sectors: [],
+      wave: null,
+    }, 0);
+    expect(client.enemies.get(9)?.presentationProfileId).toBe(profileId);
   });
 
   it('marks dead enemies instead of deleting them', () => {

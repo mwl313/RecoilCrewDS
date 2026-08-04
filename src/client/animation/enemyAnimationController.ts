@@ -11,6 +11,7 @@ import {
 } from './enemyAnimationStateResolver';
 import { animationTelemetry } from './animationTelemetry';
 import { disposeAnimationInstance } from './animationCleanup';
+import { actionCueElapsedFraction } from '../../shared/animation/enemyActionCue';
 
 /** Deterministic per-enemy phase seed (id + match seed). */
 export function animationPhaseSeed(enemyId: number, matchSeed = 0): number {
@@ -30,6 +31,7 @@ export class EnemyAnimationController {
   readonly instance: EnemyAnimationInstance;
   private readonly resolver: AnimationClipResolver;
   private readonly stateMap: Partial<Record<EnemyAnimationRole, { loop: 'repeat' | 'once' | 'pingPong'; clampWhenFinished?: boolean; timeScale?: number; interruptPriority?: number }>>;
+  private lastCueSequence = 0;
 
   constructor(
     readonly profile: EnemyAnimationProfileDefinition,
@@ -120,9 +122,20 @@ export class EnemyAnimationController {
       this.applyLocomotion(resolution.role, state.speed);
     }
 
+    const isNewCue = state.cue ? state.cue.sequence > this.lastCueSequence : false;
     this.playRole(resolution.role, {
       duration: this.transitionDuration(current, resolution.role),
     });
+    // Late cues align to authoritative elapsed time so a reconnecting client
+    // reconstructs an in-progress attack/transition at the right phase.
+    if (isNewCue && state.cue) {
+      this.lastCueSequence = state.cue.sequence;
+      const action = this.instance.currentAction;
+      if (action && state.cue.durationTicks > 0) {
+        const elapsed = actionCueElapsedFraction(state.cue, state.currentTick ?? 0);
+        action.time = elapsed * action.getClip().duration;
+      }
+    }
     this.applyLocomotion(resolution.role, state.speed);
     this.updateMixer(dt);
   }

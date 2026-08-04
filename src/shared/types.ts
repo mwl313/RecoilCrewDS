@@ -1,6 +1,7 @@
 import type { MovementRulesBlock } from './stats/rulesRevision';
 import type { DamageSource } from './damage/damageTypes';
 import type { SpawnOwnership } from './horde/spawnOwnership';
+import type { EnemyActionCue } from './animation/enemyActionCue';
 
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
@@ -63,6 +64,10 @@ export interface EnemyState {
   lastImpulseT?: number;
   /** Core Loop 06 population ownership (ambient/wave/boss cohort). */
   ownership?: SpawnOwnership;
+  /** Animation07: explicit presentation profile id (content-driven). */
+  presentationProfileId?: string;
+  /** Animation07: optional compact authoritative action cue. */
+  actionCue?: EnemyActionCue;
 }
 
 export type ScrapKind = 'normal' | 'heavy';
