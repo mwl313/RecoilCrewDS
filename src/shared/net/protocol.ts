@@ -5,8 +5,10 @@
  * message carries `protocol` so a mismatched build is rejected loudly.
  */
 import type { DriverInput, GunnerInput, ModifierId, Role } from '../types';
+import type { HordeSnapshotBlock } from './horde/hordeProtocol';
 
-export const PROTOCOL_VERSION = 3;
+/** Core Loop 06 M9: horde replication block added (bumped deliberately). */
+export const PROTOCOL_VERSION = 4;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -105,6 +107,8 @@ export interface SnapshotMessage extends ProtocolEnvelope {
   movementRulesRevision?: number;
   movement?: unknown;
   arena?: unknown;
+  /** Tiered horde replication block (replaces the full enemy array). */
+  horde?: HordeSnapshotBlock;
 }
 
 export interface DriverInputRelayMessage extends ProtocolEnvelope {

@@ -19,6 +19,8 @@ import {
 import { createStaticArenaWorld, type ArenaWorld } from '../shared/sim/arenaWorld';
 import type { MatchState, Role } from '../shared/types';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
+import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
+import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -54,6 +56,7 @@ let flow: 'boot' | 'main' | 'create' | 'join' | 'ready' | 'game' | 'results' | '
 let lastPingSent = 0;
 let pingMs = 0;
 let latestState: MatchState | null = null;
+let hordeClient: HordeReplicationClient | null = null;
 let peerConnected = false;
 let lastFps = 60;
 let arenaSession: ArenaSessionResult | null = null;
@@ -196,7 +199,21 @@ net.onMessage = (msg) => {
           showMapError('checksum');
         }
       }
-      latestState = msg.state as MatchState;
+      const horde = msg.horde as HordeSnapshotBlock | undefined;
+      if (horde) {
+        if (!hordeClient) {
+          hordeClient = new HordeReplicationClient(
+            (x, z) => (game ? game.arenaWorld.groundHeightAt(x, z) : 0),
+          );
+        }
+        latestState = {
+          ...(msg.state as MatchState),
+          enemies: hordeClient.apply(horde, Number(msg.serverTime)),
+        };
+      } else {
+        latestState = msg.state as MatchState;
+        hordeClient?.reset();
+      }
       game?.setSnapshot({
         seq: Number(msg.seq),
         serverTime: Number(msg.serverTime),

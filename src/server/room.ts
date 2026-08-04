@@ -6,6 +6,8 @@ import type { ArenaWorld } from '../shared/sim/arenaWorld';
 import type { ContentPack } from '../shared/content/contentPack';
 import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '../shared/types';
 import { SNAPSHOT_INTERVAL, NET_TUNING } from '../shared/net/tuning';
+import { HordeReplicationTracker } from '../shared/net/horde/hordeReplication';
+import type { HordeWaveState } from '../shared/net/horde/hordeProtocol';
 import type { GunnerActionType } from '../shared/net/protocol';
 import type { TankImpulseWire } from '../shared/effects/tankImpulseSystem';
 import { opLogTail } from '../shared/sim/opLog';
@@ -66,6 +68,7 @@ export interface Room {
   lastMovementRulesRevision: number;
   lastCountdownShown: number;
   lastDriverRelayEdges: { dash: boolean; jump: boolean };
+  hordeReplication: HordeReplicationTracker | null;
   createdAt: number;
 }
 
@@ -92,6 +95,21 @@ function randomCode(): string {
 
 function randomId(): string {
   return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+}
+
+function waveStateFor(match: Match): HordeWaveState | null {
+  const horde = match.runtime.systems.horde;
+  if (!horde || horde.currentWaveId === null) return null;
+  const runtime = match.runtime.systems.waves.waves.get(horde.currentWaveId);
+  if (!runtime) return null;
+  const leader = match.state.enemies.find((e) => e.id === runtime.leaderId);
+  return {
+    waveId: runtime.waveId,
+    state: runtime.state,
+    leaderId: runtime.leaderId,
+    leaderHp: leader?.hp ?? 0,
+    leaderMaxHp: leader?.maxHp ?? 0,
+  };
 }
 
 function sanitizeDriver(raw: unknown): DriverInput | null {
@@ -223,6 +241,7 @@ export class RoomManager {
       lastMovementRulesRevision: -1,
       lastCountdownShown: 3,
       lastDriverRelayEdges: { dash: false, jump: false },
+      hordeReplication: null,
       createdAt: this.now(),
     };
     client.room = room;
@@ -501,6 +520,11 @@ export class RoomManager {
     room.match = this.pack
       ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world)
       : new Match(room.code + '-' + this.now(), room.rematchModifier, undefined, world);
+    const hordeDef = room.match.rules.hordeDirector;
+    room.hordeReplication =
+      hordeDef && hordeDef.enforceStage === true && room.match.runtime.systems.horde
+        ? new HordeReplicationTracker(room.match.runtime.systems.horde.resolved.policies.replication)
+        : null;
     room.phase = 'running';
     room.snapshotT = 0;
     room.ready = { driver: false, gunner: false };
@@ -535,6 +559,17 @@ export class RoomManager {
     const rules = room.match.rules;
     const arena: ArenaMetadata | null = room.arenaSession?.metadata ?? null;
     const opState = room.match.opState;
+    const hordeBlock = room.hordeReplication && room.match
+      ? room.hordeReplication.track(
+          room.match.state.enemies,
+          room.match.state.time,
+          waveStateFor(room.match),
+          (e) => room.match!.runtime.systems.enemies.tierFor(e),
+        )
+      : null;
+    const state = hordeBlock
+      ? { ...room.match.state, enemies: [] }
+      : room.match.state;
     const msg: Record<string, unknown> = {
       t: 'snapshot',
       seq: room.snapshotSeq,
@@ -544,7 +579,8 @@ export class RoomManager {
       lastProcessedGunnerInputSeq: opState.lastGunnerInputSeq,
       lastImpulseSeq: opState.lastImpulseSeq,
       opLog: opLogTail(opState),
-      state: room.match.state,
+      state,
+      ...(hordeBlock ? { horde: hordeBlock } : {}),
       rulesRevision: rules.rulesRevision,
       movementRulesRevision: rules.movementRulesRevision,
       tickDurationMs: this.loopMetrics.tickDurationMs,

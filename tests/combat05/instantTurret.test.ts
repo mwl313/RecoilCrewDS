@@ -10,7 +10,7 @@ const DT = 1 / 30;
 
 describe('instant turret response (Combat 05 M3)', () => {
   it('protocol version was bumped for click-time aim', () => {
-    expect(PROTOCOL_VERSION).toBe(3);
+    expect(PROTOCOL_VERSION).toBe(4);
   });
 
   it('instant client mode makes predicted yaw/pitch equal the mouse target in the same frame', () => {
