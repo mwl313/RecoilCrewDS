@@ -115,6 +115,15 @@ export const WEAPON_STAT_IDS = [
   'weapon.splashInnerRatio',
   'weapon.splashInnerMultiplier',
   'weapon.splashOuterMultiplier',
+  'weapon.chargeTapMaxSeconds',
+  'weapon.chargeFullSeconds',
+  'weapon.chargeFullDamageMultiplier',
+  'weapon.chargeFullSplashRadiusMultiplier',
+  'weapon.chargeFullRecoilMultiplier',
+  'weapon.chargeFullKnockbackMaxMultiplier',
+  'weapon.chargeFullKnockbackMinMultiplier',
+  'weapon.chargeFullKnockbackVerticalMultiplier',
+  'weapon.chargeFullShellVisualScale',
 ] as const;
 
 export const ENEMY_STAT_IDS = [

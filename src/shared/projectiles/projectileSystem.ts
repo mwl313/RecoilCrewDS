@@ -1,6 +1,6 @@
 import { dist, dist2, pointInBox } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
-import type { ShellState } from '../types';
+import type { ShellCombatPayload, ShellState } from '../types';
 import { createBuiltinProjectileBehaviors } from './projectileBehaviors';
 import { ProjectileBehaviorRegistry } from './projectileBehaviorRegistry';
 
@@ -27,6 +27,7 @@ export class ProjectileSystem {
     kind: ShellState['kind'],
     life: number,
     weaponId?: string,
+    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number },
   ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
@@ -40,6 +41,20 @@ export class ProjectileSystem {
       vy: dy * speed,
       vz: dz * speed,
       life,
+      chargeRatio: payload?.chargeRatio,
+      visualScale: payload?.visualScale,
+      combat:
+        payload && payload.damage !== undefined && payload.splashRadius !== undefined
+          ? {
+              damage: payload.damage,
+              splashRadius: payload.splashRadius,
+              knockbackMax: payload.knockbackMax ?? 8,
+              knockbackMin: payload.knockbackMin ?? 1.5,
+              knockbackVertical: payload.knockbackVertical ?? 2.5,
+              knockbackRadiusMultiplier: payload.knockbackRadiusMultiplier ?? 1,
+              knockbackFalloffExponent: payload.knockbackFalloffExponent ?? 1.25,
+            }
+          : undefined,
     };
     s.shells.push(shell);
     return shell;
@@ -106,16 +121,17 @@ export class ProjectileSystem {
     const s = this.ctx.state;
     const w = this.ctx.rules.config.weapons;
     const resolver = this.ctx.rules.resolver;
-    const isJackpot = sh.kind === 'jackpot';
-    const radius = isJackpot ? w.jackpotRadius : w.cannonRadius;
-    const dmg = isJackpot ? w.jackpotDamage : w.cannonDamage;
+    const combat = sh.combat;
+    const isJackpot = sh.kind === 'jackpot' && !combat;
+    const radius = combat?.splashRadius ?? (isJackpot ? w.jackpotRadius : w.cannonRadius);
+    const dmg = combat?.damage ?? (isJackpot ? w.jackpotDamage : w.cannonDamage);
     if (isJackpot) {
       pushEvent(this.ctx, 'jackpotImpact', sh.x, sh.y, sh.z, { value: radius });
       this.ctx.combo.addContribution('gunner', 2);
     } else {
-      pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon' });
+      pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon', chargeRatio: sh.chargeRatio });
     }
-    this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z });
+    this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z, chargeRatio: sh.chargeRatio });
     const innerRatio = resolver.resolve('weapon.splashInnerRatio');
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
     const outerMult = resolver.resolve('weapon.splashOuterMultiplier');
@@ -125,7 +141,7 @@ export class ProjectileSystem {
       const rr = this.ctx.enemies.radiusFor(e);
       if (d < radius + rr) {
         const falloff = d < radius * innerRatio ? innerMult : outerMult;
-        this.ctx.damage.applyEnemy(e, dmg * falloff, isJackpot ? 'jackpot' : 'cannon');
+        this.ctx.damage.applyEnemy(e, dmg * falloff, combat ? 'cannon' : isJackpot ? 'jackpot' : 'cannon');
       }
     }
     for (const b of s.barrels) {
@@ -137,7 +153,8 @@ export class ProjectileSystem {
     }
     const tankD = dist(sh.x, sh.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.5) {
-      this.ctx.damage.applyTank(isJackpot ? 12 : 5, 'splash');
+      const tankSplash = combat ? 5 + 7 * (sh.chargeRatio ?? 0) : isJackpot ? 12 : 5;
+      this.ctx.damage.applyTank(tankSplash, 'splash');
     }
     // Knockback is a separate effect from damage: radial impulse pushes
     // enemies away (never the tank; content sets tank multiplier to 0).
@@ -148,12 +165,12 @@ export class ProjectileSystem {
       originX: sh.x,
       originY: sh.y,
       originZ: sh.z,
-      radius: radius * kbStat('weapon.splashKnockbackRadiusMultiplier', 1),
-      maxImpulse: kbStat('weapon.splashKnockbackMax', 8),
-      minImpulse: kbStat('weapon.splashKnockbackMin', 1.5),
-      verticalImpulse: kbStat('weapon.splashKnockbackVertical', 2.5),
-      falloffExponent: kbStat('weapon.splashKnockbackFalloffExponent', 1.25),
-      source: isJackpot ? 'jackpot' : 'cannon',
+      radius: combat ? radius * combat.knockbackRadiusMultiplier : radius * kbStat('weapon.splashKnockbackRadiusMultiplier', 1),
+      maxImpulse: combat ? combat.knockbackMax : kbStat('weapon.splashKnockbackMax', 8),
+      minImpulse: combat ? combat.knockbackMin : kbStat('weapon.splashKnockbackMin', 1.5),
+      verticalImpulse: combat ? combat.knockbackVertical : kbStat('weapon.splashKnockbackVertical', 2.5),
+      falloffExponent: combat ? combat.knockbackFalloffExponent : kbStat('weapon.splashKnockbackFalloffExponent', 1.25),
+      source: combat ? 'cannon' : isJackpot ? 'jackpot' : 'cannon',
       affectsTank: false,
       affectsEnemies: true,
     });

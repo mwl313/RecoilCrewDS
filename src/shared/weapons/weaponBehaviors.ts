@@ -4,6 +4,7 @@ import { weaponStat } from './weaponDefinition';
 import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
 import type { WeaponRuntimeState } from './weaponRuntimeState';
 import { computeWeaponMountWorldPose } from '../vehicle/tankRigGeometry';
+import { resolveCannonShotProfile } from './cannonShotProfile';
 
 /**
  * World muzzle origin + direction resolved from the shared tank rig
@@ -112,21 +113,22 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
 
   registry.register({
     id: 'weapon.projectile',
-    fire(ctx, weapon) {
+    fire(ctx, weapon, _runtime, request) {
       const s = ctx.state;
-      const t = s.tank;
       const tur = s.turret;
       const muzzle = muzzleWorld(ctx);
-      const actionSeq = ctx.pendingActionSeq;
+      const actionSeq = request?.actionSeq ?? ctx.pendingActionSeq;
       ctx.pendingActionSeq = undefined;
+      const chargeRatio = request?.chargeRatio ?? 0;
+      const profile = resolveCannonShotProfile(ctx, weapon, chargeRatio);
       tur.cannonFlash = 0.12;
       ctx.recoil.apply(
         {
           sourceId: weapon.id,
           kind: 'cannon',
           direction: { x: -muzzle.dx, y: -muzzle.dy, z: -muzzle.dz },
-          magnitude: weaponStat(weapon, 'weapon.cannonRecoilImpulse', ctx.rules.matchConfig.recoilImpulse),
-          yawImpulse: (Math.random() - 0.5) * 2 * weaponStat(weapon, 'weapon.cannonRecoilSpin', ctx.rules.config.tank.recoilSpin),
+          magnitude: profile.recoilImpulse,
+          yawImpulse: (Math.random() - 0.5) * 2 * profile.recoilSpin,
           rollImpulse: (Math.random() - 0.5) * 0.35,
           verticalScale: weaponStat(weapon, 'weapon.recoilVerticalScale', 1),
           launchThreshold: weaponStat(weapon, 'weapon.recoilGroundLaunchThreshold', 0.25),
@@ -135,15 +137,28 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       );
       pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, {
         kind: 'cannon',
+        chargeRatio: profile.chargeRatio,
         tx: muzzle.dx,
         ty: muzzle.dy,
         tz: muzzle.dz,
         actionSeq,
       });
-      ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'secondary', kind: 'cannon' });
-      const speed = weaponStat(weapon, 'weapon.cannonSpeed', ctx.rules.config.weapons.cannonSpeed);
-      const life = weaponStat(weapon, 'weapon.cannonLife', ctx.rules.config.weapons.cannonLife);
-      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'cannon', life, weapon.id);
+      ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'secondary', kind: 'cannon', chargeRatio: profile.chargeRatio });
+      ctx.projectiles.spawn(
+        muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz,
+        profile.speed, 'cannon', profile.life, weapon.id,
+        {
+          damage: profile.damage,
+          splashRadius: profile.splashRadius,
+          knockbackMax: profile.knockbackMax,
+          knockbackMin: profile.knockbackMin,
+          knockbackVertical: profile.knockbackVertical,
+          knockbackRadiusMultiplier: profile.knockbackRadiusMultiplier,
+          knockbackFalloffExponent: profile.knockbackFalloffExponent,
+          chargeRatio: profile.chargeRatio,
+          visualScale: profile.visualScale,
+        },
+      );
       ctx.combo.addContribution('gunner', 1);
     },
   });

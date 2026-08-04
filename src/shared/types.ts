@@ -83,6 +83,22 @@ export interface ShellState {
   vy: number;
   vz: number;
   life: number;
+  /** Combat 05: charge ratio at firing time (0 = normal cannon). */
+  chargeRatio?: number;
+  /** Effective combat payload captured at firing time (immutable in flight). */
+  combat?: ShellCombatPayload;
+  /** Presentation scale for the shell/impact (charge-scaled). */
+  visualScale?: number;
+}
+
+export interface ShellCombatPayload {
+  damage: number;
+  splashRadius: number;
+  knockbackMax: number;
+  knockbackMin: number;
+  knockbackVertical: number;
+  knockbackRadiusMultiplier: number;
+  knockbackFalloffExponent: number;
 }
 
 export interface BarrelState {
@@ -290,6 +306,8 @@ export interface SimEvent {
   /** Tank impulse sequencing (typed impulse events). */
   impulseSeq?: number;
   opSeq?: number;
+  /** Combat 05: charge ratio of the fired cannon shell. */
+  chargeRatio?: number;
   source?: string;
 }
 

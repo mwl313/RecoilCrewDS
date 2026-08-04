@@ -87,6 +87,15 @@ export interface GameConfig {
     cannonSpeed: number;
     cannonGravity: number;
     cannonLife: number;
+    chargeTapMaxSeconds: number;
+    chargeFullSeconds: number;
+    chargeFullDamageMultiplier: number;
+    chargeFullSplashRadiusMultiplier: number;
+    chargeFullRecoilMultiplier: number;
+    chargeFullKnockbackMaxMultiplier: number;
+    chargeFullKnockbackMinMultiplier: number;
+    chargeFullKnockbackVerticalMultiplier: number;
+    chargeFullShellVisualScale: number;
     jackpotDamage: number;
     jackpotRadius: number;
     jackpotSpeed: number;
@@ -242,6 +251,15 @@ export const BASE_CONFIG: GameConfig = {
     cannonSpeed: 52,
     cannonGravity: 5,
     cannonLife: 2.4,
+    chargeTapMaxSeconds: 0.16,
+    chargeFullSeconds: 1.0,
+    chargeFullDamageMultiplier: 5.0,
+    chargeFullSplashRadiusMultiplier: 2.6470588235,
+    chargeFullRecoilMultiplier: 1.619047619,
+    chargeFullKnockbackMaxMultiplier: 1.5,
+    chargeFullKnockbackMinMultiplier: 1.6666666667,
+    chargeFullKnockbackVerticalMultiplier: 1.6,
+    chargeFullShellVisualScale: 1.8,
     jackpotDamage: 60,
     jackpotRadius: 9,
     jackpotSpeed: 38,

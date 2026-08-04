@@ -4,6 +4,18 @@
   "behaviorId": "weapon.projectile",
   "fireMode": "semi",
   "cooldownSeconds": 1.6,
+  "charge": {
+    "capabilityId": "cannon.charge",
+    "tapMaxSeconds": 0.16,
+    "fullChargeSeconds": 1.0,
+    "fullDamageMultiplier": 5.0,
+    "fullSplashRadiusMultiplier": 2.6470588235,
+    "fullRecoilMultiplier": 1.619047619,
+    "fullKnockbackMaxMultiplier": 1.5,
+    "fullKnockbackMinMultiplier": 1.6666666667,
+    "fullKnockbackVerticalMultiplier": 1.6,
+    "fullShellVisualScale": 1.8
+  },
   "statBlock": {
     "weapon.cannonDamage": 12,
     "weapon.cannonRadius": 3.4,
@@ -24,7 +36,16 @@
     "weapon.splashKnockbackMin": 1.5,
     "weapon.splashKnockbackVertical": 2.5,
     "weapon.splashKnockbackFalloffExponent": 1.25,
-    "weapon.splashTankKnockbackMultiplier": 0.0
+    "weapon.splashTankKnockbackMultiplier": 0.0,
+    "weapon.chargeTapMaxSeconds": 0.16,
+    "weapon.chargeFullSeconds": 1.0,
+    "weapon.chargeFullDamageMultiplier": 5.0,
+    "weapon.chargeFullSplashRadiusMultiplier": 2.6470588235,
+    "weapon.chargeFullRecoilMultiplier": 1.619047619,
+    "weapon.chargeFullKnockbackMaxMultiplier": 1.5,
+    "weapon.chargeFullKnockbackMinMultiplier": 1.6666666667,
+    "weapon.chargeFullKnockbackVerticalMultiplier": 1.6,
+    "weapon.chargeFullShellVisualScale": 1.8
   },
   "projectileId": "projectile.cannonShell",
   "presentation": {

@@ -306,6 +306,8 @@ describe('Refractor 02 hardening — P1 fixes', () => {
     expect(none.movementBlock().weapon).toEqual({
       cannonCooldown: BASE_CONFIG.weapons.cannonCooldown,
       jackpotChargeTime: BASE_CONFIG.weapons.jackpotChargeTime,
+      chargeTapMaxSeconds: BASE_CONFIG.weapons.chargeTapMaxSeconds,
+      chargeFullSeconds: BASE_CONFIG.weapons.chargeFullSeconds,
     });
     const doubleBarrel = MatchRules.fromContentPack(pack, 'doubleBarrel');
     expect(doubleBarrel.movementBlock().weapon?.cannonCooldown).toBe(2.4);
