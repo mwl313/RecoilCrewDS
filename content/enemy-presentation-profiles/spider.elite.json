@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.spider.elite",
+  "label": "Spider Elite",
+  "nearModelAssetId": "custom.enemy.spider.elite",
+  "animationProfileId": "enemyAnimation.spider.elite",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.15 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["spider", "elite", "placeholder"]
+}

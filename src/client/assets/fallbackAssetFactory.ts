@@ -158,6 +158,50 @@ export class FallbackAssetFactory {
       root.add(box(0.25, 0.4, 0.25, emissive(0xff5a2a, 1.8), 1.05, 1.6, -2.1));
       return root;
     };
+    const buildWitch = (): THREE.Object3D => {
+      const root = new THREE.Group();
+      const robe = paint(0x5a3d8a);
+      root.add(box(0.9, 1.5, 0.7, robe, 0, 0.9, 0));
+      root.add(box(1.5, 0.5, 1.0, paint(0x4a3273), 0, 0.25, 0));
+      root.add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), paint(0xc99e82)));
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), paint(0xc99e82));
+      head.position.set(0, 1.95, 0);
+      root.add(head);
+      root.add(new THREE.Mesh(new THREE.ConeGeometry(0.48, 0.75, 10), paint(0x2c1f45)));
+      const hat = new THREE.Mesh(new THREE.ConeGeometry(0.48, 0.75, 10), paint(0x2c1f45));
+      hat.position.set(0, 2.55, 0);
+      root.add(hat);
+      root.add(box(0.2, 0.9, 0.2, dark, -0.75, 1.15, 0));
+      root.add(box(0.2, 0.9, 0.2, dark, 0.75, 1.15, 0));
+      return root;
+    };
+    const buildSpider = (): THREE.Object3D => {
+      const root = new THREE.Group();
+      root.add(box(0.8, 0.5, 1.0, paint(0x4b3a2a), 0, 0.55, 0));
+      root.add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), paint(0x3a2c1f)));
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), paint(0x3a2c1f));
+      head.position.set(0, 0.62, 0.55);
+      root.add(head);
+      for (let i = 0; i < 8; i++) {
+        const side = i % 2 === 0 ? -1 : 1;
+        const front = i < 4;
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.7, 6), dark);
+        leg.position.set(side * 0.55, 0.28, front ? 0.35 : -0.35);
+        leg.rotation.z = side * 0.9;
+        root.add(leg);
+      }
+      return root;
+    };
+    const buildBeast = (): THREE.Object3D => {
+      const root = new THREE.Group();
+      root.add(box(0.8, 0.75, 1.6, paint(0x6e5a3a), 0, 0.75, 0));
+      root.add(box(0.5, 0.5, 0.6, paint(0x5a4a30), 0, 0.85, -0.95));
+      root.add(cyl(0.12, 0.12, 0.7, dark, 8, -0.32, 0.35, 0.55));
+      root.add(cyl(0.12, 0.12, 0.7, dark, 8, 0.32, 0.35, 0.55));
+      root.add(cyl(0.12, 0.12, 0.7, dark, 8, -0.32, 0.35, -0.55));
+      root.add(cyl(0.12, 0.12, 0.7, dark, 8, 0.32, 0.35, -0.55));
+      return root;
+    };
     const buildPickup = (kind: 'normal' | 'heavy'): THREE.Object3D => {
       const root = new THREE.Group();
       const color = kind === 'heavy' ? 0x7de05a : 0x4ddb6e;
@@ -239,6 +283,9 @@ export class FallbackAssetFactory {
       ['enemy.rammer', buildRammer],
       ['enemy.gunTower', buildGunTower],
       ['enemy.lootTruck', buildLootTruck],
+      ['enemy.witch', buildWitch],
+      ['enemy.spider', buildSpider],
+      ['enemy.beast', buildBeast],
       ['pickup.normalScrap', () => buildPickup('normal')],
       ['pickup.heavyScrap', () => buildPickup('heavy')],
       ['prop.explosiveBarrel', buildBarrelProp],

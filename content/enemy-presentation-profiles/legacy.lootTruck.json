@@ -1,0 +1,9 @@
+{
+  "id": "enemyPresentation.legacy.lootTruck",
+  "label": "Legacy Loot Truck (rigid)",
+  "nearModelAssetId": "enemy.lootTruck",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["legacy", "rigid"]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.witch.elite",
+  "label": "Witch Elite",
+  "nearModelAssetId": "custom.enemy.witch.elite",
+  "animationProfileId": "enemyAnimation.witch.elite",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.35 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["witch", "elite", "placeholder"]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.beast.boss",
+  "label": "Beast Boss",
+  "nearModelAssetId": "custom.enemy.beast.boss",
+  "animationProfileId": "enemyAnimation.beast.boss",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.8 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["beast", "boss", "placeholder"]
+}

@@ -3,6 +3,102 @@
   "builtins": [],
   "project": [
     {
+      "id": "custom.enemy.witch.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": ["enemy", "witch", "skinned", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.common.far",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": ["enemy", "witch", "far", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.elite",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": ["enemy", "witch", "elite", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.boss",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": ["enemy", "witch", "boss", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": ["enemy", "spider", "skinned", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.common.far",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": ["enemy", "spider", "far", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.elite",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": ["enemy", "spider", "elite", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.boss",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": ["enemy", "spider", "boss", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.beast.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.beast",
+      "tags": ["enemy", "beast", "skinned", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.beast.common.far",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.beast",
+      "tags": ["enemy", "beast", "far", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.beast.elite",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.beast",
+      "tags": ["enemy", "beast", "elite", "placeholder"],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.beast.boss",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.beast",
+      "tags": ["enemy", "beast", "boss", "placeholder"],
+      "optional": true
+    },
+    {
       "id": "scene.menuTank",
       "kind": "model",
       "namespace": "scene",

@@ -11,6 +11,11 @@ const enemyBase = {
   ...commonDefinition,
   id: z.string().regex(/^enemy\./, 'enemy id must start with enemy.'),
   presentationId: z.string().optional(),
+  /**
+   * Animation07: explicit presentation profile. Resolution order is
+   * presentationProfileId -> legacy profile from presentationId -> fallback.
+   */
+  presentationProfileId: z.string().optional(),
   hp: positiveNumber,
   /** Core Loop 06: weighted threat contribution to population budgets. */
   threat: nonNegativeNumber.optional(),

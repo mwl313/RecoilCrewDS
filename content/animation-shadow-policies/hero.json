@@ -1,0 +1,10 @@
+{
+  "id": "animationShadow.hero",
+  "tiers": {
+    "hero": { "castShadow": true, "receiveShadow": true },
+    "near": { "castShadow": false, "receiveShadow": true },
+    "mid": { "castShadow": false, "receiveShadow": false },
+    "far": { "castShadow": false, "receiveShadow": false },
+    "aggregate": { "castShadow": false, "receiveShadow": false }
+  }
+}

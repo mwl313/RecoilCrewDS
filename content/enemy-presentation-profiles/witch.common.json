@@ -1,0 +1,12 @@
+{
+  "id": "enemyPresentation.witch.common",
+  "label": "Witch Common",
+  "nearModelAssetId": "custom.enemy.witch.common.skinned",
+  "farModelAssetId": "custom.enemy.witch.common.far",
+  "animationProfileId": "enemyAnimation.witch.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": { "scale": 1.2 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["witch", "common", "placeholder"]
+}

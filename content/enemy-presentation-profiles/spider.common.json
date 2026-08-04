@@ -1,0 +1,12 @@
+{
+  "id": "enemyPresentation.spider.common",
+  "label": "Spider Common",
+  "nearModelAssetId": "custom.enemy.spider.common.skinned",
+  "farModelAssetId": "custom.enemy.spider.common.far",
+  "animationProfileId": "enemyAnimation.spider.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": { "scale": 0.9 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["spider", "common", "placeholder"]
+}

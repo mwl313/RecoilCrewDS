@@ -1,0 +1,9 @@
+{
+  "id": "enemyPresentation.legacy.rammer",
+  "label": "Legacy Rammer (rigid)",
+  "nearModelAssetId": "enemy.rammer",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["legacy", "rigid"]
+}

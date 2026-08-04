@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.beast.elite",
+  "label": "Beast Elite",
+  "nearModelAssetId": "custom.enemy.beast.elite",
+  "animationProfileId": "enemyAnimation.beast.elite",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.3 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["beast", "elite", "placeholder"]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "enemyPresentation.beast.common",
+  "label": "Beast Common",
+  "nearModelAssetId": "custom.enemy.beast.common.skinned",
+  "farModelAssetId": "custom.enemy.beast.common.far",
+  "animationProfileId": "enemyAnimation.beast.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": { "scale": 1.15 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["beast", "common", "placeholder"]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "enemyPresentation.legacy.gunTower",
+  "label": "Legacy Gun Tower (rigid)",
+  "nearModelAssetId": "enemy.gunTower",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["legacy", "rigid"]
+}

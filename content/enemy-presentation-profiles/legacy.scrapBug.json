@@ -1,0 +1,9 @@
+{
+  "id": "enemyPresentation.legacy.scrapBug",
+  "label": "Legacy Scrap Bug (rigid)",
+  "nearModelAssetId": "enemy.scrapBug",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["legacy", "rigid"]
+}

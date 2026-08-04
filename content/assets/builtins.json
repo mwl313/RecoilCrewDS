@@ -3,6 +3,7 @@
   "builtins": [
     "playerTank.chassis", "playerTank.turret", "playerTank.barrel",
     "enemy.scrapBug", "enemy.rammer", "enemy.gunTower", "enemy.lootTruck",
+    "enemy.witch", "enemy.spider", "enemy.beast",
     "pickup.normalScrap", "pickup.heavyScrap",
     "prop.explosiveBarrel", "prop.barrier", "prop.tire", "prop.container",
     "arena.ramp", "arena.factory",

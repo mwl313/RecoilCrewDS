@@ -1,0 +1,23 @@
+{
+  "id": "enemyAnimation.none",
+  "label": "No Animation",
+  "clips": {},
+  "fallbacks": {},
+  "locomotion": {
+    "idleSpeedMax": 0.1,
+    "walkSpeedMax": 3,
+    "walkSpeedReference": 3,
+    "runSpeedReference": 6,
+    "playbackMin": 0.5,
+    "playbackMax": 1.5,
+    "randomStartPhase": false
+  },
+  "transitions": {
+    "defaultCrossFadeSeconds": 0.2,
+    "locomotionCrossFadeSeconds": 0.25,
+    "attackCrossFadeSeconds": 0.1,
+    "hitCrossFadeSeconds": 0.08,
+    "deathCrossFadeSeconds": 0.3
+  },
+  "rootMotion": false
+}

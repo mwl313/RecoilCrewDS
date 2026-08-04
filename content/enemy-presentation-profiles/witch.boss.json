@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.witch.boss",
+  "label": "Witch Boss",
+  "nearModelAssetId": "custom.enemy.witch.boss",
+  "animationProfileId": "enemyAnimation.witch.boss",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.7 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["witch", "boss", "placeholder"]
+}

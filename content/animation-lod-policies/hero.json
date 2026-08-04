@@ -1,0 +1,22 @@
+{
+  "id": "animationLod.hero",
+  "heroAlwaysNear": true,
+  "nearEnter": 30,
+  "nearLeave": 40,
+  "midEnter": 36,
+  "midLeave": 60,
+  "farEnter": 55,
+  "farLeave": 110,
+  "nearUpdateHz": 30,
+  "midUpdateHz": 15,
+  "maximumNearMixers": 24,
+  "maximumMidMixers": 32,
+  "priorityWeights": {
+    "boss": 100,
+    "elite": 50,
+    "attacking": 20,
+    "telegraphing": 15,
+    "damagedRecently": 10,
+    "distance": 1
+  }
+}

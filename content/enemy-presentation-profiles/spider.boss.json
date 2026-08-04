@@ -1,0 +1,11 @@
+{
+  "id": "enemyPresentation.spider.boss",
+  "label": "Spider Boss",
+  "nearModelAssetId": "custom.enemy.spider.boss",
+  "animationProfileId": "enemyAnimation.spider.boss",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": { "scale": 1.6 },
+  "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
+  "tags": ["spider", "boss", "placeholder"]
+}

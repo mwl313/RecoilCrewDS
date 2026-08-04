@@ -1,0 +1,60 @@
+{
+  "id": "enemyAnimation.spider.common",
+  "label": "Spider Common",
+  "clips": {
+    "idle": "Spider_Idle",
+    "walk": "Spider_Walk",
+    "attackPrimary": "Spider_Attack_Primary",
+    "hit": "Spider_Hit",
+    "death": "Spider_Death"
+  },
+  "fallbacks": {
+    "run": "walk",
+    "walk": "idle",
+    "attackSecondary": "attackPrimary",
+    "attackSpecial": "attackPrimary",
+    "castStart": "attackPrimary",
+    "castLoop": "castStart",
+    "castRelease": "castLoop",
+    "hit": "idle",
+    "stagger": "hit",
+    "knockback": "stagger",
+    "land": "idle",
+    "spawn": "entrance",
+    "entrance": "idle",
+    "phaseTransition": "entrance",
+    "recovery": "idle",
+    "death": "idle"
+  },
+  "stateMap": {
+    "hunt": "walk",
+    "approach": "walk",
+    "telegraph": "attackPrimary",
+    "fire": "attackPrimary",
+    "dead": "death"
+  },
+  "locomotion": {
+    "idleSpeedMax": 0.15,
+    "walkSpeedMax": 3.4,
+    "walkSpeedReference": 3,
+    "runSpeedReference": 6.5,
+    "playbackMin": 0.5,
+    "playbackMax": 1.5,
+    "randomStartPhase": true
+  },
+  "transitions": {
+    "defaultCrossFadeSeconds": 0.2,
+    "locomotionCrossFadeSeconds": 0.25,
+    "attackCrossFadeSeconds": 0.08,
+    "hitCrossFadeSeconds": 0.06,
+    "deathCrossFadeSeconds": 0.35
+  },
+  "playback": {
+    "idle": { "loop": "repeat" },
+    "walk": { "loop": "repeat" },
+    "attackPrimary": { "loop": "once", "clampWhenFinished": true },
+    "hit": { "loop": "once", "clampWhenFinished": true },
+    "death": { "loop": "once", "clampWhenFinished": true, "interruptPriority": 100 }
+  },
+  "rootMotion": false
+}
