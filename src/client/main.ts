@@ -261,6 +261,7 @@ net.onMessage = (msg) => {
     case 'error':
       hud.showJoinError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
       if (flow === 'join') hud.showScreen('join');
+      else if (flow === 'create') hud.showCreateError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
       break;
     case 'pong':
       pingMs = Date.now() - lastPingSent;
@@ -279,6 +280,9 @@ net.onStatus = (connected) => {
     flow = 'error';
   } else if (!connected && flow === 'join') {
     hud.showJoinError('Cannot reach the server. Is it running?');
+  } else if (!connected && flow === 'create') {
+    hud.showError('Connection lost. Create your crew again.');
+    flow = 'error';
   }
 };
 

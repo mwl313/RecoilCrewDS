@@ -107,6 +107,10 @@ export class Hud {
     this.flow.showError(message);
   }
 
+  showCreateError(message: string) {
+    this.flow.setCreateError(message);
+  }
+
   showJoinError(message: string) {
     this.flow.showJoinError(message);
   }

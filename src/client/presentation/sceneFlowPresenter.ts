@@ -256,6 +256,11 @@ export class SceneFlowPresenter {
     this.setSceneContext('scene.joinCrew', { message });
   }
 
+  /** Surface a create-room failure on the create screen (never a silent empty code). */
+  setCreateError(message: string): void {
+    this.setSceneContext('scene.createCrew', { status: message, copyLabel: 'COPY', copyDisabled: true });
+  }
+
   setCreateCode(code: string): void {
     const valid = isValidRoomCode(code);
     this.setSceneContext('scene.createCrew', { code, copyLabel: 'COPY', copyDisabled: !valid });
