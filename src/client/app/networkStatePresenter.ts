@@ -17,7 +17,8 @@ import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
 import type { GameSessionContext } from '../../shared/session/gameSessionKind';
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
-import { computeAimPivotWorld } from '../../shared/vehicle/tankRigGeometry';
+import { solveTurretAim } from '../../shared/vehicle/tankRigGeometry';
+import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -39,6 +40,7 @@ export interface PresenterDeps {
   input: InputSource;
   audio: AudioManager;
   onTankRig?: (block: TankRigRulesBlock) => void;
+  onTrajectoryReticle?: (result: TrajectoryReticleResult) => void;
   session: () => GameSessionContext;
   role: () => Role;
   singlePlayerMatch: () => { state: MatchState } | null;
@@ -286,21 +288,32 @@ export class NetworkStatePresenter {
     if (deps.session().kind === 'singlePlayer' || deps.role() === 'gunner') {
       const groundY = renderTank.y;
       const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
-      const pivotWorld = computeAimPivotWorld(
-        { x: pos.x, y: pos.y, z: pos.z, yaw },
-        this.tankRig.rigDefinition,
-      );
-      const pivot = new THREE.Vector3(pivotWorld.x, pivotWorld.y, pivotWorld.z);
-      const dx = aim.x - pivot.x;
-      const dz = aim.z - pivot.z;
-      const flat = Math.hypot(dx, dz) || 0.001;
-      const worldYaw = Math.atan2(dx, dz);
       const chassisYaw = deps.session().kind === 'singlePlayer' ? frame.tank.yaw : yaw;
       const limits = deps.prediction.turretPitchLimits();
-      const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), limits.minPitch, limits.maxPitch);
-      deps.prediction.updateTurretTarget(worldYaw, pitch, chassisYaw, dt);
-      this.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
-      this.tankRig.barrel.rotation.x = -deps.prediction.getTurretSpaces().predictedPitch;
+      const solved = solveTurretAim(
+        { x: pos.x, y: pos.y, z: pos.z, yaw },
+        this.tankRig.rigDefinition,
+        { x: aim.x, y: aim.y, z: aim.z },
+        { minPitch: limits.minPitch, maxPitch: limits.maxPitch },
+      );
+      const worldYaw = wrapAngle(yaw + solved.desiredYawLocal);
+      deps.prediction.updateTurretTarget(worldYaw, solved.desiredPitch, chassisYaw, dt);
+      const predictedTurret = deps.prediction.getTurretSpaces();
+      this.tankRig.turret.rotation.y = predictedTurret.predictedYawLocal;
+      this.tankRig.barrel.rotation.x = -predictedTurret.predictedPitch;
+      deps.onTrajectoryReticle?.(
+        projectTrajectoryReticle({
+          camera: deps.cameras.activeCam.camera,
+          renderWidth: deps.world.renderer.domElement.clientWidth || window.innerWidth,
+          renderHeight: deps.world.renderer.domElement.clientHeight || window.innerHeight,
+          tank: { x: t.x, y: t.y, z: t.z, yaw },
+          turretLocalYaw: predictedTurret.predictedYawLocal,
+          turretPitch: predictedTurret.predictedPitch,
+          rig: this.tankRig.rigDefinition,
+          cameraQuery: deps.cameraQuery(),
+          desiredPoint: { x: aim.x, y: aim.y, z: aim.z },
+        }),
+      );
     }
     if (deps.session().kind === 'singlePlayer') {
       deps.applySinglePlayerWeapons(dt);

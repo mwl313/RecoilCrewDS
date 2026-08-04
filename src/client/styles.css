@@ -423,6 +423,21 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   text-align: center;
 }
 .crosshair { position: relative; width: 54px; height: 54px; margin: 0 auto 14px; }
+.crosshair.reticle {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  transition: none;
+}
+.crosshair.reticle.blocked .ch-dot {
+  background: #ff5a4a;
+  box-shadow: 0 0 8px #ff5a4a;
+}
+.crosshair.reticle.blocked .ch-ring {
+  filter: drop-shadow(0 0 4px rgba(255, 90, 74, 0.8));
+}
 .ch-dot {
   position: absolute;
   left: 50%;

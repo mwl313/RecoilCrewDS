@@ -79,6 +79,24 @@ export class HudRuntime {
     this.runtime.element?.classList.toggle('hidden', !visible);
   }
 
+  /**
+   * Move the gameplay crosshair to the projected trajectory point (no DOM
+   * rebuild). When the shot line is off-screen or NaN, the reticle hides.
+   */
+  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean): void {
+    const crosshair = this.runtime.getNode('crosshair')?.element;
+    if (!crosshair) return;
+    crosshair.classList.add('reticle');
+    crosshair.classList.toggle('blocked', blocked);
+    if (!visible || !Number.isFinite(x) || !Number.isFinite(y)) {
+      crosshair.classList.add('hidden');
+      return;
+    }
+    crosshair.classList.remove('hidden');
+    crosshair.style.left = `${Math.round(x)}px`;
+    crosshair.style.top = `${Math.round(y)}px`;
+  }
+
   dispose(): void {
     this.runtime.dispose();
   }

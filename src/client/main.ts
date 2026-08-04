@@ -399,6 +399,7 @@ function attachGameCallbacks(g: GameClient) {
   g.onSendInput = (m) => net.send(m);
   g.onPauseRequest = () => showPause();
   g.onFrame = (state) => onFrame(g, state);
+  g.onTrajectoryReticle = (result) => hud.setTrajectoryReticle(result.x, result.y, result.visible, result.blocked);
 }
 
 function teardownGame() {

@@ -71,6 +71,10 @@ export class Hud {
     this.hudRuntime.setAssetUrlResolver(fn);
   }
 
+  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean) {
+    this.hudRuntime.setTrajectoryReticle(x, y, visible, blocked);
+  }
+
   showScreen(name: string) {
     this.flow.showState(name as FlowStateId);
   }

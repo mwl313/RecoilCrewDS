@@ -25,6 +25,7 @@ import type { ContentPack } from '../../shared/content/contentPack';
 import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } from '../../shared/session/gameSessionKind';
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
+import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -70,6 +71,7 @@ export class GameClient {
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
   onFrame: ((state: MatchState) => void) | null = null;
+  onTrajectoryReticle: ((result: TrajectoryReticleResult) => void) | null = null;
   onSinglePlayerResults: ((results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
 
   private constructor(deps: {
@@ -170,6 +172,7 @@ export class GameClient {
       input,
       audio,
       onTankRig: (block) => gameRef?.applyTankRigBlock(block),
+      onTrajectoryReticle: (result) => gameRef?.onTrajectoryReticle?.(result),
       session: () => gameRef!.session,
       role: () => gameRef!.role,
       singlePlayerMatch: () => gameRef!.singlePlayerMatch,
