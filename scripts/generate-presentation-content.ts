@@ -33,6 +33,7 @@ import {
   type ThemeDefinition,
   type UiNodeInput,
 } from '../src/shared/presentation/schemas';
+import { writeEnemyAnimationContent } from './generate-enemy-animation-content';
 
 export const PRESENTATION_CONTENT_FORMAT = 1;
 export const MAX_NODE_DEPTH = 24;
@@ -282,6 +283,7 @@ export function validateProjectAsset(def: unknown): void {
 
 if (!process.env.VITEST && process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('generate-presentation-content.ts')) {
   const hash = writePresentationContent();
+  writeEnemyAnimationContent();
   console.log(`[presentation] wrote src/generated/presentationContent.generated.ts`);
   console.log(`[presentation] sourceHash ${hash.slice(0, 12)}… scenes: ${Object.keys(loadPresentationContent().scenes).length}, huds: ${Object.keys(loadPresentationContent().huds).length}`);
   console.log('[presentation] PASS');

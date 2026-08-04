@@ -16,8 +16,8 @@ export const enemyAnimationProfileSchema = z
   .object({
     id: z.string().regex(/^enemyAnimation\./, 'animation profile id must start with enemyAnimation.'),
     label: z.string().min(1),
-    clips: roleRecord(z.string().min(1)).optional(),
-    fallbacks: roleRecord(roleEnum).optional(),
+    clips: roleRecord(z.string().min(1)).default({}),
+    fallbacks: roleRecord(roleEnum).default({}),
     stateMap: z.record(z.string().min(1), roleEnum).optional(),
     locomotion: z
       .object({
