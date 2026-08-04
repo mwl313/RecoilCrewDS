@@ -5,8 +5,6 @@ export interface QualityTargets {
   setPixelRatio(ratio: number): void;
   setShadows(enabled: boolean): void;
   setBloomStrength(strength: number): void;
-  setPipRate(rate: number): void;
-  setPipScale(scale: number): void;
 }
 
 /** FPS sampling + adaptive quality (procedural client presentation). */
@@ -40,12 +38,6 @@ export class QualityManager {
     this.targets.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     this.targets.setShadows(true);
     this.targets.setBloomStrength(0.55);
-    this.targets.setPipRate(this.pipRateFromHz(NET_TUNING.pip.normalHz));
-    this.targets.setPipScale(0.75);
-  }
-
-  private pipRateFromHz(hz: number): number {
-    return Math.max(1, Math.round(60 / hz));
   }
 
   private adapt(): void {
@@ -56,15 +48,11 @@ export class QualityManager {
       this.targets.setPixelRatio(1);
       this.targets.setShadows(false);
       this.targets.setBloomStrength(0.18);
-      this.targets.setPipRate(this.pipRateFromHz(NET_TUNING.pip.degradedHz));
-      this.targets.setPipScale(NET_TUNING.pip.minResolutionScale);
     } else if (avg > 55 && this.quality === 'low' && this.samples.length > 240) {
       this.quality = 'high';
       this.targets.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
       this.targets.setShadows(true);
       this.targets.setBloomStrength(0.55);
-      this.targets.setPipRate(this.pipRateFromHz(NET_TUNING.pip.normalHz));
-      this.targets.setPipScale(0.75);
       this.samples.length = 0;
     }
   }

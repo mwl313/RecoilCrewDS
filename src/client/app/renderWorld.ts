@@ -11,7 +11,7 @@ import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 /**
  * RenderWorld owns the renderer, scene graph, post-processing passes, arena
  * view, and pooled VFX. It exposes quality knobs and renders the active
- * camera (or a PIP camera via viewport/scissor).
+ * camera.
  */
 export class RenderWorld {
   readonly renderer: THREE.WebGLRenderer;
@@ -20,6 +20,8 @@ export class RenderWorld {
   readonly vfx: VfxSystem;
   composer: EffectComposer | null = null;
   bloom: UnrealBloomPass | null = null;
+  /** Number of world renders performed (PIP-removal render spy). */
+  renderCount = 0;
   private renderPass: RenderPass | null = null;
 
   constructor(
@@ -103,24 +105,12 @@ export class RenderWorld {
   }
 
   render(camera: THREE.PerspectiveCamera): void {
+    this.renderCount++;
     if (this.composer) {
       this.composer.render();
     } else {
       this.renderer.render(this.scene, camera);
     }
-  }
-
-  /** Render the scene from an alternate camera into the PIP viewport. */
-  renderWithCamera(camera: THREE.PerspectiveCamera, px: number, py: number, pw: number, ph: number): void {
-    this.renderer.setViewport(px, py, pw, ph);
-    this.renderer.setScissor(px, py, pw, ph);
-    this.renderer.setScissorTest(true);
-    this.renderer.render(this.scene, camera);
-  }
-
-  resetViewport(w: number, h: number): void {
-    this.renderer.setViewport(0, 0, w, h);
-    this.renderer.setScissorTest(false);
   }
 
   setPixelRatio(ratio: number): void {

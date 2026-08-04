@@ -147,16 +147,6 @@
           { "target": "style", "source": "objective.screenY", "attribute": "top", "format": "{0}px" }
         ]
       },
-      {
-        "id": "pip",
-        "type": "pipFrame",
-        "class": "pip",
-        "bindings": [{ "target": "visible", "source": "pip.visible" }, { "target": "class", "source": "pip.jackpot", "transform": "booleanClass", "attribute": "jackpot" }],
-        "children": [
-          { "id": "pip-label", "type": "text", "class": "pip-label", "text": "GUNNER FEED", "bindings": [{ "target": "text", "source": "pip.roleLabel" }] },
-          { "id": "pip-status", "type": "text", "class": "pip-status", "text": "--", "bindings": [{ "target": "text", "source": "pip.status", "fallback": "--" }] }
-        ]
-      },
       { "id": "fps", "type": "statText", "class": "fps", "text": "", "bindings": [{ "target": "text", "source": "connection.fps", "format": "{0} FPS", "fallback": "" }] },
       { "id": "popups", "type": "popupLayer", "class": "popups" },
       { "id": "pause-btn", "type": "pauseButton", "class": "pause-btn", "text": "☰", "props": { "title": "menu" }, "actions": [{ "event": "click", "action": "app.pause" }] }
@@ -178,8 +168,7 @@
         "crosshairVisible": false,
         "chargeVisible": false,
         "pointerLocked": true,
-        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
-        "pip": { "visible": true, "roleLabel": "GUNNER FEED", "status": "AIMING", "connected": true, "jackpot": false }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
       }
     },
     {
@@ -197,8 +186,7 @@
         "crosshairVisible": true,
         "chargeVisible": true,
         "pointerLocked": true,
-        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
-        "pip": { "visible": true, "roleLabel": "DRIVER FEED", "status": "DRIVING", "connected": true, "jackpot": true }
+        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" }
       }
     }
   ]

@@ -20,7 +20,5 @@ describe('typed protocol', () => {
     expect(NET_TUNING.snapshotHz).toBe(20);
     expect(SIM_DT).toBeCloseTo(1 / 30);
     expect(SNAPSHOT_INTERVAL).toBeCloseTo(1 / 20);
-    expect(NET_TUNING.pip.normalHz).toBe(12);
-    expect(NET_TUNING.pip.degradedHz).toBe(6);
   });
 });

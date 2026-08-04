@@ -105,7 +105,7 @@ describe('SceneRuntime components', () => {
     const { runtime } = makeRuntime(container);
     const hud = PRESENTATION_HUDS['hud.gameplay'];
     await runtime.load({ id: hud.id, label: hud.label, type: 'gameplayOverlay', root: hud.root });
-    for (const id of ['hud', 'role-chip', 'timer', 'score', 'combo', 'integrity', 'jackpot', 'speed', 'dash-ind', 'prompt', 'crosshair', 'pip', 'fps', 'popups', 'pause-btn']) {
+    for (const id of ['hud', 'role-chip', 'timer', 'score', 'combo', 'integrity', 'jackpot', 'speed', 'dash-ind', 'prompt', 'crosshair', 'fps', 'popups', 'pause-btn']) {
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     }
     runtime.unload();
@@ -175,7 +175,6 @@ describe('HudProjector', () => {
     expect(vm.connection.pingMs).toBe(24);
     expect(vm.connection.fps).toBe(60);
     expect(vm.tank.speed).toBe(36); // 10 m/s * 3.6
-    expect(vm.pip.roleLabel).toBe('GUNNER FEED');
     expect(vm.crosshairVisible).toBe(false);
     expect(vm.objective.visible).toBe(false); // truck inactive
   });
@@ -196,7 +195,6 @@ describe('HudProjector', () => {
   it('empty view model is stable', () => {
     const vm = emptyHudViewModel();
     expect(vm.match.timeRemaining).toBe(90);
-    expect(vm.pip.roleLabel).toBe('GUNNER FEED');
   });
 });
 

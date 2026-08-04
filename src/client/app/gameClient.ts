@@ -12,7 +12,6 @@ import { NetworkStatePresenter } from './networkStatePresenter';
 import { CameraManager } from './cameraManager';
 import { EntityViewFactory } from './entityViewFactory';
 import { EntityViewRegistry } from './entityViewRegistry';
-import { PipRenderer } from './pipRenderer';
 import { PredictionController } from './predictionController';
 import { PresentationEventRouter } from './presentationEventRouter';
 import { QualityManager } from './qualityManager';
@@ -26,7 +25,7 @@ import type { DriverInput } from '../../shared/types';
 /**
  * GameClient: thin coordinator. It owns the frame loop, practice stepping,
  * and module wiring; rendering, entity views, cameras, prediction, network
- * presentation, event routing, PIP, and quality live in focused modules.
+ * presentation, event routing, and quality live in focused modules.
  * There are no ordinary gameplay content branches here.
  */
 export class GameClient {
@@ -36,7 +35,6 @@ export class GameClient {
   private readonly prediction: PredictionController;
   private readonly presenter: NetworkStatePresenter;
   private readonly router: PresentationEventRouter;
-  private readonly pip: PipRenderer;
   private readonly quality: QualityManager;
   private readonly tankRig: TankRig;
   private readonly audio: AudioManager;
@@ -80,7 +78,6 @@ export class GameClient {
     prediction: PredictionController;
     presenter: NetworkStatePresenter;
     router: PresentationEventRouter;
-    pip: PipRenderer;
     quality: QualityManager;
     tankRig: TankRig;
     arenaWorld: ArenaWorld;
@@ -92,7 +89,6 @@ export class GameClient {
     this.prediction = deps.prediction;
     this.presenter = deps.presenter;
     this.router = deps.router;
-    this.pip = deps.pip;
     this.quality = deps.quality;
     this.tankRig = deps.tankRig;
     this.audio = deps.audio;
@@ -141,7 +137,6 @@ export class GameClient {
       prediction,
       presenter: null as unknown as NetworkStatePresenter,
       router: null as unknown as PresentationEventRouter,
-      pip: null as unknown as PipRenderer,
       quality: null as unknown as QualityManager,
       tankRig,
       arenaWorld: world,
@@ -151,17 +146,10 @@ export class GameClient {
       confirm: (seq) => gameRef?.confirmAction(seq),
       reject: (seq) => gameRef?.rejectAction(seq),
     });
-    const pip = new PipRenderer(renderWorld);
     const quality = new QualityManager({
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
       setBloomStrength: (s) => renderWorld.setBloomStrength(s),
-      setPipRate: (r) => {
-        pip.pipRate = r;
-      },
-      setPipScale: (s) => {
-        pip.pipScale = s;
-      },
     });
     quality.reset();
     const presenter = new NetworkStatePresenter({
@@ -183,7 +171,6 @@ export class GameClient {
     });
     deps.presenter = presenter;
     deps.router = router;
-    deps.pip = pip;
     deps.quality = quality;
     const game = new GameClient(deps);
     gameRef = game;
@@ -300,7 +287,6 @@ export class GameClient {
     this.registry.reset();
     this.presenter.reset();
     this.prediction.reset();
-    this.pip.reset();
     this.practiceAcc = 0;
     this.practiceResultsShown = false;
     this.slowMo = 0;
@@ -432,19 +418,10 @@ export class GameClient {
   };
 
   private renderFrame(): void {
-    const w = this.world.renderer.domElement.clientWidth || window.innerWidth;
-    const h = this.world.renderer.domElement.clientHeight || window.innerHeight;
     this.cameras.applyShake();
     const renderT0 = performance.now();
     this.world.render(this.cameras.activeCam.camera);
     netcodeMetrics.mainRenderMs = performance.now() - renderT0;
-    if (this.presenter.latest) {
-      const pipT0 = performance.now();
-      const tank = this.presenter.getPredictedTank() ?? this.presenter.latest.tank;
-      this.pip.update(1 / 30, tank, this.presenter.latest.turret.yaw, this.role);
-      netcodeMetrics.pipRenderMs = performance.now() - pipT0;
-    }
-    this.world.resetViewport(w, h);
   }
 
   private sendInputs(): void {

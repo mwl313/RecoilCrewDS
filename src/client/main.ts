@@ -493,6 +493,7 @@ if (TEST_MODE) {
     turretSpaces: () => game?.getTurretSpaces() ?? null,
     cameraState: () => game?.getCameraState() ?? null,
     composerPasses: () => game?.composerPassCount() ?? 0,
+    renderCount: () => game?.world.renderCount ?? 0,
     setInputEnabled: (enabled: boolean) => {
       input.setEnabled(enabled);
       game?.setInputEnabled(enabled);

@@ -25,14 +25,6 @@ export const NET_TUNING = {
     maxReplayImpulses: 8,
     serverOpLog: 32,
   },
-  /** PIP presentation tuning (network/performance-driven). */
-  pip: {
-    normalHz: 12,
-    degradedHz: 6,
-    minResolutionScale: 0.6,
-    bloom: false,
-    shadows: false,
-  },
 } as const;
 
 export const SIM_DT = 1 / NET_TUNING.simHz;

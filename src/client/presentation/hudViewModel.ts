@@ -52,13 +52,6 @@ export interface HudViewModel {
     screenY: number;
     label: string;
   };
-  pip: {
-    visible: boolean;
-    roleLabel: string;
-    status: string;
-    connected: boolean;
-    jackpot: boolean;
-  };
 }
 
 export interface HudProjectionContext {
@@ -111,7 +104,6 @@ export function emptyHudViewModel(): HudViewModel {
     crosshairVisible: false,
     chargeVisible: false,
     objective: { visible: false, screenX: 0, screenY: 0, label: '' },
-    pip: { visible: true, roleLabel: 'GUNNER FEED', status: '--', connected: false, jackpot: false },
   };
 }
 
@@ -124,7 +116,6 @@ export class HudProjector {
     const t = state.tank;
     const remaining = Math.max(0, Math.ceil(state.duration - state.time));
     const jp = state.turret.jackpotReady;
-    const pipRole: Role = opts.role === 'driver' ? 'gunner' : 'driver';
     const maxIntegrity = opts.rules?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity;
     const cannonCooldownMax = opts.rules?.cannonCooldown ?? BASE_CONFIG.weapons.cannonCooldown;
     const chargeSeconds = opts.rules?.jackpotChargeTime ?? BASE_CONFIG.weapons.jackpotChargeTime;
@@ -191,31 +182,6 @@ export class HudProjector {
         screenY: opts.objective?.y ?? 0,
         label: 'LOOT TRUCK',
       },
-      pip: {
-        visible: true,
-        roleLabel: `${pipRole.toUpperCase()} FEED`,
-        status: this.partnerAction(state, pipRole),
-        connected: opts.peerConnected,
-        jackpot: jp,
-      },
     };
-  }
-
-  private partnerAction(state: MatchState, role: Role): string {
-    const t = state.tank;
-    if (role === 'driver') {
-      if (t.deadT > 0) return 'WIPED OUT';
-      if (!t.grounded && t.vy > 0) return 'JUMPING';
-      if (t.dashPresentationT > 0) return 'DASHING';
-      if (t.drift) return 'DRIFTING';
-      if (Math.hypot(t.vx, t.vz) > 2) return 'DRIVING';
-      return 'STATIONARY';
-    }
-    if (t.deadT > 0) return 'WIPED OUT';
-    if (state.turret.chargeT > 0) return 'CHARGING';
-    if (state.turret.jackpotReady) return 'CANNON READY';
-    if (state.turret.cannonCooldown > 1.2) return 'RELOADING';
-    if (state.turret.mgCooldown < 0.05 && state.turret.mgFiring) return 'FIRING';
-    return 'AIMING';
   }
 }

@@ -20,7 +20,6 @@ export interface NetcodeMetricsSnapshot {
   colliderCandidates: number;
   colliderTests: number;
   mainRenderMs: number;
-  pipRenderMs: number;
   pendingInputs: number;
   pendingImpulses: number;
   pendingActions: number;
@@ -54,7 +53,6 @@ class NetcodeMetrics {
   colliderCandidates = 0;
   colliderTests = 0;
   mainRenderMs = 0;
-  pipRenderMs = 0;
   pendingInputs = 0;
   pendingImpulses = 0;
   pendingActions = 0;
@@ -135,7 +133,6 @@ class NetcodeMetrics {
       colliderCandidates: this.colliderCandidates,
       colliderTests: this.colliderTests,
       mainRenderMs: this.mainRenderMs,
-      pipRenderMs: this.pipRenderMs,
       pendingInputs: this.pendingInputs,
       pendingImpulses: this.pendingImpulses,
       pendingActions: this.pendingActions,
@@ -189,7 +186,7 @@ export class F4Overlay {
       `parse: ${m.parseMs.toFixed(2)}ms  handle: ${m.snapshotHandleMs.toFixed(2)}ms`,
       `interp: ${m.interpMs.toFixed(2)}ms  sync: ${m.worldSyncMs.toFixed(2)}ms`,
       `cam: ${m.cameraQueryMs.toFixed(2)}ms  aim: ${m.aimQueryMs.toFixed(2)}ms  coll: ${m.colliderCandidates}`,
-      `render: ${m.mainRenderMs.toFixed(2)}ms  pip: ${m.pipRenderMs.toFixed(2)}ms`,
+      `render: ${m.mainRenderMs.toFixed(2)}ms`,
       `pending: d${m.pendingInputs} i${m.pendingImpulses} a${m.pendingActions} t${m.pendingAimFrames}`,
       `corr: tank ${m.tankCorrection.toFixed(2)}m  turret ${m.turretCorrection.toFixed(3)}rad`,
       `server: tick ${m.serverTick}  dur ${m.serverTickDurationMs.toFixed(2)}ms  drop ${m.serverDroppedMs.toFixed(0)}ms  drift ${m.serverDriftMs.toFixed(1)}ms`,

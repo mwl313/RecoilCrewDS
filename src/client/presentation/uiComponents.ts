@@ -209,7 +209,6 @@ factories.progressBar = progressBarFactory;
 factories.arcMeter = arcMeterFactory;
 factories.connectionIndicator = (n, s) => base(n, s, { tag: 'span' });
 factories.crosshair = (n, s) => base(n, s);
-factories.pipFrame = (n, s) => base(n, s);
 factories.popupLayer = popupLayerFactory;
 factories.image = imageFactory;
 
@@ -254,7 +253,6 @@ const componentSchemas: Record<string, z.ZodType> = {
   arcMeter: z.object({ valueSource: z.string().optional() }).strict(),
   connectionIndicator: z.object({}).strict(),
   crosshair: z.object({}).strict(),
-  pipFrame: z.object({}).strict(),
   popupLayer: z.object({}).strict(),
   image: z.object({ alt: z.string().optional() }).strict(),
 };

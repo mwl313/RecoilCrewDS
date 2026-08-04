@@ -480,44 +480,6 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   to { margin-top: 5px; }
 }
 
-.pip {
-  position: absolute;
-  right: 14px;
-  bottom: 58px;
-  width: min(300px, 20vw);
-  aspect-ratio: 16 / 9;
-  border: 2px solid color-mix(in srgb, var(--role) 70%, #333);
-  border-radius: 7px;
-  overflow: hidden;
-  background: rgba(5, 8, 11, 0.5);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
-  pointer-events: none;
-}
-.pip.jackpot { border-color: #ffd94d; animation: glow 0.9s infinite alternate; }
-.pip-label {
-  position: absolute;
-  top: 7px;
-  left: 9px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--role-soft);
-  background: rgba(5, 8, 11, 0.72);
-  padding: 3px 8px;
-  border-radius: 3px;
-}
-.pip-status {
-  position: absolute;
-  bottom: 7px;
-  left: 9px;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: #fff;
-  background: rgba(5, 8, 11, 0.72);
-  padding: 3px 8px;
-  border-radius: 3px;
-}
-
 .fps {
   position: absolute;
   bottom: 16px;
