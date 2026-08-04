@@ -2,7 +2,7 @@
  * Deterministic seed pipeline for the seeded map generator.
  *
  * The same code runs in Node (server/authoritative) and the browser
- * (client/Practice), so seeds and generated terrain are identical on both
+ * (client/Single Player), so seeds and generated terrain are identical on both
  * sides. No Math.random() anywhere in this module.
  */
 

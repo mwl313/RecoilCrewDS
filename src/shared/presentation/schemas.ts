@@ -31,7 +31,6 @@ export const UI_COMPONENT_TYPES = [
   'arcMeter',
   'popupLayer',
   'pauseButton',
-  'practiceTag',
 ] as const;
 
 /** Scene entity component types with a runtime implementation. */
@@ -65,7 +64,8 @@ export const ACTION_IDS = [
   'app.openJoin',
   'app.joinCrew',
   'app.ready',
-  'app.startPractice',
+  'app.startSinglePlayer',
+  'app.restartSinglePlayer',
   'app.openHowTo',
   'app.back',
   'app.leave',
@@ -114,13 +114,17 @@ export const SCENE_BINDING_PATHS = [
   'selectedModifier',
   'rematchInfo',
   'canLeave',
+  'crewMode',
+  'singleMode',
   'stats',
 ] as const;
 
 /** Allowed binding source paths for gameplay HUD documents (HudViewModel). */
 export const HUD_BINDING_PATHS = [
   'role',
-  'practice',
+  'session.kind',
+  'session.showRoleIdentity',
+  'session.showPeerStatus',
   'connection.peerConnected',
   'connection.pingMs',
   'connection.fps',

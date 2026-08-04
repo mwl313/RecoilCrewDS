@@ -92,7 +92,7 @@ export function stepTankKinematics(
   t.landingGripT = Math.max(0, t.landingGripT - dt);
 
   // Jump edge: grounded-only, before normal gravity integration. Launch
-  // velocity derives identically on server, predictor, and Practice from the
+  // velocity derives identically on server, predictor, and Single Player from the
   // same resolved gravity and designer-facing jumpHeight.
   const jumped = inp.jumpPressed && t.grounded && tankCfg.jumpHeight > 0;
   if (jumped) {

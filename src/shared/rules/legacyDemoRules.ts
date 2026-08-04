@@ -15,7 +15,7 @@ import type { StatBlock } from '../stats/statBlock';
 /**
  * Client-safe Demo rules bundle synthesized from the legacy constants.
  * Values mirror content/demoScoreAttack.* exactly (parity is tested); this
- * keeps the browser Practice path free of fs/zod while using the same rule
+ * keeps the browser Single Player path free of fs/zod while using the same rule
  * shapes as the authoritative content path.
  */
 export interface DemoRulesBundle {

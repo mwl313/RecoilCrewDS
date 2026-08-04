@@ -275,7 +275,7 @@ export class RoomManager {
     const code = codeRaw.trim().toUpperCase();
     const room = this.rooms.get(code);
     if (!room) {
-      this.sendWithSocket(socket, { t: 'error', code: 'not_found', message: 'That crew is gone. Create a new one or practice.' });
+      this.sendWithSocket(socket, { t: 'error', code: 'not_found', message: 'That crew is gone. Create a new one or play Single Player.' });
       return null;
     }
     for (const candidate of [room.driver, room.gunner]) {

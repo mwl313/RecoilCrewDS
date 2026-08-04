@@ -24,9 +24,7 @@ export class InputManager {
     ShiftLeft: 'dash',
     ShiftRight: 'dash',
     Space: 'jump',
-    Tab: 'swap',
     KeyR: 'recenter',
-    KeyQ: 'swap',
   };
 
   attach(canvas: HTMLElement) {
@@ -61,7 +59,6 @@ export class InputManager {
     this.mouse.clear();
     this.dx = 0;
     this.dy = 0;
-    this.swapPressed = false;
     this.recenterPressed = false;
     this.escapePressed = false;
   }
@@ -111,11 +108,6 @@ export class InputManager {
       }
       return;
     }
-    if (name === 'swap') {
-      e.preventDefault();
-      this.swapPressed = true;
-      return;
-    }
     if (name === 'recenter') {
       this.recenterPressed = true;
       return;
@@ -162,15 +154,8 @@ export class InputManager {
     if (e.button === 2) this.mouse.delete('secondary');
   };
 
-  swapPressed = false;
   recenterPressed = false;
   escapePressed = false;
-
-  consumeSwap(): boolean {
-    const v = this.swapPressed;
-    this.swapPressed = false;
-    return v;
-  }
 
   consumeRecenter(): boolean {
     const v = this.recenterPressed;
@@ -210,7 +195,7 @@ export class InputManager {
   }
 
   /** Test hook: currently held semantic keys/buttons. */
-  debugState(): { keys: string[]; latches: string[]; buttons: string[]; enabled: boolean; locked: boolean; recenterPressed: boolean; swapPressed: boolean; escapePressed: boolean } {
+  debugState(): { keys: string[]; latches: string[]; buttons: string[]; enabled: boolean; locked: boolean; recenterPressed: boolean; escapePressed: boolean } {
     return {
       keys: [...this.keys],
       latches: [...this.actionLatches],
@@ -218,7 +203,6 @@ export class InputManager {
       enabled: this.enabled,
       locked: this.locked,
       recenterPressed: this.recenterPressed,
-      swapPressed: this.swapPressed,
       escapePressed: this.escapePressed,
     };
   }

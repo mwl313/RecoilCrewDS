@@ -67,9 +67,9 @@ export class HudRuntime {
     this.runtime.dispatch({ type: 'floatText', label: text, kind });
   }
 
-  setTheme(role: 'driver' | 'gunner'): void {
-    this.themeRoot.dataset.theme = role;
-    const theme = PRESENTATION_THEMES[role === 'driver' ? 'theme.driver' : 'theme.gunner'];
+  setTheme(themeId: 'driver' | 'gunner' | 'singlePlayer'): void {
+    this.themeRoot.dataset.theme = themeId;
+    const theme = PRESENTATION_THEMES[themeId === 'driver' ? 'theme.driver' : themeId === 'gunner' ? 'theme.gunner' : 'theme.singlePlayer'];
     for (const [key, value] of Object.entries(theme.cssVariables ?? {})) {
       this.themeRoot.style.setProperty(key, value);
     }

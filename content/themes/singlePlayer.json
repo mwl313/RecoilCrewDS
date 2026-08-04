@@ -1,0 +1,7 @@
+{
+  "id": "theme.singlePlayer",
+  "label": "Single Player",
+  "colors": { "color.role": "#8fe3c8", "color.roleSoft": "#c9f5e5" },
+  "spacing": {},
+  "cssVariables": { "--role": "#8fe3c8", "--role-soft": "#c9f5e5" }
+}

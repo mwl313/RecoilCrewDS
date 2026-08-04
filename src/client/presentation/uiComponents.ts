@@ -199,7 +199,6 @@ function imageFactory(node: UiNodeInput, services: UiComponentServices): UiCompo
 
 factories.text = textFactory;
 factories.statText = textFactory;
-factories.practiceTag = textFactory;
 factories.roleChip = textFactory;
 factories.objectiveMarker = textFactory;
 factories.button = buttonFactory;
@@ -235,7 +234,6 @@ const componentSchemas: Record<string, z.ZodType> = {
   repeater: z.object({ listSource: z.string().optional() }).strict(),
   text: z.object({ tag: z.string().optional() }).strict(),
   statText: z.object({}).strict(),
-  practiceTag: z.object({}).strict(),
   roleChip: z.object({}).strict(),
   objectiveMarker: z.object({}).strict(),
   button: z.object({ dataAct: z.string().optional(), title: z.string().optional() }).strict(),

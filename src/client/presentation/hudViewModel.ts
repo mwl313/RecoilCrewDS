@@ -8,7 +8,11 @@ import { BASE_CONFIG } from '../../shared/config';
  */
 export interface HudViewModel {
   role: Role;
-  practice: boolean;
+  session: {
+    kind: 'multiplayer' | 'singlePlayer';
+    showRoleIdentity: boolean;
+    showPeerStatus: boolean;
+  };
   pointerLocked: boolean;
   connection: {
     peerConnected: boolean;
@@ -60,10 +64,14 @@ export interface HudProjectionContext {
   ping: number;
   fps: number;
   pointerLocked: boolean;
-  practice: boolean;
+  session: {
+    kind: 'multiplayer' | 'singlePlayer';
+    showRoleIdentity: boolean;
+    showPeerStatus: boolean;
+  };
   /**
    * Resolved gameplay denominators for presentation (replicated online or
-   * local practice rules). Falls back to BASE_CONFIG when absent.
+   * local Single Player rules). Falls back to BASE_CONFIG when absent.
    */
   rules?: {
     maxIntegrity?: number;
@@ -76,7 +84,7 @@ export interface HudProjectionContext {
 export function emptyHudViewModel(): HudViewModel {
   return {
     role: 'driver',
-    practice: false,
+    session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
     pointerLocked: false,
     connection: { peerConnected: false, pingMs: 0, fps: 60 },
     match: { timeRemaining: 90, timeUrgent: false, score: 0, scoreText: '0', combo: 1, comboHot: false },
@@ -114,6 +122,7 @@ export function emptyHudViewModel(): HudViewModel {
 export class HudProjector {
   project(state: MatchState, opts: HudProjectionContext): HudViewModel {
     const t = state.tank;
+    const single = opts.session.kind === 'singlePlayer';
     const remaining = Math.max(0, Math.ceil(state.duration - state.time));
     const jp = state.turret.jackpotReady;
     const maxIntegrity = opts.rules?.maxIntegrity ?? BASE_CONFIG.tank.maxIntegrity;
@@ -123,22 +132,22 @@ export class HudProjector {
     let promptSub = '';
     if (jp) {
       prompt = 'JACKPOT READY';
-      promptSub = opts.role === 'driver' ? 'GUNNER — HOLD RIGHT MOUSE TO CHARGE' : 'HOLD RIGHT MOUSE TO CHARGE';
+      promptSub = single ? 'HOLD RIGHT MOUSE TO CHARGE' : opts.role === 'driver' ? 'GUNNER — HOLD RIGHT MOUSE TO CHARGE' : 'HOLD RIGHT MOUSE TO CHARGE';
     } else if (state.time < 8) {
-      prompt = opts.role === 'driver' ? 'DRIVE · COLLECT SCRAP' : 'FIRE · KILL ENEMIES';
-      promptSub = opts.role === 'driver' ? 'WASD + SHIFT + SPACE' : 'LMB MG · RMB CANNON';
+      prompt = single ? 'DRIVE · AIM · FIRE' : opts.role === 'driver' ? 'DRIVE · COLLECT SCRAP' : 'FIRE · KILL ENEMIES';
+      promptSub = single ? 'WASD · SHIFT · SPACE · LMB · RMB' : opts.role === 'driver' ? 'WASD + SHIFT + SPACE' : 'LMB MG · RMB CANNON';
     } else if (state.time > 40 && state.truck.active) {
       prompt = 'LOOT TRUCK';
       promptSub = 'DESTROY IT FOR JACKPOT SCRAP';
     }
-    if (!opts.pointerLocked && !opts.practice) {
+    if (!opts.pointerLocked) {
       prompt = 'CLICK TO AIM';
       promptSub = '';
     }
     const objectiveVisible = Boolean(opts.objective?.visible && state.truck.active);
     return {
       role: opts.role,
-      practice: opts.practice,
+      session: opts.session,
       pointerLocked: opts.pointerLocked,
       connection: {
         peerConnected: opts.peerConnected,
@@ -174,7 +183,7 @@ export class HudProjector {
       },
       prompt,
       promptSub,
-      crosshairVisible: opts.role === 'gunner' || opts.practice,
+      crosshairVisible: single || opts.role === 'gunner',
       chargeVisible: state.turret.chargeT > 0,
       objective: {
         visible: objectiveVisible,

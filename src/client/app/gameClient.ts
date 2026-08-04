@@ -21,11 +21,13 @@ import { DRIVER_INPUT_INTERVAL, GUNNER_AIM_INTERVAL } from '../../shared/net/tun
 import type { GunnerActionType } from '../../shared/net/protocol';
 import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
 import type { DriverInput } from '../../shared/types';
+import type { ContentPack } from '../../shared/content/contentPack';
+import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } from '../../shared/session/gameSessionKind';
 
 /**
- * GameClient: thin coordinator. It owns the frame loop, practice stepping,
- * and module wiring; rendering, entity views, cameras, prediction, network
- * presentation, event routing, and quality live in focused modules.
+ * GameClient: thin coordinator. It owns the frame loop, single-player
+ * stepping, and module wiring; rendering, entity views, cameras, prediction,
+ * network presentation, event routing, and quality live in focused modules.
  * There are no ordinary gameplay content branches here.
  */
 export class GameClient {
@@ -42,16 +44,16 @@ export class GameClient {
   private readonly container: HTMLElement;
   readonly arenaWorld: ArenaWorld;
 
-  practiceMatch: Match | null = null;
+  singlePlayerMatch: Match | null = null;
   role: Role = 'driver';
-  mode: 'online' | 'practice' = 'online';
+  session: GameSessionContext = MULTIPLAYER_SESSION;
   time = 0;
   private raf = 0;
   private running = false;
   private slowMo = 0;
-  private practiceAcc = 0;
-  private practiceResultsShown = false;
-  private practiceViewRole: Role = 'driver';
+  private singlePlayerAcc = 0;
+  private singlePlayerResultsShown = false;
+  private contentPack: ContentPack | null = null;
   private cannonDown = false;
   private chargeDown = false;
   private mgDown = false;
@@ -65,7 +67,7 @@ export class GameClient {
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
   onFrame: ((state: MatchState) => void) | null = null;
-  onPracticeResults: ((results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
+  onSinglePlayerResults: ((results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
 
   private constructor(deps: {
     container: HTMLElement;
@@ -163,11 +165,11 @@ export class GameClient {
       cameraQuery: () => renderWorld.arena.cameraQuery,
       input,
       audio,
-      mode: () => gameRef!.mode,
+      session: () => gameRef!.session,
       role: () => gameRef!.role,
-      practiceMatch: () => gameRef!.practiceMatch,
+      singlePlayerMatch: () => gameRef!.singlePlayerMatch,
       time: () => gameRef!.time,
-      applyPracticeWeapons: (dt) => gameRef!.applyPracticeWeapons(dt),
+      applySinglePlayerWeapons: (dt) => gameRef!.applySinglePlayerWeapons(dt),
     });
     deps.presenter = presenter;
     deps.router = router;
@@ -189,8 +191,8 @@ export class GameClient {
   }
 
   startOnline(role: Role): void {
-    this.mode = 'online';
-    this.cameras.setPracticeMode(false);
+    this.session = MULTIPLAYER_SESSION;
+    this.cameras.setSinglePlayerMode(false);
     this.setRole(role);
     this.resetState();
     this.prediction.setGround(this.arenaWorld);
@@ -198,15 +200,22 @@ export class GameClient {
     this.loop();
   }
 
-  startPractice(): void {
-    this.mode = 'practice';
-    this.cameras.setPracticeMode(true);
-    this.practiceViewRole = 'driver';
-    this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, this.arenaWorld);
-    const turret = this.practiceMatch.runtime.rules.loadout.turret;
+  /** Single Player: one local ContentPack-driven match with combined controls. */
+  startSinglePlayer(pack: ContentPack, world: ArenaWorld): void {
+    this.contentPack = pack;
+    this.session = SINGLE_PLAYER_SESSION;
+    this.cameras.setSinglePlayerMode(true);
+    this.singlePlayerMatch = new Match(
+      'single-' + Date.now(),
+      'none',
+      pack,
+      world,
+      SINGLE_PLAYER_SESSION.rulesModeId,
+    );
+    const turret = this.singlePlayerMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
-    this.prediction.setMovementRules(this.practiceMatch.runtime.rules.movementBlock());
-    this.presenter.latest = this.practiceMatch.state;
+    this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
+    this.presenter.latest = this.singlePlayerMatch.state;
     this.presenter.remoteFrame = null;
     this.setRole('driver');
     this.resetState();
@@ -216,23 +225,29 @@ export class GameClient {
   }
 
   /**
-   * Phase 3: swap the authoritative arena (rematch / practice reroll /
+   * Phase 3: swap the authoritative arena (rematch / Single Player reroll /
    * reconnect). Rebuilds the arena view, resets prediction/presenter, and
-   * recreates the local Practice match on the new world.
+   * recreates the local Single Player match on the new world.
    */
   applyArenaSession(session: ArenaSessionResult): void {
     this.world.rebuildArena(session.world);
     this.resetState();
     this.prediction.setGround(session.world);
-    if (this.mode === 'practice') {
-      this.practiceMatch = new Match('practice-' + Date.now(), 'none', undefined, session.world);
-      this.prediction.setMovementRules(this.practiceMatch.runtime.rules.movementBlock());
+    if (this.session.kind === 'singlePlayer' && this.contentPack) {
+      this.singlePlayerMatch = new Match(
+        'single-' + Date.now(),
+        'none',
+        this.contentPack,
+        session.world,
+        SINGLE_PLAYER_SESSION.rulesModeId,
+      );
+      this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
     }
   }
 
   /**
    * Resolved HUD denominators: replicated online weapon/tank values when
-   * available, local practice rules otherwise, BASE_CONFIG as the final
+   * available, local Single Player rules otherwise, BASE_CONFIG as the final
    * fallback (never hardcoded presentation numbers).
    */
   getHudRules(): { maxIntegrity: number; cannonCooldown: number; jackpotChargeTime: number } {
@@ -287,8 +302,8 @@ export class GameClient {
     this.registry.reset();
     this.presenter.reset();
     this.prediction.reset();
-    this.practiceAcc = 0;
-    this.practiceResultsShown = false;
+    this.singlePlayerAcc = 0;
+    this.singlePlayerResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
     this.pendingLocalActions.clear();
@@ -304,14 +319,14 @@ export class GameClient {
   handleEvent(ev: SimEvent): void {
     // The online Driver already received immediate local feedback from
     // prediction; skip the authoritative duplicate for jump/dash.
-    if (this.mode === 'online' && this.role === 'driver' && (ev.type === 'jump' || ev.type === 'dash')) {
+    if (this.session.kind === 'multiplayer' && this.role === 'driver' && (ev.type === 'jump' || ev.type === 'dash')) {
       return;
     }
     this.router.handleEvent(ev);
   }
 
-  private stepPractice(dt: number): void {
-    const m = this.practiceMatch!;
+  private stepSinglePlayer(dt: number): void {
+    const m = this.singlePlayerMatch!;
     if (m.state.phase !== 'running' || !this.inputEnabled) return;
     const turret = this.prediction.getTurretSpaces();
     m.setGunnerInput({
@@ -321,12 +336,12 @@ export class GameClient {
       secondary: this.mouseDown('secondary') && !m.state.turret.jackpotReady,
       ability: this.mouseDown('secondary') && m.state.turret.jackpotReady,
     });
-    this.practiceAcc += dt;
+    this.singlePlayerAcc += dt;
     const step = 1 / 30;
     let guard = 0;
-    while (this.practiceAcc >= step && guard++ < 6) {
-      this.practiceAcc -= step;
-      // Each practice sim step gets its own sequenced input frame. Sampling
+    while (this.singlePlayerAcc >= step && guard++ < 6) {
+      this.singlePlayerAcc -= step;
+      // Each Single Player sim step gets its own sequenced input frame. Sampling
       // at step time means a press can never be overwritten by a neutral
       // frame before a step consumes it.
       const frame = this.sampleDriverInput();
@@ -338,9 +353,9 @@ export class GameClient {
         this.router.handleEvent(ev);
         this.onHudEvent?.(ev);
       }
-      if ((m.state.phase as string) === 'results' && !this.practiceResultsShown) {
-        this.practiceResultsShown = true;
-        this.onPracticeResults?.(m.results!);
+      if ((m.state.phase as string) === 'results' && !this.singlePlayerResultsShown) {
+        this.singlePlayerResultsShown = true;
+        this.onSinglePlayerResults?.(m.results!);
       }
     }
   }
@@ -358,16 +373,16 @@ export class GameClient {
     this.cameras.tickShake(dtRaw);
 
     this.lastPredictInput = this.sampleDriverInput();
-    if (this.mode === 'practice' && this.practiceMatch) {
-      this.stepPractice(dtRaw);
-      this.presenter.latest = this.practiceMatch.state;
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      this.stepSinglePlayer(dtRaw);
+      this.presenter.latest = this.singlePlayerMatch.state;
     }
-    if (this.mode === 'online') this.presenter.advanceRenderClock(dtRaw);
+    if (this.session.networked) this.presenter.advanceRenderClock(dtRaw);
     this.presenter.computeRemote();
     let renderTank: TankState | null = null;
     const frame = this.presenter.remoteFrame;
     if (frame) {
-      if (this.mode === 'practice') {
+      if (this.session.kind === 'singlePlayer') {
         renderTank = frame.tank;
       } else {
         if (this.prediction.isPredictionDisabled()) {
@@ -402,7 +417,7 @@ export class GameClient {
     netcodeMetrics.predictorDisabledReason = this.prediction.predictorDisabledReason();
     this.f4?.update(now);
 
-    if (this.mode === 'online' && this.onSendInput) {
+    if (this.session.networked && this.onSendInput) {
       this.inputSendT -= dtRaw;
       if (this.inputSendT <= 0) {
         this.inputSendT = this.role === 'driver' ? DRIVER_INPUT_INTERVAL : GUNNER_AIM_INTERVAL;
@@ -469,7 +484,7 @@ export class GameClient {
     secondary?: boolean;
     ability?: boolean;
   }): void {
-    if (this.mode !== 'online' || !this.onSendInput) return;
+    if (!this.session.networked || !this.onSendInput) return;
     if (role === 'driver') {
       const input = {
         throttle: data.throttle ?? 0,
@@ -511,11 +526,6 @@ export class GameClient {
     this.cameras.recenter(this.presenter.getRenderTank()?.yaw ?? 0);
   }
 
-  togglePracticeView(): void {
-    this.practiceViewRole = this.practiceViewRole === 'driver' ? 'gunner' : 'driver';
-    this.setRole(this.practiceViewRole);
-  }
-
   private keyDown(name: string): boolean {
     return this.input.key(name);
   }
@@ -528,8 +538,8 @@ export class GameClient {
     return this.input.button(name);
   }
 
-  applyPracticeWeapons(dt: number): void {
-    const m = this.practiceMatch!;
+  applySinglePlayerWeapons(dt: number): void {
+    const m = this.singlePlayerMatch!;
     const state = m.state;
     if (state.tank.deadT > 0) return;
     const mg = this.mouseDown('primary');
@@ -588,7 +598,7 @@ export class GameClient {
    * between 50 ms send frames.
    */
   private pollGunnerActions(): void {
-    if (this.mode !== 'online' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
+    if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
     const latest = this.presenter.latest;
     const jackpotReady = latest?.turret.jackpotReady ?? false;
     const mg = this.mouseDown('primary');

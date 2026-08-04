@@ -122,7 +122,7 @@ export class RemoteEntityInterpolator {
     frame.interpolated = true;
   }
 
-  /** Practice/discrete path: frame directly from a state without lerp. */
+  /** Single Player/discrete path: frame directly from a state without lerp. */
   fillFromDiscrete(frame: RemoteFrame, state: MatchState): void {
     frame.enemies = state.enemies;
     frame.pickups = state.pickups;

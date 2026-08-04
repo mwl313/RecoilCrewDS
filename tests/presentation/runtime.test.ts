@@ -119,6 +119,8 @@ describe('SceneRuntime components', () => {
       grade: 'D',
       title: 'T',
       score: '1,050',
+      crewMode: true,
+      singleMode: false,
       stats: [{ label: 'KILLS', value: '4' }],
       modifiers: [{ id: 'doubleBarrel', label: 'DOUBLE BARREL', desc: 'x', selected: false }],
       rematchInfo: 'DRIVER READY · GUNNER PICKING',
@@ -130,7 +132,25 @@ describe('SceneRuntime components', () => {
     const stats = Array.from(container.querySelectorAll('.results-stat')) as HTMLElement[];
     expect(stats.length).toBe(1);
     expect(stats[0].textContent).toContain('KILLS');
+
+    // Single Player results replace the crew vote with local actions.
+    const singleRuntime = makeRuntime(document.createElement('div'));
+    singleRuntime.actions.register('app.restartSinglePlayer', () => undefined);
+    singleRuntime.actions.register('app.returnToMenu', () => undefined);
+    await singleRuntime.runtime.load(PRESENTATION_SCENES['scene.results'], {
+      grade: 'A',
+      title: 'SOLO',
+      score: '4,200',
+      crewMode: false,
+      singleMode: true,
+      stats: [{ label: 'KILLS', value: '12' }],
+    });
+    const singleRoot = singleRuntime.runtime.element as HTMLElement;
+    expect((singleRoot.querySelector('#sp-play-again') as HTMLElement).textContent).toBe('PLAY AGAIN');
+    expect((singleRoot.querySelector('#sp-actions') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect((singleRoot.querySelector('#leave-btn') as HTMLElement).classList.contains('hidden')).toBe(true);
     runtime.unload();
+    singleRuntime.runtime.unload();
   });
 });
 
@@ -168,7 +188,7 @@ describe('HudProjector', () => {
       ping: 24.2,
       fps: 59.8,
       pointerLocked: true,
-      practice: false,
+      session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
       objective: { x: 100, y: 80, visible: true },
     });
     expect(vm.match.scoreText).toBe('12,345');
@@ -179,17 +199,34 @@ describe('HudProjector', () => {
     expect(vm.objective.visible).toBe(false); // truck inactive
   });
 
-  it('gunner/practice projection and prompts', () => {
+  it('gunner and single-player projection and prompts', () => {
     const projector = new HudProjector();
     const vm = projector.project(
       state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 1.2, mgCooldown: 0, mgFiring: false, chargeT: 0.5, jackpotReady: true, cannonFlash: 0, jackpotCooldown: 0 } }),
-      { role: 'gunner', peerConnected: true, ping: 10, fps: 60, pointerLocked: false, practice: true, objective: null },
+      { role: 'gunner', peerConnected: true, ping: 10, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
     );
     expect(vm.crosshairVisible).toBe(true);
     expect(vm.prompt).toBe('JACKPOT READY');
     expect(vm.gunner.cooldownRatio).toBeCloseTo(0.75);
     expect(vm.gunner.chargeRatio).toBeCloseTo(0.5);
     expect(vm.tank.dashCooling).toBe(false);
+
+    const sp = projector.project(
+      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 } }),
+      { role: 'driver', peerConnected: false, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'singlePlayer', showRoleIdentity: false, showPeerStatus: false }, objective: null },
+    );
+    expect(sp.crosshairVisible).toBe(true);
+    expect(sp.prompt).toBe('DRIVE · AIM · FIRE');
+    expect(sp.promptSub).toBe('WASD · SHIFT · SPACE · LMB · RMB');
+    expect(sp.session.showRoleIdentity).toBe(false);
+    expect(sp.session.showPeerStatus).toBe(false);
+
+    // When the pointer is not locked, both modes show CLICK TO AIM.
+    const unlocked = projector.project(
+      state({ time: 3 }),
+      { role: 'gunner', peerConnected: true, ping: 10, fps: 60, pointerLocked: false, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
+    );
+    expect(unlocked.prompt).toBe('CLICK TO AIM');
   });
 
   it('empty view model is stable', () => {

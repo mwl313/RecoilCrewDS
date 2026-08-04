@@ -46,7 +46,7 @@ export interface ArenaSessionOptions {
   now?: () => number;
 }
 
-/** Server/authoritative selection (also used by Practice). */
+/** Server/authoritative selection (also used by Single Player). */
 export function selectArenaSession(options: ArenaSessionOptions): ArenaSessionResult {
   const now = options.now ?? (() => performanceNow());
   const t0 = now();

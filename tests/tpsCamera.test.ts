@@ -81,12 +81,12 @@ describe('TPS camera direction conventions', () => {
     expect(gunner.pitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
   });
 
-  it('practice mode widens the driver camera floor; online restores it', () => {
+  it('single player widens the driver camera floor; multiplayer restores it', () => {
     const cm = new CameraManager();
     expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
-    cm.setPracticeMode(true);
+    cm.setSinglePlayerMode(true);
     expect(cm.driverCam.minPitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
-    cm.setPracticeMode(false);
+    cm.setSinglePlayerMode(false);
     expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
   });
 });

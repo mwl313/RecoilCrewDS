@@ -24,7 +24,7 @@ export interface ShellRig {
 }
 
 /**
- * Tracks live entity views by id. Rematches and Practice swaps call reset(),
+ * Tracks live entity views by id. Rematches and Single Player restarts call reset(),
  * which removes every view from the scene and empties the maps — no growth
  * across rounds.
  */

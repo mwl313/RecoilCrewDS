@@ -171,18 +171,21 @@ describe('InputManager', () => {
     expect(input.debugState().latches).toEqual([]);
   });
 
-  it('records swap, recenter, and escape as one-shot flags', () => {
+  it('records recenter and escape as one-shot flags (no role swap keys remain)', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);
-    windowTarget.dispatch('keydown', keyEvent('Tab'));
     windowTarget.dispatch('keydown', keyEvent('KeyR'));
     windowTarget.dispatch('keydown', keyEvent('Escape'));
-    expect(input.consumeSwap()).toBe(true);
     expect(input.consumeRecenter()).toBe(true);
     expect(input.consumeEscape()).toBe(true);
-    expect(input.consumeSwap()).toBe(false);
     expect(input.consumeRecenter()).toBe(false);
     expect(input.consumeEscape()).toBe(false);
+    // Tab and Q are no longer bound to any action (single-player has no swap).
+    windowTarget.dispatch('keydown', keyEvent('Tab'));
+    windowTarget.dispatch('keydown', keyEvent('KeyQ'));
+    expect(input.consumeRecenter()).toBe(false);
+    expect(input.consumeEscape()).toBe(false);
+    expect(input.debugState().keys).toEqual([]);
   });
 
   it('consumes pointer-locked mouse movement deltas once', () => {

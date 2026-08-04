@@ -121,7 +121,7 @@ export class TpsCameraController {
     return this.tuning.minPitch;
   }
 
-  /** Change the camera pitch floor (Practice uses the wide gunner range). */
+  /** Change the camera pitch floor (Single Player uses the wide gunner range). */
   setMinPitch(min: number): void {
     this.tuning.minPitch = min;
     if (this.pitch < min) this.pitch = min;

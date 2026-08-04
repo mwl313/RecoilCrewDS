@@ -345,7 +345,7 @@ test('pointer-capture click acquires lock without firing a weapon', async ({ bro
   await ctxB.close();
 });
 
-test('pause overlay neutralizes gameplay input and one practice click starts one game', async ({ browser }) => {
+test('pause overlay neutralizes gameplay input and one single-player click starts one game', async ({ browser }) => {
   const ctxA = await browser.newContext();
   const ctxB = await browser.newContext();
   const a = await ctxA.newPage();
@@ -383,23 +383,23 @@ test('pause overlay neutralizes gameplay input and one practice click starts one
   await ctxA.close();
   await ctxB.close();
 
-  const practice = await browser.newPage();
-  await enter(practice);
-  await practice.click('#screen-main [data-act="practice"]');
-  await practice.waitForTimeout(600);
-  await expect(practice.locator('#screen-main')).toHaveClass(/hidden/);
-  await expect(practice.locator('#hud:not(.hidden)')).toBeVisible();
-  const canvases = await practice.evaluate(() => document.querySelectorAll('canvas#game-canvas').length);
+  const single = await browser.newPage();
+  await enter(single);
+  await single.click('#screen-main [data-act="single"]');
+  await single.waitForTimeout(600);
+  await expect(single.locator('#screen-main')).toHaveClass(/hidden/);
+  await expect(single.locator('#hud:not(.hidden)')).toBeVisible();
+  const canvases = await single.evaluate(() => document.querySelectorAll('canvas#game-canvas').length);
   expect(canvases).toBe(1);
-  const passes = await practice.evaluate(() => (window as unknown as { __recoil: { composerPasses(): number } }).__recoil.composerPasses());
+  const passes = await single.evaluate(() => (window as unknown as { __recoil: { composerPasses(): number } }).__recoil.composerPasses());
   for (let i = 0; i < 5; i++) {
-    await practice.keyboard.press('Tab');
-    await practice.waitForTimeout(150);
+    await single.keyboard.press('KeyR');
+    await single.waitForTimeout(150);
   }
-  const passesAfter = await practice.evaluate(() => (window as unknown as { __recoil: { composerPasses(): number } }).__recoil.composerPasses());
+  const passesAfter = await single.evaluate(() => (window as unknown as { __recoil: { composerPasses(): number } }).__recoil.composerPasses());
   expect(passes).toBe(2);
   expect(passesAfter).toBe(2);
-  await practice.close();
+  await single.close();
 });
 
 test('driver tank renders smoothly online (no prediction jitter / backward snapping)', async ({ browser }) => {

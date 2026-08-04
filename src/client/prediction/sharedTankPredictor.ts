@@ -155,7 +155,7 @@ export class SharedTankPredictor {
     this.appliedActions = [];
   }
 
-  /** Local Driver sequenced input (also used by Practice parity). */
+  /** Local Driver sequenced input (also used by Single Player parity). */
   pushInput(seq: number, input: DriverInput): void {
     if (this.disabled) return;
     this.pendingInputs.push({ seq, input });

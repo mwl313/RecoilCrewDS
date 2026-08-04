@@ -122,7 +122,7 @@ describe('entity factory and registry', () => {
     }
   });
 
-  it('resets all views on rematch/practice swap (no growth)', () => {
+  it('resets all views on rematch/single-player restart (no growth)', () => {
     const assets = { model: () => new THREE.Object3D() } as unknown as AssetService;
     const factory = new EntityViewFactory(assets);
     const scene = new THREE.Scene();

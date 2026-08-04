@@ -79,8 +79,8 @@ export class Hud {
     this.flow.setGameVisible(show);
   }
 
-  setTheme(role: Role) {
-    this.hudRuntime.setTheme(role);
+  setTheme(theme: 'driver' | 'gunner' | 'singlePlayer') {
+    this.hudRuntime.setTheme(theme);
   }
 
   setCreateCode(code: string) {
@@ -112,6 +112,13 @@ export class Hud {
     rematch: { driver: boolean; gunner: boolean; modifier: string },
   ) {
     this.flow.showResults(results, rematch);
+    this.onUiSound?.();
+  }
+
+  showSinglePlayerResults(
+    results: { score: number; bestCombo: number; jackpotFired: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
+  ) {
+    this.flow.showSinglePlayerResults(results);
     this.onUiSound?.();
   }
 

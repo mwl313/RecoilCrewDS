@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('practice mode runs a full local round with keyboard + mouse controls', async ({ page }) => {
+test('single player runs a full local round with combined controls and local restart', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
@@ -9,14 +9,19 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
 
   await page.goto('/?test=1');
   await page.click('#screen-boot');
-  await page.click('#screen-main [data-act="practice"]');
+  await page.click('#screen-main [data-act="single"]');
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
     return s?.phase === 'running';
   });
   await expect(page.locator('canvas#game-canvas')).toHaveCount(1);
   await expect(page.locator('#hud')).toBeVisible();
-  await expect(page.locator('#practice-tag')).toBeVisible();
+  // Single Player hides role/peer identity and shows the combined crosshair.
+  await expect(page.locator('#role-chip')).toHaveClass(/hidden/);
+  await expect(page.locator('#conn-dot')).toHaveClass(/hidden/);
+  await expect(page.locator('#ping')).toHaveClass(/hidden/);
+  await expect(page.locator('#practice-tag')).toHaveCount(0);
+  await expect(page.locator('#crosshair:not(.hidden)')).toBeVisible();
 
   // Keyboard driving moves the local tank.
   const z0 = await page.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
@@ -27,8 +32,8 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
   }, z0);
   await page.keyboard.up('w');
 
-  // Space jumps in Practice (edge-triggered). The arena is hostile, so
-  // first wait for an alive, grounded tank before pressing.
+  // Space jumps (edge-triggered). The arena is hostile, so first wait for
+  // an alive, grounded tank before pressing.
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { tank: { deadT: number; grounded: boolean } } | null } }).__recoil.state();
     return s ? s.tank.deadT <= 0 && s.tank.grounded : false;
@@ -40,7 +45,7 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
   }, undefined, { timeout: 5000 });
   await page.keyboard.up('Space');
 
-  // Shift dashes in Practice with a cooldown indicator.
+  // Shift dashes with a cooldown indicator.
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { tank: { deadT: number; grounded: boolean } } | null } }).__recoil.state();
     return s ? s.tank.deadT <= 0 && s.tank.grounded : false;
@@ -53,13 +58,13 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
   await page.keyboard.up('Shift');
   await expect(page.locator('#dash-ind')).toBeVisible();
 
-  // Tab swaps practice camera without breaking the loop.
+  // Tab/Q are not bound to anything in Single Player (no role swap).
   await page.keyboard.press('Tab');
-  await page.waitForTimeout(400);
-  await page.keyboard.press('Tab');
-  await page.waitForTimeout(400);
+  await page.keyboard.press('KeyQ');
+  await page.waitForTimeout(300);
 
-  // Practice reaches results after the 90-second round.
+  // Single Player reaches results after the 90-second round with local
+  // actions instead of a crew rematch vote.
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
     return s?.phase === 'results';
@@ -67,6 +72,17 @@ test('practice mode runs a full local round with keyboard + mouse controls', asy
   await expect(page.locator('#screen-results:not(.hidden)')).toBeVisible();
   const grade = await page.textContent('#results-grade');
   expect(grade?.trim() ?? '').toBeTruthy();
+  await expect(page.locator('#sp-play-again')).toBeVisible();
+  await expect(page.locator('#mods')).toHaveClass(/hidden/);
+  await expect(page.locator('#leave-btn')).toHaveClass(/hidden/);
+
+  // PLAY AGAIN restarts a fresh local match (no network involved).
+  const oldMatchId = await page.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
+  await page.click('#sp-play-again');
+  await page.waitForFunction((oldId) => {
+    const s = (window as unknown as { __recoil: { state(): { phase: string; matchId: string } | null } }).__recoil.state();
+    return s?.phase === 'running' && s.matchId !== oldId;
+  }, oldMatchId);
 
   const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU'));
   expect(critical).toEqual([]);

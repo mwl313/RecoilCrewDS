@@ -44,12 +44,12 @@ export class CameraManager {
   }
 
   /**
-   * Practice lets one player test both roles, so its Driver view also gets
-   * the wide gunner pitch floor (near-vertical cannon takeoffs). Online
-   * Driver keeps the normal −35° floor.
+   * Single Player uses combined controls, so its camera gets the wide
+   * gunner pitch floor (near-vertical cannon takeoffs). Online Driver keeps
+   * the normal −35° floor.
    */
-  setPracticeMode(practice: boolean): void {
-    const floor = practice ? (-77 * Math.PI) / 180 : (-35 * Math.PI) / 180;
+  setSinglePlayerMode(singlePlayer: boolean): void {
+    const floor = singlePlayer ? (-77 * Math.PI) / 180 : (-35 * Math.PI) / 180;
     this.driverCam.setMinPitch(floor);
   }
 

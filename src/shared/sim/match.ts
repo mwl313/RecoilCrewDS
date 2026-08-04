@@ -18,7 +18,7 @@ import { MatchRuntime } from './matchRuntime';
 export { MatchRuntime } from './matchRuntime';
 
 /**
- * Legacy Match facade. All current callers (server rooms, Practice, tests,
+ * Legacy Match facade. All current callers (server rooms, Single Player, tests,
  * the Phase 0 golden fixture) keep using this API; the implementation now
  * lives in MatchRuntime with immutable per-match rules and extracted
  * systems. When a content pack is provided, rules resolve from validated
@@ -27,11 +27,17 @@ export { MatchRuntime } from './matchRuntime';
 export class Match {
   readonly runtime: MatchRuntime;
 
-  constructor(matchId: string, modifier: ModifierId = 'none', pack?: ContentPack, world?: ArenaWorld) {
+  constructor(
+    matchId: string,
+    modifier: ModifierId = 'none',
+    pack?: ContentPack,
+    world?: ArenaWorld,
+    modeId?: string,
+  ) {
     this.runtime = pack
       ? world
-        ? MatchRuntime.fromContentPackWithWorld(pack, matchId, world, modifier)
-        : MatchRuntime.fromContentPack(pack, matchId, modifier)
+        ? MatchRuntime.fromContentPackWithWorld(pack, matchId, world, modifier, modeId)
+        : MatchRuntime.fromContentPack(pack, matchId, modifier, modeId)
       : new MatchRuntime(matchId, modifier, undefined, undefined, world);
   }
 

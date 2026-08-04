@@ -18,10 +18,18 @@
             "type": "horizontal",
             "class": "hud-left",
             "children": [
-              { "id": "role-chip", "type": "roleChip", "text": "DRIVER", "bindings": [{ "target": "text", "source": "role", "transform": "roleLabel" }] },
-              { "id": "conn-dot", "type": "connectionIndicator", "bindings": [{ "target": "class", "source": "connection.peerConnected", "transform": "booleanClass", "attribute": "off", "fallback": true }] },
-              { "id": "ping", "type": "statText", "class": "ping", "text": "--ms", "bindings": [{ "target": "text", "source": "connection.pingMs", "format": "{0}ms", "fallback": "--ms" }] },
-              { "id": "practice-tag", "type": "practiceTag", "class": "practice-tag hidden", "text": "PRACTICE", "bindings": [{ "target": "visible", "source": "practice" }] }
+              { "id": "role-chip", "type": "roleChip", "text": "DRIVER", "bindings": [
+                { "target": "text", "source": "role", "transform": "roleLabel" },
+                { "target": "visible", "source": "session.showRoleIdentity" }
+              ] },
+              { "id": "conn-dot", "type": "connectionIndicator", "bindings": [
+                { "target": "class", "source": "connection.peerConnected", "transform": "booleanClass", "attribute": "off", "fallback": true },
+                { "target": "visible", "source": "session.showPeerStatus" }
+              ] },
+              { "id": "ping", "type": "statText", "class": "ping", "text": "--ms", "bindings": [
+                { "target": "text", "source": "connection.pingMs", "format": "{0}ms", "fallback": "--ms" },
+                { "target": "visible", "source": "session.showPeerStatus" }
+              ] }
             ]
           },
           {
@@ -158,7 +166,7 @@
       "label": "Driver",
       "context": {
         "role": "driver",
-        "practice": false,
+        "session": { "kind": "multiplayer", "showRoleIdentity": true, "showPeerStatus": true },
         "connection": { "peerConnected": true, "pingMs": 24, "fps": 60 },
         "match": { "timeRemaining": 72, "timeUrgent": false, "score": 3200, "scoreText": "3,200", "combo": 3, "comboHot": true },
         "tank": { "integrity": 84, "integrityMax": 100, "integrityLow": false, "speed": 42, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
@@ -176,7 +184,7 @@
       "label": "Gunner",
       "context": {
         "role": "gunner",
-        "practice": true,
+        "session": { "kind": "multiplayer", "showRoleIdentity": true, "showPeerStatus": true },
         "connection": { "peerConnected": true, "pingMs": 31, "fps": 58 },
         "match": { "timeRemaining": 5, "timeUrgent": true, "score": 5210, "scoreText": "5,210", "combo": 5, "comboHot": true },
         "tank": { "integrity": 22, "integrityMax": 100, "integrityLow": true, "speed": 0, "grounded": true, "dashReady": false, "dashActive": false, "dashCooling": true },
@@ -187,6 +195,24 @@
         "chargeVisible": true,
         "pointerLocked": true,
         "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" }
+      }
+    },
+    {
+      "id": "singlePlayer",
+      "label": "Single Player",
+      "context": {
+        "role": "driver",
+        "session": { "kind": "singlePlayer", "showRoleIdentity": false, "showPeerStatus": false },
+        "connection": { "peerConnected": false, "pingMs": 0, "fps": 60 },
+        "match": { "timeRemaining": 61, "timeUrgent": false, "score": 1940, "scoreText": "1,940", "combo": 2, "comboHot": false },
+        "tank": { "integrity": 71, "integrityMax": 100, "integrityLow": false, "speed": 33, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
+        "gunner": { "jackpot": 42, "jackpotMax": 100, "jackpotReady": false, "chargeRatio": 0, "chargeMax": 1, "cannonCooldown": 0, "cooldownRatio": 0 },
+        "prompt": "DRIVE · AIM · FIRE",
+        "promptSub": "WASD · SHIFT · SPACE · LMB · RMB",
+        "crosshairVisible": true,
+        "chargeVisible": false,
+        "pointerLocked": true,
+        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" }
       }
     }
   ]

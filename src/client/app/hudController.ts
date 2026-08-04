@@ -7,7 +7,11 @@ export interface HudContext {
   ping: number;
   fps: number;
   pointerLocked: boolean;
-  practice: boolean;
+  session: {
+    kind: 'multiplayer' | 'singlePlayer';
+    showRoleIdentity: boolean;
+    showPeerStatus: boolean;
+  };
   rules?: { maxIntegrity?: number; cannonCooldown?: number; jackpotChargeTime?: number };
   objective: { x: number; y: number; visible: boolean } | null;
 }
@@ -28,8 +32,8 @@ export class HudController {
     this.hud.showResults(results, rematch);
   }
 
-  setTheme(role: Role): void {
-    this.hud.setTheme(role);
+  setTheme(theme: 'driver' | 'gunner' | 'singlePlayer'): void {
+    this.hud.setTheme(theme);
   }
 
   setGameScreen(visible: boolean): void {

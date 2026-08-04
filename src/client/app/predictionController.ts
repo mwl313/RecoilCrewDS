@@ -67,18 +67,18 @@ export class PredictionController {
     this.movementRevision = revision;
   }
 
-  /** Practice path: mirror the local match's turret rates directly. */
+  /** Single Player path: mirror the local match's turret rates directly. */
   setTurretRates(turnRate: number, pitchFollowRate: number): void {
     this.turretTurnRate = turnRate;
     this.pitchFollowRate = pitchFollowRate;
   }
 
-  /** Practice path: expose the local match's resolved movement/weapon block. */
+  /** Single Player path: expose the local match's resolved movement/weapon block. */
   setMovementRules(movement: MovementRulesBlock): void {
     this.latestMovement = movement;
   }
 
-  /** Latest replicated movement block (online) or local rules (practice). */
+  /** Latest replicated movement block (online) or local rules (Single Player). */
   movementRules(): MovementRulesBlock | null {
     return this.latestMovement;
   }
@@ -334,7 +334,7 @@ export class PredictionController {
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;
     // NOTE: the ground is owned by the arena lifecycle (setGround on
-    // create/start/rematch/reconnect/practice reroll). reset() must NOT
+    // create/start/rematch/reconnect/Single Player reroll). reset() must NOT
     // revert it to the legacy static arena, or a 400x400 (or any other)
     // generated world would predict against the wrong bounds and jitter.
   }

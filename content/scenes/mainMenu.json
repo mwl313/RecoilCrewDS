@@ -43,7 +43,7 @@
           },
           { "id": "main-create", "type": "button", "class": "btn primary", "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
           { "id": "main-join", "type": "button", "class": "btn", "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
-          { "id": "main-practice", "type": "button", "class": "btn", "props": { "dataAct": "practice" }, "text": "PRACTICE", "actions": [{ "event": "click", "action": "app.startPractice" }] },
+          { "id": "main-single", "type": "button", "class": "btn", "props": { "dataAct": "single" }, "text": "SINGLE PLAYER", "actions": [{ "event": "click", "action": "app.startSinglePlayer" }] },
           { "id": "main-howto", "type": "button", "class": "btn ghost", "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] }
         ]
       }

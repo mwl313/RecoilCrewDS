@@ -101,7 +101,7 @@ export interface MapGenerationBundle {
 /**
  * Which map profile a pack's active mode asks the game to load. Modes may
  * declare `mapProfileId`; without it the game keeps the legacy primary map.
- * Server selection, the generated client bundle, Practice, and Map Lab all
+ * Server selection, the generated client bundle, Single Player, and Map Lab all
  * resolve through this single function.
  */
 export function resolveDefaultMapProfileId(pack: ContentPack): string {

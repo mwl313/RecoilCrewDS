@@ -15,6 +15,7 @@ import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
 import type { DriverInput } from '../../shared/types';
 import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
+import type { GameSessionContext } from '../../shared/session/gameSessionKind';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -35,11 +36,11 @@ export interface PresenterDeps {
   cameraQuery: () => CameraCollisionQuery | null;
   input: InputSource;
   audio: AudioManager;
-  mode: () => 'online' | 'practice';
+  session: () => GameSessionContext;
   role: () => Role;
-  practiceMatch: () => { state: MatchState } | null;
+  singlePlayerMatch: () => { state: MatchState } | null;
   time: () => number;
-  applyPracticeWeapons(dt: number): void;
+  applySinglePlayerWeapons(dt: number): void;
 }
 
 /**
@@ -88,7 +89,7 @@ export class NetworkStatePresenter {
     if (msg.serverTime !== undefined) {
       netcodeMetrics.renderDelayMs = Math.max(0, this.renderTime - msg.serverTime) * 1000;
     }
-    if (this.deps.mode() === 'online') {
+    if (this.deps.session().networked) {
       this.deps.prediction.applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier);
     }
     if (!this.renderClockStarted) {
@@ -114,13 +115,13 @@ export class NetworkStatePresenter {
 
   /** Server-relayed sanitized Driver input → Gunner shared predictor. */
   handleDriverRelay(seq: number, driver: DriverInput): void {
-    if (this.deps.mode() === 'online' && this.deps.role() === 'gunner') {
+    if (this.deps.session().kind === 'multiplayer' && this.deps.role() === 'gunner') {
       this.deps.prediction.pushRelayInput(seq, driver);
     }
   }
 
   advanceRenderClock(dtRaw: number): void {
-    if (this.deps.mode() !== 'online' || !this.renderClockStarted) return;
+    if (!this.deps.session().networked || !this.renderClockStarted) return;
     this.renderTime += dtRaw;
     const latestEnv = this.snapBuffer.latest();
     if (latestEnv && this.renderTime > latestEnv.serverTime - 0.02) {
@@ -131,8 +132,8 @@ export class NetworkStatePresenter {
   /** Fill the reusable remote frame (no whole MatchState allocation). */
   computeRemote(): void {
     const t0 = performance.now();
-    if (this.deps.mode() === 'practice') {
-      const state = this.deps.practiceMatch()?.state ?? this.latest;
+    if (this.deps.session().kind === 'singlePlayer') {
+      const state = this.deps.singlePlayerMatch()?.state ?? this.latest;
       if (state) {
         this.remote.fillFromDiscrete(this.frame, state);
         this.remoteFrame = this.frame;
@@ -164,7 +165,7 @@ export class NetworkStatePresenter {
     const yaw = t.yaw;
     deps.tankRig.chassis.position.copy(pos);
     deps.tankRig.chassis.rotation.set(-t.pitch, yaw, t.roll);
-    const usePredictedTurret = deps.mode() === 'practice' || deps.role() === 'gunner';
+    const usePredictedTurret = deps.session().kind === 'singlePlayer' || deps.role() === 'gunner';
     const turretSpaces = deps.prediction.getTurretSpaces();
     if (usePredictedTurret) {
       deps.tankRig.turret.rotation.y = turretSpaces.predictedYawLocal;
@@ -263,8 +264,8 @@ export class NetworkStatePresenter {
 
     const speedRatio = Math.min(1, Math.hypot(t.vx, t.vz) / 18);
     const mouse = deps.input.consumeMouse();
-    deps.cameras.update(dt, pos, yaw, deps.mode() === 'practice' || deps.role() === 'driver' ? speedRatio : 0, deps.cameraQuery(), mouse);
-    if (deps.mode() === 'practice' || deps.role() === 'gunner') {
+    deps.cameras.update(dt, pos, yaw, deps.session().kind === 'singlePlayer' || deps.role() === 'driver' ? speedRatio : 0, deps.cameraQuery(), mouse);
+    if (deps.session().kind === 'singlePlayer' || deps.role() === 'gunner') {
       const groundY = renderTank.y;
       const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
       const pivot = pos.clone().add(new THREE.Vector3(0, 1.15, 0));
@@ -272,15 +273,15 @@ export class NetworkStatePresenter {
       const dz = aim.z - pivot.z;
       const flat = Math.hypot(dx, dz) || 0.001;
       const worldYaw = Math.atan2(dx, dz);
-      const chassisYaw = deps.mode() === 'practice' ? frame.tank.yaw : yaw;
+      const chassisYaw = deps.session().kind === 'singlePlayer' ? frame.tank.yaw : yaw;
       const limits = deps.prediction.turretPitchLimits();
       const pitch = clamp(Math.atan2(aim.y - pivot.y, flat), limits.minPitch, limits.maxPitch);
       deps.prediction.updateTurretTarget(worldYaw, pitch, chassisYaw, dt);
       deps.tankRig.turret.rotation.y = deps.prediction.getTurretSpaces().predictedYawLocal;
       deps.tankRig.barrel.rotation.x = -deps.prediction.getTurretSpaces().predictedPitch;
     }
-    if (deps.mode() === 'practice') {
-      deps.applyPracticeWeapons(dt);
+    if (deps.session().kind === 'singlePlayer') {
+      deps.applySinglePlayerWeapons(dt);
     }
 
     if (t.drift && t.grounded && Math.random() < 0.3) {

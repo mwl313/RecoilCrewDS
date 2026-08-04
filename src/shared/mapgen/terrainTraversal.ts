@@ -3,7 +3,7 @@
  *
  * `queryTerrainTransition` reads the authoritative heightfield + terrain
  * flags; `canTraverseGroundStep` applies the profile's maxStepUp rule. One
- * implementation is used by the server, the Driver predictor, Practice,
+ * implementation is used by the server, the Driver predictor, Single Player,
  * replay, dash, recoil, and ground enemies, so a cliff can never be climbed
  * by snapping upward while falling down a cliff stays perfectly legal.
  */

@@ -34,11 +34,12 @@
               }
             ]
           },
-          { "id": "results-mods-title", "type": "text", "class": "mods-title", "text": "REMATCH MODIFIER" },
+          { "id": "results-mods-title", "type": "text", "class": "mods-title", "text": "REMATCH MODIFIER", "bindings": [{ "target": "visible", "source": "crewMode" }] },
           {
             "id": "mods",
             "type": "repeater",
             "class": "mods",
+            "bindings": [{ "target": "visible", "source": "crewMode" }],
             "props": { "listSource": "modifiers" },
             "children": [
               {
@@ -55,20 +56,35 @@
               }
             ]
           },
-          { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [{ "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" }] },
-          { "id": "leave-btn", "type": "button", "class": "btn ghost", "text": "LEAVE CREW", "actions": [{ "event": "click", "action": "app.leave" }] }
+          { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [
+            { "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" },
+            { "target": "visible", "source": "crewMode" }
+          ] },
+          { "id": "leave-btn", "type": "button", "class": "btn ghost", "text": "LEAVE CREW", "actions": [{ "event": "click", "action": "app.leave" }], "bindings": [{ "target": "visible", "source": "crewMode" }] },
+          {
+            "id": "sp-actions",
+            "type": "vertical",
+            "class": "sp-actions",
+            "bindings": [{ "target": "visible", "source": "singleMode" }],
+            "children": [
+              { "id": "sp-play-again", "type": "button", "class": "btn primary", "text": "PLAY AGAIN", "actions": [{ "event": "click", "action": "app.restartSinglePlayer" }] },
+              { "id": "sp-main", "type": "button", "class": "btn ghost", "text": "MAIN MENU", "actions": [{ "event": "click", "action": "app.returnToMenu" }] }
+            ]
+          }
         ]
       }
     ]
   },
   "previewStates": [
     {
-      "id": "score",
-      "label": "Score",
+      "id": "crew",
+      "label": "Crew results",
       "context": {
         "grade": "S",
         "title": "ONE BRAIN, TWO BROWSERS",
         "score": "16,264",
+        "crewMode": true,
+        "singleMode": false,
         "stats": [
           { "label": "BEST COMBO", "value": "×5" },
           { "label": "JACKPOT", "value": "4" },
@@ -79,6 +95,22 @@
           { "id": "moonYard", "label": "MOON YARD", "desc": "Lower gravity and longer airtime.", "selected": false }
         ],
         "rematchInfo": "DRIVER READY · GUNNER PICKING"
+      }
+    },
+    {
+      "id": "single",
+      "label": "Single Player results",
+      "context": {
+        "grade": "A",
+        "title": "SOLO SCRAP HUNTER",
+        "score": "8,412",
+        "crewMode": false,
+        "singleMode": true,
+        "stats": [
+          { "label": "BEST COMBO", "value": "×4" },
+          { "label": "JACKPOT", "value": "2" },
+          { "label": "KILLS", "value": "27" }
+        ]
       }
     }
   ]

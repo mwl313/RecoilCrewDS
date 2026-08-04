@@ -280,7 +280,7 @@ describe('Refractor 02 hardening — P1 fixes', () => {
         ping: 0,
         fps: 60,
         pointerLocked: true,
-        practice: false,
+        session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
         objective: null,
         rules: { maxIntegrity: 200, cannonCooldown: 2.0, jackpotChargeTime: 0.5 },
       },
@@ -292,7 +292,7 @@ describe('Refractor 02 hardening — P1 fixes', () => {
 
     const fallback = projector.project(
       state(),
-      { role: 'driver', peerConnected: true, ping: 0, fps: 60, pointerLocked: true, practice: false, objective: null },
+      { role: 'driver', peerConnected: true, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
     );
     expect(fallback.tank.integrityMax).toBe(BASE_CONFIG.tank.maxIntegrity);
     expect(fallback.gunner.chargeMax).toBe(1);

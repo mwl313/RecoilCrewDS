@@ -349,9 +349,9 @@ describe('asset manifest behavior', () => {
   });
 });
 
-// ---------------------------------------------- 5. practice/online rule parity
-describe('practice/online rule parity', () => {
-  it('the server creates the same Match class that Practice runs locally', () => {
+// ---------------------------------------------- 5. single-player/online rule parity
+describe('single-player/online rule parity', () => {
+  it('the server creates the same Match class that Single Player runs locally', () => {
     const { manager } = makeManager();
     const { room } = startCrew(manager);
     expect(room.match).toBeInstanceOf(Match);

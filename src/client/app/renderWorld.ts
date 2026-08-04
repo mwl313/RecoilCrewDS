@@ -96,7 +96,7 @@ export class RenderWorld {
     if (this.renderPass) this.renderPass.camera = camera;
   }
 
-  /** Phase 3: swap the arena view (rematch / reconnect / practice reroll). */
+  /** Phase 3: swap the arena view (rematch / reconnect / Single Player reroll). */
   rebuildArena(world: ArenaWorld): void {
     this.arena.dispose();
     this.scene.remove(this.arena.group);

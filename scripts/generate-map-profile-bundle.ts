@@ -3,7 +3,7 @@
  * Single-source pipeline: content JSON -> validated MapGenerationBundles ->
  * src/generated/mapProfiles.generated.ts.
  *
- * The server keeps resolving from validated JSON; the browser, Practice,
+ * The server keeps resolving from validated JSON; the browser, Single Player,
  * reconstruction, and Map Lab consume the generated module. The generated
  * file is plain data (no functions/runtime objects) with a source hash so
  * stale files fail tests.

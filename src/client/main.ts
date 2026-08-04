@@ -8,6 +8,8 @@ import { AssetService } from './assets';
 import { HudController } from './app/hudController';
 import { DebugOverlay } from './app/debugOverlay';
 import { PresentationWorld } from './presentation/presentationWorld';
+import { CLIENT_CONTENT_PACK } from '../generated/contentPack.generated';
+import type { GameSessionKind } from '../shared/session/gameSessionKind';
 import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
 import {
   reconstructArenaSession,
@@ -43,7 +45,7 @@ let role: Role = 'driver';
 let sessionId = '';
 let roomCode = '';
 let inGame = false;
-let practice = false;
+let sessionKind: GameSessionKind = 'multiplayer';
 // Application state ownership (Refractor 02 audit P1-1): `flow` is the
 // authoritative application state machine. SceneFlowPresenter owns the
 // presentation side (scene runtimes, transitions, hybrid worlds, actions)
@@ -55,7 +57,7 @@ let latestState: MatchState | null = null;
 let peerConnected = false;
 let lastFps = 60;
 let arenaSession: ArenaSessionResult | null = null;
-let practiceMatchIndex = 0;
+let singlePlayerMatchIndex = 0;
 let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
@@ -89,8 +91,11 @@ hud.bind({
   onReady: () => {
     net.send({ t: 'ready', ready: true });
   },
-  onPractice: () => {
-    void startPractice();
+  onStartSinglePlayer: () => {
+    void startSinglePlayer();
+  },
+  onRestartSinglePlayer: () => {
+    void startSinglePlayer();
   },
   onHowTo: () => {
     hud.showScreen('howto');
@@ -101,10 +106,6 @@ hud.bind({
     flow = 'main';
   },
   onRematch: (modifier) => {
-    if (practice) {
-      void startPractice();
-      return;
-    }
     net.send({ t: 'rematch', modifier });
   },
   onLeave: () => {
@@ -248,8 +249,10 @@ net.onMessage = (msg) => {
 };
 
 net.onStatus = (connected) => {
+  // A network disconnect must never interrupt an active Single Player match.
+  if (!connected && sessionKind === 'singlePlayer') return;
   if (!connected && (flow === 'game' || flow === 'results')) {
-    hud.showError('Connection lost. Retry to rejoin your crew, or jump into practice.');
+    hud.showError('Connection lost. Retry to rejoin your crew, or play Single Player.');
     input.setEnabled(false);
     game?.setInputEnabled(false);
     input.releaseLock();
@@ -269,13 +272,13 @@ function buildSessionFromMetadata(meta: ArenaMetadata): ArenaSessionResult | { e
   return result.session;
 }
 
-function buildPracticeSession(): ArenaSessionResult {
+function buildSinglePlayerSession(): ArenaSessionResult {
   const { bundle, fallbackBundle } = resolveClientMapBundle();
-  const roomCode = FORCED_SEED !== null ? `SEED${FORCED_SEED}` : 'PRACTICE';
+  const roomCode = FORCED_SEED !== null ? `SEED${FORCED_SEED}` : 'SINGLE';
   try {
     return selectArenaSession({
       roomCode,
-      matchIndex: practiceMatchIndex,
+      matchIndex: singlePlayerMatchIndex,
       bundle,
       fallbackBundle,
     });
@@ -342,7 +345,7 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void
 }
 
 async function startOnline(r: Role, world: ArenaWorld | null): Promise<void> {
-  practice = false;
+  sessionKind = 'multiplayer';
   if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
@@ -357,22 +360,22 @@ async function startOnline(r: Role, world: ArenaWorld | null): Promise<void> {
   attachDebugOverlay();
 }
 
-async function startPractice(): Promise<void> {
+async function startSinglePlayer(): Promise<void> {
   teardownGame();
-  practice = true;
-  const session = buildPracticeSession();
+  sessionKind = 'singlePlayer';
+  const session = buildSinglePlayerSession();
   arenaSession = session.metadata ? session : null;
-  practiceMatchIndex++;
+  singlePlayerMatchIndex++;
   game = await createGame(session.world);
   attachGameCallbacks(game);
-  game.onPracticeResults = (results) => {
-    hud.showResults(results as never, { driver: true, gunner: true, modifier: 'none' });
+  game.onSinglePlayerResults = (results) => {
+    hud.showSinglePlayerResults(results as never);
     input.releaseLock();
     flow = 'results';
   };
-  game.startPractice();
+  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world);
   game.suppressAutoInput = TEST_MODE;
-  hud.setTheme('driver');
+  hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
   inGame = true;
   flow = 'game';
@@ -408,7 +411,7 @@ function teardownGame() {
   debugOverlay = null;
   input.setEnabled(false);
   inGame = false;
-  practice = false;
+  sessionKind = 'multiplayer';
   latestState = null;
   arenaSession = null;
   mapGateFailed = false;
@@ -445,18 +448,21 @@ function onFrame(g: GameClient, state: MatchState) {
     ping: pingMs,
     fps: lastFps,
     pointerLocked: input.locked,
-    practice,
+    session: {
+      kind: sessionKind,
+      showRoleIdentity: sessionKind === 'multiplayer',
+      showPeerStatus: sessionKind === 'multiplayer',
+    },
     rules: game?.getHudRules(),
     objective,
   });
-  if (input.consumeSwap() && practice) g.togglePracticeView();
   if (input.consumeRecenter()) g.recenter();
   if (input.consumeEscape()) {
     if (input.locked) input.releaseLock();
     else showPause();
   }
   const now = Date.now();
-  if (now - lastPingSent > 2500) {
+  if (sessionKind === 'multiplayer' && now - lastPingSent > 2500) {
     lastPingSent = now;
     net.send({ t: 'ping', ts: now });
   }
@@ -499,7 +505,7 @@ if (TEST_MODE) {
       game?.setInputEnabled(enabled);
     },
     inputState: () => input.debugState(),
-    driverInput: () => game?.practiceMatch?.getDriverInput() ?? null,
+    driverInput: () => game?.singlePlayerMatch?.getDriverInput() ?? null,
     predictionDebug: () => game?.predictionDebug() ?? null,
     arena: () => arenaSession?.metadata ?? null,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],

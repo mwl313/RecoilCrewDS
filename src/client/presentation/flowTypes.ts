@@ -6,7 +6,8 @@ export interface AppFlowHandlers {
   onCreate(): void;
   onJoin(code: string): void;
   onReady(): void;
-  onPractice(): void;
+  onStartSinglePlayer(): void;
+  onRestartSinglePlayer(): void;
   onHowTo(): void;
   onBack(): void;
   onRematch(modifier: ModifierId): void;

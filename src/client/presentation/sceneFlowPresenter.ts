@@ -174,6 +174,8 @@ export class SceneFlowPresenter {
       grade: results.grade,
       title: results.title,
       score: results.score.toLocaleString(),
+      crewMode: true,
+      singleMode: false,
       stats: [
         { label: 'BEST COMBO', value: `×${results.bestCombo}` },
         { label: 'JACKPOT', value: String(results.jackpotFired) },
@@ -184,6 +186,26 @@ export class SceneFlowPresenter {
       ],
     });
     this.updateRematch(rematch);
+    this.ensureRuntimeFor('scene.results');
+    this.showState('results');
+  }
+
+  /** Single Player results: local restart, no crew rematch vote. */
+  showSinglePlayerResults(results: ResultsPayload): void {
+    this.setSceneContext('scene.results', {
+      grade: results.grade,
+      title: results.title,
+      score: results.score.toLocaleString(),
+      crewMode: false,
+      singleMode: true,
+      stats: [
+        { label: 'BEST COMBO', value: `×${results.bestCombo}` },
+        { label: 'JACKPOT', value: String(results.jackpotFired) },
+        { label: 'KILLS', value: String(results.kills) },
+        { label: 'SCRAP', value: String(results.scrapCollected) },
+        { label: 'WIPEOUTS', value: String(results.wipeouts) },
+      ],
+    });
     this.ensureRuntimeFor('scene.results');
     this.showState('results');
   }
@@ -282,7 +304,8 @@ export class SceneFlowPresenter {
       ui(() => h().onJoin?.(input?.value ?? ''));
     });
     this.actions.register('app.ready', () => ui(() => h().onReady?.()));
-    this.actions.register('app.startPractice', () => ui(() => h().onPractice?.()));
+    this.actions.register('app.startSinglePlayer', () => ui(() => h().onStartSinglePlayer?.()));
+    this.actions.register('app.restartSinglePlayer', () => ui(() => h().onRestartSinglePlayer?.()));
     this.actions.register('app.openHowTo', () => ui(() => h().onHowTo?.()));
     this.actions.register('app.back', () => ui(() => h().onBack?.()));
     this.actions.register('app.leave', () => ui(() => h().onLeave?.()));
