@@ -1,4 +1,5 @@
 import type { MovementRulesBlock } from './stats/rulesRevision';
+import type { DamageSource } from './damage/damageTypes';
 
 export type Role = 'driver' | 'gunner';
 export type Phase = 'lobby' | 'countdown' | 'running' | 'results';
@@ -49,6 +50,13 @@ export interface EnemyState {
   spawnT: number;
   hitCd?: number;
   shotsFired?: number;
+  /** Impulse knockback motion (authoritative, replicated). */
+  impulseVx?: number;
+  impulseVy?: number;
+  impulseVz?: number;
+  impulseGrounded?: boolean;
+  lastImpulseSource?: DamageSource;
+  lastImpulseT?: number;
 }
 
 export type ScrapKind = 'normal' | 'heavy' | 'jackpot';
@@ -66,6 +74,8 @@ export interface PickupState {
 export interface ShellState {
   id: number;
   kind: 'cannon' | 'jackpot' | 'tower';
+  /** Weapon that fired this shell (per-weapon knockback stats). */
+  weaponId?: string;
   x: number;
   y: number;
   z: number;
@@ -117,6 +127,8 @@ export interface TankState {
   deadT: number;
   grounded: boolean;
   drift: boolean;
+  /** Landing momentum grace window (seconds); affects grip while > 0. */
+  landingGripT?: number;
   prevOnRamp?: boolean;
 }
 

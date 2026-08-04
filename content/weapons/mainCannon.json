@@ -15,8 +15,16 @@
     "weapon.splashInnerRatio": 0.45,
     "weapon.splashInnerMultiplier": 1,
     "weapon.splashOuterMultiplier": 0.65,
-    "weapon.cannonRecoilImpulse": 7.2,
-    "weapon.cannonRecoilSpin": 1.7
+    "weapon.cannonRecoilImpulse": 10.5,
+    "weapon.cannonRecoilSpin": 1.7,
+    "weapon.recoilVerticalScale": 1.0,
+    "weapon.recoilGroundLaunchThreshold": 0.25,
+    "weapon.splashKnockbackRadiusMultiplier": 1.0,
+    "weapon.splashKnockbackMax": 8.0,
+    "weapon.splashKnockbackMin": 1.5,
+    "weapon.splashKnockbackVertical": 2.5,
+    "weapon.splashKnockbackFalloffExponent": 1.25,
+    "weapon.splashTankKnockbackMultiplier": 0.0
   },
   "projectileId": "projectile.cannonShell",
   "presentation": {

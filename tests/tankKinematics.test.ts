@@ -9,7 +9,7 @@ const DT = 1 / 30;
 function tank(x: number, z: number, yaw = 0): TankKinematicState {
   return {
     x, y: 0, z, vx: 0, vy: 0, vz: 0, yaw, yawVel: 0,
-    pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false,
+    pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false, landingGripT: 0,
   };
 }
 

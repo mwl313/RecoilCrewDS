@@ -87,6 +87,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
   registry.register({
     id: 'movement.integrate',
     update(ctx, e, runtime, dt) {
+      // Impulse-driven motion owns position while the enemy is airborne.
+      if (ctx.enemyImpulses.isAirborne(e)) return;
       const r = ctx.enemies.radiusFor(e);
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
       const nx = e.x + (runtime.dirX / ml) * runtime.speed * dt;

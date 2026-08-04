@@ -1,5 +1,24 @@
 # Content Authoring Guide
 
+## Movement tuning (arcade aerial)
+
+Tank mobility, weapon recoil, and enemy knockback are content-driven:
+
+- `content/tanks/default.json` — steering, grip, aerial damping,
+  gravity/jump/ramp/dash, visual air pitch/roll limits, landing grace,
+  and the shared horizontal speed cap.
+- `content/weapons/*.json` — recoil magnitudes, vertical scale, ground
+  launch threshold, splash knockback curve (keep
+  `splashTankKnockbackMultiplier` at 0).
+- `content/enemies/*.json` — optional `knockback` block
+  (immovable/resistance/drag/gravity/fall damage).
+
+Every value flows through Zod schemas → `MatchRules` → the movement rules
+block; content and legacy paths are parity-tested. After changing values,
+run `npm test` (includes `tests/movement/`), and only regenerate the Demo
+golden (`npm run demo:write`) when the deterministic output intentionally
+changes.
+
 All gameplay content lives in `content/` as ordinary JSON. The server
 validates it with Zod at startup and fails loudly on invalid packs.
 

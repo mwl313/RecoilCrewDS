@@ -25,6 +25,19 @@ const enemyBase = {
       }),
     )
     .min(1),
+  knockback: z
+    .object({
+      immovable: z.boolean(),
+      horizontalResistance: nonNegativeNumber,
+      verticalResistance: nonNegativeNumber,
+      groundDrag: nonNegativeNumber,
+      airDrag: nonNegativeNumber,
+      gravityScale: positiveNumber,
+      fallDamageSpeed: nonNegativeNumber,
+      fallDamage: nonNegativeNumber,
+    })
+    .strict()
+    .optional(),
 };
 
 export const enemySchema = z.discriminatedUnion('type', [
@@ -57,7 +70,6 @@ export const enemySchema = z.discriminatedUnion('type', [
     lockTime: nonNegativeNumber,
     lockDistance: positiveNumber,
     dodgeDistance: positiveNumber,
-    knockback: nonNegativeNumber,
     recoveryDecel: positiveNumber,
     rearBonus: positiveNumber,
   }),

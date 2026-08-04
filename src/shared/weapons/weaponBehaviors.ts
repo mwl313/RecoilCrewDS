@@ -13,9 +13,12 @@ export function muzzleWorld(ctx: SystemContext): { x: number; y: number; z: numb
   const dx = Math.cos(pitch) * Math.sin(yaw);
   const dy = Math.sin(pitch);
   const dz = Math.cos(pitch) * Math.cos(yaw);
+  // Muzzle safety: never start a shell inside the terrain or under the
+  // chassis, especially when aiming steeply downward on slopes/ramps.
+  const groundY = ctx.world.groundHeightAt(t.x, t.z);
   return {
     x: t.x + dx * 2.7,
-    y: t.y + 1.55 + dy * 1.4,
+    y: Math.max(t.y + 1.55 + dy * 1.4, groundY + 0.25),
     z: t.z + dz * 2.7,
     dx,
     dy,
@@ -43,12 +46,17 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       const ny = dy / dl;
       const nz = dz / dl;
       ctx.recoil.apply(
-        -nx,
-        -nz,
-        weaponStat(weapon, 'weapon.mgRecoilImpulse', ctx.rules.config.tank.mgRecoilImpulse),
-        weaponStat(weapon, 'weapon.mgRecoilSpin', 0.05),
-        weapon.id,
-        actionSeq,
+        {
+          sourceId: weapon.id,
+          kind: 'mg',
+          direction: { x: -nx, y: -ny, z: -nz },
+          magnitude: weaponStat(weapon, 'weapon.mgRecoilImpulse', ctx.rules.config.tank.mgRecoilImpulse),
+          yawImpulse: (Math.random() - 0.5) * 2 * weaponStat(weapon, 'weapon.mgRecoilSpin', 0.05),
+          rollImpulse: (Math.random() - 0.5) * 0.05,
+          verticalScale: weaponStat(weapon, 'weapon.recoilVerticalScale', 1),
+          launchThreshold: weaponStat(weapon, 'weapon.recoilGroundLaunchThreshold', 0.25),
+          sourceActionSeq: actionSeq,
+        },
       );
       pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'mg', tx: nx, ty: ny, tz: nz, actionSeq });
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'primary', kind: 'mg' });
@@ -117,12 +125,17 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       ctx.pendingActionSeq = undefined;
       tur.cannonFlash = 0.12;
       ctx.recoil.apply(
-        -muzzle.dx,
-        -muzzle.dz,
-        ctx.rules.matchConfig.recoilImpulse,
-        weaponStat(weapon, 'weapon.cannonRecoilSpin', ctx.rules.config.tank.recoilSpin),
-        weapon.id,
-        actionSeq,
+        {
+          sourceId: weapon.id,
+          kind: 'cannon',
+          direction: { x: -muzzle.dx, y: -muzzle.dy, z: -muzzle.dz },
+          magnitude: weaponStat(weapon, 'weapon.cannonRecoilImpulse', ctx.rules.matchConfig.recoilImpulse),
+          yawImpulse: (Math.random() - 0.5) * 2 * weaponStat(weapon, 'weapon.cannonRecoilSpin', ctx.rules.config.tank.recoilSpin),
+          rollImpulse: (Math.random() - 0.5) * 0.35,
+          verticalScale: weaponStat(weapon, 'weapon.recoilVerticalScale', 1),
+          launchThreshold: weaponStat(weapon, 'weapon.recoilGroundLaunchThreshold', 0.25),
+          sourceActionSeq: actionSeq,
+        },
       );
       pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, {
         kind: 'cannon',
@@ -134,7 +147,7 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'secondary', kind: 'cannon' });
       const speed = weaponStat(weapon, 'weapon.cannonSpeed', ctx.rules.config.weapons.cannonSpeed);
       const life = weaponStat(weapon, 'weapon.cannonLife', ctx.rules.config.weapons.cannonLife);
-      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'cannon', life);
+      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'cannon', life, weapon.id);
       ctx.combo.addContribution('gunner', 1);
     },
   });
@@ -153,12 +166,17 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       tur.jackpotCooldown = weapon.cooldownSeconds;
       const impulse = weaponStat(weapon, 'weapon.jackpotRecoilImpulse', ctx.rules.config.tank.jackpotRecoilImpulse);
       ctx.recoil.apply(
-        -muzzle.dx,
-        -muzzle.dz,
-        impulse,
-        weaponStat(weapon, 'weapon.jackpotRecoilSpin', ctx.rules.config.tank.jackpotSpin),
-        weapon.id,
-        actionSeq,
+        {
+          sourceId: weapon.id,
+          kind: 'jackpot',
+          direction: { x: -muzzle.dx, y: -muzzle.dy, z: -muzzle.dz },
+          magnitude: impulse,
+          yawImpulse: (Math.random() - 0.5) * 2 * weaponStat(weapon, 'weapon.jackpotRecoilSpin', ctx.rules.config.tank.jackpotSpin),
+          rollImpulse: (Math.random() - 0.5) * 0.5,
+          verticalScale: weaponStat(weapon, 'weapon.recoilVerticalScale', 1),
+          launchThreshold: weaponStat(weapon, 'weapon.recoilGroundLaunchThreshold', 0.25),
+          sourceActionSeq: actionSeq,
+        },
       );
       pushEvent(ctx, 'jackpotFire', muzzle.x, muzzle.y, muzzle.z, {
         tx: muzzle.dx,
@@ -169,7 +187,7 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'ability', kind: 'jackpot' });
       const speed = weaponStat(weapon, 'weapon.jackpotSpeed', ctx.rules.config.weapons.jackpotSpeed);
       const life = weaponStat(weapon, 'weapon.jackpotLife', ctx.rules.config.weapons.jackpotLife);
-      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'jackpot', life);
+      ctx.projectiles.spawn(muzzle.x, muzzle.y, muzzle.z, muzzle.dx, muzzle.dy, muzzle.dz, speed, 'jackpot', life, weapon.id);
       ctx.combo.addContribution('gunner', 4);
     },
   });

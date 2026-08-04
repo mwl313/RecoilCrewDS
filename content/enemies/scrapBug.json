@@ -17,6 +17,16 @@
     { "id": "movement.integrate", "parameters": {} },
     { "id": "attack.contactRam", "parameters": {} }
   ],
+  "knockback": {
+    "immovable": false,
+    "horizontalResistance": 1.0,
+    "verticalResistance": 1.0,
+    "groundDrag": 4.5,
+    "airDrag": 0.6,
+    "gravityScale": 1.0,
+    "fallDamageSpeed": 8,
+    "fallDamage": 2
+  },
   "speed": 3.2,
   "damage": 4,
   "hitCooldown": 1.0,

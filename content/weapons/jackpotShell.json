@@ -14,7 +14,15 @@
     "weapon.splashInnerMultiplier": 1,
     "weapon.splashOuterMultiplier": 0.65,
     "weapon.jackpotRecoilImpulse": 17,
-    "weapon.jackpotRecoilSpin": 4.5
+    "weapon.jackpotRecoilSpin": 4.5,
+    "weapon.recoilVerticalScale": 1.0,
+    "weapon.recoilGroundLaunchThreshold": 0.25,
+    "weapon.splashKnockbackRadiusMultiplier": 1.0,
+    "weapon.splashKnockbackMax": 12.0,
+    "weapon.splashKnockbackMin": 2.5,
+    "weapon.splashKnockbackVertical": 4.0,
+    "weapon.splashKnockbackFalloffExponent": 1.25,
+    "weapon.splashTankKnockbackMultiplier": 0.0
   },
   "projectileId": "projectile.jackpotShell",
   "presentation": {

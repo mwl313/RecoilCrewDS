@@ -10,7 +10,7 @@ export interface MovementRulesBlock {
   tank: GameConfig['tank'];
   match: Pick<MatchConfig, 'timeScale' | 'grip' | 'gravity'>;
   /** Turret tracking rates (gunner prediction must mirror authority). */
-  turret: { turnRate: number; pitchFollowRate: number };
+  turret: { turnRate: number; pitchFollowRate: number; minPitch: number; maxPitch: number };
   /**
    * Weapon constants for presentation (HUD denominators). Optional so older
    * fixtures/rooms without the block keep BASE_CONFIG fallbacks; the server

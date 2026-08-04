@@ -59,6 +59,7 @@ describe('shared tank predictor', () => {
     const predictor = new SharedTankPredictor(BASE_CONFIG, 'none', ground(200));
     const wire: TankImpulseWire = {
       impulseSeq: 1, opSeq: 1, simulationTick: 10, source: 'recoil', sourceActionSeq: 3,
+      sourceId: 'weapon.mainCannon', kind: 'cannon',
       deltaVx: 5, deltaVy: 0, deltaVz: 0, deltaYawVel: 0, deltaRoll: 0,
     };
     predictor.applyImpulse(wire);
@@ -72,6 +73,7 @@ describe('shared tank predictor', () => {
     predictor.pushRelayInput(1, FORWARD);
     const wire: TankImpulseWire = {
       impulseSeq: 1, opSeq: 2, simulationTick: 10, source: 'recoil',
+      sourceId: 'weapon.mainCannon', kind: 'cannon',
       deltaVx: 0, deltaVy: 0, deltaVz: 3, deltaYawVel: 0, deltaRoll: 0,
     };
     predictor.applyImpulse(wire);
@@ -95,6 +97,7 @@ describe('shared tank predictor', () => {
     predictor.pushRelayInput(1, FORWARD);
     predictor.applyImpulse({
       impulseSeq: 1, opSeq: 1, simulationTick: 1, source: 'external',
+      sourceId: 'test', kind: 'other',
       deltaVx: 1, deltaVy: 0, deltaVz: 0, deltaYawVel: 0, deltaRoll: 0,
     });
     predictor.resetFromAuthority(tank());

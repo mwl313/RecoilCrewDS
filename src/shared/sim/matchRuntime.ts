@@ -60,6 +60,7 @@ function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
     deadT: 0,
     grounded: true,
     drift: false,
+    landingGripT: 0,
   };
 }
 
@@ -403,6 +404,7 @@ export class MatchRuntime {
     t.roll = 0;
     t.dashCooldown = 0;
     t.dashPresentationT = 0;
+    t.landingGripT = 0;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
     t.integrity = this.cfg.tank.maxIntegrity;

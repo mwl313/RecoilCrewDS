@@ -127,7 +127,7 @@ describe('MatchRules per-match isolation', () => {
     expect(a.resolver).not.toBe(b.resolver);
     expect(a.resolver.baseBlock).not.toBe(b.resolver.baseBlock);
     expect(a.movementBlock().tank).not.toBe(b.movementBlock().tank);
-    expect(a.movementBlock().match.gravity).toBe(16);
+    expect(a.movementBlock().match.gravity).toBe(13.5);
     expect(b.movementBlock().match.gravity).toBe(6.5);
   });
 

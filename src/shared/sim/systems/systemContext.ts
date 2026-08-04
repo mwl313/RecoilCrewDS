@@ -5,8 +5,10 @@ import { GameplayEventBus } from '../../core/gameplayEventBus';
 import { DamageSystem } from '../../damage/damageSystem';
 import { RecoilEffect } from '../../effects/recoilEffect';
 import { TankImpulseSystem, type TankImpulseWire } from '../../effects/tankImpulseSystem';
+import { RadialImpulseEffect } from '../../effects/radialImpulseEffect';
 import { ProjectileSystem } from '../../projectiles/projectileSystem';
 import { EnemySystem } from '../../enemies/enemySystem';
+import { EnemyImpulseController } from '../../enemies/enemyImpulseController';
 import { PickupSystem } from '../../pickups/pickupSystem';
 import { DropTableResolver } from '../../drops/dropTableResolver';
 import { SpawnDirectorRuntime } from '../../spawning/spawnDirectorRuntime';
@@ -41,6 +43,8 @@ export interface SystemContext {
   projectiles: ProjectileSystem;
   recoil: RecoilEffect;
   impulses: TankImpulseSystem;
+  radialImpulses: RadialImpulseEffect;
+  enemyImpulses: EnemyImpulseController;
   /** Unified server op/ack state (inputs + impulses). */
   opState: NetcodeOpState;
   /** Typed tank impulse queue drained by the room. */
@@ -92,6 +96,8 @@ export function createSystemContext(
   ctx.projectiles = new ProjectileSystem(ctx);
   ctx.recoil = new RecoilEffect(ctx);
   ctx.impulses = new TankImpulseSystem(ctx);
+  ctx.radialImpulses = new RadialImpulseEffect(ctx);
+  ctx.enemyImpulses = new EnemyImpulseController(ctx);
   ctx.enemies = new EnemySystem(ctx);
   ctx.pickups = new PickupSystem(ctx);
   ctx.drops = new DropTableResolver(ctx);

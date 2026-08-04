@@ -257,6 +257,8 @@ export class MatchRules {
       turret: {
         turnRate: this.resolver.resolve('weapon.turretTurnRate'),
         pitchFollowRate: this.loadout.turret.pitchFollowRate ?? 8,
+        minPitch: this.resolver.resolve('weapon.turretMinPitch'),
+        maxPitch: this.resolver.resolve('weapon.turretMaxPitch'),
       },
       weapon: {
         cannonCooldown: this.resolver.resolve('match.cannonCooldown'),

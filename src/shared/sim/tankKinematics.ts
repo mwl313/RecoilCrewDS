@@ -37,6 +37,8 @@ export interface TankKinematicState {
   /** Short presentation window after an accepted dash (seconds). */
   dashPresentationT: number;
   drift: boolean;
+  /** Landing momentum grace window (seconds); affects grip. */
+  landingGripT: number;
   prevOnRamp?: boolean;
 }
 
@@ -87,6 +89,7 @@ export function stepTankKinematics(
   // the presentation timer is cosmetic and deliberately independent.
   t.dashCooldown = Math.max(0, t.dashCooldown - dt);
   t.dashPresentationT = Math.max(0, t.dashPresentationT - dt);
+  t.landingGripT = Math.max(0, t.landingGripT - dt);
 
   // Jump edge: grounded-only, before normal gravity integration. Launch
   // velocity derives identically on server, predictor, and Practice from the
@@ -114,13 +117,20 @@ export function stepTankKinematics(
   // steer (D) rotates the chassis toward -X (yaw decreases).
   t.yaw -= inp.steer * steerRate * dt;
   t.yaw += t.yawVel * dt;
-  t.yawVel *= Math.exp(-3.2 * dt);
+  // Separate ground/air yaw damping: recoil spin persists longer in the air
+  // without destabilizing ground handling.
+  const yawDamping = t.grounded ? tankCfg.groundYawDamping : tankCfg.airYawDamping;
+  t.yawVel *= Math.exp(-yawDamping * dt);
 
   // 2. Recompute the basis AFTER steering.
   const f2 = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
   const lateralX = t.vx - forward.x * fwdSpeed;
   const lateralZ = t.vz - forward.z * fwdSpeed;
-  const gripF = Math.exp(-mcfg.grip * dt);
+  // Aerial grip is reduced; landing grace briefly carries momentum.
+  let grip = mcfg.grip;
+  if (!t.grounded) grip *= tankCfg.airGripMultiplier;
+  if (t.grounded && t.landingGripT > 0) grip *= tankCfg.landingGripMultiplier;
+  const gripF = Math.exp(-grip * dt);
   // 3. Rebuild velocity with the NEW basis; preserve intentional lateral drift.
   t.vx = f2.x * newFwd + lateralX * gripF;
   t.vz = f2.z * newFwd + lateralZ * gripF;
@@ -179,6 +189,7 @@ export function stepTankKinematics(
     t.y = h;
     t.vy = 0;
     t.grounded = true;
+    if (!wasGrounded) t.landingGripT = tankCfg.landingGripSeconds;
   } else {
     t.vy -= mcfg.gravity * dt;
     t.grounded = false;
@@ -201,9 +212,25 @@ export function stepTankKinematics(
       t.roll = 0;
       t.yawVel = 0;
     }
+  } else {
+    // Airborne visual roll from steering + yaw velocity, clamped to the
+    // content limit. Presentation only: never used by collision or basis.
+    const airRoll = clamp(
+      -inp.steer * speedRatio * 0.16 - t.yawVel * 0.04,
+      -tankCfg.maxVisualAirRoll,
+      tankCfg.maxVisualAirRoll,
+    );
+    t.roll = lerp(t.roll, airRoll, clamp(dt * tankCfg.visualAirLevelRate, 0, 1));
   }
   const normal = ground.groundNormalAt(t.x, t.z);
-  t.pitch = t.grounded ? lerp(t.pitch, pitchFromNormal(normal, t.yaw), clamp(dt * 8, 0, 1)) : t.pitch;
+  if (t.grounded) {
+    t.pitch = lerp(t.pitch, pitchFromNormal(normal, t.yaw), clamp(dt * 8, 0, 1));
+  } else {
+    // Airborne visual pitch from vertical velocity (recoil changes vy, so
+    // downward cannon shots pitch the nose up), clamped and never inverted.
+    const airPitch = clamp(t.vy * 0.02, -tankCfg.maxVisualAirPitch, tankCfg.maxVisualAirPitch);
+    t.pitch = lerp(t.pitch, airPitch, clamp(dt * tankCfg.visualAirLevelRate, 0, 1));
+  }
   // Drift is a presentation label for hard cornering at speed (no boost
   // state exists anymore).
   t.drift = t.grounded && Math.abs(inp.steer) > 0.4 && Math.abs(newFwd) > 6;

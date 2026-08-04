@@ -103,6 +103,11 @@ export class EnemySystem {
       flash: 0,
       spawnT: s.time,
       hitCd: 0,
+      impulseVx: 0,
+      impulseVy: 0,
+      impulseVz: 0,
+      impulseGrounded: true,
+      lastImpulseT: 0,
     };
     if (type === 'gunTower') {
       enemy.x = x ?? 0;
@@ -133,6 +138,7 @@ export class EnemySystem {
       for (const behavior of def.behaviors) {
         this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
       }
+      this.ctx.enemyImpulses.update(e, def, dt);
     }
     s.enemies = s.enemies.filter((e) => e.alive || e.stateT <= 2.5);
     for (const id of [...this.runtimes.keys()]) {

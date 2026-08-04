@@ -1,5 +1,5 @@
-import { clamp } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
+import type { TankImpulseSpec } from './tankImpulseSystem';
 
 export interface RecoilAppliedEvent {
   impulse: number;
@@ -16,22 +16,18 @@ export interface RecoilAppliedEvent {
 export class RecoilEffect {
   constructor(private readonly ctx: SystemContext) {}
 
-  apply(dirX: number, dirZ: number, impulse: number, spin: number, weaponId?: string, sourceActionSeq?: number): void {
+  /**
+   * Weapon-facing adapter: builds a pitch-aware 3D impulse spec and
+   * delegates to TankImpulseSystem (the sole impulse entry point). The old
+   * fixed airborne lift is gone — vertical recoil comes from the shot
+   * direction × verticalScale.
+   */
+  apply(spec: TankImpulseSpec): void {
     const t = this.ctx.state.tank;
-    const actionSeq = sourceActionSeq ?? this.ctx.pendingActionSeq;
+    const actionSeq = spec.sourceActionSeq ?? this.ctx.pendingActionSeq;
     this.ctx.pendingActionSeq = undefined;
-    // Compute the exact deltas and let TankImpulseSystem apply them once
-    // (sequenced + wire event) so clients can predict/replay recoil.
-    this.ctx.impulses.apply({
-      deltaVx: dirX * impulse,
-      deltaVy: t.grounded ? 0 : 1.8 * clamp(impulse / 7, 0, 1.4),
-      deltaVz: dirZ * impulse,
-      deltaYawVel: (Math.random() - 0.5) * 2 * spin,
-      deltaRoll: (Math.random() - 0.5) * 0.35,
-      source: 'recoil',
-      sourceActionSeq: actionSeq,
-    });
-    pushEvent(this.ctx, 'recoil', t.x, t.y, t.z, { value: impulse });
-    this.ctx.eventBus.emit('recoil.applied', { impulse, braced: false, weaponId });
+    this.ctx.impulses.apply({ ...spec, sourceActionSeq: actionSeq });
+    pushEvent(this.ctx, 'recoil', t.x, t.y, t.z, { value: spec.magnitude });
+    this.ctx.eventBus.emit('recoil.applied', { impulse: spec.magnitude, braced: false, weaponId: spec.sourceId });
   }
 }

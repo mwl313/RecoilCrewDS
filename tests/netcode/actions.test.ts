@@ -98,7 +98,16 @@ describe('tank impulse exact-once (match level)', () => {
   it('applies recoil deltas exactly once and increments impulseSeq', () => {
     const match = new Match('m', 'none');
     const vx0 = match.state.tank.vx;
-    match.runtime.systems.recoil.apply(1, 0, 7, 0.1);
+    match.runtime.systems.recoil.apply({
+      sourceId: 'weapon.mainCannon',
+      kind: 'cannon',
+      direction: { x: 1, y: 0, z: 0 },
+      magnitude: 7,
+      yawImpulse: 0.1,
+      rollImpulse: 0,
+      verticalScale: 1,
+      launchThreshold: 0.25,
+    });
     expect(match.state.tank.vx - vx0).toBeCloseTo(7);
     const impulses = match.takeImpulseEvents();
     expect(impulses.length).toBe(1);

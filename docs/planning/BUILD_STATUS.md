@@ -134,6 +134,18 @@
   presentation PASS; soak **8/8 rounds in 778 s**. Details:
   `docs/network03/`.
 
+- **Arcade upright aerial movement complete** — content-driven arcade
+  values (steerHigh 0.9, normalGrip 2.1, gravity 13.5, jump 3.0, dash 13,
+  hard cap 35, cannon recoil 10.5, MG recoil 0.15); yaw-only physics with
+  clamped visual air pitch/roll; separate ground/air grip and yaw damping;
+  landing momentum grace; pitch-aware 3D recoil with ground launch and
+  jump+cannon traversal; shared impulse cap; enemy radial splash knockback
+  with cliff falls, landings, fall damage, and immovable towers; data-driven
+  How To copy. Demo golden regenerated intentionally (events 1708 → 1723).
+  Verified: `npm test` **481/481** (51 files, incl. 17 movement tests);
+  `npm run test:e2e` **31/31**; demo/maps/sweep/loop/maplab/presentation
+  all PASS. Details: `docs/game-feel/`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

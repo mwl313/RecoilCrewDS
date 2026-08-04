@@ -10,8 +10,9 @@
     "weapon.mgRange": 45,
     "weapon.mgSpread": 0.018,
     "weapon.mgSpeed": 220,
-    "weapon.mgRecoilImpulse": 0.07,
-    "weapon.mgRecoilSpin": 0.05
+    "weapon.mgRecoilImpulse": 0.15,
+    "weapon.mgRecoilSpin": 0.05,
+    "weapon.recoilVerticalScale": 1.0
   },
   "presentation": {
     "muzzleVfxId": "vfx.machineGunMuzzle",

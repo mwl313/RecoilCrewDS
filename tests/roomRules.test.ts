@@ -70,7 +70,7 @@ describe('server rules flow: ContentPack -> mode -> difficulty -> MatchRules', (
     expect(snapshot.movement).toBeDefined();
     const movement = snapshot.movement as { tank: { forwardSpeed: number }; match: { gravity: number } };
     expect(movement.tank.forwardSpeed).toBe(18);
-    expect(movement.match.gravity).toBe(16);
+    expect(movement.match.gravity).toBe(13.5);
     // Without rule changes, later snapshots do not resend the block.
     stepSeconds(manager, 1);
     const later = a.last('snapshot') as Record<string, unknown>;
@@ -100,7 +100,7 @@ describe('two simultaneous rooms with different rules', () => {
     expect(rulesB.matchConfig.gravity).toBe(6.5);
     expect(rulesA.config).not.toBe(rulesB.config);
     expect(rulesA.resolver).not.toBe(rulesB.resolver);
-    expect(rulesA.movementBlock().match.gravity).toBe(16);
+    expect(rulesA.movementBlock().match.gravity).toBe(13.5);
     expect(rulesB.movementBlock().match.gravity).toBe(6.5);
 
     // A stat modifier on room A never leaks into room B.

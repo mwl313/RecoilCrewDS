@@ -63,6 +63,7 @@ function tank(x: number, z: number, yaw = 0): TankKinematicState {
     dashCooldown: 0,
     dashPresentationT: 0,
     drift: false,
+    landingGripT: 0,
   };
 }
 

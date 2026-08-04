@@ -180,6 +180,11 @@ code is selected in a textarea fallback so it can still be copied manually.
 
 ## Automated equivalents
 
+- **Arcade movement:** jump launches higher and floatier; steer while
+  airborne to face the landing; aim the cannon down and fire to launch the
+  tank; MG recoil is a smooth continuous push; cannon splash pushes enemies
+  (never the tank); Gun Towers never move.
+
 - **Netcode (network03):** F4 opens the netcode overlay — snapshot rate
   ~20 Hz, RTT, pending queues, corrections, camera/aim query times. Gunner:
   a very short right-click fires immediately with same-frame flash/audio,
@@ -192,6 +197,9 @@ code is selected in a textarea fallback so it can still be copied manually.
 - `npm run test:netcode:e2e` — two-browser gunner responsiveness + shared
   vehicle prediction (also runnable under `NETCODE_LATENCY_MS` /
   `NETCODE_JITTER_MS`).
+- `npm run test:e2e` — includes `e2e/arcade-movement.spec.ts` (downward
+  cannon launch synced on both clients, sustained MG stability) and
+  `e2e/screen-flicker.spec.ts`.
 - `npm run test:e2e` — two real Chrome clients play a complete round and
   rematch, plus dedicated TPS/controls/collision/copy/jump/dash browser
   tests.

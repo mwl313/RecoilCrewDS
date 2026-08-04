@@ -16,11 +16,23 @@ export class ProjectileSystem {
     this.behaviors = createBuiltinProjectileBehaviors();
   }
 
-  spawn(x: number, y: number, z: number, dx: number, dy: number, dz: number, speed: number, kind: ShellState['kind'], life: number): ShellState {
+  spawn(
+    x: number,
+    y: number,
+    z: number,
+    dx: number,
+    dy: number,
+    dz: number,
+    speed: number,
+    kind: ShellState['kind'],
+    life: number,
+    weaponId?: string,
+  ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
       id: s.nextShellId++,
       kind,
+      weaponId,
       x,
       y,
       z,
@@ -127,5 +139,23 @@ export class ProjectileSystem {
     if (tankD < radius + 1.5) {
       this.ctx.damage.applyTank(isJackpot ? 12 : 5, 'splash');
     }
+    // Knockback is a separate effect from damage: radial impulse pushes
+    // enemies away (never the tank; content sets tank multiplier to 0).
+    const weapon = sh.weaponId ? this.ctx.rules.weapons.get(sh.weaponId) : undefined;
+    const kbStat = (id: string, fallback: number): number =>
+      weapon ? (weapon.statBlock[id] ?? fallback) : fallback;
+    this.ctx.radialImpulses.apply({
+      originX: sh.x,
+      originY: sh.y,
+      originZ: sh.z,
+      radius: radius * kbStat('weapon.splashKnockbackRadiusMultiplier', 1),
+      maxImpulse: kbStat('weapon.splashKnockbackMax', 8),
+      minImpulse: kbStat('weapon.splashKnockbackMin', 1.5),
+      verticalImpulse: kbStat('weapon.splashKnockbackVertical', 2.5),
+      falloffExponent: kbStat('weapon.splashKnockbackFalloffExponent', 1.25),
+      source: isJackpot ? 'jackpot' : 'cannon',
+      affectsTank: false,
+      affectsEnemies: true,
+    });
   }
 }

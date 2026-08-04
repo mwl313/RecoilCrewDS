@@ -21,6 +21,15 @@ export interface GameConfig {
     steerHigh: number;
     normalGrip: number;
     airControl: number;
+    airGripMultiplier: number;
+    groundYawDamping: number;
+    airYawDamping: number;
+    hardHorizontalSpeedCap: number;
+    maxVisualAirPitch: number;
+    maxVisualAirRoll: number;
+    visualAirLevelRate: number;
+    landingGripSeconds: number;
+    landingGripMultiplier: number;
     gravity: number;
     /** Approximate vertical rise in world metres for a grounded jump. */
     jumpHeight: number;
@@ -168,16 +177,25 @@ export const BASE_CONFIG: GameConfig = {
     accel: 14,
     reverseAccel: 10,
     steerLow: 1.5,
-    steerHigh: 0.65,
-    normalGrip: 2.6,
-    airControl: 0.35,
-    gravity: 16,
-    jumpHeight: 2.2,
-    rampLaunchSpeed: 4.5,
-    dashImpulse: 9.0,
-    dashCooldown: 1.0,
-    dashAirMultiplier: 0.65,
-    dashMaxHorizontalSpeed: 28.0,
+    steerHigh: 0.9,
+    normalGrip: 2.1,
+    airControl: 0.55,
+    airGripMultiplier: 0.35,
+    groundYawDamping: 3.2,
+    airYawDamping: 2.2,
+    hardHorizontalSpeedCap: 35.0,
+    maxVisualAirPitch: 0.22,
+    maxVisualAirRoll: 0.28,
+    visualAirLevelRate: 4.0,
+    landingGripSeconds: 0.12,
+    landingGripMultiplier: 0.35,
+    gravity: 13.5,
+    jumpHeight: 3.0,
+    rampLaunchSpeed: 6.5,
+    dashImpulse: 13.0,
+    dashCooldown: 0.8,
+    dashAirMultiplier: 0.8,
+    dashMaxHorizontalSpeed: 33.0,
     dashPresentationSeconds: 0.18,
     collisionRadius: 1.35,
     footprint: [
@@ -195,11 +213,11 @@ export const BASE_CONFIG: GameConfig = {
     autoRightRoll: 1.15,
     fallDamageSpeed: 14,
     fallDamage: 10,
-    recoilImpulse: 7.2,
+    recoilImpulse: 10.5,
     recoilSpin: 1.7,
     jackpotRecoilImpulse: 17,
     jackpotSpin: 4.5,
-    mgRecoilImpulse: 0.07,
+    mgRecoilImpulse: 0.15,
   },
   weapons: {
     mgDamage: 2,
@@ -220,7 +238,7 @@ export const BASE_CONFIG: GameConfig = {
     jackpotLife: 3.2,
   turretTurnRate: 60,
     turretMaxPitch: 0.42,
-    turretMinPitch: -0.12,
+    turretMinPitch: -0.4,
     barrelHp: 3,
     barrelRadius: 2.4,
     barrelChainRadius: 6,

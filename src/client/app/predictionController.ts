@@ -37,6 +37,8 @@ export class PredictionController {
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
+  private turretMinPitch = -0.4;
+  private turretMaxPitch = 0.5;
   private latestMovement: MovementRulesBlock | null = null;
   private ground: GroundQuery = STATIC_GROUND_QUERY;
 
@@ -57,6 +59,8 @@ export class PredictionController {
     if (movement.turret) {
       this.turretTurnRate = movement.turret.turnRate;
       this.pitchFollowRate = movement.turret.pitchFollowRate;
+      this.turretMinPitch = movement.turret.minPitch;
+      this.turretMaxPitch = movement.turret.maxPitch;
     }
     this.ensurePredictor(modifier);
     this.predictor?.applyMovementRules(movement, revision);
@@ -230,7 +234,7 @@ export class PredictionController {
 
   updateTurretTarget(worldYaw: number, pitch: number, chassisYaw: number, dt: number): void {
     this.desiredTurretYawLocal = wrapAngle(worldYaw - chassisYaw);
-    this.desiredTurretPitch = clamp(pitch, -0.45, 0.5);
+    this.desiredTurretPitch = clamp(pitch, this.turretMinPitch, this.turretMaxPitch);
     this.predictedTurretYawLocal += clamp(
       angleDiff(this.predictedTurretYawLocal, this.desiredTurretYawLocal),
       -this.turretTurnRate * dt,

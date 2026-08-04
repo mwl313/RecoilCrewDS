@@ -25,8 +25,8 @@
                 "type": "container",
                 "children": [
                   { "id": "howto-driver-h", "type": "text", "props": { "tag": "h3" }, "class": "cyan", "text": "DRIVER" },
-                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "text": "WASD drive · Mouse look\nShift dash · Space jump\nR recenter camera" },
-                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "text": "Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Jump obstacles and dash to escape big shots." }
+                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "text": "WASD drive and steer · Shift dash\nSpace jump · R recenter camera\nSteer in the air to face your landing" },
+                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "text": "Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Jump, dash, and ride cannon recoil to reach high ground." }
                 ]
               },
               {
@@ -35,12 +35,12 @@
                 "children": [
                   { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "class": "orange", "text": "GUNNER" },
                   { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "text": "Mouse aim · LMB machine gun\nRMB cannon · Hold RMB charge JACKPOT\nR recenter camera" },
-                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "text": "Kill everything. Shoot the Loot Truck. Chain barrels. Coordinate shots with the Driver for Crew Links." }
+                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "text": "Aim downward and fire the cannon to launch the tank upward. MG fire gives a smaller continuous recoil. Kill everything, chain barrels, and coordinate shots for Crew Links." }
                 ]
               }
             ]
           },
-          { "id": "howto-foot", "type": "text", "class": "howto-foot", "props": { "tag": "p" }, "text": "Both roles share one tank. The cannon physically throws the Driver around — dash and jump through the chaos." },
+          { "id": "howto-foot", "type": "text", "class": "howto-foot", "props": { "tag": "p" }, "text": "Both roles share one tank. Jump, cannon recoil, and dash through the air — the tank always lands upright." },
           { "id": "howto-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
         ]
       }

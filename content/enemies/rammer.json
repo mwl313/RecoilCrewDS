@@ -13,6 +13,16 @@
     { "id": "attack.telegraphedCharge", "parameters": {} },
     { "id": "trait.vulnerableRear", "parameters": { "rearBonus": 1.5, "whenState": "recovery" } }
   ],
+  "knockback": {
+    "immovable": false,
+    "horizontalResistance": 0.45,
+    "verticalResistance": 0.5,
+    "groundDrag": 5.5,
+    "airDrag": 0.8,
+    "gravityScale": 1.1,
+    "fallDamageSpeed": 9,
+    "fallDamage": 4
+  },
   "approachSpeed": 3.2,
   "chargeSpeed": 13,
   "damage": 16,
@@ -22,7 +32,6 @@
   "lockTime": 0.45,
   "lockDistance": 16,
   "dodgeDistance": 3.6,
-  "knockback": 7,
   "recoveryDecel": 8,
   "rearBonus": 1.5
 }

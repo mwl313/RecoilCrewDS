@@ -42,7 +42,16 @@ Both online roles run the same shared tank predictor on the authoritative
 ground: Driver from local sampled input, Gunner from server relays. On
 every snapshot both replay unacknowledged operations (driver input frames +
 impulses) in unified `opSeq` order. The Gunner camera uses the predicted
-shared tank, not the delayed interpolation timeline.
+  shared tank, not the delayed interpolation timeline.
+
+### Arcade impulses (game-feel)
+
+`tankImpulse` wire events now carry `sourceId` and `kind` in addition to the
+exact deltas; snapshots acknowledge the impulse sequence. Impulse direction
+is 3D (the inverse muzzle vector), so downward cannon shots produce upward
+recoil that both clients predict identically. The shared
+`hardHorizontalSpeedCap` bounds dash/recoil/MG stacking on the server and
+replays it in the same impulse system.
 
 ### Arena synchronization (Phase 3)
 

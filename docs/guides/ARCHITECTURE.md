@@ -65,6 +65,27 @@ turret prediction reconciled with snapshots.
   `src/shared/net/tuning.ts` and
   `docs/network03/NETCODE_TEST_AND_TUNING_GUIDE.md`.
 
+## Arcade upright aerial movement (game-feel)
+
+- Movement values are fully content-driven (`content/tanks/default.json`,
+  `content/weapons/*.json`, `content/enemies/*.json`) through the existing
+  MatchRules/stat pipeline and replicate via `MovementRulesBlock` (tank
+  aerials + turret pitch limits).
+- The tank has yaw-only authoritative physics; visual pitch/roll are
+  clamped presentation values (airborne pitch from vertical velocity, roll
+  from steering/yaw velocity) and never affect collision.
+- `TankImpulseSystem` is the single impulse entry (3D direction ×
+  magnitude × vertical scale, ground launch threshold, shared
+  `hardHorizontalSpeedCap`); `RecoilEffect` and weapon behaviors delegate
+  to it, so downward cannon aim launches the tank and MG micro-thrust
+  accumulates smoothly with exact per-impulse prediction/reconcile.
+- Landing momentum grace (`landingGripT`) is part of shared state.
+- Enemy splash knockback: `RadialImpulseEffect` + `EnemyImpulseController`
+  with data-driven per-enemy resistance, cliff-fall/landing/fall-damage,
+  and immovable Gun Towers; tank splash knockback stays zero.
+- Details: `docs/game-feel/ARCADE_UPRIGHT_AERIAL_MOVEMENT_IMPLEMENTATION_REPORT.md`
+  and `docs/game-feel/ARCADE_MOVEMENT_TUNING_GUIDE.md`.
+
 Driver tank prediction is bound to the authoritative arena for any map size:
 the prediction ground is set on create/start/rematch/reconnect and survives
 controller resets (it is never reverted to the legacy static arena). Reconcile
