@@ -19,7 +19,7 @@ export interface HordeStageView {
  * Progression08: selectUpgrade client message added (bumped deliberately;
  * snapshots already carry the full progression state for reconnect).
  */
-export const PROTOCOL_VERSION = 6;
+export const PROTOCOL_VERSION = 7;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -92,6 +92,11 @@ export interface SelectUpgradeMessage extends ProtocolEnvelope {
   cardIndex: number;
 }
 
+export interface SkipRelicPresentationMessage extends ProtocolEnvelope {
+  t: 'skipRelicPresentation';
+  acquisitionSequence: number;
+}
+
 export interface LeaveMessage extends ProtocolEnvelope {
   t: 'leave';
 }
@@ -107,6 +112,7 @@ export type ClientMessage =
   | GunnerActionMessage
   | RematchMessage
   | SelectUpgradeMessage
+  | SkipRelicPresentationMessage
   | LeaveMessage;
 
 // Server → Client ---------------------------------------------------------

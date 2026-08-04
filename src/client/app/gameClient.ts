@@ -191,7 +191,11 @@ export class GameClient {
     gameRef = game;
     game.progressionOverlay = new ProgressionOverlay(container, {
       selectUpgrade: (index) => gameRef!.submitUpgrade(index),
-      skipRelicPresentation: () => undefined,
+      skipRelicPresentation: () => gameRef!.skipRelicPresentation(),
+      relicInfo: (relicId) => {
+        const relic = gameRef!.contentPack?.getRelic(relicId);
+        return relic ? { label: relic.label, description: relic.description } : null;
+      },
     });
     game.f4 = new F4Overlay();
     game.onReadyHook = onReady;
@@ -824,6 +828,19 @@ export class GameClient {
       this.singlePlayerMatch.submitProgressionSelection('single', selection.offerId, cardIndex);
     } else if (this.onSendInput) {
       this.onSendInput({ t: 'selectUpgrade', offerId: selection.offerId, cardIndex });
+    }
+  }
+
+  /** Request skip/acknowledgement of the shared relic reveal (idempotent). */
+  skipRelicPresentation(): void {
+    const latest = this.presenter.latest;
+    const selection = latest?.teamProgression.activeSelection;
+    if (!selection || selection.kind !== 'relic' || latest?.matchFlow !== 'relicSelection') return;
+    const acquisitionSequence = selection.relicResult?.acquisitionSequence ?? 0;
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      this.singlePlayerMatch.skipProgressionRelic(acquisitionSequence, performance.now());
+    } else if (this.onSendInput) {
+      this.onSendInput({ t: 'skipRelicPresentation', acquisitionSequence });
     }
   }
 

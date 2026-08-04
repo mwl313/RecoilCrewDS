@@ -11,9 +11,13 @@ export interface TeamProgressionState {
   pendingLevelUps: number;
   levelUpOffersCompleted: number;
   treasureChestsOpened: number;
+  /** Monotonic match-scoped sequence; every resolved chest increments it. */
+  relicAcquisitionSequence: number;
   relicStacks: Record<string, number>;
   activeSelection: ProgressionSelectionState | null;
   lastRelicResult: RelicRollResult | null;
+  /** Chest results that could not start a reveal immediately (serialized). */
+  pendingRelicResults: RelicRollResult[];
 }
 
 export interface RolledUpgradeEffect {
@@ -42,9 +46,13 @@ export interface ProgressionSelectionState {
   gunnerSelection?: number;
   singlePlayerSelection?: number;
   resolved: boolean;
+  /** Relic reveal fields (kind === 'relic'). */
+  revealDeadlineWallMs?: number;
+  applied?: boolean;
 }
 
 export interface RelicRollResult {
+  acquisitionSequence: number;
   relicId: string;
   rarity: UpgradeRarity;
   duplicateConverted: boolean;
@@ -53,6 +61,14 @@ export interface RelicRollResult {
 }
 
 export type TreasureChestSource = 'map' | 'enemyDrop' | 'waveClear';
+
+export type ProgressionXpSource =
+  | 'shard'
+  | 'elite'
+  | 'waveLeader'
+  | 'boss'
+  | 'duplicateRelic'
+  | 'direct';
 
 export interface TreasureChestState {
   id: number;

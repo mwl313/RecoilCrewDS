@@ -47,6 +47,7 @@ import { weaponSchema } from './schemas/weapon';
 import {
   firstTreasureRuleSchema,
   levelCurveSchema,
+  missingRelicEffectParameters,
   progressionDefinitionSchema,
   progressionModePolicySchema,
   relicEffectTemplateSchema,
@@ -166,6 +167,8 @@ export class ContentLoader {
       }
     }
 
+    validateRelicEffectParameters(registries);
+
     new ReferenceValidator(registries, this.behaviors, this.statIds).validate(manifest);
 
     const hash = contentHash({
@@ -204,6 +207,38 @@ export class ContentLoader {
       }
     }
     return this.loadFromRecords(manifestRaw, files);
+  }
+}
+
+/**
+ * Every relic effect must supply the parameters its handler requires.
+ * Template-level parameters and per-relic overrides are merged before
+ * validation so tuning can never silently fall back to hardcoded values.
+ */
+function validateRelicEffectParameters(registries: CategoryRegistries): void {
+  const issues: string[] = [];
+  for (const templateId of registries.relicEffectTemplates.ids()) {
+    const template = registries.relicEffectTemplates.require(templateId);
+    if (!template.parameters) continue;
+    const missing = missingRelicEffectParameters(template.effectType, template.parameters);
+    for (const key of missing) {
+      issues.push(`${templateId}: effectType ${template.effectType} requires parameter '${key}'`);
+    }
+  }
+  for (const relicId of registries.relics.ids()) {
+    const relic = registries.relics.require(relicId);
+    for (let i = 0; i < relic.effects.length; i++) {
+      const effect = relic.effects[i];
+      const template = registries.relicEffectTemplates.require(effect.templateId, relicId);
+      const merged = { ...(template.parameters ?? {}), ...(effect.parameters ?? {}) };
+      const missing = missingRelicEffectParameters(template.effectType, merged);
+      for (const key of missing) {
+        issues.push(`${relicId}: effects[${i}] (${template.effectType}) requires parameter '${key}'`);
+      }
+    }
+  }
+  if (issues.length > 0) {
+    throw new ContentValidationError('relic effects missing required parameters', issues);
   }
 }
 

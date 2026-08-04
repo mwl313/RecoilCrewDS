@@ -143,9 +143,9 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
 
   registry.register({
     trigger: 'cannonKillHeal',
-    handle(event, ctx, relic, stacks, _params, telemetry) {
+    handle(event, ctx, relic, stacks, params, telemetry) {
       if (event.type !== 'enemyKilled' || event.source !== 'cannon') return;
-      healTank(ctx, num({ amountPerStack: 5 }, 'amountPerStack') * stacks);
+      healTank(ctx, num(params, 'amountPerStack') * stacks);
       count(telemetry, relic.id);
     },
   });
@@ -227,9 +227,9 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
 
   registry.register({
     trigger: 'waveClearHeal',
-    handle(event, ctx, relic, stacks, _params, telemetry) {
+    handle(event, ctx, relic, stacks, params, telemetry) {
       if (event.type !== 'waveCleared') return;
-      healTank(ctx, num({ amountPerStack: 15 }, 'amountPerStack') * stacks);
+      healTank(ctx, num(params, 'amountPerStack') * stacks);
       count(telemetry, relic.id);
     },
   });
@@ -247,11 +247,12 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
       t.deadT = 0;
       t.shieldedT = Math.max(t.shieldedT, 1);
       const radius = num(params, 'shockwaveRadius');
+      const shockwaveDamage = num(params, 'shockwaveDamage');
       const nearby = ctx.enemySpatial.queryCircle(t.x, t.z, radius + 4);
       for (const e of nearby) {
         if (!e.alive) continue;
         if (Math.hypot(e.x - t.x, e.z - t.z) <= radius + ctx.enemies.radiusFor(e)) {
-          ctx.damage.applyEnemy(e, 25, 'relic');
+          ctx.damage.applyEnemy(e, shockwaveDamage, 'relic');
         }
       }
       count(telemetry, relic.id);

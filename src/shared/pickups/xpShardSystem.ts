@@ -9,6 +9,7 @@ export class XpShardSystem {
   constructor(private readonly ctx: SystemContext) {}
 
   spawn(value: number, x: number, z: number): void {
+    if (!this.ctx.rules.progressionEnabled) return;
     const s = this.ctx.state;
     const def = this.ctx.rules.xpPickupContent;
     const life = def?.life ?? 30;

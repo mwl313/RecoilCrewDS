@@ -25,7 +25,21 @@ export class TreasureChestSystem {
     normalTable: TreasureRarityTableDefinition,
   ): UpgradeRarity {
     const first = this.getChestsOpened() === 0;
-    if (first) {
+    return this.rollRarityFor(first, rand, firstRule, normalTable);
+  }
+
+  /**
+   * Rarity roll with an explicit captured first/later state. The caller
+   * captures `isFirstChest` before consuming the chest so the first open
+   * always uses the first-chest table.
+   */
+  rollRarityFor(
+    isFirstChest: boolean,
+    rand: () => number,
+    firstRule: FirstTreasureRuleDefinition,
+    normalTable: TreasureRarityTableDefinition,
+  ): UpgradeRarity {
+    if (isFirstChest) {
       const index = rollWeighted(rand, [firstRule.rarities.epic, firstRule.rarities.legendary]);
       return index === 1 ? 'legendary' : 'epic';
     }

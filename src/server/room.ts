@@ -405,6 +405,14 @@ export class RoomManager {
       room.match.submitProgressionSelection(client.role, offerId, cardIndex);
       return;
     }
+    if (t === 'skipRelicPresentation') {
+      if (room.phase !== 'running' || !room.match || !client.role) return;
+      const acquisitionSequence = typeof raw.acquisitionSequence === 'number' ? raw.acquisitionSequence : -1;
+      // Either player may skip the shared reveal; the command is idempotent
+      // on the authority and can never alter the predetermined result.
+      room.match.skipProgressionRelic(acquisitionSequence, this.now());
+      return;
+    }
     if (t === 'rematch') {
       if (room.phase !== 'results' || !client.role || !room.match) return;
       const modifier = typeof raw.modifier === 'string' && raw.modifier.length > 0 ? (raw.modifier as ModifierId) : 'none';

@@ -542,6 +542,7 @@ if (TEST_MODE) {
         game?.singlePlayerMatch?.runtime.systems.progression.spawnChest('map', x, z)?.id ?? 0,
       openChest: (id: number) =>
         game?.singlePlayerMatch?.runtime.systems.progression.openChest(id, Date.now()),
+      skipRelic: () => game?.skipRelicPresentation(),
     },
     arena: () => arenaSession?.metadata ?? null,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],

@@ -97,9 +97,11 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       pendingLevelUps: 0,
       levelUpOffersCompleted: 0,
       treasureChestsOpened: 0,
+      relicAcquisitionSequence: 0,
       relicStacks: {},
       activeSelection: null,
       lastRelicResult: null,
+      pendingRelicResults: [],
     },
     chests: [],
     xpShards: [],
@@ -527,6 +529,10 @@ export class MatchRuntime {
 
   openProgressionChest(chestId: number, nowMs: number) {
     return this.systems.progression.openChest(chestId, nowMs);
+  }
+
+  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+    return this.systems.progression.skipProgressionRelic(acquisitionSequence, nowMs);
   }
 
   damageTank(amount: number, source: string) {

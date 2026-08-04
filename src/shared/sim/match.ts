@@ -129,6 +129,10 @@ export class Match {
     return this.runtime.openProgressionChest(chestId, nowMs);
   }
 
+  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+    return this.runtime.skipProgressionRelic(acquisitionSequence, nowMs);
+  }
+
   damageTank(amount: number, source: string): void {
     this.runtime.damageTank(amount, source);
   }

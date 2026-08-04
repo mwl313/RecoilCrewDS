@@ -64,6 +64,60 @@ export const RELIC_EFFECT_TYPES = [
 
 export type RelicEffectType = (typeof RELIC_EFFECT_TYPES)[number];
 
+/**
+ * Parameters each effect type must supply. Tuning values must come from
+ * validated content; handlers may only rely on generic (non relic-specific)
+ * defaults when a key is explicitly optional.
+ */
+export const RELIC_EFFECT_REQUIRED_PARAMETERS: Record<RelicEffectType, readonly string[]> = {
+  statPercent: ['statId', 'percentPerStack'],
+  statFlat: ['statId', 'flatPerStack'],
+  capability: ['capabilityId'],
+  heal: ['amount'],
+  magnetMultiplier: ['percentPerStack'],
+  xpMultiplier: ['percentPerStack'],
+  incomingDamageReduction: ['percentPerStack'],
+  outgoingDamageMultiplier: ['percentPerStack'],
+  conditionalIncomingReduction: ['condition', 'percentPerStack'],
+  conditionalOutgoingIncrease: ['condition', 'percentPerStack'],
+  dashDamagePercent: ['percentPerStack'],
+  dashCooldownPercent: ['percentPerStack'],
+  airControlPercent: ['percentPerStack'],
+  extraJumps: ['countPerStack'],
+  airDashCharges: ['countPerStack'],
+  mgBuffOnCannonFire: ['percentPerStack', 'durationSeconds'],
+  enemySpeedDebuffOnMgHit: ['percentPerStack', 'durationSeconds'],
+  enemyVulnerabilityOnMgHit: ['percentPerStack', 'durationSeconds'],
+  cannonKillHeal: ['amountPerStack'],
+  cannonKillExplosion: ['radius', 'damageBase', 'damagePerStack'],
+  cannonHitCooldownReduction: ['percentPerStack'],
+  dashHitCooldownReduction: ['percentPerStack'],
+  airCooldownRecovery: ['recoveryMultiplierPerStack'],
+  groundPound: ['radius', 'damageBase', 'damagePerStack', 'knockback'],
+  waveClearHeal: ['amountPerStack'],
+  revive: ['integrityPercent', 'shockwaveRadius', 'shockwaveDamage'],
+  roadkill: [
+    'minimumSpeedRatio',
+    'baseDamageCoefficient',
+    'coefficientPerAdditionalStack',
+    'perTargetCooldownSeconds',
+    'knockbackCoefficient',
+  ],
+  phaseDash: [],
+  twinShell: ['cooldownMultiplier'],
+  zeroDashCooldown: [],
+  cannonRadiusAndKnockbackPercent: ['radiusPercentPerStack', 'knockbackPercentPerStack'],
+};
+
+/** Returns the required parameter keys missing from the merged parameters. */
+export function missingRelicEffectParameters(
+  effectType: string,
+  params: Record<string, unknown> | undefined,
+): string[] {
+  const required = RELIC_EFFECT_REQUIRED_PARAMETERS[effectType as RelicEffectType] ?? [];
+  return required.filter((key) => !(params && key in params));
+}
+
 export const levelCurveSchema = z
   .object({
     ...commonDefinition,
