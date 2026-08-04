@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import type { LoadedModelAsset } from '../assets/loadedModelAsset';
+import { animationTelemetry } from './animationTelemetry';
 
 /** A per-enemy model instance with an independent skeleton when skinned. */
 export interface LoadedModelInstance {
@@ -59,9 +60,17 @@ export function cloneOwnedMaterials(root: THREE.Object3D): void {
     const mesh = obj as THREE.Mesh;
     if (!mesh.isMesh) return;
     if (Array.isArray(mesh.material)) {
-      mesh.material = mesh.material.map((m) => m.clone());
+      mesh.material = mesh.material.map((m) => {
+        const clone = m.clone();
+        clone.userData = { ...(m.userData ?? {}), ownedByInstance: true };
+        animationTelemetry.ownedMaterialClones++;
+        return clone;
+      });
     } else {
-      mesh.material = mesh.material.clone();
+      const clone = mesh.material.clone();
+      clone.userData = { ...(mesh.material.userData ?? {}), ownedByInstance: true };
+      mesh.material = clone;
+      animationTelemetry.ownedMaterialClones++;
     }
   });
 }

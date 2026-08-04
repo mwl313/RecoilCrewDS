@@ -67,6 +67,14 @@ export function buildProceduralSkinnedAsset(id = 'test.proceduralSkinned'): Load
     ]),
   ]);
 
+  const staggerQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.6);
+  const stagger = new THREE.AnimationClip('Stagger', 0.35, [
+    new THREE.QuaternionKeyframeTrack('mid.quaternion', [0, 0.35], [
+      q0.x, q0.y, q0.z, q0.w,
+      staggerQ.x, staggerQ.y, staggerQ.z, staggerQ.w,
+    ]),
+  ]);
+
   const deathQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 1.5);
   const death = new THREE.AnimationClip('Death', 0.8, [
     new THREE.QuaternionKeyframeTrack('root.quaternion', [0, 0.8], [
@@ -75,7 +83,7 @@ export function buildProceduralSkinnedAsset(id = 'test.proceduralSkinned'): Load
     ]),
   ]);
 
-  return buildLoadedModelAsset(id, root, [walk, attack, death]);
+  return buildLoadedModelAsset(id, root, [walk, attack, stagger, death]);
 }
 
 /** Procedural rigid fixture with no clips (mirrors legacy built-ins). */
