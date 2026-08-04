@@ -68,8 +68,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       shieldTime: tank.shieldTime,
       autoRightTime: tank.autoRightTime,
       autoRightRoll: tank.autoRightRoll,
-      fallDamageSpeed: tank.fallDamageSpeed,
-      fallDamage: tank.fallDamage,
       recoilImpulse: tank.recoilImpulse,
       recoilSpin: tank.recoilSpin,
       jackpotRecoilImpulse: tank.jackpotRecoilImpulse,

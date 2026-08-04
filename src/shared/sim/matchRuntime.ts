@@ -371,10 +371,6 @@ export class MatchRuntime {
       dt,
       {
       onRampLaunch: () => this.push('assist', t.x, t.y, t.z, { label: 'LAUNCHED' }),
-      onHardFall: () => {
-        this.damageTank(tankCfg.fallDamage, 'fall');
-        this.push('crash', t.x, t.y, t.z, { value: tankCfg.fallDamage });
-      },
         onJump: () => this.push('jump', t.x, t.y, t.z),
         onDash: () => this.push('dash', t.x, t.y, t.z, { yaw: t.yaw }),
       },

@@ -19,9 +19,7 @@
     "verticalResistance": 0.5,
     "groundDrag": 5.5,
     "airDrag": 0.8,
-    "gravityScale": 1.1,
-    "fallDamageSpeed": 9,
-    "fallDamage": 4
+    "gravityScale": 1.1
   },
   "approachSpeed": 3.2,
   "chargeSpeed": 13,

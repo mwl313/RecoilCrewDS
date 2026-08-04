@@ -99,8 +99,6 @@ export const tankSchema = z.object({
   shieldTime: nonNegativeNumber,
   autoRightTime: nonNegativeNumber,
   autoRightRoll: nonNegativeNumber,
-  fallDamageSpeed: nonNegativeNumber,
-  fallDamage: nonNegativeNumber,
   recoilImpulse: nonNegativeNumber,
   recoilSpin: nonNegativeNumber,
   jackpotRecoilImpulse: nonNegativeNumber,

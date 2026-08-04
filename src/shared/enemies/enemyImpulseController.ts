@@ -12,15 +12,14 @@ const DEFAULT_KNOCKBACK = {
   groundDrag: 4.0,
   airDrag: 0.8,
   gravityScale: 1.0,
-  fallDamageSpeed: 9,
-  fallDamage: 3,
 };
 
 /**
  * Authoritative enemy impulse motion (arcade knockback). Owns impulse
  * velocity, ground/air drag, gravity, airborne state, upward cliff guard,
- * downward cliff falls, landing, fall damage, source attribution, and arena
- * bounds. Normal behavior primitives compose around it; `movement.integrate`
+ * downward cliff falls, landing, source attribution, and arena bounds.
+ * Combat 05 removed fall damage: cliff falls and landings never damage HP.
+ * Normal behavior primitives compose around it; `movement.integrate`
  * skips position while an enemy is strongly airborne.
  */
 export class EnemyImpulseController {
@@ -96,10 +95,6 @@ export class EnemyImpulseController {
       const groundY = this.ctx.world.groundHeightAt(nx, nz);
       if (ny <= groundY) {
         ny = groundY;
-        const impact = -ivy;
-        if (impact >= kb.fallDamageSpeed && kb.fallDamage > 0) {
-          this.ctx.damage.applyEnemy(e, kb.fallDamage, e.lastImpulseSource ?? 'fall');
-        }
         e.impulseVy = 0;
         e.impulseGrounded = true;
       } else {

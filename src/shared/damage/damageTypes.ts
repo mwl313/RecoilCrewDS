@@ -9,7 +9,6 @@ export type DamageSource =
   | 'dash'
   | 'rammer'
   | 'bug'
-  | 'fall'
   | 'crash'
   | 'splash'
   | 'test';

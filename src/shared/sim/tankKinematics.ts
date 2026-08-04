@@ -47,7 +47,6 @@ export interface TankKinematicState {
 export interface TankKinematicsCallbacks {
   onHardCrash?(impactSpeed: number): void;
   onRampLaunch?(fwdSpeed: number): void;
-  onHardFall?(fallSpeed: number): void;
   onJump?(): void;
   onDash?(): void;
 }
@@ -187,9 +186,6 @@ export function stepTankKinematics(
   const wasGrounded = t.grounded;
   const onRamp = ground.ramps.some((r) => pointInBox(t.x, t.z, r.x, r.z, r.w, r.d));
   if (!jumped && t.y <= h + 0.08) {
-    if (!wasGrounded && t.vy < -tankCfg.fallDamageSpeed) {
-      callbacks?.onHardFall?.(-t.vy);
-    }
     t.y = h;
     t.vy = 0;
     t.grounded = true;

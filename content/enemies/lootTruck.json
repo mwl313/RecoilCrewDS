@@ -19,9 +19,7 @@
     "verticalResistance": 0.15,
     "groundDrag": 3.0,
     "airDrag": 1.2,
-    "gravityScale": 1.0,
-    "fallDamageSpeed": 10,
-    "fallDamage": 6
+    "gravityScale": 1.0
   },
   "speed": 7,
   "spawnTime": 42,

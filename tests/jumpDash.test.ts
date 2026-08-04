@@ -300,8 +300,6 @@ describe('difficulty and content data', () => {
       shieldTime: 2,
       autoRightTime: 1.2,
       autoRightRoll: 1.15,
-      fallDamageSpeed: 14,
-      fallDamage: 10,
       recoilImpulse: 7.2,
       recoilSpin: 1.7,
       jackpotRecoilImpulse: 17,

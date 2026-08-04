@@ -33,8 +33,6 @@ const enemyBase = {
       groundDrag: nonNegativeNumber,
       airDrag: nonNegativeNumber,
       gravityScale: positiveNumber,
-      fallDamageSpeed: nonNegativeNumber,
-      fallDamage: nonNegativeNumber,
     })
     .strict()
     .optional(),

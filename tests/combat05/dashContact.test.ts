@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Match } from '../../src/shared/sim/match';
 import { BASE_CONFIG } from '../../src/shared/config';
-import type { DriverInput } from '../../src/shared/types';
+import type { DriverInput, EnemyState } from '../../src/shared/types';
 
 const DT = 1 / 30;
 
@@ -17,7 +17,7 @@ function placeTank(m: Match, x = 0, z = 0): void {
   m.state.tank.vz = 0;
 }
 
-function adjacentBug(m: Match, x = 0, z = 1.5): ReturnType<Match['spawnEnemy']> {
+function adjacentBug(m: Match, x = 0, z = 1.5): EnemyState {
   const bug = m.spawnEnemy('scrapBug', x, z)!;
   bug.hp = 100;
   bug.maxHp = 100;

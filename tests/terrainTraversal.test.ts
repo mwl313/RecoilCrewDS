@@ -154,7 +154,7 @@ describe('terrain traversal guard', () => {
     expect(t.y).toBeLessThan(1.5);
   });
 
-  it('falling triggers the hard-fall callback and low gravity stays deterministic', () => {
+  it('falling stays deterministic and never applies fall damage', () => {
     const { hf, flags } = cliffField(18);
     const ground = groundFor(hf, flags);
     const a = tank(212, 200, -Math.PI / 2);
@@ -162,13 +162,10 @@ describe('terrain traversal guard', () => {
     a.y = hf.heightAt(a.x, a.z);
     b.y = hf.heightAt(b.x, b.z);
     const mcfg = buildMatchConfig('none');
-    let falls = 0;
-    const cb = { onHardFall: () => falls++ };
     for (let i = 0; i < Math.round(2.5 / DT); i++) {
-      stepTankKinematics(a, { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT, cb, ground);
+      stepTankKinematics(a, { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT, undefined, ground);
       stepTankKinematics(b, { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT, undefined, ground);
     }
-    expect(falls).toBeGreaterThan(0);
     expect(a.x).toBeCloseTo(b.x, 6);
     expect(a.y).toBeCloseTo(b.y, 6);
 

@@ -53,7 +53,7 @@ describe('enemy radial knockback', () => {
     expect(near.impulseVx ?? 0).toBeGreaterThan(far.impulseVx ?? 0);
   });
 
-  it('airborne enemies fall, land, and take fall damage with source credit', () => {
+  it('airborne enemies fall and land without any fall damage (Combat 05)', () => {
     const match = new Match('m', 'none');
     const bug = spawnAt(match, 'scrapBug', 0, 0);
     bug.y = 12;
@@ -66,7 +66,7 @@ describe('enemy radial knockback', () => {
     }
     expect(bug.impulseGrounded).toBe(true);
     expect(bug.y).toBeLessThan(0.01);
-    expect(bug.hp).toBeLessThan(hp0); // fall damage applied
+    expect(bug.hp).toBe(hp0); // fall damage removed
   });
 
   it('cannon splash knocks enemies back but never the tank', () => {

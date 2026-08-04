@@ -69,8 +69,6 @@ export interface GameConfig {
     shieldTime: number;
     autoRightTime: number;
     autoRightRoll: number;
-    fallDamageSpeed: number;
-    fallDamage: number;
     recoilImpulse: number;
     recoilSpin: number;
     jackpotRecoilImpulse: number;
@@ -226,8 +224,6 @@ export const BASE_CONFIG: GameConfig = {
     shieldTime: 2,
     autoRightTime: 1.2,
     autoRightRoll: 1.15,
-    fallDamageSpeed: 14,
-    fallDamage: 10,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
     jackpotRecoilImpulse: 17,

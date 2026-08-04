@@ -18,9 +18,7 @@
     "verticalResistance": 1.0,
     "groundDrag": 0,
     "airDrag": 0,
-    "gravityScale": 1.0,
-    "fallDamageSpeed": 0,
-    "fallDamage": 0
+    "gravityScale": 1.0
   },
   "damage": 5,
   "shotSpeed": 9,

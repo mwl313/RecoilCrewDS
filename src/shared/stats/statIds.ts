@@ -64,8 +64,6 @@ export const TANK_STAT_IDS = [
   'tank.shieldTime',
   'tank.autoRightTime',
   'tank.autoRightRoll',
-  'tank.fallDamageSpeed',
-  'tank.fallDamage',
   'tank.recoilImpulse',
   'tank.recoilSpin',
   'tank.jackpotRecoilImpulse',

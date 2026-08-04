@@ -315,8 +315,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         groundDrag: 4.5,
         airDrag: 0.6,
         gravityScale: 1.0,
-        fallDamageSpeed: 8,
-        fallDamage: 2,
       },
     },
     'enemy.rammer': {
@@ -352,8 +350,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         groundDrag: 5.5,
         airDrag: 0.8,
         gravityScale: 1.1,
-        fallDamageSpeed: 9,
-        fallDamage: 4,
       },
     },
     'enemy.gunTower': {
@@ -387,8 +383,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         groundDrag: 0,
         airDrag: 0,
         gravityScale: 1.0,
-        fallDamageSpeed: 0,
-        fallDamage: 0,
       },
     },
     'enemy.lootTruck': {
@@ -422,8 +416,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         groundDrag: 3.0,
         airDrag: 1.2,
         gravityScale: 1.0,
-        fallDamageSpeed: 10,
-        fallDamage: 6,
       },
     },
   };
@@ -532,8 +524,6 @@ export function createLegacyDefaultTankDefinition(): TankDefinition {
     shieldTime: 2,
     autoRightTime: 1.2,
     autoRightRoll: 1.15,
-    fallDamageSpeed: 14,
-    fallDamage: 10,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
     jackpotRecoilImpulse: 17,
