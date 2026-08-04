@@ -1,0 +1,10 @@
+{
+  "id": "validationProfile.megaBonkHighlands",
+  "label": "Mega Bonk Highlands Validation",
+  "heightRange": { "min": -10, "max": 24 },
+  "maxSlope": 1.8,
+  "minFeatureSeparation": 20,
+  "maxGenerationMs": 1500,
+  "boundsEpsilon": 1e-6,
+  "checkDeterminism": true
+}

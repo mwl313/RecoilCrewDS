@@ -55,17 +55,20 @@ describe('content pack loading (valid Demo pack)', () => {
       'map.cliffArena',
       'map.dramaticHighlands',
       'map.fallbackLegacy',
+      'map.megaBonkHighlands',
     ]);
     expect([...pack.ids('terrainProfiles')].sort()).toEqual([
       'terrainProfile.cliffArena',
       'terrainProfile.dramaticHighlands',
       'terrainProfile.fallback',
+      'terrainProfile.megaBonkHighlands',
       'terrainProfile.primary',
     ]);
     expect([...pack.ids('validationProfiles')].sort()).toEqual([
       'validationProfile.cliffArena',
       'validationProfile.dramaticHighlands',
       'validationProfile.fallback',
+      'validationProfile.megaBonkHighlands',
       'validationProfile.primary',
     ]);
     expect([...pack.ids('landmarks')].sort()).toEqual([

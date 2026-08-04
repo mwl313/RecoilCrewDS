@@ -1,0 +1,13 @@
+{
+  "id": "map.megaBonkHighlands",
+  "label": "Mega Bonk Highlands",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.megaBonkHighlands",
+  "validationProfileId": "validationProfile.megaBonkHighlands",
+  "furnitureSetId": "furnitureSet.primary",
+  "densityProfileId": "densityProfile.primary",
+  "fallbackMapId": "map.fallbackLegacy",
+  "isFallback": false
+}

@@ -6,9 +6,9 @@
     "files": {
       "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json"],
       "objectives": ["objectives/highScore.json", "objectives/truckEscort.json"],
-      "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json", "maps/dramatic_highlands.json", "maps/cliff_arena.json"],
-      "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json", "terrain-profiles/dramatic_highlands.json", "terrain-profiles/cliff_arena.json"],
-      "validationProfiles": ["validation-profiles/primary.json", "validation-profiles/fallback.json", "validation-profiles/dramatic_highlands.json", "validation-profiles/cliff_arena.json"],
+      "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json", "maps/dramatic_highlands.json", "maps/cliff_arena.json", "maps/megaBonkHighlands.json"],
+      "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json", "terrain-profiles/dramatic_highlands.json", "terrain-profiles/cliff_arena.json", "terrain-profiles/megaBonkHighlands.json"],
+      "validationProfiles": ["validation-profiles/primary.json", "validation-profiles/fallback.json", "validation-profiles/dramatic_highlands.json", "validation-profiles/cliff_arena.json", "validation-profiles/megaBonkHighlands.json"],
       "landmarks": [
         "landmarks/basin_center.json",
         "landmarks/resource_plateau.json",

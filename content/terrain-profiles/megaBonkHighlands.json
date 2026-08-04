@@ -1,0 +1,97 @@
+{
+  "id": "terrainProfile.megaBonkHighlands",
+  "label": "Mega Bonk Highlands",
+  "baseHeight": 0,
+  "heightRange": {
+    "min": -10,
+    "max": 24
+  },
+  "maxSlope": 0.85,
+  "slopeRules": {
+    "driveableMax": 0.55,
+    "riskyMax": 0.9,
+    "blockedMin": 1.1,
+    "cliffMin": 1.35,
+    "spawnMax": 0.2,
+    "recoveryMax": 0.15,
+    "landingMax": 0.3,
+    "maxStepUp": 0.8
+  },
+  "correctAllMap": false,
+  "finalSmoothingPasses": 1,
+  "smoothingPasses": 1,
+  "slopeCorrectionIterations": 40,
+  "retryLimit": 12,
+  "maxGenerationMs": 1500,
+  "legacySampled": false,
+  "features": {
+    "basin": {
+      "count": 1,
+      "minSeparation": 55,
+      "radius": [38, 58],
+      "depth": [4, 7],
+      "falloff": 0.3
+    },
+    "ridge": {
+      "count": 2,
+      "minSeparation": 60,
+      "length": [90, 170],
+      "width": [18, 30],
+      "height": [5, 9],
+      "falloff": 0.25
+    },
+    "plateau": {
+      "count": 3,
+      "minSeparation": 50,
+      "radius": [18, 32],
+      "height": [4, 8],
+      "falloff": 0.2
+    },
+    "valley": {
+      "count": 2,
+      "minSeparation": 55,
+      "length": [80, 150],
+      "width": [18, 32],
+      "depth": [3, 6],
+      "falloff": 0.25
+    },
+    "hill": {
+      "count": 4,
+      "minSeparation": 30,
+      "radius": [12, 24],
+      "height": [2.5, 5],
+      "falloff": 0.3
+    },
+    "cliffPlateau": {
+      "count": 2,
+      "minSeparation": 75,
+      "radius": [24, 42],
+      "height": [8, 14],
+      "falloff": 0.1,
+      "edgeWidth": [2, 4],
+      "edgeRoughness": 0.45,
+      "accessCount": 1,
+      "accessWidth": 12,
+      "accessMaxSlope": 0.4,
+      "safetyBuffer": 8,
+      "boundaryClearance": 30,
+      "spawnClearance": 45
+    },
+    "escarpment": {
+      "count": 2,
+      "minSeparation": 70,
+      "length": [90, 160],
+      "width": [20, 34],
+      "height": [7, 13],
+      "falloff": 0.1,
+      "edgeWidth": [2, 4],
+      "edgeRoughness": 0.5,
+      "accessCount": 1,
+      "accessWidth": 12,
+      "accessMaxSlope": 0.4,
+      "safetyBuffer": 8,
+      "boundaryClearance": 25,
+      "spawnClearance": 40
+    }
+  }
+}
