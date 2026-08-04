@@ -198,8 +198,12 @@ export class WeaponSystem {
     const tur = this.ctx.state.turret;
     const slot = this.loadout.secondary;
     if (tur.cannonCooldown > 0) return;
-    tur.cannonCooldown = this.ctx.rules.matchConfig.cannonCooldown;
-    slot.state.burstsRemaining = this.ctx.rules.matchConfig.cannonBurst - 1;
+    this.ctx.progression?.notifyCannonFired();
+    const twin = this.ctx.progression?.hasTwinShell ?? false;
+    tur.cannonCooldown =
+      this.ctx.rules.matchConfig.cannonCooldown *
+      (twin ? this.ctx.progression!.twinShellCooldownMultiplier() : 1);
+    slot.state.burstsRemaining = this.ctx.rules.matchConfig.cannonBurst - 1 + (twin ? 1 : 0);
     slot.state.burstT = 0;
     slot.state.burstChargeRatio = chargeRatio;
     this.behaviors.require(slot.definition.behaviorId).fire(this.ctx, slot.definition, slot.state, {

@@ -12,6 +12,7 @@ import type { EnemyState } from '../types';
 export class TankContactCombat {
   /** Per-enemy last Dash-hit time (bounded by cooldown pruning). */
   private readonly lastDashHit = new Map<number, number>();
+  private readonly lastRoadkillHit = new Map<number, number>();
   private readonly nearby: EnemyState[] = [];
 
   constructor(private readonly ctx: SystemContext) {}
@@ -32,6 +33,14 @@ export class TankContactCombat {
     for (const [id, at] of [...this.lastDashHit]) {
       if (s.time - at >= perTargetCooldown) this.lastDashHit.delete(id);
     }
+    const roadkill = this.ctx.progression?.roadkillParams() ?? null;
+    if (roadkill) {
+      for (const [id, at] of [...this.lastRoadkillHit]) {
+        if (s.time - at >= roadkill.perTargetCooldownSeconds) this.lastRoadkillHit.delete(id);
+      }
+    } else {
+      this.lastRoadkillHit.clear();
+    }
 
     const queryRadius = tankR + 0.4 + 4;
     const nearby = this.ctx.enemySpatial.queryCircle(t.x, t.z, queryRadius, this.nearby);
@@ -44,28 +53,68 @@ export class TankContactCombat {
       const d = Math.hypot(e.x - t.x, e.z - t.z);
       if (d > r + tankR + 0.4) continue;
       // Normal contact: zero enemy damage by design (contactDamage = 0).
-      if (!dashActive) continue;
-      const last = this.lastDashHit.get(e.id);
-      if (last !== undefined && s.time - last < perTargetCooldown) continue;
-      this.lastDashHit.set(e.id, s.time);
-      if (dashDamage <= 0) continue;
+      if (dashActive) {
+        const last = this.lastDashHit.get(e.id);
+        if (last !== undefined && s.time - last < perTargetCooldown) continue;
+        this.lastDashHit.set(e.id, s.time);
+        if (dashDamage <= 0) continue;
 
-      const result = this.ctx.damage.applyEnemy(e, dashDamage, 'dash');
-      if (e.alive && knockback < 1) {
-        // The chassis bleeds a little speed; the enemy gets a small pop.
-        t.vx *= knockback;
-        t.vz *= knockback;
-        const dirX = d > 0.001 ? (e.x - t.x) / d : 0;
-        const dirZ = d > 0.001 ? (e.z - t.z) / d : 0;
-        this.ctx.enemyImpulses.apply(e, def, dirX, dirZ, 2.5, 1.1, 'dash');
+        const result = this.ctx.damage.applyEnemy(e, dashDamage, 'dash');
+        if (e.alive && knockback < 1) {
+          // The chassis bleeds a little speed; the enemy gets a small pop.
+          t.vx *= knockback;
+          t.vz *= knockback;
+          const dirX = d > 0.001 ? (e.x - t.x) / d : 0;
+          const dirZ = d > 0.001 ? (e.z - t.z) / d : 0;
+          this.ctx.enemyImpulses.apply(e, def, dirX, dirZ, 2.5, 1.1, 'dash');
+        }
+        this.ctx.score.addScore(this.ctx.rules.scoring.dashScore, 'DASH');
+        this.ctx.combo.addDriverContribution(1, 'DASH');
+        this.ctx.progression?.notifyDashHit(e.id);
+        pushEvent(this.ctx, 'dashContact', e.x, e.y, e.z, {
+          id: e.id,
+          value: dashDamage,
+          kind: result.killed ? 'kill' : 'hit',
+        });
+        continue;
       }
-      this.ctx.score.addScore(this.ctx.rules.scoring.dashScore, 'DASH');
-      this.ctx.combo.addDriverContribution(1, 'DASH');
-      pushEvent(this.ctx, 'dashContact', e.x, e.y, e.z, {
-        id: e.id,
-        value: dashDamage,
-        kind: result.killed ? 'kill' : 'hit',
-      });
+      // ROADKILL: only when not in the Dash window, capability present, and
+      // resolved forward-speed threshold met.
+      if (roadkill && this.ctx.capabilities.has(roadkill.capability)) {
+        const speed = Math.hypot(t.vx, t.vz);
+        const maxSpeed = this.ctx.rules.resolver.resolve('tank.forwardSpeed');
+        if (speed >= maxSpeed * roadkill.minimumSpeedRatio) {
+          const last = this.lastRoadkillHit.get(e.id);
+          if (last === undefined || s.time - last >= roadkill.perTargetCooldownSeconds) {
+            this.lastRoadkillHit.set(e.id, s.time);
+            const speedRatio = speed / Math.max(0.001, maxSpeed);
+            const coefficient =
+              roadkill.baseDamageCoefficient +
+              roadkill.coefficientPerAdditionalStack * (roadkill.stacks - 1);
+            const damage = Math.max(1, Math.round(tankCfg.dashContactDamage * speedRatio * coefficient));
+            const result = this.ctx.damage.applyEnemy(e, damage, 'roadkill');
+            this.ctx.progression?.recordRoadkill(speed, maxSpeed, damage);
+            if (result.killed) this.ctx.progression?.recordRoadkillKill();
+            const dirX = d > 0.001 ? (e.x - t.x) / d : 0;
+            const dirZ = d > 0.001 ? (e.z - t.z) / d : 0;
+            const def2 = this.ctx.enemies.defFor(e);
+            this.ctx.enemyImpulses.apply(
+              e,
+              def2,
+              dirX,
+              dirZ,
+              2.5 * roadkill.knockbackCoefficient,
+              1.1,
+              'roadkill',
+            );
+            pushEvent(this.ctx, 'roadkillContact', e.x, e.y, e.z, {
+              id: e.id,
+              value: damage,
+              kind: result.killed ? 'kill' : 'hit',
+            });
+          }
+        }
+      }
     }
   }
 }

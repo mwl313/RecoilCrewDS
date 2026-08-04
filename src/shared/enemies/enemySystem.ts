@@ -168,6 +168,7 @@ export class EnemySystem {
           this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
         }
       }
+      runtime.speed *= this.ctx.progression?.enemySpeedMultiplier?.(e) ?? 1;
       this.ctx.enemyImpulses.update(e, def, dt);
     }
     s.enemies = s.enemies.filter((e) => e.alive || e.stateT <= 2.5);

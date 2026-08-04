@@ -30,10 +30,15 @@ export class DamageSystem {
           ? vulnerable.rearBonus
           : 1.5
         : 1;
-    e.hp -= amount * this.ctx.enemies.damageMultiplier(enemy, source);
-    e.hp -= amount * (rearBonus - 1);
-    pushEvent(this.ctx, 'hit', e.x, e.y + 0.8, e.z, { value: amount, id: e.id, kind: e.type });
-    const applied: DamageAppliedEvent = { targetId: e.id, targetKind: 'enemy', amount, source, weaponId };
+    const modified =
+      this.ctx.progression?.modifyEnemyDamage(amount, source, {
+        airborne: enemy.impulseGrounded === false,
+        enemy,
+      }) ?? amount;
+    e.hp -= modified * this.ctx.enemies.damageMultiplier(enemy, source);
+    e.hp -= modified * (rearBonus - 1);
+    pushEvent(this.ctx, 'hit', e.x, e.y + 0.8, e.z, { value: modified, id: e.id, kind: e.type });
+    const applied: DamageAppliedEvent = { targetId: e.id, targetKind: 'enemy', amount: modified, source, weaponId };
     this.ctx.eventBus.emit('damage.applied', applied);
     if (e.hp <= 0) {
       const killed: EntityKilledEvent = { enemy: { id: e.id, type: e.type, x: e.x, y: e.y, z: e.z }, source, weaponId };
@@ -50,10 +55,18 @@ export class DamageSystem {
     const s = this.ctx.state;
     const t = s.tank;
     if (t.deadT > 0 || t.shieldedT > 0) return { applied: false, killed: false, amount: 0, targetId: 'tank' };
-    t.integrity = Math.max(0, t.integrity - amount);
-    pushEvent(this.ctx, 'hit', t.x, t.y, t.z, { value: amount, kind: source });
-    this.ctx.eventBus.emit('damage.applied', { targetId: 'tank', targetKind: 'tank', amount, source, weaponId });
+    const modified = this.ctx.progression?.modifyTankDamage(amount, source) ?? amount;
+    if (modified <= 0) return { applied: false, killed: false, amount: 0, targetId: 'tank' };
+    t.integrity = Math.max(0, t.integrity - modified);
+    pushEvent(this.ctx, 'hit', t.x, t.y, t.z, { value: modified, kind: source });
+    this.ctx.eventBus.emit('damage.applied', { targetId: 'tank', targetKind: 'tank', amount: modified, source, weaponId });
     if (t.integrity <= 0) {
+      this.ctx.progression?.notifyWipeout();
+      // PHOENIX CORE revive may have reset death state; skip the wipeout
+      // penalty when the tank was revived by the relic.
+      if (t.deadT <= 0 && t.integrity > 0) {
+        return { applied: true, killed: false, amount: modified, targetId: 'tank' };
+      }
       t.integrity = 0;
       t.deadT = this.ctx.rules.config.tank.respawnTime;
       s.stats.wipeouts++;
