@@ -17,6 +17,7 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { StageEvent } from '../stage/stageTypes';
 import { PopulationManager, type PopulationTally } from './populationManager';
 import type { SpawnOwnership } from './spawnOwnership';
+import type { SpawnPlan } from './spawnPlanner';
 
 export interface ResolvedHordeDirector {
   def: HordeDirectorDefinition;
@@ -59,11 +60,6 @@ export function resolveHordeDirector(pack: ContentPack, def: HordeDirectorDefini
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
-}
-
-function deterministicOffset(seed: number): number {
-  const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
-  return (x - Math.floor(x)) * 2 - 1;
 }
 
 /**
@@ -119,16 +115,16 @@ export class HordeDirector {
     const pack = this.pickPack(phase.eligiblePackTags, 'farming');
     if (!pack) return;
     if (this.spawnBudget < pack.threatCost) return;
-    const anchor = this.pickAnchor(pack);
-    if (!anchor) {
+    const plan = this.ctx.spawnPlanner.plan(pack, 'ambient');
+    if (!plan) {
       this.anchorFailures++;
       return;
     }
     if (!this.population.hardCapacity(this.resolved.limits, tally, pack.entityCost, pack.threatCost)) return;
-    this.spawnPack(pack, anchor, 'ambient', null, null);
+    this.spawnPackFromPlan(pack, plan, 'ambient', null, null);
     this.spawnBudget -= pack.threatCost;
     this.lastSelectedPack = pack.id;
-    this.lastAnchor = anchor;
+    this.lastAnchor = { x: plan.anchor.x, z: plan.anchor.z };
     this.packCooldowns.set(pack.id, pack.cooldownSeconds ?? 1);
   }
 
@@ -178,7 +174,15 @@ export class HordeDirector {
     for (const packId of def.openingPackIds) {
       const pack = this.resolved.packs.get(packId);
       if (pack) {
-        this.ctx.waves.spawnCohort(runtime.waveId, pack.entries[0].enemyId, pack.entries[0].count, pack.threatCost);
+        const totalCount = pack.entries.reduce((sum, e) => sum + e.count, 0);
+        const plan = this.ctx.spawnPlanner.plan(pack, isBoss ? 'boss' : 'wave');
+        this.ctx.waves.spawnCohort(
+          runtime.waveId,
+          pack.entries[0].enemyId,
+          totalCount,
+          pack.threatCost,
+          plan?.positions,
+        );
       }
     }
     pushEvent(this.ctx, 'assist', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {
@@ -204,47 +208,38 @@ export class HordeDirector {
     return undefined;
   }
 
-  /** M3 anchor provider: deterministic perimeter gates with distance check. */
-  private pickAnchor(pack: SpawnPackDefinition): { x: number; z: number } | null {
-    const gates = this.ctx.world.bugSpawns;
-    if (gates.length === 0) return null;
-    const min = pack.anchorRequirements?.minimumTankDistance ?? 18;
-    const max = pack.anchorRequirements?.maximumTankDistance ?? 120;
-    const index = (this.resolved.def.id.length + (this.lastSelectedPack?.length ?? 0)) % gates.length;
-    for (let i = 0; i < gates.length; i++) {
-      const g = gates[(index + i) % gates.length];
-      const d = Math.hypot(g.x - this.ctx.state.tank.x, g.z - this.ctx.state.tank.z);
-      if (d >= min && d <= max) return { x: g.x, z: g.z };
-    }
-    return null;
-  }
-
-  private spawnPack(
+  private spawnPackFromPlan(
     pack: SpawnPackDefinition,
-    anchor: { x: number; z: number },
+    plan: SpawnPlan,
     populationClass: SpawnOwnership['populationClass'],
     waveId: number | null,
     leaderId: number | null,
   ): void {
     let seed = pack.id.length + this.ctx.state.nextEnemyId;
+    let positionIndex = 0;
     for (const entry of pack.entries) {
       const def = this.ctx.enemies.defById(entry.enemyId);
       if (!def) continue;
       for (let i = 0; i < entry.count; i++) {
         seed += 1;
-        const ox = deterministicOffset(seed) * pack.radius;
-        const oz = deterministicOffset(seed * 1.7) * pack.radius;
-        this.ctx.enemies.spawnEnemyDef(def, anchor.x + ox, anchor.z + oz, {
+        const position = plan.positions[positionIndex++] ?? { x: plan.anchor.x, z: plan.anchor.z };
+        this.ctx.enemies.spawnEnemyDef(def, position.x, position.z, {
           populationClass,
           waveId,
           leaderId,
           packInstanceId: seed,
-          spawnAnchorId: null,
+          spawnAnchorId: anchorIdToNumber(plan.anchor.id),
           purgeOnLeaderDeath: waveId !== null,
         });
       }
     }
   }
+}
+
+function anchorIdToNumber(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h;
 }
 
 interface WaveEventPayload {

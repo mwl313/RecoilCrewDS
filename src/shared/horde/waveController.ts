@@ -99,7 +99,13 @@ export class WaveController {
   }
 
   /** Spawn a tagged cohort (opening or reinforcement pack). */
-  spawnCohort(waveId: number, enemyId: string, count: number, threatCost: number): boolean {
+  spawnCohort(
+    waveId: number,
+    enemyId: string,
+    count: number,
+    threatCost: number,
+    positions?: Array<{ x: number; z: number }>,
+  ): boolean {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     const def = this.ctx.enemies.defById(enemyId);
@@ -108,10 +114,21 @@ export class WaveController {
     const anchor = leader ?? this.ctx.state.tank;
     const packInstanceId = this.packInstanceCounter++;
     for (let i = 0; i < count; i++) {
-      const angle = (i / Math.max(1, count)) * Math.PI * 2;
-      const x = anchor.x + Math.sin(angle) * (4 + i);
-      const z = anchor.z + Math.cos(angle) * (4 + i);
-      this.ctx.enemies.spawnEnemyDef(def, x, z, {
+      const px = positions?.[i]?.x;
+      const pz = positions?.[i]?.z;
+      if (px === undefined || pz === undefined) {
+        const angle = (i / Math.max(1, count)) * Math.PI * 2;
+        this.ctx.enemies.spawnEnemyDef(def, anchor.x + Math.sin(angle) * (4 + i), anchor.z + Math.cos(angle) * (4 + i), {
+          populationClass: 'wave',
+          waveId,
+          leaderId: runtime.leaderId,
+          packInstanceId,
+          spawnAnchorId: null,
+          purgeOnLeaderDeath: true,
+        });
+        continue;
+      }
+      this.ctx.enemies.spawnEnemyDef(def, px, pz, {
         populationClass: 'wave',
         waveId,
         leaderId: runtime.leaderId,

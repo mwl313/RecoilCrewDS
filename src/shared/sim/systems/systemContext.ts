@@ -19,6 +19,9 @@ import { StageDirector } from '../../stage/stageDirector';
 import { DEFAULT_STAGE_SEQUENCE } from '../../stage/stageTypes';
 import { WaveController } from '../../horde/waveController';
 import { HordeDirector, type ResolvedHordeDirector } from '../../horde/hordeDirector';
+import { buildSpawnAnchors } from '../../horde/spawnAnchors';
+import { SpawnPlanner } from '../../horde/spawnPlanner';
+import { hash32 } from '../../mapgen/seed';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -68,6 +71,7 @@ export interface SystemContext {
   stage: StageDirector;
   waves: WaveController;
   horde: HordeDirector | null;
+  spawnPlanner: SpawnPlanner;
 }
 
 export function pushEvent(
@@ -119,6 +123,11 @@ export function createSystemContext(
   ctx.stage = new StageDirector(hordeDirector ? hordeDirector.stageSequence : DEFAULT_STAGE_SEQUENCE, eventBus);
   ctx.waves = new WaveController(ctx, (waveId) => ctx.stage.notifyLeaderKilled());
   ctx.horde = hordeDirector ? new HordeDirector(ctx, hordeDirector) : null;
+  ctx.spawnPlanner = new SpawnPlanner(
+    ctx,
+    hash32('spawn-planner', state.matchId),
+    buildSpawnAnchors(world).anchors,
+  );
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);

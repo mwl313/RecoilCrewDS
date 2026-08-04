@@ -6,6 +6,8 @@ import { ContentLoader } from '../../src/shared/content/contentLoader';
 import type { ContentPack } from '../../src/shared/content/contentPack';
 import { hordeDirectorSchema, spawnPackSchema, waveSchema } from '../../src/shared/content/schemas/horde';
 import { Match } from '../../src/shared/sim/match';
+import { selectArenaSession } from '../../src/shared/mapgen/arenaSession';
+import { resolveMapBundle } from '../../src/shared/mapgen/profiles';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CONTENT_ROOT = path.join(ROOT, 'content');
@@ -124,8 +126,14 @@ describe('horde content graph', () => {
 
 describe('HordeDirector with stage enforcement', () => {
   it('accumulates a bounded farming budget and spawns ambient packs', () => {
-    const m = new Match('horde-farm', 'none', packWithStageEnforced(true));
+    const enforced = packWithStageEnforced(true);
+    const bundle = resolveMapBundle(enforced, 'map.arena400Primary');
+    const fallbackBundle = bundle.map.fallbackMapId ? resolveMapBundle(enforced, bundle.map.fallbackMapId) : bundle;
+    const session = selectArenaSession({ roomCode: 'HFARM01', matchIndex: 0, bundle, fallbackBundle });
+    const m = new Match('horde-farm', 'none', enforced, session.world, 'mode.demoScoreAttack');
     step(m, 10);
+    m.state.tank.integrity = m.runtime.cfg.tank.maxIntegrity;
+    m.state.tank.deadT = 0;
     const horde = m.runtime.systems.horde!;
     expect(horde.spawnBudget).toBeGreaterThan(0);
     expect(horde.spawnBudget).toBeLessThanOrEqual(horde.resolved.limits.maximumStoredBudget);
