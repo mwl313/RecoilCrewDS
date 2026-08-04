@@ -4,6 +4,7 @@
   "type": "rammer",
   "presentationId": "enemy.rammer",
   "hp": 14,
+  "threat": 2,
   "radius": 1.05,
   "score": 250,
   "contributionPoints": 2,

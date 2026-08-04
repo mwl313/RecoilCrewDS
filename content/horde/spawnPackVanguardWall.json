@@ -1,0 +1,12 @@
+{
+  "id": "pack.vanguardWall",
+  "label": "Vanguard Wall",
+  "tags": ["wave"],
+  "entries": [{ "enemyId": "enemy.scrapBug", "count": 6, "formationRole": "vanguard" }],
+  "threatCost": 6,
+  "entityCost": 6,
+  "formation": "line",
+  "spacing": 2.0,
+  "radius": 10,
+  "anchorRequirements": { "minimumTankDistance": 25, "maximumTankDistance": 80 }
+}

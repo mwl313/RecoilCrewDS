@@ -1,0 +1,11 @@
+{
+  "id": "horde.navigationPolicy.main",
+  "label": "Main Navigation Policy",
+  "cellSize": 4,
+  "fieldRefreshHz": 3,
+  "nearWeight": 0.7,
+  "directWeight": 0.2,
+  "densityWeight": 0.1,
+  "stuckProgressThreshold": 0.25,
+  "stuckTimeSeconds": 2.5
+}

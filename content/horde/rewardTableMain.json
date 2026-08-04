@@ -1,0 +1,9 @@
+{
+  "id": "reward.main",
+  "label": "Main Stage Reward Table",
+  "ordinaryXp": 5,
+  "ordinaryScore": 25,
+  "leaderXp": 60,
+  "leaderScore": 400,
+  "dropTableIds": ["drops.scrapBug", "drops.rammer"]
+}

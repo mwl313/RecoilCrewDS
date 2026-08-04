@@ -1,0 +1,15 @@
+{
+  "id": "wave.vanguard",
+  "label": "Wave 1 — Vanguard",
+  "leaderEnemyId": "enemy.rammer",
+  "openingPackIds": ["pack.vanguardWall", "pack.escortRing"],
+  "reinforcementPackIds": ["pack.reinforcementColumn"],
+  "openingThreat": 12,
+  "reinforcementThreat": 24,
+  "reinforcementThreatPerSecond": 2,
+  "maximumActiveWaveThreat": 60,
+  "maximumActiveWaveEntities": 40,
+  "approachPolicyId": "horde.navigationPolicy.main",
+  "rewardTableId": "reward.main",
+  "purgeWaveCohortOnLeaderDeath": true
+}

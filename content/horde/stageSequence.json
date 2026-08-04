@@ -1,0 +1,11 @@
+{
+  "id": "horde.stageSequence.main",
+  "label": "Main Stage Sequence",
+  "farmingCountdownSeconds": 180,
+  "triggers": [
+    { "atRemainingSeconds": 120, "waveId": "wave.vanguard" },
+    { "atRemainingSeconds": 60, "waveId": "wave.encirclement" }
+  ],
+  "bossAtRemainingSeconds": 0,
+  "pauseCountdownDuringWave": true
+}

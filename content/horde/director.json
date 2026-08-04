@@ -1,0 +1,21 @@
+{
+  "id": "horde.mainStage",
+  "label": "Main Stage Horde Director",
+  "stageSequenceId": "horde.stageSequence.main",
+  "farmingPhaseIds": ["horde.farming.phase1", "horde.farming.phase2", "horde.farming.phase3"],
+  "waveIds": ["wave.vanguard", "wave.encirclement"],
+  "bossWaveId": "horde.bossWave.main",
+  "packIds": [
+    "pack.wanderingCluster",
+    "pack.vanguardWall",
+    "pack.escortRing",
+    "pack.reinforcementColumn",
+    "pack.bossGuard"
+  ],
+  "limitsId": "horde.populationLimits.main",
+  "lodPolicyId": "horde.lodPolicy.main",
+  "replicationPolicyId": "horde.replicationPolicy.main",
+  "navigationPolicyId": "horde.navigationPolicy.main",
+  "spawnAnchorPolicyId": "horde.anchorPolicy.main",
+  "enforceStage": false
+}

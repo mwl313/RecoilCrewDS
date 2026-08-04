@@ -18,6 +18,7 @@ import { CapabilitySystem } from '../../items/capabilitySystem';
 import { StageDirector } from '../../stage/stageDirector';
 import { DEFAULT_STAGE_SEQUENCE } from '../../stage/stageTypes';
 import { WaveController } from '../../horde/waveController';
+import { HordeDirector, type ResolvedHordeDirector } from '../../horde/hordeDirector';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -66,6 +67,7 @@ export interface SystemContext {
   contact: TankContactCombat;
   stage: StageDirector;
   waves: WaveController;
+  horde: HordeDirector | null;
 }
 
 export function pushEvent(
@@ -88,6 +90,7 @@ export function createSystemContext(
   opState: NetcodeOpState = createNetcodeOpState(),
   impulseEvents: TankImpulseWire[] = [],
   simTick = 0,
+  hordeDirector: ResolvedHordeDirector | null = null,
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -113,8 +116,9 @@ export function createSystemContext(
   ctx.statusEffects = new StatusEffectSystem(ctx);
   ctx.capabilities = new CapabilitySystem(state);
   ctx.contact = new TankContactCombat(ctx);
-  ctx.stage = new StageDirector(DEFAULT_STAGE_SEQUENCE, eventBus);
+  ctx.stage = new StageDirector(hordeDirector ? hordeDirector.stageSequence : DEFAULT_STAGE_SEQUENCE, eventBus);
   ctx.waves = new WaveController(ctx, (waveId) => ctx.stage.notifyLeaderKilled());
+  ctx.horde = hordeDirector ? new HordeDirector(ctx, hordeDirector) : null;
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);

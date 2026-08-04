@@ -1,0 +1,13 @@
+{
+  "id": "horde.populationLimits.main",
+  "label": "Main Stage Population Limits",
+  "hardEntityCap": 200,
+  "ambientSoftEntityCap": 60,
+  "ambientSoftThreatCap": 80,
+  "waveSoftEntityCap": 80,
+  "waveSoftThreatCap": 100,
+  "eliteAndBossReserve": 12,
+  "technicalEmergencyReserve": 8,
+  "aggregateVisualCap": 400,
+  "maximumStoredBudget": 40
+}

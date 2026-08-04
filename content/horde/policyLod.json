@@ -1,0 +1,13 @@
+{
+  "id": "horde.lodPolicy.main",
+  "label": "Main LOD Policy",
+  "tier0Enter": 42,
+  "tier0Leave": 52,
+  "tier1Enter": 90,
+  "tier1Leave": 105,
+  "tier2Enter": 145,
+  "tier2Leave": 165,
+  "tier1Hz": 12,
+  "tier2Hz": 3,
+  "tier3Hz": 1.5
+}

@@ -4,6 +4,7 @@
   "type": "scrapBug",
   "presentationId": "enemy.scrapBug",
   "hp": 3,
+  "threat": 1,
   "radius": 0.8,
   "score": 50,
   "contributionPoints": 2,

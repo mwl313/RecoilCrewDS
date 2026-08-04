@@ -1,0 +1,12 @@
+{
+  "id": "pack.escortRing",
+  "label": "Escort Ring",
+  "tags": ["wave"],
+  "entries": [{ "enemyId": "enemy.scrapBug", "count": 5, "formationRole": "escort" }],
+  "threatCost": 5,
+  "entityCost": 5,
+  "formation": "ring",
+  "spacing": 2.4,
+  "radius": 8,
+  "anchorRequirements": { "minimumTankDistance": 20, "maximumTankDistance": 70 }
+}

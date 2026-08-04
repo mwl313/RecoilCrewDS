@@ -1,0 +1,12 @@
+{
+  "id": "horde.farming.phase2",
+  "label": "Farming Phase 2",
+  "durationSeconds": 60,
+  "entityTargetStart": 18,
+  "entityTargetEnd": 26,
+  "threatTargetStart": 22,
+  "threatTargetEnd": 32,
+  "spawnIncomeStart": 1.2,
+  "spawnIncomeEnd": 1.6,
+  "eligiblePackTags": ["farming"]
+}

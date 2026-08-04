@@ -13,6 +13,7 @@ import {
   DemoScoreAttackModeRuntime,
 } from '../modes/demoScoreAttack';
 import { createSystemContext, type SystemContext } from './systems/systemContext';
+import { resolveHordeDirector, type ResolvedHordeDirector } from '../horde/hordeDirector';
 import { LoadoutRuntime } from '../weapons/loadoutRuntime';
 import { WeaponSystem } from '../weapons/weaponSystem';
 import type { GunnerActionType } from '../net/protocol';
@@ -158,6 +159,7 @@ export class MatchRuntime {
     rules?: MatchRules,
     definition?: DemoScoreAttackModeDefinition,
     world?: ArenaWorld,
+    hordeDirector?: ResolvedHordeDirector | null,
   ) {
     this.rules = rules ?? MatchRules.fromLegacyConfig(modifier);
     this.world = world ?? createStaticArenaWorld();
@@ -172,6 +174,7 @@ export class MatchRuntime {
       this.opState,
       this.impulseEvents,
       this.simTick,
+      hordeDirector ?? null,
     );
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
@@ -184,34 +187,18 @@ export class MatchRuntime {
       if (def) this.systems.enemies.spawnEnemyDef(def, spawn.x, spawn.z);
     }
     // Core Loop 06: the stage director tracks progression in every match
-    // (telemetry); enforcement is enabled once a mode references a horde
-    // director (Milestone 3+), so the legacy Demo round stays byte-identical.
+    // (telemetry); enforcement is enabled once a mode enables it through
+    // the horde director, so the legacy Demo round stays byte-identical.
     this.systems.stage.start();
-    // Temporary adapter: when a mode enables the stage (horde director),
-    // requested waves open a placeholder leader + opening cohort until the
-    // HordeDirector becomes authoritative (Milestone 3+).
-    this.systems.eventBus.subscribe('stageEvent', (payload) => {
-      const event = payload as StageEvent;
-      if (event.type !== 'waveRequested' || !this.stageEnforced) return;
-      const runtime = this.systems.waves.openWave({
-        definitionId: event.waveId === 3 ? 'boss.placeholder' : 'wave.placeholder',
-        leaderEnemyId: 'enemy.rammer',
-        openingThreat: 8,
-        reinforcementThreat: 20,
-        reinforcementThreatPerSecond: 1,
-        maximumActiveWaveThreat: 50,
-        maximumActiveWaveEntities: 30,
-        boss: event.waveId === 3,
-      });
-      this.systems.waves.spawnCohort(runtime.waveId, 'enemy.scrapBug', 4, 4);
-    });
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */
   static fromContentPack(pack: ContentPack, matchId: string, modifier: ModifierId = 'none', modeId?: string): MatchRuntime {
     const selectedModeId = modeId ?? pack.modeId;
     const definition = new DemoScoreAttackModeDefinition(pack.getMode(selectedModeId), pack);
-    return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier, selectedModeId), definition);
+    const rules = MatchRules.fromContentPack(pack, modifier, selectedModeId);
+    const hordeDirector = rules.hordeDirector ? resolveHordeDirector(pack, rules.hordeDirector) : null;
+    return new MatchRuntime(matchId, modifier, rules, definition, undefined, hordeDirector);
   }
 
   /** Phase 3: authoritative match on a specific arena world. */
@@ -224,7 +211,9 @@ export class MatchRuntime {
   ): MatchRuntime {
     const selectedModeId = modeId ?? pack.modeId;
     const definition = new DemoScoreAttackModeDefinition(pack.getMode(selectedModeId), pack);
-    return new MatchRuntime(matchId, modifier, MatchRules.fromContentPack(pack, modifier, selectedModeId), definition, world);
+    const rules = MatchRules.fromContentPack(pack, modifier, selectedModeId);
+    const hordeDirector = rules.hordeDirector ? resolveHordeDirector(pack, rules.hordeDirector) : null;
+    return new MatchRuntime(matchId, modifier, rules, definition, world, hordeDirector);
   }
 
   /** Client-safe path: rules resolved from legacy constants (same values). */
@@ -368,6 +357,7 @@ export class MatchRuntime {
     this.systems.stage.step({ dt, tankDead: s.tank.deadT > 0 });
     if (this.stageEnforced && (this.systems.stage.state.phase === 'clear' || this.systems.stage.state.phase === 'gameOver')) {
       s.phase = 'results';
+      this.results = this.results ?? this.mode.computeResults();
     }
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
@@ -377,11 +367,17 @@ export class MatchRuntime {
     this.systems.contact.update();
     this.systems.projectiles.update(dt);
     this.systems.pickups.update(dt);
-    this.systems.spawnDirector.step(dt);
+    if (this.systems.horde && this.stageEnforced) {
+      this.systems.horde.step(dt);
+    } else {
+      this.systems.spawnDirector.step(dt);
+    }
     this.mode.stepAssistance();
     this.mode.stepCombo(dt);
     this.stepBarrels(dt);
-    this.results = this.mode.checkCompletion() ?? this.results;
+    if (!this.stageEnforced) {
+      this.results = this.mode.checkCompletion() ?? this.results;
+    }
   }
 
   // ---------------------------------------------------------------- tank
@@ -574,7 +570,7 @@ export class MatchRuntime {
 
   /** True once a mode references a horde director (Core Loop 06 M3+). */
   get stageEnforced(): boolean {
-    return Boolean((this.rules.mode as { hordeDirector?: string } | null)?.hordeDirector);
+    return this.rules.hordeDirector?.enforceStage === true;
   }
 
   // ------------------------------------------------- score/combo (delegated)

@@ -32,6 +32,9 @@ export class RoundSystem {
   /** Returns the computed results the frame the round completes, else null. */
   checkCompletion(): MatchResults | null {
     const s = this.ctx.state;
+    // Core Loop 06: when a horde stage is enforced, the stage owns match
+    // completion (boss clear / tank game-over), not the demo round timer.
+    if (this.ctx.horde && this.ctx.rules.hordeDirector?.enforceStage === true) return null;
     const objective = this.ctx.rules.objective;
     const truckDone = objective.completionOnTruckEscape === true && s.truck.escaped;
     if (s.time >= s.duration || truckDone) {

@@ -130,7 +130,8 @@ export class WaveController {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     if (threatCost > runtime.reinforcementThreatRemaining) return false;
-    if (runtime.activeWaveEntities + count > 200) return false; // technical placeholder cap
+    const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
+    if (runtime.activeWaveEntities + count > cap) return false;
     const ok = this.spawnCohort(waveId, packEnemyId, count, threatCost);
     if (!ok) return false;
     runtime.reinforcementThreatRemaining -= threatCost;

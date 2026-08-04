@@ -11,6 +11,7 @@ import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
 import type { TankDefinition } from '../content/schemas/tank';
 import type { WeaponDefinition } from '../content/schemas/weapon';
+import type { HordeDirectorDefinition } from '../content/schemas/horde';
 import { legacyGameConfigFromContent, legacyMatchConfigFromContent } from './contentConfig';
 import { baseStatBlocksFromConfig, type StatBlock } from '../stats/statBlock';
 import { ENEMY_STAT_IDS, MATCH_STAT_IDS, MOVEMENT_STAT_IDS, TANK_STAT_IDS, WEAPON_STAT_IDS } from '../stats/statIds';
@@ -51,6 +52,7 @@ export class MatchRules {
   readonly dropTables: ReadonlyMap<string, DropTableDefinition>;
   readonly pickups: ReadonlyMap<string, PickupDefinition>;
   readonly tank: TankDefinition;
+  readonly hordeDirector: HordeDirectorDefinition | null;
   readonly resolver: StatResolver;
 
   private readonly baseConfig: GameConfig;
@@ -78,6 +80,7 @@ export class MatchRules {
     bundle: DemoRulesBundle;
     difficultyModifiers: StatModifier[];
     tank: TankDefinition;
+    hordeDirector?: HordeDirectorDefinition | null;
   }) {
     this.packId = options.packId;
     this.packVersion = options.packVersion;
@@ -101,6 +104,7 @@ export class MatchRules {
     this.dropTables = deepFreeze(new Map(Object.entries(options.bundle.dropTables)));
     this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
     this.tank = deepFreeze(options.tank);
+    this.hordeDirector = options.hordeDirector ?? null;
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
@@ -164,6 +168,7 @@ export class MatchRules {
       },
       difficultyModifiers,
       tank: pack.getTank(mode.tank),
+      ...(mode.hordeDirector ? { hordeDirector: pack.getHordeDirector(mode.hordeDirector) } : {}),
     });
   }
 

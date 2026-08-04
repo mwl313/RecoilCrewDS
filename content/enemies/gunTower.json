@@ -4,6 +4,7 @@
   "type": "gunTower",
   "presentationId": "enemy.gunTower",
   "hp": 18,
+  "threat": 3,
   "radius": 1.0,
   "score": 400,
   "contributionPoints": 3,

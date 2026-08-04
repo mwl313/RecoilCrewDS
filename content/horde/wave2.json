@@ -1,0 +1,15 @@
+{
+  "id": "wave.encirclement",
+  "label": "Wave 2 — Encirclement",
+  "leaderEnemyId": "enemy.rammer",
+  "openingPackIds": ["pack.vanguardWall", "pack.escortRing", "pack.vanguardWall"],
+  "reinforcementPackIds": ["pack.reinforcementColumn", "pack.reinforcementColumn"],
+  "openingThreat": 16,
+  "reinforcementThreat": 32,
+  "reinforcementThreatPerSecond": 2.5,
+  "maximumActiveWaveThreat": 80,
+  "maximumActiveWaveEntities": 55,
+  "approachPolicyId": "horde.navigationPolicy.main",
+  "rewardTableId": "reward.main",
+  "purgeWaveCohortOnLeaderDeath": true
+}

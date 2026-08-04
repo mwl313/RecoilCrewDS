@@ -1,0 +1,8 @@
+{
+  "id": "horde.replicationPolicy.main",
+  "label": "Main Replication Policy",
+  "nearHz": 15,
+  "midHz": 8,
+  "farHz": 2,
+  "sectorHz": 1.5
+}

@@ -1,0 +1,18 @@
+{
+  "id": "horde.bossWave.main",
+  "label": "Boss Wave — The Big One",
+  "leaderEnemyId": "enemy.rammer",
+  "bossEnemyId": "enemy.rammer",
+  "openingPackIds": ["pack.bossGuard", "pack.vanguardWall"],
+  "reinforcementPackIds": ["pack.reinforcementColumn"],
+  "openingThreat": 20,
+  "reinforcementThreat": 40,
+  "reinforcementThreatPerSecond": 3,
+  "maximumActiveWaveThreat": 100,
+  "maximumActiveWaveEntities": 70,
+  "approachPolicyId": "horde.navigationPolicy.main",
+  "rewardTableId": "reward.main",
+  "purgeWaveCohortOnLeaderDeath": true,
+  "hpThresholdEvents": [],
+  "completion": "clearStage"
+}

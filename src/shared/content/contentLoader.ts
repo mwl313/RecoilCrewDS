@@ -26,6 +26,20 @@ import { projectileSchema } from './schemas/projectile';
 import { resultsSchema } from './schemas/results';
 import { scoringSchema } from './schemas/scoring';
 import { spawnDirectorSchema } from './schemas/spawnDirector';
+import {
+  bossWaveSchema,
+  enemyLodPolicySchema,
+  farmingPhaseSchema,
+  hordeDirectorSchema,
+  hordeNavigationPolicySchema,
+  hordeReplicationPolicySchema,
+  populationLimitsSchema,
+  rewardTableSchema,
+  spawnAnchorPolicySchema,
+  spawnPackSchema,
+  stageSequenceSchema,
+  waveSchema,
+} from './schemas/horde';
 import { tankSchema } from './schemas/tank';
 import { terrainProfileSchema } from './schemas/terrainProfile';
 import { validationProfileSchema } from './schemas/validationProfile';
@@ -51,6 +65,18 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   items: itemSchema,
   statusEffects: statusEffectSchema,
   spawnDirectors: spawnDirectorSchema,
+  stageSequences: stageSequenceSchema,
+  farmingPhases: farmingPhaseSchema,
+  hordeDirectors: hordeDirectorSchema,
+  populationLimits: populationLimitsSchema,
+  spawnPacks: spawnPackSchema,
+  waves: waveSchema,
+  bossWaves: bossWaveSchema,
+  spawnAnchorPolicies: spawnAnchorPolicySchema,
+  hordeNavigationPolicies: hordeNavigationPolicySchema,
+  enemyLodPolicies: enemyLodPolicySchema,
+  hordeReplicationPolicies: hordeReplicationPolicySchema,
+  rewardTables: rewardTableSchema,
   scoring: scoringSchema,
   results: resultsSchema,
   difficulties: difficultySchema,
@@ -179,6 +205,18 @@ function createEmptyRegistries(): CategoryRegistries {
     items: new DefinitionRegistry(),
     statusEffects: new DefinitionRegistry(),
     spawnDirectors: new DefinitionRegistry(),
+    stageSequences: new DefinitionRegistry(),
+    farmingPhases: new DefinitionRegistry(),
+    hordeDirectors: new DefinitionRegistry(),
+    populationLimits: new DefinitionRegistry(),
+    spawnPacks: new DefinitionRegistry(),
+    waves: new DefinitionRegistry(),
+    bossWaves: new DefinitionRegistry(),
+    spawnAnchorPolicies: new DefinitionRegistry(),
+    hordeNavigationPolicies: new DefinitionRegistry(),
+    enemyLodPolicies: new DefinitionRegistry(),
+    hordeReplicationPolicies: new DefinitionRegistry(),
+    rewardTables: new DefinitionRegistry(),
     scoring: new DefinitionRegistry(),
     results: new DefinitionRegistry(),
     difficulties: new DefinitionRegistry(),

@@ -21,6 +21,20 @@ import type { TankDefinition } from './schemas/tank';
 import type { TerrainProfileDefinition } from './schemas/terrainProfile';
 import type { ValidationProfileDefinition } from './schemas/validationProfile';
 import type { WeaponDefinition } from './schemas/weapon';
+import type {
+  BossWaveDefinition,
+  EnemyLodPolicyDefinition,
+  FarmingPhaseDefinition,
+  HordeDirectorDefinition,
+  HordeNavigationPolicyDefinition,
+  HordeReplicationPolicyDefinition,
+  PopulationLimitsDefinition,
+  RewardTableDefinition,
+  SpawnAnchorPolicyDefinition,
+  SpawnPackDefinition,
+  StageSequenceDefinition,
+  WaveDefinition,
+} from './schemas/horde';
 
 export const CONTENT_CATEGORIES = [
   'modes',
@@ -41,6 +55,18 @@ export const CONTENT_CATEGORIES = [
   'items',
   'statusEffects',
   'spawnDirectors',
+  'stageSequences',
+  'farmingPhases',
+  'hordeDirectors',
+  'populationLimits',
+  'spawnPacks',
+  'waves',
+  'bossWaves',
+  'spawnAnchorPolicies',
+  'hordeNavigationPolicies',
+  'enemyLodPolicies',
+  'hordeReplicationPolicies',
+  'rewardTables',
   'scoring',
   'results',
   'difficulties',
@@ -68,6 +94,18 @@ export interface CategoryRegistries {
   items: DefinitionRegistry<ItemDefinition>;
   statusEffects: DefinitionRegistry<StatusEffectDefinition>;
   spawnDirectors: DefinitionRegistry<SpawnDirectorDefinition>;
+  stageSequences: DefinitionRegistry<StageSequenceDefinition>;
+  farmingPhases: DefinitionRegistry<FarmingPhaseDefinition>;
+  hordeDirectors: DefinitionRegistry<HordeDirectorDefinition>;
+  populationLimits: DefinitionRegistry<PopulationLimitsDefinition>;
+  spawnPacks: DefinitionRegistry<SpawnPackDefinition>;
+  waves: DefinitionRegistry<WaveDefinition>;
+  bossWaves: DefinitionRegistry<BossWaveDefinition>;
+  spawnAnchorPolicies: DefinitionRegistry<SpawnAnchorPolicyDefinition>;
+  hordeNavigationPolicies: DefinitionRegistry<HordeNavigationPolicyDefinition>;
+  enemyLodPolicies: DefinitionRegistry<EnemyLodPolicyDefinition>;
+  hordeReplicationPolicies: DefinitionRegistry<HordeReplicationPolicyDefinition>;
+  rewardTables: DefinitionRegistry<RewardTableDefinition>;
   scoring: DefinitionRegistry<ScoringDefinition>;
   results: DefinitionRegistry<ResultsDefinition>;
   difficulties: DefinitionRegistry<DifficultyDefinition>;
@@ -190,6 +228,42 @@ export class ContentPack {
   }
   getSpawnDirector(id: string): SpawnDirectorDefinition {
     return this.require('spawnDirectors', id);
+  }
+  getStageSequence(id: string): StageSequenceDefinition {
+    return this.require('stageSequences', id);
+  }
+  getFarmingPhase(id: string): FarmingPhaseDefinition {
+    return this.require('farmingPhases', id);
+  }
+  getHordeDirector(id: string): HordeDirectorDefinition {
+    return this.require('hordeDirectors', id);
+  }
+  getPopulationLimits(id: string): PopulationLimitsDefinition {
+    return this.require('populationLimits', id);
+  }
+  getSpawnPack(id: string): SpawnPackDefinition {
+    return this.require('spawnPacks', id);
+  }
+  getWave(id: string): WaveDefinition {
+    return this.require('waves', id);
+  }
+  getBossWave(id: string): BossWaveDefinition {
+    return this.require('bossWaves', id);
+  }
+  getSpawnAnchorPolicy(id: string): SpawnAnchorPolicyDefinition {
+    return this.require('spawnAnchorPolicies', id);
+  }
+  getHordeNavigationPolicy(id: string): HordeNavigationPolicyDefinition {
+    return this.require('hordeNavigationPolicies', id);
+  }
+  getEnemyLodPolicy(id: string): EnemyLodPolicyDefinition {
+    return this.require('enemyLodPolicies', id);
+  }
+  getHordeReplicationPolicy(id: string): HordeReplicationPolicyDefinition {
+    return this.require('hordeReplicationPolicies', id);
+  }
+  getRewardTable(id: string): RewardTableDefinition {
+    return this.require('rewardTables', id);
   }
   getScoring(id: string): ScoringDefinition {
     return this.require('scoring', id);

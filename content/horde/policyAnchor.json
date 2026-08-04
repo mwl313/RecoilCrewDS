@@ -1,0 +1,7 @@
+{
+  "id": "horde.anchorPolicy.main",
+  "label": "Main Anchor Policy",
+  "visibleNearField": 18,
+  "safeZoneTags": ["recovery", "spawn"],
+  "maximumRecentUseAgeSeconds": 5
+}

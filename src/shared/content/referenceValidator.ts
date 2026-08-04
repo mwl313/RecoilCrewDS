@@ -28,6 +28,9 @@ export class ReferenceValidator {
       this.ref(issues, mode.tank, this.registries.tanks, file, 'tank');
       this.ref(issues, mode.loadout, this.registries.loadouts, file, 'loadout');
       this.ref(issues, mode.spawnDirector, this.registries.spawnDirectors, file, 'spawnDirector');
+      if (mode.hordeDirector) {
+        this.ref(issues, mode.hordeDirector, this.registries.hordeDirectors, file, 'hordeDirector');
+      }
       this.ref(issues, mode.scoring, this.registries.scoring, file, 'scoring');
       this.ref(issues, mode.results, this.registries.results, file, 'results');
       this.ref(issues, mode.presentation, this.registries.presentation, file, 'presentation');
@@ -104,6 +107,73 @@ export class ReferenceValidator {
       const file = this.fileOf(spawn.id, this.registries.spawnDirectors);
       this.checkCommon(issues, spawn, file);
       spawn.initialSpawns.forEach((s, i) => this.ref(issues, s.type, this.registries.enemies, file, `initialSpawns[${i}].type`));
+    }
+
+    for (const director of this.registries.hordeDirectors.all()) {
+      const file = this.fileOf(director.id, this.registries.hordeDirectors);
+      this.checkCommon(issues, director, file);
+      this.ref(issues, director.stageSequenceId, this.registries.stageSequences, file, 'stageSequenceId');
+      this.ref(issues, director.limitsId, this.registries.populationLimits, file, 'limitsId');
+      this.ref(issues, director.lodPolicyId, this.registries.enemyLodPolicies, file, 'lodPolicyId');
+      this.ref(issues, director.replicationPolicyId, this.registries.hordeReplicationPolicies, file, 'replicationPolicyId');
+      this.ref(issues, director.navigationPolicyId, this.registries.hordeNavigationPolicies, file, 'navigationPolicyId');
+      this.ref(issues, director.spawnAnchorPolicyId, this.registries.spawnAnchorPolicies, file, 'spawnAnchorPolicyId');
+      this.ref(issues, director.bossWaveId, this.registries.bossWaves, file, 'bossWaveId');
+      director.farmingPhaseIds.forEach((id, i) => this.ref(issues, id, this.registries.farmingPhases, file, `farmingPhaseIds[${i}]`));
+      director.waveIds.forEach((id, i) => this.ref(issues, id, this.registries.waves, file, `waveIds[${i}]`));
+      director.packIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `packIds[${i}]`));
+    }
+    for (const phase of this.registries.farmingPhases.all()) {
+      this.checkCommon(issues, phase, this.fileOf(phase.id, this.registries.farmingPhases));
+    }
+    for (const pack of this.registries.spawnPacks.all()) {
+      const file = this.fileOf(pack.id, this.registries.spawnPacks);
+      this.checkCommon(issues, pack, file);
+      pack.entries.forEach((entry, i) => this.ref(issues, entry.enemyId, this.registries.enemies, file, `entries[${i}].enemyId`));
+    }
+    for (const wave of this.registries.waves.all()) {
+      const file = this.fileOf(wave.id, this.registries.waves);
+      this.checkCommon(issues, wave, file);
+      this.ref(issues, wave.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
+      this.ref(issues, wave.approachPolicyId, this.registries.hordeNavigationPolicies, file, 'approachPolicyId');
+      this.ref(issues, wave.rewardTableId, this.registries.rewardTables, file, 'rewardTableId');
+      wave.openingPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `openingPackIds[${i}]`));
+      wave.reinforcementPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `reinforcementPackIds[${i}]`));
+    }
+    for (const boss of this.registries.bossWaves.all()) {
+      const file = this.fileOf(boss.id, this.registries.bossWaves);
+      this.checkCommon(issues, boss, file);
+      this.ref(issues, boss.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
+      this.ref(issues, boss.bossEnemyId, this.registries.enemies, file, 'bossEnemyId');
+      this.ref(issues, boss.approachPolicyId, this.registries.hordeNavigationPolicies, file, 'approachPolicyId');
+      this.ref(issues, boss.rewardTableId, this.registries.rewardTables, file, 'rewardTableId');
+      boss.openingPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `openingPackIds[${i}]`));
+      boss.reinforcementPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `reinforcementPackIds[${i}]`));
+    }
+    for (const policy of [
+      ...this.registries.spawnAnchorPolicies.all(),
+      ...this.registries.hordeNavigationPolicies.all(),
+      ...this.registries.enemyLodPolicies.all(),
+      ...this.registries.hordeReplicationPolicies.all(),
+      ...this.registries.populationLimits.all(),
+      ...this.registries.stageSequences.all(),
+      ...this.registries.rewardTables.all(),
+    ]) {
+      const registryFor =
+        this.registries.spawnAnchorPolicies.has(policy.id)
+          ? this.registries.spawnAnchorPolicies
+          : this.registries.hordeNavigationPolicies.has(policy.id)
+            ? this.registries.hordeNavigationPolicies
+            : this.registries.enemyLodPolicies.has(policy.id)
+              ? this.registries.enemyLodPolicies
+              : this.registries.hordeReplicationPolicies.has(policy.id)
+                ? this.registries.hordeReplicationPolicies
+                : this.registries.populationLimits.has(policy.id)
+                  ? this.registries.populationLimits
+                  : this.registries.stageSequences.has(policy.id)
+                    ? this.registries.stageSequences
+                    : this.registries.rewardTables;
+      this.checkCommon(issues, policy, this.fileOf(policy.id, registryFor));
     }
 
     for (const scoring of this.registries.scoring.all()) {

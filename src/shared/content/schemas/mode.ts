@@ -47,6 +47,8 @@ export const modeSchema = z.object({
   loadout: z.string().regex(/^loadout\./, 'loadout must reference a loadout definition'),
   objectives: z.array(z.string().regex(/^objective\./, 'objectives must reference objective definitions')).min(1),
   spawnDirector: z.string().regex(/^spawn\./, 'spawnDirector must reference a spawn director'),
+  /** Core Loop 06: one shared horde director per gameplay definition. */
+  hordeDirector: z.string().regex(/^horde\./, 'hordeDirector must reference a horde director').optional(),
   scoring: z.string().regex(/^scoring\./, 'scoring must reference a scoring definition'),
   results: z.string().regex(/^results\./, 'results must reference a results definition'),
   presentation: z.string().regex(/^presentation\./, 'presentation must reference a presentation definition'),

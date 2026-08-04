@@ -8,6 +8,7 @@
   "loadout": "loadout.default",
   "objectives": ["objective.highScore"],
   "spawnDirector": "spawn.director.demoScoreAttack",
+  "hordeDirector": "horde.mainStage",
   "scoring": "scoring.demoScoreAttack",
   "results": "results.demoScoreAttack",
   "presentation": "presentation.demoScoreAttack",

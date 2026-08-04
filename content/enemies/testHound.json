@@ -10,6 +10,7 @@
     { "id": "attack.contactRam", "parameters": { "damage": 3 } }
   ],
   "hp": 8,
+  "threat": 1,
   "radius": 0.8,
   "score": 120,
   "contributionPoints": 2,

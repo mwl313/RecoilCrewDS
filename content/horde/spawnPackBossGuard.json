@@ -1,0 +1,12 @@
+{
+  "id": "pack.bossGuard",
+  "label": "Boss Guard",
+  "tags": ["boss"],
+  "entries": [{ "enemyId": "enemy.scrapBug", "count": 8, "formationRole": "guard" }],
+  "threatCost": 8,
+  "entityCost": 8,
+  "formation": "ring",
+  "spacing": 2.2,
+  "radius": 10,
+  "anchorRequirements": { "minimumTankDistance": 20, "maximumTankDistance": 80 }
+}

@@ -12,6 +12,8 @@ const enemyBase = {
   id: z.string().regex(/^enemy\./, 'enemy id must start with enemy.'),
   presentationId: z.string().optional(),
   hp: positiveNumber,
+  /** Core Loop 06: weighted threat contribution to population budgets. */
+  threat: nonNegativeNumber.optional(),
   radius: positiveNumber,
   score: nonNegativeInt,
   contributionPoints: nonNegativeInt,
