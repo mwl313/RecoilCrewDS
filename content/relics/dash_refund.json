@@ -1,0 +1,1 @@
+{ "id": "relic.dash_refund", "label": "DASH REFUND", "rarity": "rare", "role": "driver", "iconId": "relic.dashRefund", "description": "Dash hits refund 30% of dash cooldown (clamp 0).", "tags": ["onDashHit", "dash"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.dashHitCooldownReduction", "parameters": { "percentPerStack": 30 } }] }

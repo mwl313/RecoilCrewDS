@@ -1,0 +1,1 @@
+{ "id": "relic.xp_surge", "label": "XP SURGE", "rarity": "legendary", "role": "crew", "iconId": "relic.xpSurge", "description": "XP gained +100%.", "tags": ["passive", "xp"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.xpMultiplier", "parameters": { "percentPerStack": 100 } }] }

@@ -1,0 +1,7 @@
+{
+  "id": "progressionMode.multiplayer",
+  "label": "Multiplayer Progression Execution",
+  "levelUpSelection": "roleSeparated",
+  "xpMultiplier": 1,
+  "selectionTimeoutSeconds": 10
+}

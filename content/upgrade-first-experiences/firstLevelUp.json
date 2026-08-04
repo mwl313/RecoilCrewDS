@@ -1,0 +1,15 @@
+{
+  "id": "firstExperience.levelUp.first",
+  "label": "First Level-Up — Epic + normal + 50% Legendary",
+  "cardRules": [
+    { "kind": "fixed", "rarity": "epic" },
+    { "kind": "normal" },
+    {
+      "kind": "branch",
+      "branches": [
+        { "rarity": "legendary", "probability": 0.5 },
+        { "rarity": "normal", "probability": 0.5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "rarity.upgrade.default",
+  "label": "Default Upgrade Rarity Table",
+  "rarities": {
+    "common": 0.5,
+    "rare": 0.3,
+    "epic": 0.15,
+    "legendary": 0.05
+  }
+}

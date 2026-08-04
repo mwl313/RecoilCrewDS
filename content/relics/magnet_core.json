@@ -1,0 +1,1 @@
+{ "id": "relic.magnet_core", "label": "MAGNET CORE", "rarity": "common", "role": "crew", "iconId": "relic.magnetCore", "description": "XP magnet radius +50%.", "tags": ["passive", "xp"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.magnetMultiplier", "parameters": { "percentPerStack": 50 } }] }

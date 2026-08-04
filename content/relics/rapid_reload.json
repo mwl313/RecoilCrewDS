@@ -1,0 +1,1 @@
+{ "id": "relic.rapid_reload", "label": "RAPID RELOAD", "rarity": "epic", "role": "gunner", "iconId": "relic.rapidReload", "description": "Cannon hits reduce the next cannon cooldown by 20%.", "tags": ["onHit", "cannon"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.cannonHitCooldownReduction", "parameters": { "percentPerStack": 20 } }] }

@@ -1,0 +1,7 @@
+{
+  "id": "progressionMode.singlePlayer",
+  "label": "Single Player Progression Execution",
+  "levelUpSelection": "unified",
+  "xpMultiplier": 2,
+  "selectionTimeoutSeconds": 10
+}

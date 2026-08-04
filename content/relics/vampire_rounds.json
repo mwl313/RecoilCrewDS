@@ -1,0 +1,1 @@
+{ "id": "relic.vampire_rounds", "label": "VAMPIRE ROUNDS", "rarity": "common", "role": "gunner", "iconId": "relic.vampireRounds", "description": "Cannon kills restore 5 integrity.", "tags": ["onKill", "cannon", "survival"], "stackPolicy": "addFlat", "effects": [{ "templateId": "relicEffect.cannonKillHeal", "parameters": { "amountPerStack": 5 } }] }

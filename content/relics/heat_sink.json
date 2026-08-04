@@ -1,0 +1,1 @@
+{ "id": "relic.heat_sink", "label": "HEAT SINK", "rarity": "common", "role": "gunner", "iconId": "relic.heatSink", "description": "After firing the cannon, MG damage +20% for 3 seconds.", "tags": ["onCannonFire", "mg"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.mgBuffOnCannonFire", "parameters": { "percentPerStack": 20, "durationSeconds": 3 } }] }

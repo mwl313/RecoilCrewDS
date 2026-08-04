@@ -1,0 +1,1 @@
+{ "id": "relic.apex_predator", "label": "APEX PREDATOR", "rarity": "legendary", "role": "crew", "iconId": "relic.apexPredator", "description": "Damage to elites and bosses +40%.", "tags": ["passive", "elite"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.outgoingDamageMultiplier", "parameters": { "percentPerStack": 40, "condition": "eliteBoss" } }] }

@@ -1,0 +1,1 @@
+{ "id": "relic.hearty_tank", "label": "HEARTY TANK", "rarity": "common", "role": "driver", "iconId": "relic.heartyTank", "description": "Max integrity +20.", "tags": ["passive", "survival"], "stackPolicy": "addFlat", "effects": [{ "templateId": "relicEffect.statFlat", "parameters": { "statId": "tank.maxIntegrity", "flatPerStack": 20 } }] }

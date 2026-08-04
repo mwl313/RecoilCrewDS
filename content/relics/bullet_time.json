@@ -1,0 +1,1 @@
+{ "id": "relic.bullet_time", "label": "BULLET TIME", "rarity": "rare", "role": "driver", "iconId": "relic.bulletTime", "description": "Dash cooldown recovers 2x faster while airborne.", "tags": ["onAir", "dash"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.airCooldownRecovery", "parameters": { "recoveryMultiplierPerStack": 2 } }] }

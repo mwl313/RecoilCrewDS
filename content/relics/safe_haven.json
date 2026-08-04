@@ -1,0 +1,1 @@
+{ "id": "relic.safe_haven", "label": "SAFE HAVEN", "rarity": "epic", "role": "crew", "iconId": "relic.safeHaven", "description": "Wave clear restores 15 integrity.", "tags": ["onWaveClear", "survival"], "stackPolicy": "addFlat", "effects": [{ "templateId": "relicEffect.waveClearHeal", "parameters": { "amountPerStack": 15 } }] }

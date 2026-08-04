@@ -1,0 +1,1 @@
+{ "id": "relic.aerial_master", "label": "AERIAL MASTER", "rarity": "rare", "role": "gunner", "iconId": "relic.aerialMaster", "description": "All gunner damage +30% while airborne.", "tags": ["passive", "air"], "stackPolicy": "addPercent", "effects": [{ "templateId": "relicEffect.outgoingDamageMultiplier", "parameters": { "percentPerStack": 30, "condition": "airborne" } }] }

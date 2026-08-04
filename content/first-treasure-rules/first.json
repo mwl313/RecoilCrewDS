@@ -1,0 +1,8 @@
+{
+  "id": "firstExperience.treasure.first",
+  "label": "First Treasure Rule — Epic/Legendary only",
+  "rarities": {
+    "epic": 0.7,
+    "legendary": 0.3
+  }
+}

@@ -1,0 +1,1 @@
+{ "id": "relic.phase_dash", "label": "PHASE DASH", "rarity": "legendary", "role": "driver", "iconId": "relic.phaseDash", "description": "Invulnerable during Dash. Unique.", "tags": ["onDash", "unique"], "stackPolicy": "unique", "duplicateReplacement": { "type": "xp", "amount": 250 }, "effects": [{ "templateId": "relicEffect.phaseDash" }] }

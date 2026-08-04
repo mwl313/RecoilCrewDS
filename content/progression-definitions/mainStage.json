@@ -1,0 +1,22 @@
+{
+  "id": "progression.mainStage",
+  "label": "Main Stage Progression",
+  "description": "Shared gameplay progression for both modes. XP values and curve are prototype tuning.",
+  "levelCurveId": "levelCurve.mainStagePrototype",
+  "xpPickupDefinitionId": "xpPickup.default",
+  "upgradeRarityTableId": "rarity.upgrade.default",
+  "upgradeFirstExperienceRuleId": "firstExperience.levelUp.first",
+  "treasureRarityTableId": "rarity.treasure.default",
+  "firstTreasureRuleId": "firstExperience.treasure.first",
+  "relicPoolId": "relicPool.main",
+  "multiplayerPolicyId": "progressionMode.multiplayer",
+  "singlePlayerPolicyId": "progressionMode.singlePlayer",
+  "enemyXpRewards": {
+    "ambient": 1,
+    "wave": 2,
+    "elite": 40,
+    "boss": 150
+  },
+  "enemyChestDropChance": 0.015,
+  "duplicateUniqueRelicXp": 250
+}

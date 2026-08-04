@@ -1,0 +1,10 @@
+{
+  "id": "rarity.treasure.default",
+  "label": "Default Treasure Rarity Table",
+  "rarities": {
+    "common": 0.55,
+    "rare": 0.3,
+    "epic": 0.13,
+    "legendary": 0.02
+  }
+}
