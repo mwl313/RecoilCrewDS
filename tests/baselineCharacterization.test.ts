@@ -68,7 +68,7 @@ function startCrew(manager: RoomManager) {
 function tankState(over: Partial<TankState> = {}): TankState {
   return {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-    pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0,
+    pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0,
     shieldedT: 0, deadT: 0, grounded: true, drift: false,
     ...over,
   };
@@ -256,13 +256,13 @@ describe('enemy mapping', () => {
     }
   });
 
-  it('ram kills count separately and tower kills drop heavy + two normal scraps', () => {
+  it('dash kills count separately and tower kills drop heavy + two normal scraps', () => {
     const m = new Match('kill-ram');
     const rammer = m.spawnEnemy('rammer', 20, 20)!;
-    m.damageEnemy(rammer, 999, 'ram');
+    m.damageEnemy(rammer, 999, 'dash');
     m.step(1 / 30);
     m.takeEvents();
-    expect(m.state.stats.ramKills).toBe(1);
+    expect(m.state.stats.dashKills).toBe(1);
   });
 });
 

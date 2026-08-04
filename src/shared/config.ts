@@ -45,6 +45,16 @@ export interface GameConfig {
     dashMaxHorizontalSpeed: number;
     /** Presentation window after an accepted dash (seconds). */
     dashPresentationSeconds: number;
+    /** Offensive contact damage while NOT dashing (Combat 05: 0). */
+    contactDamage: number;
+    /** Damage dealt to a contacted enemy during the accepted Dash window. */
+    dashContactDamage: number;
+    /** Seconds the Dash contact-damage window stays active after a Dash. */
+    dashDamageWindowSeconds: number;
+    /** Chassis velocity multiplier applied on Dash contact. */
+    dashContactKnockback: number;
+    /** Per-target cooldown between Dash contact hits (seconds). */
+    dashContactPerTargetCooldown: number;
     collisionRadius: number;
     /** Chassis footprint: circle offsets along forward and radii (metres). */
     footprint: { offset: number; radius: number }[];
@@ -197,6 +207,11 @@ export const BASE_CONFIG: GameConfig = {
     dashAirMultiplier: 0.8,
     dashMaxHorizontalSpeed: 33.0,
     dashPresentationSeconds: 0.18,
+    contactDamage: 0,
+    dashContactDamage: 12,
+    dashDamageWindowSeconds: 0.2,
+    dashContactKnockback: 0.92,
+    dashContactPerTargetCooldown: 0.25,
     collisionRadius: 1.35,
     footprint: [
       { offset: -1.0, radius: 0.9 },

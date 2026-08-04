@@ -15,7 +15,7 @@ const titleRequire = z
     wipeouts: nonNegativeInt.optional(),
     jackpotFired: nonNegativeInt.optional(),
     links: nonNegativeInt.optional(),
-    ramKills: nonNegativeInt.optional(),
+    dashKills: nonNegativeInt.optional(),
     minScore: nonNegativeInt.optional(),
     grade: z.enum(['D', 'C', 'B', 'A', 'S']).optional(),
   })

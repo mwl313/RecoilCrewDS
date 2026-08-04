@@ -56,6 +56,7 @@ function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
     integrity: rules.config.tank.maxIntegrity,
     dashCooldown: 0,
     dashPresentationT: 0,
+    dashDamageT: 0,
     shieldedT: rules.config.tank.shieldTime,
     deadT: 0,
     grounded: true,
@@ -90,7 +91,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       kills: 0,
       scrapCollected: 0,
       links: 0,
-      ramKills: 0,
+      dashKills: 0,
       dodgeCount: 0,
       wipeouts: 0,
       bestCombo: 1,
@@ -326,6 +327,7 @@ export class MatchRuntime {
     this.stepTank(dt);
     this.weaponSystem.update(dt, this.gunnerInput);
     this.systems.enemies.update(dt);
+    this.systems.contact.update();
     this.systems.projectiles.update(dt);
     this.systems.pickups.update(dt);
     this.systems.spawnDirector.step(dt);
@@ -404,6 +406,7 @@ export class MatchRuntime {
     t.roll = 0;
     t.dashCooldown = 0;
     t.dashPresentationT = 0;
+    t.dashDamageT = 0;
     t.landingGripT = 0;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
@@ -500,6 +503,7 @@ export class MatchRuntime {
     const sc = this.cfg.scoring;
     const j = this.cfg.jackpot;
     s.stats.kills++;
+    if (source === 'dash') s.stats.dashKills++;
     const chaosMult = s.time > j.finalChaosStart ? j.finalChaosMult : 1;
     let score = 0;
     let jackpot = 0;
@@ -514,7 +518,6 @@ export class MatchRuntime {
       score = sc.rammerScore;
       jackpot = j.rammerGain;
       scrap = 'heavy';
-      if (source === 'ram') s.stats.ramKills++;
     } else if (e.type === 'gunTower') {
       score = sc.towerScore;
       jackpot = j.towerGain;
@@ -532,9 +535,6 @@ export class MatchRuntime {
     this.systems.drops.resolveFor(e);
     this.systems.pickups.noteKill(s.time, scrap);
     this.push('kill', e.x, e.y + 1, e.z, { id: e.id, kind: e.type, value: score, label: `+${Math.floor(score * this.state.combo.multiplier)}` });
-    if (source === 'ram') {
-      this.systems.combo.addDriverContribution(2, j.ramGain, 'RAMPAGE');
-    }
   }
 
   // ------------------------------------------------- score/combo (delegated)

@@ -6,7 +6,7 @@ export type DamageSource =
   | 'jackpot'
   | 'barrel'
   | 'tower'
-  | 'ram'
+  | 'dash'
   | 'rammer'
   | 'bug'
   | 'fall'

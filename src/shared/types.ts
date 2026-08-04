@@ -19,7 +19,7 @@ export interface GunnerInput {
   /** Generic loadout actions (Phase 3+, sole wire contract since Phase 6). */
   primary: boolean;
   secondary: boolean;
-  ability: boolean; // held while JACKPOT ready
+  ability: boolean; // deprecated: removed with the Jackpot subsystem
 }
 
 export interface PlayerInput {
@@ -123,6 +123,8 @@ export interface TankState {
   dashCooldown: number;
   /** Short presentation window after an accepted dash (seconds). */
   dashPresentationT: number;
+  /** Authoritative Dash contact-damage window (seconds remaining). */
+  dashDamageT: number;
   shieldedT: number;
   deadT: number;
   grounded: boolean;
@@ -160,7 +162,7 @@ export interface StatsState {
   kills: number;
   scrapCollected: number;
   links: number;
-  ramKills: number;
+  dashKills: number;
   dodgeCount: number;
   wipeouts: number;
   bestCombo: number;
@@ -255,6 +257,7 @@ export type SimEventType =
   | 'hit'
   | 'crash'
   | 'assist'
+  | 'dashContact'
   | 'tankImpulse';
 
 export interface SimEvent {

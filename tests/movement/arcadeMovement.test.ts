@@ -25,7 +25,7 @@ function ground(half = 200): GroundQuery {
 function tank(partial: Partial<TankKinematicState> = {}): TankKinematicState {
   return {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-    pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false,
+    pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false,
     landingGripT: 0, ...partial,
   };
 }

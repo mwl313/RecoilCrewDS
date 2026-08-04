@@ -18,7 +18,7 @@ export interface TitleRule {
     wipeouts?: number;
     jackpotFired?: number;
     links?: number;
-    ramKills?: number;
+    dashKills?: number;
     minScore?: number;
     grade?: 'D' | 'C' | 'B' | 'A' | 'S';
   };
@@ -42,7 +42,7 @@ export const DEMO_TITLE_RULES: readonly TitleRule[] = [
   { id: 'title.airborneDivision', text: 'Airborne Division', require: { wipeouts: 3 } },
   { id: 'title.recoilAccountants', text: 'Recoil Accountants', require: { jackpotFired: 0 } },
   { id: 'title.friendlyFire', text: 'Friendly Fire Department', require: { links: 0 } },
-  { id: 'title.brakesOptional', text: 'The Brakes Were Optional', require: { ramKills: 3 } },
+  { id: 'title.brakesOptional', text: 'The Brakes Were Optional', require: { dashKills: 3 } },
   { id: 'title.oneBrain', text: 'One Brain, Two Browsers', require: { minScore: 12000 } },
   { id: 'title.perfectlyCoordinated', text: 'Perfectly Coordinated Accident', require: { grade: 'A' } },
   { id: 'title.unlicensed', text: 'Unlicensed Ballistics', require: { grade: 'B' } },
@@ -91,7 +91,7 @@ export function titleFromRules(
     if (req.wipeouts !== undefined && state.stats.wipeouts < req.wipeouts) continue;
     if (req.jackpotFired !== undefined && state.stats.jackpotFired !== req.jackpotFired) continue;
     if (req.links !== undefined && state.stats.links !== req.links) continue;
-    if (req.ramKills !== undefined && state.stats.ramKills < req.ramKills) continue;
+    if (req.dashKills !== undefined && state.stats.dashKills < req.dashKills) continue;
     if (req.minScore !== undefined && state.stats.score < req.minScore) continue;
     if (req.grade !== undefined && grade !== req.grade) continue;
     return rule.text;

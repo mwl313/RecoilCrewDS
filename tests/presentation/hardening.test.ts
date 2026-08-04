@@ -46,7 +46,7 @@ function state(partial: Partial<Record<string, unknown>> = {}): never {
   return {
     tank: {
       x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0,
-      grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false, deadT: 0, prevOnRamp: false,
+      grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false, deadT: 0, prevOnRamp: false,
       ...(partial.tank as Record<string, unknown> | undefined),
     },
     turret: {
@@ -57,7 +57,7 @@ function state(partial: Partial<Record<string, unknown>> = {}): never {
     combo: { multiplier: 1, points: 0, lastDriverT: 0, lastGunnerT: 0, lastAnyT: 0, best: 1 },
     stats: {
       score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0,
-      bestCombo: 1, ramKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false,
+      bestCombo: 1, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false,
     },
     duration: 90,
     time: 0,

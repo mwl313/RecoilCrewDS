@@ -41,7 +41,7 @@
     "bonus": 25
   },
   "scrapLoopWindow": 3,
-  "ramScore": 20,
+  "dashScore": 20,
   "wipeoutPenalty": 0.15,
   "jackpotCooldown": 12,
   "assist": {

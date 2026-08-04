@@ -36,8 +36,5 @@
   "separationStrength": 0.8,
   "obstacleAvoidTurn": 1.1,
   "speedWobbleAmplitude": 0.6,
-  "speedWobbleFrequency": 1.7,
-  "ramSpeedThreshold": 5,
-  "ramScore": 20,
-  "ramKnockback": 0.92
+  "speedWobbleFrequency": 1.7
 }

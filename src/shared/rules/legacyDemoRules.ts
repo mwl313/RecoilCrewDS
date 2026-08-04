@@ -37,7 +37,7 @@ export const LEGACY_DEMO_CONSTANTS = {
   atSpeedThreshold: 12,
   atSpeedBonus: 25,
   scrapLoopWindow: 3,
-  ramScore: 20,
+  dashScore: 20,
 } as const;
 
 export function createLegacyDemoRulesBundle(): DemoRulesBundle {
@@ -78,7 +78,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     },
     atSpeed: { threshold: LEGACY_DEMO_CONSTANTS.atSpeedThreshold, bonus: LEGACY_DEMO_CONSTANTS.atSpeedBonus },
     scrapLoopWindow: LEGACY_DEMO_CONSTANTS.scrapLoopWindow,
-    ramScore: LEGACY_DEMO_CONSTANTS.ramScore,
+    dashScore: LEGACY_DEMO_CONSTANTS.dashScore,
     wipeoutPenalty: sc.wipeoutPenalty,
     jackpotCooldown: j.jackpotCooldown,
     assist: {
@@ -308,9 +308,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
       obstacleAvoidTurn: 1.1,
       speedWobbleAmplitude: 0.6,
       speedWobbleFrequency: 1.7,
-      ramSpeedThreshold: 5,
-      ramScore: LEGACY_DEMO_CONSTANTS.ramScore,
-      ramKnockback: 0.92,
       knockback: {
         immovable: false,
         horizontalResistance: 1.0,
@@ -516,6 +513,11 @@ export function createLegacyDefaultTankDefinition(): TankDefinition {
     dashAirMultiplier: 0.8,
     dashMaxHorizontalSpeed: 33.0,
     dashPresentationSeconds: 0.18,
+    contactDamage: 0,
+    dashContactDamage: 12,
+    dashDamageWindowSeconds: 0.2,
+    dashContactKnockback: 0.92,
+    dashContactPerTargetCooldown: 0.25,
     collisionRadius: 1.35,
     footprint: [
       { offset: -1.0, radius: 0.9 },

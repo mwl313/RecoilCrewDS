@@ -70,7 +70,7 @@ export interface CanonicalTank {
   x: number; y: number; z: number;
   vx: number; vy: number; vz: number;
   yaw: number; yawVel: number;
-  integrity: number; dashCooldown: number; dashPresentationT: number;
+  integrity: number; dashCooldown: number; dashPresentationT: number; dashDamageT: number;
   shieldedT: number; deadT: number; grounded: boolean; drift: boolean;
   prevOnRamp: boolean;
 }
@@ -114,7 +114,7 @@ export interface CanonicalState {
   combo: { multiplier: number; points: number; lastDriverT: number; lastGunnerT: number; lastAnyT: number; best: number };
   stats: {
     score: number; jackpotMeter: number; jackpotFired: number; kills: number;
-    scrapCollected: number; links: number; ramKills: number; dodgeCount: number;
+    scrapCollected: number; links: number; dashKills: number; dodgeCount: number;
     wipeouts: number; bestCombo: number; anyContribution: boolean;
   };
   enemies: CanonicalEnemy[];
@@ -202,6 +202,7 @@ export function canonicalizeState(s: MatchState): CanonicalState {
       integrity: round(s.tank.integrity),
       dashCooldown: round(s.tank.dashCooldown),
       dashPresentationT: round(s.tank.dashPresentationT),
+      dashDamageT: round(s.tank.dashDamageT),
       shieldedT: round(s.tank.shieldedT), deadT: round(s.tank.deadT),
       grounded: s.tank.grounded, drift: s.tank.drift,
       prevOnRamp: s.tank.prevOnRamp ?? false,
@@ -229,7 +230,7 @@ export function canonicalizeState(s: MatchState): CanonicalState {
       kills: s.stats.kills,
       scrapCollected: s.stats.scrapCollected,
       links: s.stats.links,
-      ramKills: s.stats.ramKills,
+      dashKills: s.stats.dashKills,
       dodgeCount: s.stats.dodgeCount,
       wipeouts: s.stats.wipeouts,
       bestCombo: s.stats.bestCombo,

@@ -54,9 +54,6 @@ export const enemySchema = z.discriminatedUnion('type', [
     obstacleAvoidTurn: positiveNumber,
     speedWobbleAmplitude: nonNegativeNumber,
     speedWobbleFrequency: positiveNumber,
-    ramSpeedThreshold: nonNegativeNumber,
-    ramScore: nonNegativeInt,
-    ramKnockback: nonNegativeNumber,
   }),
   z.object({
     ...enemyBase,

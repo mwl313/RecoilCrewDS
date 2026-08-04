@@ -26,6 +26,11 @@
   "dashAirMultiplier": 0.8,
   "dashMaxHorizontalSpeed": 33.0,
   "dashPresentationSeconds": 0.18,
+  "contactDamage": 0,
+  "dashContactDamage": 12,
+  "dashDamageWindowSeconds": 0.2,
+  "dashContactKnockback": 0.92,
+  "dashContactPerTargetCooldown": 0.25,
   "collisionRadius": 1.35,
   "footprint": [
     { "offset": -1.0, "radius": 0.9 },

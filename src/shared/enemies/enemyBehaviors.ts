@@ -121,24 +121,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const def = ctx.enemies.defFor(e);
       const hitCooldown = behaviorParam(def, 'attack.contactRam', 'hitCooldown', 1.0);
       const radiusOffset = behaviorParam(def, 'attack.contactRam', 'contactRadiusOffset', 0.4);
-      const ramSpeedThreshold = behaviorParam(def, 'attack.contactRam', 'ramSpeedThreshold', 5);
-      const knockback = behaviorParam(def, 'attack.contactRam', 'knockback', 0.92);
       const damage = behaviorParam(def, 'attack.contactRam', 'damage', 4);
       if (runtime.distToTank < ctx.enemies.radiusFor(e) + ctx.rules.config.arena.tankRadius + radiusOffset && (e.hitCd ?? 0) <= 0 && t.deadT <= 0) {
         e.hitCd = hitCooldown;
-        const tankSpeed = Math.hypot(t.vx, t.vz);
-        if (tankSpeed > ramSpeedThreshold) {
-          ctx.damage.applyEnemy(e, 999, 'ram');
-          t.vx *= knockback;
-          t.vz *= knockback;
-          ctx.score.addScore(ctx.rules.scoring.ramScore, 'RAM');
-          ctx.combo.addDriverContribution(1, ctx.rules.config.jackpot.ramGain, 'RAM');
-        } else {
-          ctx.damage.applyTank(damage, 'bug');
-          pushEvent(ctx, 'crash', e.x, e.y, e.z, { value: damage });
-          e.x -= runtime.dirX * 0.8;
-          e.z -= runtime.dirZ * 0.8;
-        }
+        // Enemy-to-tank contact attack (unchanged). Tank offense is owned by
+        // TankContactCombat (Dash-only); normal contact deals zero enemy
+        // damage and speed alone can no longer kill.
+        ctx.damage.applyTank(damage, 'bug');
+        pushEvent(ctx, 'crash', e.x, e.y, e.z, { value: damage });
+        e.x -= runtime.dirX * 0.8;
+        e.z -= runtime.dirZ * 0.8;
       }
     },
   });

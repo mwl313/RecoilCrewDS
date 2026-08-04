@@ -22,7 +22,7 @@ export const scoringSchema = z.object({
     bonus: nonNegativeInt,
   }),
   scrapLoopWindow: positiveNumber,
-  ramScore: nonNegativeInt,
+  dashScore: nonNegativeInt,
   wipeoutPenalty: probability,
   jackpotCooldown: nonNegativeNumber,
   assist: z.object({

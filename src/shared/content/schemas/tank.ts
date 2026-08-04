@@ -72,6 +72,16 @@ export const tankSchema = z.object({
   dashAirMultiplier: nonNegativeNumber,
   dashMaxHorizontalSpeed: positiveNumber,
   dashPresentationSeconds: nonNegativeNumber,
+  /** Offensive contact damage while NOT dashing (Combat 05: 0). */
+  contactDamage: nonNegativeNumber,
+  /** Damage dealt to a contacted enemy during the accepted Dash window. */
+  dashContactDamage: nonNegativeNumber,
+  /** Seconds the Dash contact-damage window stays active after a Dash. */
+  dashDamageWindowSeconds: nonNegativeNumber,
+  /** Chassis velocity multiplier applied on Dash contact. */
+  dashContactKnockback: nonNegativeNumber,
+  /** Per-target cooldown between Dash contact hits (seconds). */
+  dashContactPerTargetCooldown: nonNegativeNumber,
   collisionRadius: positiveNumber,
   footprint: z
     .array(

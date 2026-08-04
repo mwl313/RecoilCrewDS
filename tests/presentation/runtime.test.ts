@@ -157,10 +157,10 @@ describe('SceneRuntime components', () => {
 describe('HudProjector', () => {
   function state(partial: Partial<MatchState> = {}): MatchState {
     return {
-      tank: { x: 0, y: 0, z: 0, vx: 10, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, drift: false, deadT: 0, prevOnRamp: false },
+      tank: { x: 0, y: 0, z: 0, vx: 10, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false, deadT: 0, prevOnRamp: false },
       turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 },
       combo: { multiplier: 1 },
-      stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, bestCombo: 0, ramKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false },
+      stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, bestCombo: 0, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false },
       duration: 90,
       time: 0,
       truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: 100, waypoint: 0, escaped: false, sirenT: 0 },
@@ -182,7 +182,7 @@ describe('HudProjector', () => {
 
   it('projects safe view fields (no raw MatchState exposure)', () => {
     const projector = new HudProjector();
-    const vm = projector.project(state({ stats: { score: 12345, jackpotMeter: 80, scrapCollected: 5, kills: 4, links: 2, wipeouts: 1, bestCombo: 5, ramKills: 1, dodgeCount: 2, jackpotFired: 1, anyContribution: true } }), {
+    const vm = projector.project(state({ stats: { score: 12345, jackpotMeter: 80, scrapCollected: 5, kills: 4, links: 2, wipeouts: 1, bestCombo: 5, dashKills: 1, dodgeCount: 2, jackpotFired: 1, anyContribution: true } }), {
       role: 'driver',
       peerConnected: true,
       ping: 24.2,

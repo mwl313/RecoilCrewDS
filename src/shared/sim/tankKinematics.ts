@@ -36,6 +36,8 @@ export interface TankKinematicState {
   dashCooldown: number;
   /** Short presentation window after an accepted dash (seconds). */
   dashPresentationT: number;
+  /** Authoritative Dash contact-damage window (seconds remaining). */
+  dashDamageT: number;
   drift: boolean;
   /** Landing momentum grace window (seconds); affects grip. */
   landingGripT: number;
@@ -89,6 +91,7 @@ export function stepTankKinematics(
   // the presentation timer is cosmetic and deliberately independent.
   t.dashCooldown = Math.max(0, t.dashCooldown - dt);
   t.dashPresentationT = Math.max(0, t.dashPresentationT - dt);
+  t.dashDamageT = Math.max(0, t.dashDamageT - dt);
   t.landingGripT = Math.max(0, t.landingGripT - dt);
 
   // Jump edge: grounded-only, before normal gravity integration. Launch
@@ -146,6 +149,7 @@ export function stepTankKinematics(
       capHorizontalSpeed(t, tankCfg.dashMaxHorizontalSpeed);
       t.dashCooldown = tankCfg.dashCooldown;
       t.dashPresentationT = tankCfg.dashPresentationSeconds;
+      t.dashDamageT = tankCfg.dashDamageWindowSeconds;
       callbacks?.onDash?.();
     }
   }

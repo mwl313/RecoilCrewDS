@@ -43,6 +43,7 @@ function tank(x: number, z: number, partial: Partial<TankState> = {}): TankState
     grounded: true,
     dashCooldown: 0,
     dashPresentationT: 0,
+    dashDamageT: 0,
     drift: false,
     deadT: 0,
     prevOnRamp: false,

@@ -135,7 +135,7 @@ describe('Driver predictor movement synchronization', () => {
   function tankAt(y: number): TankState {
     return {
       x: 0, y, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
-      pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0,
+      pitch: 0, roll: 0, integrity: 100, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0,
       shieldedT: 0, deadT: 0, grounded: false, drift: false,
     };
   }
