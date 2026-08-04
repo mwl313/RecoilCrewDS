@@ -5,12 +5,13 @@ import { loadContentPackFromFilesystem } from '../../src/shared/content/contentL
 import { createBuiltinBehaviorRegistry } from '../../src/shared/content/behaviorRegistry';
 import { EnemySpatialIndex } from '../../src/shared/spatial/enemySpatialIndex';
 import { Match } from '../../src/shared/sim/match';
+import type { EnemyState } from '../../src/shared/types';
 
 const CONTENT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..', 'content');
 const pack = loadContentPackFromFilesystem(CONTENT_ROOT);
 
 function enemy(id: number, x: number, z: number, alive = true) {
-  return { id, x, z, alive } as never;
+  return { id, x, z, alive } as unknown as EnemyState;
 }
 
 describe('EnemySpatialIndex (M5)', () => {
