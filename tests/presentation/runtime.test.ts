@@ -158,7 +158,7 @@ describe('HudProjector', () => {
   function state(partial: Partial<MatchState> = {}): MatchState {
     return {
       tank: { x: 0, y: 0, z: 0, vx: 10, vy: 0, vz: 0, yaw: 0, yawVel: 0, pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false, deadT: 0, prevOnRamp: false },
-      turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 },
+      turret: { yaw: 0, pitch: 0, cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 },
       combo: { multiplier: 1 },
       build: { capabilities: [] },
       stats: { score: 0, jackpotMeter: 0, scrapCollected: 0, kills: 0, links: 0, wipeouts: 0, bestCombo: 0, dashKills: 0, dodgeCount: 0, jackpotFired: 0, anyContribution: false },
@@ -203,7 +203,7 @@ describe('HudProjector', () => {
   it('gunner and single-player projection and prompts', () => {
     const projector = new HudProjector();
     const vm = projector.project(
-      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 1.2, mgCooldown: 0, mgFiring: false, chargeT: 0.5, jackpotReady: true, cannonFlash: 0, jackpotCooldown: 0 } }),
+      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false, cannonCooldown: 1.2, mgCooldown: 0, mgFiring: false, chargeT: 0.5, jackpotReady: true, cannonFlash: 0, jackpotCooldown: 0 } }),
       { role: 'gunner', peerConnected: true, ping: 10, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
     );
     expect(vm.crosshairVisible).toBe(true);
@@ -213,7 +213,7 @@ describe('HudProjector', () => {
     expect(vm.tank.dashCooling).toBe(false);
 
     const sp = projector.project(
-      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 } }),
+      state({ time: 3, turret: { yaw: 0, pitch: 0, cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false, cannonCooldown: 0, mgCooldown: 0, mgFiring: false, chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0 } }),
       { role: 'driver', peerConnected: false, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'singlePlayer', showRoleIdentity: false, showPeerStatus: false }, objective: null },
     );
     expect(sp.crosshairVisible).toBe(true);

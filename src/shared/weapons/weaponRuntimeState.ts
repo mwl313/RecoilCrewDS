@@ -10,6 +10,8 @@ export class WeaponRuntimeState {
   edgeDown = false;
   burstsRemaining = 0;
   burstT = 0;
+  /** Charge ratio inherited by burst follow-up shells (Combat 05 M5/M6). */
+  burstChargeRatio = 0;
 
   constructor(
     readonly slot: GunnerSlot,
@@ -20,5 +22,6 @@ export class WeaponRuntimeState {
     this.edgeDown = false;
     this.burstsRemaining = 0;
     this.burstT = 0;
+    this.burstChargeRatio = 0;
   }
 }

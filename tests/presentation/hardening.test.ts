@@ -51,6 +51,7 @@ function state(partial: Partial<Record<string, unknown>> = {}): never {
     },
     turret: {
       yaw: 0, pitch: 0, cannonCooldown: 0, mgCooldown: 0, mgFiring: false,
+      cannonHeld: false, cannonHoldT: 0, cannonChargeRatio: 0, cannonChargeFull: false,
       chargeT: 0, jackpotReady: false, cannonFlash: 0, jackpotCooldown: 0,
       ...(partial.turret as Record<string, unknown> | undefined),
     },

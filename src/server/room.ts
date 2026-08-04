@@ -125,11 +125,10 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
 }
 
 const GUNNER_ACTIONS: readonly GunnerActionType[] = [
-  'cannonPressed',
   'mgStart',
   'mgStop',
-  'abilityStart',
-  'abilityRelease',
+  'secondaryPressed',
+  'secondaryReleased',
 ];
 
 export class RoomManager {

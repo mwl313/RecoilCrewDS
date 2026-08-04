@@ -2,9 +2,15 @@ import type { SystemContext } from '../sim/systems/systemContext';
 import type { WeaponDefinition } from './weaponDefinition';
 import type { WeaponRuntimeState } from './weaponRuntimeState';
 
+export interface WeaponFireRequest {
+  actionSeq?: number;
+  /** Combat 05: charge ratio of the fired cannon shell (0 = normal). */
+  chargeRatio?: number;
+}
+
 export interface WeaponBehavior {
   readonly id: string;
-  fire(ctx: SystemContext, weapon: WeaponDefinition, runtime: WeaponRuntimeState): void;
+  fire(ctx: SystemContext, weapon: WeaponDefinition, runtime: WeaponRuntimeState, request?: WeaponFireRequest): void;
   /** Optional per-frame update (used by charge weapons). */
   update?(ctx: SystemContext, weapon: WeaponDefinition, runtime: WeaponRuntimeState, dt: number): void;
 }

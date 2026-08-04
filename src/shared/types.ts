@@ -137,6 +137,11 @@ export interface TankState {
 export interface TurretState {
   yaw: number; // chassis-local yaw (chassis yaw added exactly once at world muzzle)
   pitch: number;
+  /** Combat 05 cannon hold state (secondary button, relic-gated). */
+  cannonHeld: boolean;
+  cannonHoldT: number;
+  cannonChargeRatio: number;
+  cannonChargeFull: boolean;
   chargeT: number;
   cannonCooldown: number;
   cannonFlash: number;

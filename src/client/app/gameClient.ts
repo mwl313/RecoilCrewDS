@@ -58,8 +58,7 @@ export class GameClient {
   private singlePlayerAcc = 0;
   private singlePlayerResultsShown = false;
   private contentPack: ContentPack | null = null;
-  private cannonDown = false;
-  private chargeDown = false;
+  private secondaryDown = false;
   private mgDown = false;
   private readonly pendingLocalActions = new Map<number, { action: GunnerActionType; at: number }>();
   private f4: F4Overlay | null = null;
@@ -335,8 +334,7 @@ export class GameClient {
     this.slowMo = 0;
     this.time = 0;
     this.pendingLocalActions.clear();
-    this.cannonDown = false;
-    this.chargeDown = false;
+    this.secondaryDown = false;
     this.mgDown = false;
   }
 
@@ -361,8 +359,8 @@ export class GameClient {
       aimYaw: turret.desiredYawLocal,
       aimPitch: turret.desiredPitch,
       primary: this.mouseDown('primary'),
-      secondary: this.mouseDown('secondary') && !m.state.turret.jackpotReady,
-      ability: this.mouseDown('secondary') && m.state.turret.jackpotReady,
+      secondary: this.mouseDown('secondary'),
+      ability: false,
     });
     this.singlePlayerAcc += dt;
     const step = 1 / 30;
@@ -485,8 +483,8 @@ export class GameClient {
         aimYaw: turret.desiredYawLocal,
         aimPitch: turret.desiredPitch,
         primary: this.mouseDown('primary'),
-        secondary: this.mouseDown('secondary') && !(latest?.turret.jackpotReady ?? false),
-        ability: this.mouseDown('secondary') && (latest?.turret.jackpotReady ?? false),
+        secondary: this.mouseDown('secondary'),
+        ability: false,
       });
     }
   }
@@ -530,8 +528,8 @@ export class GameClient {
           aimYaw: data.aimYaw ?? turret.desiredYawLocal,
           aimPitch: data.aimPitch ?? turret.desiredPitch,
           primary: data.primary === true,
-          secondary: data.secondary === true && !(this.presenter.latest?.turret.jackpotReady ?? false),
-          ability: data.ability === true && (this.presenter.latest?.turret.jackpotReady ?? false),
+          secondary: data.secondary === true,
+          ability: false,
         },
       });
     }
@@ -570,28 +568,25 @@ export class GameClient {
     const m = this.singlePlayerMatch!;
     const state = m.state;
     if (state.tank.deadT > 0) return;
-    const mg = this.mouseDown('primary');
-    const cannon = this.mouseDown('secondary') && !state.turret.jackpotReady;
-    const charge = this.mouseDown('secondary') && state.turret.jackpotReady;
-    if (mg && state.turret.mgCooldown <= 0) {
-      this.tankRig.chassis.updateMatrixWorld(true);
-      const muzzle = getMuzzleWorld(this.tankRig);
-      this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
-      this.audio.play('machineGun');
+    // Single Player drives the same authoritative WeaponSystem state machine
+    // through discrete secondary actions (capability gates hold/release).
+    const secondary = this.mouseDown('secondary');
+    const turret = this.prediction.getTurretSpaces();
+    if (secondary && !this.secondaryDown) {
+      m.applyGunnerAction('secondaryPressed', undefined, {
+        aimYaw: turret.desiredYawLocal,
+        aimPitch: turret.desiredPitch,
+      });
+      if (state.build.capabilities.includes('cannon.charge')) {
+        this.audio.play('jackpotCharge'); // charge-start presentation (renamed in M8)
+      }
+    } else if (!secondary && this.secondaryDown) {
+      m.applyGunnerAction('secondaryReleased', undefined, {
+        aimYaw: turret.desiredYawLocal,
+        aimPitch: turret.desiredPitch,
+      });
     }
-    if (cannon && !this.cannonDown && state.turret.cannonCooldown <= 0) {
-      this.tankRig.chassis.updateMatrixWorld(true);
-      const muzzle = getMuzzleWorld(this.tankRig);
-      this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
-      this.audio.play('cannon');
-      this.cameras.addImpulse(0.45);
-    }
-    if (charge && !this.chargeDown && state.turret.jackpotReady) {
-      this.audio.play('jackpotCharge');
-    }
-    this.cannonDown = cannon;
-    this.chargeDown = charge;
-    this.mgDown = mg;
+    this.secondaryDown = secondary;
     void dt;
   }
 
@@ -628,21 +623,14 @@ export class GameClient {
    */
   private pollGunnerActions(): void {
     if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
-    const latest = this.presenter.latest;
-    const jackpotReady = latest?.turret.jackpotReady ?? false;
     const mg = this.mouseDown('primary');
-    const cannon = this.mouseDown('secondary') && !jackpotReady;
-    const charge = this.mouseDown('secondary') && jackpotReady;
+    const secondary = this.mouseDown('secondary');
     if (mg && !this.mgDown) this.fireGunnerAction('mgStart');
     if (!mg && this.mgDown) this.fireGunnerAction('mgStop');
-    if (cannon && !this.cannonDown && (latest?.turret.cannonCooldown ?? 0) <= 0) {
-      this.fireGunnerAction('cannonPressed', true);
-    }
-    if (charge && !this.chargeDown) this.fireGunnerAction('abilityStart');
-    if (!charge && this.chargeDown) this.fireGunnerAction('abilityRelease');
+    if (secondary && !this.secondaryDown) this.fireGunnerAction('secondaryPressed', true);
+    if (!secondary && this.secondaryDown) this.fireGunnerAction('secondaryReleased', true);
     this.mgDown = mg;
-    this.cannonDown = cannon;
-    this.chargeDown = charge;
+    this.secondaryDown = secondary;
   }
 
   private fireGunnerAction(action: GunnerActionType, presentLocally = false): void {
@@ -658,7 +646,18 @@ export class GameClient {
     const latest = this.presenter.latest;
     this.tankRig.chassis.updateMatrixWorld(true);
     const muzzle = getMuzzleWorld(this.tankRig);
-    if (action === 'cannonPressed') {
+    const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
+    if (action === 'secondaryPressed') {
+      if (charging) {
+        this.audio.play('jackpotCharge'); // charge-start presentation (renamed in M8)
+        return;
+      }
+      this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
+      this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
+      this.audio.play('cannon');
+      this.cameras.addImpulse(0.45);
+    } else if (action === 'secondaryReleased') {
+      // Release presentation; charge scaling/visuals land in M6/M8.
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
       this.audio.play('cannon');
@@ -668,8 +667,6 @@ export class GameClient {
         this.audio.play('machineGun');
         this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
       }
-    } else if (action === 'abilityStart') {
-      this.audio.play('jackpotCharge');
     }
   }
 

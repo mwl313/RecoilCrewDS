@@ -31,10 +31,10 @@ function startRunning(): { manager: RoomManager; driver: FakeSocket; gunner: Fak
 }
 
 describe('gunner discrete actions', () => {
-  it('cannonPressed is accepted immediately and produces one recoil impulse tagged with the actionSeq', () => {
+  it('secondaryPressed is accepted immediately and produces one recoil impulse tagged with the actionSeq', () => {
     const { manager, gunner } = startRunning();
     gunner.sent = [];
-    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'cannonPressed' });
+    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'secondaryPressed', aimYaw: 0, aimPitch: 0.05 });
     const result = gunner.last('actionResult')!;
     expect(result.actionSeq).toBe(1);
     expect(result.accepted).toBe(true);
@@ -47,11 +47,11 @@ describe('gunner discrete actions', () => {
     expect(typeof impulses[0].simulationTick).toBe('number');
   });
 
-  it('rejects cannonPressed while the cannon is cooling down', () => {
+  it('rejects secondaryPressed while the cannon is cooling down', () => {
     const { manager, gunner } = startRunning();
-    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'cannonPressed' });
+    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'secondaryPressed' });
     for (let i = 0; i < 3; i++) manager.tick(1 / 30); // cooldown takes effect
-    manager.handle(gunner, { t: 'action', actionSeq: 2, action: 'cannonPressed' });
+    manager.handle(gunner, { t: 'action', actionSeq: 2, action: 'secondaryPressed' });
     const result = gunner.last('actionResult')!;
     expect(result.actionSeq).toBe(2);
     expect(result.accepted).toBe(false);
@@ -72,10 +72,11 @@ describe('gunner discrete actions', () => {
     expect(result.reason).toBe('unknown_action');
   });
 
-  it('abilityStart is rejected unless JACKPOT is ready', () => {
+  it('secondaryReleased is rejected without a valid held press', () => {
     const { manager, gunner } = startRunning();
-    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'abilityStart' });
+    manager.handle(gunner, { t: 'action', actionSeq: 1, action: 'secondaryReleased' });
     expect(gunner.last('actionResult')!.accepted).toBe(false);
+    expect(gunner.last('actionResult')!.reason).toBe('not_held');
   });
 
   it('relays sanitized accepted Driver input with normalized jump/dash edges', () => {

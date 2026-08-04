@@ -75,6 +75,10 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
     turret: {
       yaw: Math.PI / 2,
       pitch: 0.05,
+      cannonHeld: false,
+      cannonHoldT: 0,
+      cannonChargeRatio: 0,
+      cannonChargeFull: false,
       chargeT: 0,
       cannonCooldown: 0,
       cannonFlash: 0,
@@ -144,10 +148,11 @@ export class MatchRuntime {
   private driverEdgesPending: { dash: boolean; jump: boolean } = { dash: false, jump: false };
   private driverEdgesConsumed = true;
   private gunnerInput: GunnerInput = { aimYaw: Math.PI / 2, aimPitch: 0.05, primary: false, secondary: false, ability: false };
-  private gunnerEdgeLatches: { mgStart: boolean; mgStop: boolean; cannonPressed: boolean } = {
+  private gunnerEdgeLatches: { mgStart: boolean; mgStop: boolean; secondaryPressed: boolean; secondaryReleased: boolean } = {
     mgStart: false,
     mgStop: false,
-    cannonPressed: false,
+    secondaryPressed: false,
+    secondaryReleased: false,
   };
   constructor(
     matchId: string,
@@ -283,10 +288,10 @@ export class MatchRuntime {
       this.gunnerInput.aimPitch = clamp(aimPitch, limits.minPitch, limits.maxPitch);
     }
     switch (action) {
-      case 'cannonPressed':
+      case 'secondaryPressed':
         if (tur.cannonCooldown > 0) return { accepted: false, reason: 'cooldown' };
         this.gunnerInput.secondary = true;
-        this.gunnerEdgeLatches.cannonPressed = true;
+        this.gunnerEdgeLatches.secondaryPressed = true;
         this.systems.pendingActionSeq = seq;
         return { accepted: true };
       case 'mgStart':
@@ -298,12 +303,11 @@ export class MatchRuntime {
         this.gunnerInput.primary = false;
         this.gunnerEdgeLatches.mgStop = true;
         return { accepted: true };
-      case 'abilityStart':
-        if (!tur.jackpotReady) return { accepted: false, reason: 'not_ready' };
-        this.gunnerInput.ability = true;
-        return { accepted: true };
-      case 'abilityRelease':
-        this.gunnerInput.ability = false;
+      case 'secondaryReleased':
+        if (!tur.cannonHeld) return { accepted: false, reason: 'not_held' };
+        this.gunnerInput.secondary = false;
+        this.gunnerEdgeLatches.secondaryReleased = true;
+        this.systems.pendingActionSeq = seq;
         return { accepted: true };
     }
   }
@@ -330,7 +334,7 @@ export class MatchRuntime {
 
   clearGunnerInput() {
     this.gunnerInput = { aimYaw: this.gunnerInput.aimYaw, aimPitch: this.gunnerInput.aimPitch, primary: false, secondary: false, ability: false };
-    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, cannonPressed: false };
+    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.weaponSystem.clearActions();
   }
 
@@ -342,7 +346,7 @@ export class MatchRuntime {
     this.systems.simTick = this.simTick;
     const s = this.state;
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
-    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, cannonPressed: false };
+    this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.stepTank(dt);
     this.weaponSystem.update(dt, this.gunnerInput);
     this.systems.enemies.update(dt);

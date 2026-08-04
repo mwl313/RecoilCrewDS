@@ -54,11 +54,10 @@ export interface GunnerInputMessage extends ProtocolEnvelope {
 
 /** Discrete Gunner action (immediate send, not part of the aim frame). */
 export type GunnerActionType =
-  | 'cannonPressed'
   | 'mgStart'
   | 'mgStop'
-  | 'abilityStart'
-  | 'abilityRelease';
+  | 'secondaryPressed'
+  | 'secondaryReleased';
 
 export interface GunnerActionMessage extends ProtocolEnvelope {
   t: 'action';

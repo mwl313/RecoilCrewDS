@@ -76,7 +76,8 @@ export interface CanonicalTank {
 }
 
 export interface CanonicalTurret {
-  yaw: number; pitch: number; chargeT: number;
+  yaw: number; pitch: number; cannonHeld: boolean; cannonHoldT: number;
+  cannonChargeRatio: number; cannonChargeFull: boolean; chargeT: number;
   cannonCooldown: number; mgCooldown: number;
   jackpotReady: boolean; jackpotCooldown: number;
 }
@@ -210,6 +211,10 @@ export function canonicalizeState(s: MatchState): CanonicalState {
     },
     turret: {
       yaw: round(s.turret.yaw), pitch: round(s.turret.pitch),
+      cannonHeld: s.turret.cannonHeld,
+      cannonHoldT: round(s.turret.cannonHoldT),
+      cannonChargeRatio: round(s.turret.cannonChargeRatio),
+      cannonChargeFull: s.turret.cannonChargeFull,
       chargeT: round(s.turret.chargeT),
       cannonCooldown: round(s.turret.cannonCooldown),
       mgCooldown: round(s.turret.mgCooldown),
