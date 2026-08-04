@@ -32,7 +32,9 @@ export class EnemySystem {
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
-    const def = this.ctx.rules.enemies.get(ENEMY_TYPE_TO_ID[enemy.type]);
+    const def =
+      this.ctx.rules.enemies.get(enemy.defId ?? '') ??
+      this.ctx.rules.enemies.get(ENEMY_TYPE_TO_ID[enemy.type]);
     if (!def) throw new Error(`no enemy definition for type '${enemy.type}'`);
     return def;
   }
@@ -89,6 +91,7 @@ export class EnemySystem {
     const enemy: EnemyState = {
       id: s.nextEnemyId++,
       type,
+      defId: def.id,
       x: sx!,
       y: this.ctx.world.groundHeightAt(sx!, sz!),
       z: sz!,

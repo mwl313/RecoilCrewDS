@@ -69,6 +69,69 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
   });
 
   registry.register({
+    id: 'movement.flowSeek',
+    update(ctx, e, runtime, dt) {
+      const field = ctx.flowField;
+      const tank = ctx.state.tank;
+      const dx = tank.x - e.x;
+      const dz = tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      runtime.distToTank = d;
+      const directX = dx / d;
+      const directZ = dz / d;
+      if (!field) {
+        runtime.dirX = directX;
+        runtime.dirZ = directZ;
+        runtime.speed = 3.2;
+        return;
+      }
+      const policy = ctx.horde?.resolved.policies.navigation;
+      const nearWeight = policy?.nearWeight ?? 0.7;
+      const directWeight = policy?.directWeight ?? 0.2;
+      const flow = field.direction(e.x, e.z);
+      if (!flow) {
+        runtime.dirX = directX;
+        runtime.dirZ = directZ;
+      } else if (d < 90) {
+        runtime.dirX = flow.x * nearWeight + directX * directWeight;
+        runtime.dirZ = flow.z * nearWeight + directZ * directWeight;
+      } else {
+        runtime.dirX = flow.x;
+        runtime.dirZ = flow.z;
+      }
+      const def = ctx.enemies.defFor(e);
+      runtime.speed = behaviorParam(def, 'movement.flowSeek', 'speed', 3.2);
+      // Stuck detection: require net progress toward the tank.
+      const threshold = policy?.stuckProgressThreshold ?? 0.25;
+      const stuckTime = policy?.stuckTimeSeconds ?? 2.5;
+      const progress = runtime.lastProgress - d;
+      if (progress < threshold * runtime.speed * dt) {
+        runtime.stuckT += dt;
+      } else {
+        runtime.stuckT = 0;
+        runtime.recovered = false;
+      }
+      runtime.lastProgress = d;
+      if (runtime.stuckT > stuckTime && !runtime.recovered) {
+        runtime.recovered = true;
+        runtime.stuckT = 0;
+        // Alternate recovery: rotate the flow direction away from the wall
+        // based on deterministic per-enemy parity.
+        const side = e.id % 2 === 0 ? 1 : -1;
+        const ang = Math.atan2(runtime.dirX, runtime.dirZ) + side * Math.PI * 0.5;
+        runtime.dirX = Math.sin(ang);
+        runtime.dirZ = Math.cos(ang);
+      } else if (runtime.stuckT > stuckTime * 2.5) {
+        // Last resort: despawn/refund only when invisible and safe so a
+        // trapped enemy cannot consume the population cap indefinitely.
+        if (d > 30) {
+          ctx.enemies.purge((c) => c.id === e.id);
+        }
+      }
+    },
+  });
+
+  registry.register({
     id: 'movement.obstacleAvoid',
     update(ctx, e, runtime) {
       const def = ctx.enemies.defFor(e);

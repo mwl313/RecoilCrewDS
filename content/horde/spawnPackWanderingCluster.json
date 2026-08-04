@@ -2,7 +2,7 @@
   "id": "pack.wanderingCluster",
   "label": "Wandering Cluster",
   "tags": ["farming"],
-  "entries": [{ "enemyId": "enemy.scrapBug", "count": 4, "formationRole": "wanderer" }],
+  "entries": [{ "enemyId": "enemy.scrapBugHorde", "count": 4, "formationRole": "wanderer" }],
   "threatCost": 4,
   "entityCost": 4,
   "formation": "cluster",

@@ -82,6 +82,7 @@ export function createBuiltinBehaviorRegistry(): BehaviorRegistry {
   registry.register({ id: 'weapon.projectile', kind: 'weapon', description: 'Semi-auto projectile weapon (main cannon)' });
   registry.register({ id: 'projectile.shell', kind: 'projectile', description: 'Shared ballistic shell behavior' });
   registry.register({ id: 'movement.seekTank', kind: 'movement', description: 'Seek the tank with optional speed wobble' });
+  registry.register({ id: 'movement.flowSeek', kind: 'movement', description: 'Shared flow-field seek for horde fodder (M7)' });
   registry.register({ id: 'movement.followRoute', kind: 'movement', description: 'Follow a waypoint route (Loot Truck)' });
   registry.register({ id: 'movement.circleTarget', kind: 'movement', description: 'Circle the tank while closing' });
   registry.register({ id: 'movement.densitySteering', kind: 'movement', description: 'Spatial-index density steering (M5)' });

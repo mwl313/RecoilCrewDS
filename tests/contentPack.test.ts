@@ -96,6 +96,7 @@ describe('content pack loading (valid Demo pack)', () => {
       'enemy.lootTruck',
       'enemy.rammer',
       'enemy.scrapBug',
+      'enemy.scrapBugHorde',
       'enemy.testHound',
     ]);
     expect(pack.ids('items')).toEqual(['item.overdriveCannon', 'item.relicCannonCharge']);

@@ -2,7 +2,7 @@
   "id": "pack.reinforcementColumn",
   "label": "Reinforcement Column",
   "tags": ["wave"],
-  "entries": [{ "enemyId": "enemy.scrapBug", "count": 5, "formationRole": "reinforcement" }],
+  "entries": [{ "enemyId": "enemy.scrapBugHorde", "count": 5, "formationRole": "reinforcement" }],
   "threatCost": 5,
   "entityCost": 5,
   "formation": "column",

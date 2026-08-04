@@ -365,6 +365,9 @@ export class MatchRuntime {
     this.weaponSystem.update(dt, this.gunnerInput);
     this.systems.enemies.update(dt);
     this.systems.contact.update();
+    if (this.stageEnforced && this.systems.flowField) {
+      this.systems.flowField.update(s.tank.x, s.tank.z, dt);
+    }
     this.systems.projectiles.update(dt);
     this.systems.pickups.update(dt);
     if (this.systems.horde && this.stageEnforced) {

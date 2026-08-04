@@ -30,6 +30,7 @@
       ],
       "enemies": [
         "enemies/scrapBug.json",
+        "enemies/scrapBugHorde.json",
         "enemies/rammer.json",
         "enemies/gunTower.json",
         "enemies/lootTruck.json",

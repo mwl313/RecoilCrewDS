@@ -2,7 +2,7 @@
   "id": "pack.vanguardWall",
   "label": "Vanguard Wall",
   "tags": ["wave"],
-  "entries": [{ "enemyId": "enemy.scrapBug", "count": 6, "formationRole": "vanguard" }],
+  "entries": [{ "enemyId": "enemy.scrapBugHorde", "count": 6, "formationRole": "vanguard" }],
   "threatCost": 6,
   "entityCost": 6,
   "formation": "line",

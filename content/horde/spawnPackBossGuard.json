@@ -2,7 +2,7 @@
   "id": "pack.bossGuard",
   "label": "Boss Guard",
   "tags": ["boss"],
-  "entries": [{ "enemyId": "enemy.scrapBug", "count": 8, "formationRole": "guard" }],
+  "entries": [{ "enemyId": "enemy.scrapBugHorde", "count": 8, "formationRole": "guard" }],
   "threatCost": 8,
   "entityCost": 8,
   "formation": "ring",

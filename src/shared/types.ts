@@ -36,6 +36,8 @@ export type EnemyType = 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck';
 export interface EnemyState {
   id: number;
   type: EnemyType;
+  /** Definition id used at spawn (defaults to the type's canonical def). */
+  defId?: string;
   x: number;
   y: number;
   z: number;
