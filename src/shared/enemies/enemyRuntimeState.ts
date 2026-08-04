@@ -11,4 +11,9 @@ export class EnemyRuntimeState {
   stuckT = 0;
   lastProgress = 0;
   recovered = false;
+  /** Core Loop 06 M8: simulation LOD tier (0 combat .. 3 aggregate). */
+  tier: 0 | 1 | 2 | 3 = 0;
+  nextUpdateAt = 0;
+  lastUpdateT = 0;
+  phaseOffset = 0;
 }

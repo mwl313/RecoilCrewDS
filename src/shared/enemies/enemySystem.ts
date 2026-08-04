@@ -6,6 +6,7 @@ import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
+import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
 
 /** Wire type -> definition id (documented engine default mapping). */
 const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
@@ -119,13 +120,17 @@ export class EnemySystem {
       enemy.z = z ?? 0;
     }
     s.enemies.push(enemy);
-    this.runtimes.set(enemy.id, new EnemyRuntimeState());
+    const runtime = new EnemyRuntimeState();
+    runtime.lastUpdateT = s.time;
+    runtime.phaseOffset = (enemy.id % 16) / 16;
+    this.runtimes.set(enemy.id, runtime);
     return enemy;
   }
 
   update(dt: number): void {
     const s = this.ctx.state;
     this.ctx.enemySpatial.rebuild(s.enemies);
+    const policy = this.lodPolicy();
     for (const e of s.enemies) {
       if (!e.alive) {
         e.stateT += dt;
@@ -139,10 +144,28 @@ export class EnemySystem {
       let runtime = this.runtimes.get(e.id);
       if (!runtime) {
         runtime = new EnemyRuntimeState();
+        runtime.lastUpdateT = s.time;
+        runtime.phaseOffset = (e.id % 16) / 16;
         this.runtimes.set(e.id, runtime);
       }
-      for (const behavior of def.behaviors) {
-        this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
+      const tier = this.tierFor(e, runtime);
+      runtime.tier = tier;
+      if (policy) {
+        const freq = tierFrequency(policy, tier);
+        if (s.time < runtime.nextUpdateAt) {
+          this.ctx.enemyImpulses.update(e, def, dt);
+          continue;
+        }
+        const elapsed = Math.min(0.75, Math.max(0, s.time - runtime.lastUpdateT));
+        runtime.lastUpdateT = s.time;
+        runtime.nextUpdateAt = s.time + 1 / freq;
+        for (const behavior of def.behaviors) {
+          this.behaviors.require(behavior.id).update(this.ctx, e, runtime, elapsed);
+        }
+      } else {
+        for (const behavior of def.behaviors) {
+          this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
+        }
       }
       this.ctx.enemyImpulses.update(e, def, dt);
     }
@@ -152,6 +175,47 @@ export class EnemySystem {
     for (const id of [...this.runtimes.keys()]) {
       if (!live.has(id)) this.runtimes.delete(id);
     }
+  }
+
+  /** Current LOD tier for an enemy (public for tests and debug overlays). */
+  tierFor(
+    e: EnemyState,
+    runtime: EnemyRuntimeState = this.runtimes.get(e.id) ?? new EnemyRuntimeState(),
+  ): 0 | 1 | 2 | 3 {
+    const policy = this.lodPolicy();
+    if (!policy) return 0;
+    const t = this.ctx.state.tank;
+    const d = Math.hypot(e.x - t.x, e.z - t.z);
+    let tier = runtime.tier;
+    if (tier === 0) {
+      if (d > policy.tier0Leave) tier = 1;
+    } else if (tier === 1) {
+      if (d < policy.tier0Enter) tier = 0;
+      else if (d > policy.tier1Leave) tier = 2;
+    } else if (tier === 2) {
+      if (d < policy.tier1Enter) tier = 1;
+      else if (d > policy.tier2Leave) tier = 3;
+    } else if (d < policy.tier2Enter) {
+      tier = 2;
+    }
+    // Promotion overrides: gameplay-relevant enemies always run at full rate.
+    if (e.ownership?.populationClass === 'boss' || e.ownership?.leaderId === e.id) return 0;
+    if (e.telegraph > 0 || e.flash > 0) return 0;
+    if (e.state === 'lock' || e.state === 'telegraph' || e.state === 'charge' || e.state === 'fire') return 0;
+    const lastImpulse = e.lastImpulseT ?? -9;
+    if (lastImpulse > 0 && lastImpulse > this.ctx.state.time - 0.5) return 0;
+    runtime.tier = tier as 0 | 1 | 2 | 3;
+    return runtime.tier;
+  }
+
+  /** LOD is only active when a mode enforces the horde stage. */
+  get lodEnabled(): boolean {
+    return this.lodPolicy() !== null;
+  }
+
+  private lodPolicy(): EnemyLodPolicyDefinition | null {
+    if (this.ctx.rules.hordeDirector?.enforceStage !== true) return null;
+    return this.ctx.horde?.resolved.policies.lod ?? null;
   }
 
   /** Remove enemies directly (cohort purge): no kill hooks, XP, or drops. */
@@ -165,5 +229,18 @@ export class EnemySystem {
     this.ctx.state.enemies = keep;
     for (const e of removed) this.runtimes.delete(e.id);
     return removed;
+  }
+}
+
+function tierFrequency(policy: EnemyLodPolicyDefinition, tier: 0 | 1 | 2 | 3): number {
+  switch (tier) {
+    case 0:
+      return 30;
+    case 1:
+      return policy.tier1Hz;
+    case 2:
+      return policy.tier2Hz;
+    case 3:
+      return policy.tier3Hz;
   }
 }
