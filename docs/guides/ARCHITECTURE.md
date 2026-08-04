@@ -12,7 +12,7 @@ content/ (validated, frozen JSON)
   → authoritative state/events
   → room snapshots (rules revisions + movement block)
   → GameClient (RenderWorld, EntityViewRegistry, NetworkStatePresenter,
-    CameraManager, PredictionController, PresentationEventRouter, HUD, PIP,
+    CameraManager, PredictionController, PresentationEventRouter, HUD,
     Quality)
 ```
 
@@ -85,6 +85,37 @@ turret prediction reconciled with snapshots.
   and immovable Gun Towers; tank splash knockback stays zero.
 - Details: `docs/game-feel/ARCADE_UPRIGHT_AERIAL_MOVEMENT_IMPLEMENTATION_REPORT.md`
   and `docs/game-feel/ARCADE_MOVEMENT_TUNING_GUIDE.md`.
+
+## Single Player, PIP removal, and model-driven aim (gameplay04)
+
+- The partner-camera PIP is fully removed: one world render per gameplay
+  frame, no `PipRenderer`, no PIP HUD/tuning/metrics. `RenderWorld.renderCount`
+  and `e2e/pip-removal.spec.ts` guard the one-render invariant.
+- Practice is replaced by a first-class Single Player mode
+  (`mode.singlePlayerScoreAttack`): combined Driver+Gunner controls, no role
+  or peer UI, no Tab/Q swap, offline start, and local-restart results
+  (`app.restartSinglePlayer`). `GameClient` uses a typed `GameSessionContext`
+  instead of `mode: 'online' | 'practice'`.
+- The browser consumes a generated, validated `ContentPack`
+  (`npm run generate:content-pack` → `src/generated/contentPack.generated.ts`),
+  so Single Player runs the same `ContentPack → MatchRules → MatchRuntime`
+  pipeline as the server without shipping fs/node crypto.
+- `TankDefinition.rig` is the single weapon-mount geometry source:
+  `src/shared/vehicle/tankRigGeometry.ts` (Three-free) computes pivots, muzzle,
+  direction, aim pivot, and turret solve. `MatchRules.tankRigBlock()` rides
+  the movement rules block so online clients build the exact selected rig;
+  Single Player reads it locally.
+- The server's MG/cannon/JACKPOT behaviors resolve `muzzleWorld()` through the
+  shared rig; the client builds `TankRig` from the same data and spawns local
+  VFX from `getMuzzleWorld()`. No hardcoded `[0, 0.75, 2.9]` or pivot offsets
+  remain in gameplay paths.
+- The trajectory crosshair (`src/client/aim/trajectoryReticleProjector.ts`)
+  projects the current predicted muzzle ray through the spatial camera query,
+  honestly trails the barrel during turret traverse, turns blocked near
+  cover, and hides when off-screen/NaN. The HUD node moves via cached style
+  updates (no DOM rebuild).
+- Details: `docs/gameplay04/`, `docs/guides/SINGLE_PLAYER_MODE_GUIDE.md`,
+  `docs/guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md`.
 
 Driver tank prediction is bound to the authoritative arena for any map size:
 the prediction ground is set on create/start/rematch/reconnect and survives

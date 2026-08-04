@@ -13,8 +13,8 @@
   snapshot/event streaming, results, rematch, reconnect grace, static
   serving + WebSocket on one port.
 - **Client** — two independent TPS cameras with collision, pointer-locked
-  aim, local turret prediction, PIP feed, HUD/menus/results, procedural
-  audio, pooled VFX, practice mode, quality fallback.
+  aim, local turret prediction, HUD/menus/results, procedural
+  audio, pooled VFX, single player mode, quality fallback.
 - **Assets** — semantic registry with generated low-poly fallbacks for every
   required ID + optional `/assets/manifest.json` overrides.
 - **Tests and docs** — vitest suites, Playwright e2e, headless verification
@@ -145,6 +145,29 @@
   Verified: `npm test` **481/481** (51 files, incl. 17 movement tests);
   `npm run test:e2e` **31/31**; demo/maps/sweep/loop/maplab/presentation
   all PASS. Details: `docs/game-feel/`.
+
+- **Gameplay04 — Single Player, PIP removal, and model-driven aim complete**
+  — the partner-camera PIP is fully removed (one world render per frame,
+  no PIP HUD/tuning/metrics); Practice is replaced by first-class Single
+  Player (`mode.singlePlayerScoreAttack`, combined controls, no role/peer
+  UI, no Tab/Q swap, offline start, local-restart results); a generated
+  browser-safe ContentPack feeds the same ContentPack → MatchRules →
+  MatchRuntime pipeline used by the server; `TankDefinition.rig` is the one
+  shared weapon-mount geometry (Three-free resolver, `TankRigRulesBlock`
+  delivery, server muzzle = client muzzle, local VFX from the same muzzle);
+  and the trajectory crosshair projects the actual predicted shot ray with
+  honest turret-lag and near-cover blocking. Verified: `npx tsc --noEmit`
+  PASS; `npm run build` PASS; `npm test` **515/515 PASS** (57 files);
+  `npm run test:demo` PASS (golden intentionally regenerated for the
+  authoritative-muzzle change: t30 checkpoint 1550 → 1450, final 7956/B/×2/30
+  unchanged); `npm run test:e2e` **32/32 PASS** (incl. Single Player full
+  round + local restart + PIP render spy); `npm run test:loop` PASS (1804
+  snapshots); `npm run test:maps` + `test:maps:sweep` + `test:maps:sweep:full`
+  PASS; `npm run build:maplab` + `test:maplab` **32/32 PASS**;
+  `build:presentation-preview` + `test:presentation` **37/37 PASS**;
+  `test:netcode` **27/27** + `test:netcode:e2e` **4/4** PASS. Details:
+  `docs/gameplay04/`, `docs/guides/SINGLE_PLAYER_MODE_GUIDE.md`,
+  `docs/guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md`.
 
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).

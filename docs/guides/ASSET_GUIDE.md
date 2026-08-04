@@ -34,6 +34,31 @@ cloned per instance. VFX, audio, themes, icons, and camera impulses resolve
 through the bundled presentation definition
 (`content/presentation/demoScoreAttack.json`).
 
+## Tank rig asset IDs and sockets
+
+The tank weapon mount is defined by `TankDefinition.rig`
+(`content/tanks/default.json`):
+
+```json
+{
+  "chassisAssetId": "playerTank.chassis",
+  "turretAssetId": "playerTank.turret",
+  "barrelAssetId": "playerTank.barrel",
+  "socketBindings": {
+    "turretPivotNode": "turret",
+    "barrelPivotNode": "barrel",
+    "muzzleNode": "muzzle",
+    "cameraAnchorNode": "cameraAnchor"
+  }
+}
+```
+
+The asset ids are semantic; replacement works exactly like any other model
+(manifest GLB or project asset). `socketBindings` are optional client binding
+aids for imported GLB nodes; the numeric rig values are authoritative for the
+server and client. See
+[TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md](TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md).
+
 ## How replacement works
 
 The client loads an optional manifest at **`public/assets/manifest.json`**

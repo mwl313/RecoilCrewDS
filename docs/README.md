@@ -18,6 +18,7 @@ docs/
 ├── map-generation/      seeded map generation plans/reports (Phases 1-3)
 ├── maplab/              Map Lab plan, user guide, architecture, report
 ├── refractor02/         data-driven scene/HUD/asset authoring (Refractor 02)
+├── gameplay04/          Single Player, PIP removal, aim alignment
 ├── bugfix/              bugfix plans/reports
 ├── planning/            build plan, build status, final reports
 └── refractor/           refactor pack: authority docs, phase prompts, status, audit, report
@@ -38,6 +39,16 @@ before the final five-second countdown.
   centered world aim point while the chassis rotates.
 - Space is an edge-triggered jump; Left Shift is an edge-triggered
   chassis-forward dash (an instantaneous burst, never a held boost).
+
+## Single Player
+
+Main menu → **SINGLE PLAYER**. One player drives (WASD/Shift/Space), aims
+with the mouse, and fires MG (LMB) / cannon + JACKPOT (RMB). No role chip, no
+peer UI, no server required; results offer **PLAY AGAIN** with a fresh local
+match. See [SINGLE_PLAYER_MODE_GUIDE.md](guides/SINGLE_PLAYER_MODE_GUIDE.md).
+
+Every shot (server and client) originates from one data-driven tank rig; see
+[TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md](guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md).
 
 ## Map Lab
 

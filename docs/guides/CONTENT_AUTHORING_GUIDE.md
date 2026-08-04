@@ -12,6 +12,9 @@ Tank mobility, weapon recoil, and enemy knockback are content-driven:
   `splashTankKnockbackMultiplier` at 0).
 - `content/enemies/*.json` — optional `knockback` block
   (immovable/resistance/drag/gravity/fall damage).
+- `content/tanks/default.json` — `rig` block: turret/barrel pivots, muzzle
+  local, aim pivot, camera anchor, forward axis, and optional socket
+  bindings (see TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md).
 
 Every value flows through Zod schemas → `MatchRules` → the movement rules
 block; content and legacy paths are parity-tested. After changing values,
@@ -28,6 +31,27 @@ validates it with Zod at startup and fails loudly on invalid packs.
 2. Add the file path to `content/manifest.json` under `pack.files`.
 3. Run `npm test` (content validation + parity) and the four gates.
 4. `npm run server` logs the new pack hash.
+
+### Mode session policy (Single Player vs Multiplayer)
+
+Each mode carries a validated `session` policy:
+
+```json
+{
+  "kind": "singlePlayer",
+  "networkRequired": false,
+  "controlScheme": "combinedDriverAndGunner",
+  "showRoleIdentity": false,
+  "showPeerStatus": false,
+  "allowRoleSwap": false,
+  "resultsFlow": "localRestart"
+}
+```
+
+`mode.singlePlayerScoreAttack` is the Single Player seam; `mode.demoScoreAttack`
+is the explicit multiplayer policy. Contradictory combinations are rejected
+by `modeSessionPolicySchema`. After editing modes/tanks, run
+`npm run generate:content-pack` (the stale-file test fails otherwise).
 
 ### Map generation profiles
 

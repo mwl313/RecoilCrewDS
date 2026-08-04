@@ -22,11 +22,34 @@ Deploy per `DEPLOYMENT.md`, or expose port 8080 temporarily. Player A creates
 the crew on their machine; Player B joins from another network with the code.
 The flow must be identical — no IP knowledge or router configuration.
 
-## 3. Practice
+## 3. Single Player
 
-Main menu → **PRACTICE**. Drive with WASD, aim with the mouse, fire MG (LMB)
-and cannon (RMB). Space jumps, Shift dashes. **Tab** swaps Driver/Gunner
-views. Esc opens the pause menu.
+Main menu → **SINGLE PLAYER** (there is no Practice button anymore). One
+player controls everything: WASD drives, Shift dashes, Space jumps, mouse
+aims, LMB fires MG, RMB fires cannon (hold when JACKPOT is ready to charge).
+There is no DRIVER/GUNNER chip, no connection dot, and no ping. Tab/Q do
+nothing. Esc opens the pause menu; results offer **PLAY AGAIN** (fresh local
+match) and **MAIN MENU**. Killing the server mid-round must not interrupt the
+local match.
+
+### Trajectory reticle
+
+The crosshair shows the actual predicted shot line:
+
+- With the turret converged, the reticle sits at the camera aim point.
+- Flick the mouse hard: the reticle honestly trails off-center while the
+  turret catches up, then settles back.
+- Back against a wall/escarpment so the muzzle is near cover: the reticle
+  turns red and rests on the obstacle instead of showing a line through it.
+- Turn the camera 180° away: the reticle hides (off-screen policy), never
+  shows NaN, and returns when the shot line is visible again.
+
+### Tank rig alignment
+
+Fire MG and cannon in Single Player: flash must appear at the barrel tip, and
+the reticle must match the flash direction at rest. Repeating the check after
+a `rig` edit in `content/tanks/default.json` verifies the data-driven mount
+end to end.
 
 ## 4. Pointer lock
 
