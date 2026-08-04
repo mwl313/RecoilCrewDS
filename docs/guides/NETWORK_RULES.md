@@ -116,3 +116,11 @@ enemy death) are never delayed. Clients reconstruct remote enemies through
 `HordeReplicationClient` and interpolate normally. The `stage` block carries
 the farming countdown and wave/leader HUD state. Combat 05 action-time aim
 protocol is unchanged.
+## Progression08
+
+Protocol v6 adds `selectUpgrade { offerId, cardIndex }`. The server
+validates room membership and role; selections are idempotent per role.
+Snapshots replicate the full progression state (flow, XP/level, pending
+level-ups, active offers, per-role readiness, relic stacks, chests, XP
+shards) so reconnect reconstructs an active selection. No client-authoritative
+results are possible.

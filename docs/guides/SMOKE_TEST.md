@@ -255,3 +255,9 @@ code is selected in a textarea fallback so it can still be copied manually.
   ambient enemies, purge with 100+ wave monsters, dense Charge Shot splash,
   Dash through a dense pack, Single Player, two-client Multiplayer at
   100/150 ms RTT.
+## Progression smoke checks
+
+- `npm run test:progression` — unit/integration suites.
+- `npm run test:progression:simulation` — 60-second headless telemetry.
+- `npm run test:progression:e2e` — level-up, relic, multiplayer protocol,
+  and reset/reconnect E2E specs.

@@ -237,3 +237,11 @@ locomotion references, transitions, and playback settings. Existing enemies
 keep `presentationId` (legacy profiles are generated); new enemies may set
 `presentationProfileId`. Full authoring walkthrough:
 `docs/animation07/ANIMATION07_CONTENT_AUTHORING_GUIDE.md`.
+
+## Progression08 — upgrades and relics
+
+Upgrade categories, rarity tables, the level curve, XP values, relic pools,
+and mode execution policies are content (`content/progression-*`).
+Presentation is authoritative and content-driven; new relics/upgrades need
+no engine edits. See
+`docs/progression08/PROGRESSION08_CONTENT_AUTHORING_GUIDE.md`.

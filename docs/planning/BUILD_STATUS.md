@@ -231,3 +231,15 @@
   `npm run test:animation:benchmark` PASS (no leaks);
   `npm run build:animation-preview` PASS.
   Details: `docs/animation07/ANIMATION07_IMPLEMENTATION_REPORT.md`.
+
+## Progression08 — power-up / relic progression (complete)
+
+- **Complete** — team XP shards + magnet, queued level-ups, deterministic
+  three-card offers, authoritative selection pause + wall-clock timeout,
+  treasure chests (first-chest E70/L30), all 28 relics with trigger
+  registry, ROADKILL, stat-layer stacking, protocol v6 networking,
+  roulette/debug UI, simulation + E2E.
+  Verified: `npm test` **767/767 PASS** (101 files);
+  `npm run test:progression` PASS; `npm run test:progression:simulation`
+  PASS; `npm run test:progression:e2e` PASS; demo golden unchanged.
+  Details: `docs/progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md`.

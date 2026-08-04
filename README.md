@@ -27,6 +27,7 @@ secondary cannon into a hold/release charge shot.
 - [Core Loop 06 authoring guide](docs/coreloop06/CORELOOP06_AUTHORING_GUIDE.md)
 - [Map Lab (map generation tool) user guide](docs/maplab/MAP_LAB_USER_GUIDE.md)
 - [Enemy animation system (Animation07) implementation report](docs/animation07/ANIMATION07_IMPLEMENTATION_REPORT.md)
+- [Power-up / relic progression (Progression08) implementation report](docs/progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md)
 - [Refactor status](docs/refractor/REFACTOR_STATUS.md)
 
 See [docs/](docs/) for guides, design decisions, bugfix reports, planning

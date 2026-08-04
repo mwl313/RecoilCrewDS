@@ -322,3 +322,18 @@ presentation. No bone data is networked; optional compact action cues map to
 roles through content. Horde materialize records carry a presentation
 profile index (protocol v5). See
 `docs/animation07/ANIMATION07_IMPLEMENTATION_REPORT.md`.
+
+## Progression08 — authoritative power-up / relic progression
+
+```text
+content/progression-* (validated ContentPack categories)
+  → MatchRules progression content
+  → ProgressionSystem (team XP, level-ups, chests, relics, triggers)
+  → MatchFlowState gate (pause during selection, wall-clock timeout)
+  → protocol v6 selectUpgrade + snapshot-replicated progression state
+```
+
+XP shards replicate as `MatchState.xpShards`; kills route through reward
+events; purge never rewards. Stat layers (level multipliers × relic
+aggregates × conditionals) project through the existing StatResolver.
+See `docs/progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md`.
