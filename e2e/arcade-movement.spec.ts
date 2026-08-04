@@ -49,7 +49,7 @@ test('downward cannon aim launches the shared tank on both clients (arcade recoi
         };
       };
       w.__recoil.setAutoInput(true);
-      w.__recoil.input('gunner', { aimYaw: 0, aimPitch: -0.4, primary: false, secondary: true, ability: false });
+      w.__recoil.input('gunner', { aimYaw: 0, aimPitch: -1.2, primary: false, secondary: true, ability: false });
       w.__recoil.setAutoInput(false);
     });
     await b.waitForTimeout(80);

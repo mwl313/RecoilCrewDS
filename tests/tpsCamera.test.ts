@@ -67,6 +67,18 @@ describe('TPS camera direction conventions', () => {
     cam.applyMouseDelta(0, 100000);
     expect(cam.pitch).toBeCloseTo(TUNING.minPitch);
   });
+
+  it('gunner tuning can aim near-vertical for cannon takeoffs', () => {
+    // Same values as CameraManager.gunnerTuning (min -77°), turret -83° is
+    // the final clamp — the camera must at least reach it.
+    const gunner = new TpsCameraController({
+      ...TUNING,
+      minPitch: (-77 * Math.PI) / 180,
+    });
+    gunner.applyMouseDelta(0, 100000);
+    expect(gunner.pitch).toBeLessThan((-60 * Math.PI) / 180);
+    expect(gunner.pitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
+  });
 });
 
 describe('TPS camera rig placement', () => {

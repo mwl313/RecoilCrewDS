@@ -22,6 +22,8 @@ Contract: `ARCADE_UPRIGHT_AERIAL_MOVEMENT_DESIGN.md` · Plan:
   A near-vertical downward shot produces a near-vertical upward recoil
   (~10.5 m/s launch) — a cannon takeoff; the shell still explodes at the
   ground for such shots, costing the normal 5 self-splash damage.
+  The Gunner camera pitch floor was lowered to −77° (Driver unchanged at
+  −35°) so a mouse can reach the near-vertical aim range.
 - Content and legacy (`MatchRules.fromContentPack` vs `fromLegacyConfig`)
   parity asserted by the existing equality tests plus new movement tests.
 

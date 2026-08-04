@@ -62,6 +62,9 @@ MovementRulesBlock → stepTankKinematics (server + predictor + Practice)
 - The shell still explodes at the ground for such shots, so vertical
   takeoffs also cost the normal cannon self-splash damage (5 integrity).
   The muzzle safety clamp keeps the shell from spawning inside terrain.
+- The **Gunner camera** pitch floor is −77° (Driver stays at −35°), so a
+  mouse can actually aim down far enough to reach the near-vertical turret
+  range; the turret (−83°) remains the final authority.
 
 ## Tuning tips
 

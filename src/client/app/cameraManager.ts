@@ -29,6 +29,10 @@ export class CameraManager {
       shoulderHeight: 0.3,
       verticalArm: 0.55,
       speedFovBonus: 0,
+      // The Gunner must be able to aim near-vertical for cannon takeoffs.
+      // The turret remains the final authority (-1.45 rad); the camera just
+      // has to reach it. The Driver camera keeps the normal -35° floor.
+      minPitch: (-77 * Math.PI) / 180,
     };
     this.driverCam = new TpsCameraController(driverTuning);
     this.gunnerCam = new TpsCameraController(gunnerTuning);
