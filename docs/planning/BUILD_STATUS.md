@@ -169,6 +169,17 @@
   `docs/gameplay04/`, `docs/guides/SINGLE_PLAYER_MODE_GUIDE.md`,
   `docs/guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md`.
 
+- **Combat05 — dash contact, instant turret, no fall damage, cannon charge
+  in progress** — normal contact deals 0 damage (Dash-only window via
+  `TankContactCombat`); turret `responseMode: instant` with click-time aim
+  actions (protocol v3); fall damage deleted for tank/enemies/source; the
+  Jackpot subsystem is removed and replaced by a generic `CapabilitySystem`
+  + `cannon.charge` hold/release cannon with linear charge scaling and a
+  compact reticle charge meter. Unit gates: `npx tsc --noEmit` PASS;
+  `npm test` **555/555 PASS** (63 files); `npm run test:demo` PASS (golden
+  intentionally regenerated: grade C, charged 0, kills 29). Details:
+  `docs/combat05/`.
+
 - `npm test` → **5 files, 47 tests passed** (config, math, asset fallback,
   match systems, room lifecycle, full-round integration).
 - `npm run build` → client `dist/` + server `dist-server/` build cleanly.

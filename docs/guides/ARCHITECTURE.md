@@ -117,6 +117,28 @@ turret prediction reconciled with snapshots.
 - Details: `docs/gameplay04/`, `docs/guides/SINGLE_PLAYER_MODE_GUIDE.md`,
   `docs/guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md`.
 
+## Combat 05 — dash contact, instant turret, no fall damage, cannon charge
+
+- Tank contact offense is Dash-only: `TankContactCombat` applies
+  `dashContactDamage` inside the accepted `dashDamageT` window with
+  per-target cooldown; normal driving deals 0 enemy damage; enemy contact
+  attacks remain separate.
+- Fall damage is deleted (tank + enemy + source); landing grip and cliff
+  falls remain.
+- Turret `responseMode: instant` (default) makes the local turret match the
+  mouse in the same frame; the server applies validated accepted aim
+  directly; reconcile never blends the local turret backward; cannon
+  actions carry click/release-time aim (protocol v3).
+- The Jackpot subsystem is removed. `CapabilitySystem` + item
+  `grantsCapabilities` unlock `cannon.charge`; `WeaponSystem` hold/release
+  state machine fires normal cannon without the capability, charge shots
+  with it, and `cannonShotProfile` scales resolved cannon stats linearly
+  (per-shell combat payload, burst inheritance).
+- HUD: bottom meter removed; compact reticle charge meter with local
+  predicted fill.
+- Details: `docs/combat05/`, `docs/guides/CANNON_CHARGE_AUTHORING_GUIDE.md`,
+  `docs/guides/COMBAT_CONTACT_RULES.md`.
+
 Driver tank prediction is bound to the authoritative arena for any map size:
 the prediction ground is set on create/start/rematch/reconnect and survives
 controller resets (it is never reverted to the legacy static arena). Reconcile

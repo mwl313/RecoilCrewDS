@@ -19,6 +19,7 @@ docs/
 ├── maplab/              Map Lab plan, user guide, architecture, report
 ├── refractor02/         data-driven scene/HUD/asset authoring (Refractor 02)
 ├── gameplay04/          Single Player, PIP removal, aim alignment
+├── combat05/            dash contact, instant turret, no fall damage, cannon charge
 ├── bugfix/              bugfix plans/reports
 ├── planning/            build plan, build status, final reports
 └── refractor/           refactor pack: authority docs, phase prompts, status, audit, report
@@ -49,6 +50,12 @@ match. See [SINGLE_PLAYER_MODE_GUIDE.md](guides/SINGLE_PLAYER_MODE_GUIDE.md).
 
 Every shot (server and client) originates from one data-driven tank rig; see
 [TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md](guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md).
+
+Combat 05: normal contact deals no damage (Dash is the tank's contact
+attack), the turret tracks the mouse instantly, falls are harmless, and a
+relic-gated charge turns the cannon into a hold/release charge shot. See
+[CANNON_CHARGE_AUTHORING_GUIDE.md](guides/CANNON_CHARGE_AUTHORING_GUIDE.md)
+and [COMBAT_CONTACT_RULES.md](guides/COMBAT_CONTACT_RULES.md).
 
 ## Map Lab
 

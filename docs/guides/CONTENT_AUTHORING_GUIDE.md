@@ -53,6 +53,21 @@ is the explicit multiplayer policy. Contradictory combinations are rejected
 by `modeSessionPolicySchema`. After editing modes/tanks, run
 `npm run generate:content-pack` (the stale-file test fails otherwise).
 
+### Cannon charge and contact combat
+
+- `content/tanks/default.json` — `contactDamage` (0), `dashContactDamage`,
+  `dashDamageWindowSeconds`, `dashContactKnockback`,
+  `dashContactPerTargetCooldown`.
+- `content/weapons/mainCannon.json` — `charge` profile (capabilityId,
+  tapMaxSeconds, fullChargeSeconds, full multipliers) plus resolvable
+  `weapon.charge*` stat ids.
+- `content/items/relicCannonCharge.json` — grants `cannon.charge`.
+- `content/scoring/demoScoreAttack.json` — `dashScore`, `comboGains`,
+  `finalChaos`.
+
+See `docs/guides/CANNON_CHARGE_AUTHORING_GUIDE.md` and
+`docs/guides/COMBAT_CONTACT_RULES.md`.
+
 ### Map generation profiles
 
 Map/terrain/validation/furniture/density/landmark JSON is resolved into a

@@ -51,6 +51,19 @@ the reticle must match the flash direction at rest. Repeating the check after
 a `rig` edit in `content/tanks/default.json` verifies the data-driven mount
 end to end.
 
+## Combat 05 feel checks
+
+- Drive fast through a Scrap Bug: it takes no damage. Dash through it: it
+  dies (one dash for Scrap Bugs).
+- Fall from a cliff: no damage to tank or enemies; landing grip still
+  applies.
+- Move the mouse fast in Gunner/Single Player: the turret is on the mouse
+  instantly (no chase). Fire the cannon immediately after a flick: the shot
+  follows the release aim.
+- Without the relic, RMB fires instantly. With `cannon.charge` granted, hold
+  RMB: the reticle meter fills; tap fires a normal shell; hold to full and
+  keep holding — it never auto-fires; release for the big shot.
+
 ## 4. Pointer lock
 
 ## 5. Refactor validation (automated)

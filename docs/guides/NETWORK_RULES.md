@@ -62,6 +62,13 @@ mapProfileId, arenaBaseSeed, arenaCandidateSeed, arenaAttempt,
 arenaGeneratorVersion, arenaChecksum, arenaFallbackUsed
 ```
 
+### Combat 05 actions (protocol v3)
+
+Cannon actions are `secondaryPressed` / `secondaryReleased` and every action
+carries click/release-time `aimYaw`/`aimPitch`, which the server applies
+before processing. MG edges remain `mgStart`/`mgStop`. The old
+`cannonPressed` / `abilityStart` / `abilityRelease` actions were removed.
+
 The client reconstructs the arena from the seed/attempt/version (never from
 a map blob), verifies `arenaChecksum` against its regenerated heightfield,
 and refuses to start on mismatch. Rematch increments the room match index

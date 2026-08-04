@@ -11,11 +11,18 @@ the docs folder:
 Single Player is also available: one player drives, aims, and fires with
 combined controls on the same deterministic simulation, fully offline.
 
+Combat 05: normal driving no longer damages enemies — only the Dash damage
+window does. The turret is mouse-synchronous, falls are harmless, and the
+JACKPOT meter is gone: a relic-granted `cannon.charge` capability turns the
+secondary cannon into a hold/release charge shot.
+
 - [Project README / docs index](docs/README.md)
 - [Architecture](docs/guides/ARCHITECTURE.md)
 - [Content authoring guide](docs/guides/CONTENT_AUTHORING_GUIDE.md)
 - [Single Player mode guide](docs/guides/SINGLE_PLAYER_MODE_GUIDE.md)
 - [Tank rig and weapon socket guide](docs/guides/TANK_RIG_AND_WEAPON_SOCKET_GUIDE.md)
+- [Cannon charge authoring guide](docs/guides/CANNON_CHARGE_AUTHORING_GUIDE.md)
+- [Combat contact rules](docs/guides/COMBAT_CONTACT_RULES.md)
 - [Map Lab (map generation tool) user guide](docs/maplab/MAP_LAB_USER_GUIDE.md)
 - [Refactor status](docs/refractor/REFACTOR_STATUS.md)
 
