@@ -5,6 +5,10 @@
  */
 export { AssetService } from './assets/assetService';
 export { buildTankRig, getMuzzleWorld } from './assets/assetInstanceFactory';
+export type { LoadedModelAsset } from './assets/loadedModelAsset';
+export { detectSkinnedMesh, buildLoadedModelAsset } from './assets/loadedModelAsset';
+export type { LoadedModelInstance, ModelInstanceOptions } from './animation/animatedModelInstanceFactory';
+export { createModelInstanceRoot, buildModelInstance, cloneOwnedMaterials } from './animation/animatedModelInstanceFactory';
 export { AssetManifestLoader, type ManifestAssetEntry, type ManifestLoadResult } from './assets/assetManifestLoader';
 export { AssetTransformResolver } from './assets/assetTransformResolver';
 export { FallbackAssetFactory } from './assets/fallbackAssetFactory';

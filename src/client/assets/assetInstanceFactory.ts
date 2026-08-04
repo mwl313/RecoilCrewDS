@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import { buildModelInstance, type LoadedModelInstance } from '../animation/animatedModelInstanceFactory';
 import { FallbackAssetFactory } from './fallbackAssetFactory';
 import { ModelProvider } from './modelProvider';
+import type { LoadedModelAsset } from './loadedModelAsset';
 import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
 import { AssetTransformResolver } from './assetTransformResolver';
 import type { ManifestAssetEntry } from './assetManifestLoader';
@@ -42,21 +44,53 @@ export class AssetInstanceFactory {
 
   /** Synchronous after preload; throws a clear error when not loaded. */
   instanceModel(id: string): THREE.Object3D {
+    return this.createModelInstance(id).root;
+  }
+
+  /** Synchronous immutable asset (prototype scene + clips + skinned flag). */
+  instanceModelAsset(id: string): LoadedModelAsset {
+    const resolved = this.resolvePrototype(id);
+    if (!resolved) {
+      throw new Error(`model '${id}' is not loaded; await AssetService.load() first`);
+    }
+    return resolved.asset;
+  }
+
+  /**
+   * Create a safe per-instance clone. Skinned models use SkeletonUtils;
+   * rigid models use plain clone. Material cloning is optional and required
+   * for per-instance hit flash.
+   */
+  createModelInstance(id: string, options?: { cloneMaterials?: boolean }): LoadedModelInstance {
+    const resolved = this.resolvePrototype(id);
+    if (!resolved) {
+      throw new Error(`model '${id}' is not loaded; await AssetService.load() first`);
+    }
+    const { asset, transform, materials } = resolved;
+    const cloneMaterials = options?.cloneMaterials === true || materials !== undefined;
+    const instance = buildModelInstance(asset, { cloneMaterials });
+    this.transforms.apply(instance.root, id, transform, materials);
+    return instance;
+  }
+
+  private resolvePrototype(id: string): {
+    asset: LoadedModelAsset;
+    transform?: ManifestAssetEntry['transform'];
+    materials?: ManifestAssetEntry['materials'];
+  } | undefined {
     const project = this.projectDefs.get(id);
-    let proto = this.models.getPrototypeSync(id);
+    let asset = this.models.getModelAssetSync(id);
     let transform: ManifestAssetEntry['transform'] | undefined;
     let materials: ManifestAssetEntry['materials'] | undefined;
     // Catalog-driven placeholder policy: a project model without a file (or
     // whose file is not preloaded) resolves to its registered fallback
     // prototype, with the project's own transform/material metadata applied.
-    if (!proto && project?.fallbackAssetId) {
-      proto = this.models.getPrototypeSync(project.fallbackAssetId);
+    if (!asset && project?.fallbackAssetId) {
+      asset = this.models.getModelAssetSync(project.fallbackAssetId);
       transform = toManifestTransform(project.defaultTransform);
       materials = toManifestMaterials(project.materialOverrides);
     }
-    if (!proto) {
-      throw new Error(`model '${id}' is not loaded; await AssetService.load() first`);
-    }
+    if (!asset) return undefined;
     const entry = this.metadata.get(id);
     if (project) {
       if (!transform) transform = entry?.transform;
@@ -65,9 +99,7 @@ export class AssetInstanceFactory {
       transform = entry?.transform;
       materials = entry?.materials;
     }
-    const clone = proto.clone(true);
-    this.transforms.apply(clone, id, transform, materials);
-    return clone;
+    return { asset, transform, materials };
   }
 
   vfxSpec(id: string): VfxSpec {

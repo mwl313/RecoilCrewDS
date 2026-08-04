@@ -5,6 +5,8 @@ import { AssetTransformResolver } from './assetTransformResolver';
 import { FallbackAssetFactory } from './fallbackAssetFactory';
 import { ModelProvider } from './modelProvider';
 import type { GltfLoaderFactory } from './modelProvider';
+import type { LoadedModelAsset } from './loadedModelAsset';
+import type { LoadedModelInstance } from '../animation/animatedModelInstanceFactory';
 import { PresentationCatalog, type CameraImpulsePresentation, type IconPresentation } from './presentationCatalog';
 import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
 import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.generated';
@@ -81,6 +83,16 @@ export class AssetService {
 
   model(id: string): THREE.Object3D {
     return this.instances.instanceModel(id);
+  }
+
+  /** Immutable cached model asset (scene + clips + skinned flag). */
+  modelAsset(id: string): LoadedModelAsset {
+    return this.instances.instanceModelAsset(id);
+  }
+
+  /** Safe per-instance clone with independent bones when skinned. */
+  createModelInstance(id: string, options?: { cloneMaterials?: boolean }): LoadedModelInstance {
+    return this.instances.createModelInstance(id, options);
   }
 
   /**

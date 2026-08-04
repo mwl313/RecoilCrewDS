@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { FallbackAssetFactory } from './fallbackAssetFactory';
+import { buildLoadedModelAsset, type LoadedModelAsset } from './loadedModelAsset';
 
 export interface GltfLoaderLike {
   load(
     url: string,
-    onLoad: (gltf: { scene: THREE.Object3D }) => void,
+    onLoad: (gltf: { scene: THREE.Object3D; animations?: THREE.AnimationClip[] }) => void,
     onProgress?: unknown,
     onError?: (err: unknown) => void,
   ): void;
@@ -20,8 +21,8 @@ export type GltfLoaderFactory = () => Promise<GltfLoaderLike>;
  */
 export class ModelProvider {
   private readonly files = new Map<string, string>();
-  private readonly prototypes = new Map<string, THREE.Object3D>();
-  private readonly loading = new Map<string, Promise<THREE.Object3D>>();
+  private readonly assets = new Map<string, LoadedModelAsset>();
+  private readonly loading = new Map<string, Promise<LoadedModelAsset>>();
 
   constructor(
     private readonly fallbacks: FallbackAssetFactory,
@@ -33,7 +34,7 @@ export class ModelProvider {
 
   registerFile(id: string, file: string): void {
     this.files.set(id, file);
-    this.prototypes.delete(id);
+    this.assets.delete(id);
     this.loading.delete(id);
   }
 
@@ -42,41 +43,55 @@ export class ModelProvider {
   }
 
   hasPrototype(id: string): boolean {
-    return this.prototypes.has(id);
+    return this.assets.has(id);
   }
 
   /** Synchronous cached prototype (available after getPrototype resolved). */
   getPrototypeSync(id: string): THREE.Object3D | undefined {
-    return this.prototypes.get(id);
+    return this.assets.get(id)?.scene;
   }
 
   /** Await the cached prototype (loads through GLB or fallback). */
   getPrototype(id: string): Promise<THREE.Object3D> {
-    const cached = this.prototypes.get(id);
+    return this.getModelAsset(id).then((asset) => asset.scene);
+  }
+
+  /** Synchronous cached model asset (available after getModelAsset resolved). */
+  getModelAssetSync(id: string): LoadedModelAsset | undefined {
+    return this.assets.get(id);
+  }
+
+  /**
+   * Await the cached immutable model asset (GLB scene + animation clips +
+   * skinned flag, or the procedural fallback asset). Concurrent requests for
+   * the same id share one load.
+   */
+  getModelAsset(id: string): Promise<LoadedModelAsset> {
+    const cached = this.assets.get(id);
     if (cached) return Promise.resolve(cached);
     const inFlight = this.loading.get(id);
     if (inFlight) return inFlight;
     const promise = this.load(id);
     this.loading.set(id, promise);
-    promise.then((proto) => {
-      this.prototypes.set(id, proto);
+    promise.then((asset) => {
+      this.assets.set(id, asset);
       this.loading.delete(id);
     });
     return promise;
   }
 
-  private async load(id: string): Promise<THREE.Object3D> {
+  private async load(id: string): Promise<LoadedModelAsset> {
     const file = this.files.get(id);
-    if (!file) return Promise.resolve(this.fallbacks.model(id));
+    if (!file) return Promise.resolve(buildLoadedModelAsset(id, this.fallbacks.model(id)));
     const loader = await this.gltfLoaderFactory();
     return new Promise((resolve) => {
       loader.load(
         file,
-        (gltf) => resolve(gltf.scene),
+        (gltf) => resolve(buildLoadedModelAsset(id, gltf.scene, gltf.animations ?? [])),
         undefined,
         () => {
           console.warn(`[assets] GLB failed for '${id}' (${file}); using procedural fallback`);
-          resolve(this.fallbacks.model(id));
+          resolve(buildLoadedModelAsset(id, this.fallbacks.model(id)));
         },
       );
     });
