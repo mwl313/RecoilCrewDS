@@ -44,6 +44,20 @@ import { tankSchema } from './schemas/tank';
 import { terrainProfileSchema } from './schemas/terrainProfile';
 import { validationProfileSchema } from './schemas/validationProfile';
 import { weaponSchema } from './schemas/weapon';
+import {
+  firstTreasureRuleSchema,
+  levelCurveSchema,
+  progressionDefinitionSchema,
+  progressionModePolicySchema,
+  relicEffectTemplateSchema,
+  relicPoolSchema,
+  relicSchema,
+  treasureRarityTableSchema,
+  upgradeCategorySchema,
+  upgradeFirstExperienceSchema,
+  upgradeRarityTableSchema,
+  xpPickupDefinitionSchema,
+} from './schemas/progression';
 import { defaultStatIds } from './statIds';
 
 const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
@@ -81,6 +95,18 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   results: resultsSchema,
   difficulties: difficultySchema,
   presentation: presentationSchema,
+  progressionDefinitions: progressionDefinitionSchema,
+  levelCurves: levelCurveSchema,
+  xpPickupDefinitions: xpPickupDefinitionSchema,
+  upgradeRarityTables: upgradeRarityTableSchema,
+  upgradeCategories: upgradeCategorySchema,
+  upgradeFirstExperiences: upgradeFirstExperienceSchema,
+  treasureRarityTables: treasureRarityTableSchema,
+  firstTreasureRules: firstTreasureRuleSchema,
+  relics: relicSchema,
+  relicPools: relicPoolSchema,
+  relicEffectTemplates: relicEffectTemplateSchema,
+  progressionModePolicies: progressionModePolicySchema,
 };
 
 export interface ContentLoaderOptions {
@@ -221,6 +247,18 @@ function createEmptyRegistries(): CategoryRegistries {
     results: new DefinitionRegistry(),
     difficulties: new DefinitionRegistry(),
     presentation: new DefinitionRegistry(),
+    progressionDefinitions: new DefinitionRegistry(),
+    levelCurves: new DefinitionRegistry(),
+    xpPickupDefinitions: new DefinitionRegistry(),
+    upgradeRarityTables: new DefinitionRegistry(),
+    upgradeCategories: new DefinitionRegistry(),
+    upgradeFirstExperiences: new DefinitionRegistry(),
+    treasureRarityTables: new DefinitionRegistry(),
+    firstTreasureRules: new DefinitionRegistry(),
+    relics: new DefinitionRegistry(),
+    relicPools: new DefinitionRegistry(),
+    relicEffectTemplates: new DefinitionRegistry(),
+    progressionModePolicies: new DefinitionRegistry(),
   };
 }
 

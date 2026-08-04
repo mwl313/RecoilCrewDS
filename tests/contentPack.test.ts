@@ -274,6 +274,10 @@ describe('content validation failures', () => {
             hordeNavigationPolicies: [], enemyLodPolicies: [], hordeReplicationPolicies: [],
             rewardTables: [], scoring: [],
             results: [], difficulties: [], presentation: [],
+            progressionDefinitions: [], levelCurves: [], xpPickupDefinitions: [],
+            upgradeRarityTables: [], upgradeCategories: [], upgradeFirstExperiences: [],
+            treasureRarityTables: [], firstTreasureRules: [], relics: [], relicPools: [],
+            relicEffectTemplates: [], progressionModePolicies: [],
           },
         },
       };

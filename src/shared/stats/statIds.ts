@@ -66,6 +66,8 @@ export const TANK_STAT_IDS = [
   'tank.recoilImpulse',
   'tank.recoilSpin',
   'tank.mgRecoilImpulse',
+  'tank.extraJumps',
+  'tank.airDashCharges',
 ] as const;
 
 export const WEAPON_STAT_IDS = [
@@ -116,6 +118,11 @@ export const WEAPON_STAT_IDS = [
   'weapon.chargeFullShellVisualScale',
 ] as const;
 
+export const PROGRESSION_STAT_IDS = [
+  'progression.magnetRadius',
+  'progression.xpMultiplier',
+] as const;
+
 export const ENEMY_STAT_IDS = [
   'enemy.bugSpeed',
   'enemy.bugHp',
@@ -142,7 +149,13 @@ export const ENEMY_STAT_IDS = [
   'enemy.truckEscapeTime',
 ] as const;
 
-export const ALL_STAT_IDS = [...MATCH_STAT_IDS, ...TANK_STAT_IDS, ...WEAPON_STAT_IDS, ...ENEMY_STAT_IDS] as const;
+export const ALL_STAT_IDS = [
+  ...MATCH_STAT_IDS,
+  ...TANK_STAT_IDS,
+  ...WEAPON_STAT_IDS,
+  ...ENEMY_STAT_IDS,
+  ...PROGRESSION_STAT_IDS,
+] as const;
 
 const STAT_SET = new Set<string>(ALL_STAT_IDS);
 const SCOPE_BY_STAT = new Map<string, StatScope>();
@@ -150,6 +163,7 @@ for (const id of MATCH_STAT_IDS) SCOPE_BY_STAT.set(id, 'match');
 for (const id of TANK_STAT_IDS) SCOPE_BY_STAT.set(id, 'tank');
 for (const id of WEAPON_STAT_IDS) SCOPE_BY_STAT.set(id, 'weapon');
 for (const id of ENEMY_STAT_IDS) SCOPE_BY_STAT.set(id, 'enemy');
+for (const id of PROGRESSION_STAT_IDS) SCOPE_BY_STAT.set(id, 'match');
 
 export function isKnownStat(id: string): boolean {
   return STAT_SET.has(id);

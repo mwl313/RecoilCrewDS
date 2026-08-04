@@ -1,4 +1,18 @@
 import { isValidAssetId } from '../assetRegistry';
+import { isKnownStat } from '../stats/statIds';
+import {
+  RELIC_EFFECT_TYPES,
+  type FirstTreasureRuleDefinition,
+  type ProgressionDefinition,
+  type ProgressionModePolicyDefinition,
+  type RelicDefinition,
+  type RelicEffectTemplateDefinition,
+  type RelicPoolDefinition,
+  type TreasureRarityTableDefinition,
+  type UpgradeCategoryDefinition,
+  type UpgradeFirstExperienceDefinition,
+  type UpgradeRarityTableDefinition,
+} from './schemas/progression';
 import type { PackManifest } from './schemas/pack';
 import type { CategoryRegistries } from './contentPack';
 import { BehaviorRegistry } from './behaviorRegistry';
@@ -219,6 +233,103 @@ export class ReferenceValidator {
       assetRefs('assets.audio', presentation.assets.audio.map((a) => a.id));
     }
 
+    // Progression08: cross-file reference and probability validation.
+    for (const def of this.registries.progressionDefinitions.all()) {
+      const file = this.fileOf(def.id, this.registries.progressionDefinitions);
+      this.checkCommon(issues, def, file);
+      this.ref(issues, def.levelCurveId, this.registries.levelCurves, file, 'levelCurveId');
+      this.ref(issues, def.xpPickupDefinitionId, this.registries.xpPickupDefinitions, file, 'xpPickupDefinitionId');
+      this.ref(issues, def.upgradeRarityTableId, this.registries.upgradeRarityTables, file, 'upgradeRarityTableId');
+      this.ref(issues, def.upgradeFirstExperienceRuleId, this.registries.upgradeFirstExperiences, file, 'upgradeFirstExperienceRuleId');
+      this.ref(issues, def.treasureRarityTableId, this.registries.treasureRarityTables, file, 'treasureRarityTableId');
+      this.ref(issues, def.firstTreasureRuleId, this.registries.firstTreasureRules, file, 'firstTreasureRuleId');
+      this.ref(issues, def.relicPoolId, this.registries.relicPools, file, 'relicPoolId');
+      this.ref(issues, def.multiplayerPolicyId, this.registries.progressionModePolicies, file, 'multiplayerPolicyId');
+      this.ref(issues, def.singlePlayerPolicyId, this.registries.progressionModePolicies, file, 'singlePlayerPolicyId');
+    }
+    for (const table of this.registries.upgradeRarityTables.all()) {
+      const file = this.fileOf(table.id, this.registries.upgradeRarityTables);
+      this.checkCommon(issues, table, file);
+      checkProbabilitySum(issues, Object.values(table.rarities), file, 'rarities');
+    }
+    for (const table of this.registries.treasureRarityTables.all()) {
+      const file = this.fileOf(table.id, this.registries.treasureRarityTables);
+      this.checkCommon(issues, table, file);
+      checkProbabilitySum(issues, Object.values(table.rarities), file, 'rarities');
+    }
+    for (const rule of this.registries.firstTreasureRules.all()) {
+      const file = this.fileOf(rule.id, this.registries.firstTreasureRules);
+      this.checkCommon(issues, rule, file);
+      checkProbabilitySum(issues, Object.values(rule.rarities), file, 'rarities');
+    }
+    for (const category of this.registries.upgradeCategories.all()) {
+      const file = this.fileOf(category.id, this.registries.upgradeCategories);
+      this.checkCommon(issues, category, file);
+      category.effects.forEach((effect, i) => {
+        if (!isKnownStat(effect.statId)) {
+          issues.push(`${file}: effects[${i}].statId — unknown stat id '${effect.statId}'`);
+        }
+      });
+      for (const [rarity, range] of Object.entries(category.rarityRanges)) {
+        const percent = range.minPercent !== undefined || range.maxPercent !== undefined;
+        const flat = range.minFlat !== undefined || range.maxFlat !== undefined;
+        if (percent && flat) {
+          issues.push(`${file}: rarityRanges.${rarity} — cannot mix percent and flat ranges`);
+        }
+        if (range.minPercent !== undefined && range.maxPercent !== undefined && range.minPercent > range.maxPercent) {
+          issues.push(`${file}: rarityRanges.${rarity} — minPercent exceeds maxPercent`);
+        }
+        if (range.minFlat !== undefined && range.maxFlat !== undefined && range.minFlat > range.maxFlat) {
+          issues.push(`${file}: rarityRanges.${rarity} — minFlat exceeds maxFlat`);
+        }
+      }
+    }
+    for (const rule of this.registries.upgradeFirstExperiences.all()) {
+      const file = this.fileOf(rule.id, this.registries.upgradeFirstExperiences);
+      this.checkCommon(issues, rule, file);
+      rule.cardRules.forEach((card, i) => {
+        if (card.kind === 'branch') {
+          checkProbabilitySum(
+            issues,
+            card.branches.map((b) => b.probability),
+            file,
+            `cardRules[${i}].branches`,
+          );
+        }
+      });
+    }
+    for (const relic of this.registries.relics.all()) {
+      const file = this.fileOf(relic.id, this.registries.relics);
+      this.checkCommon(issues, relic, file);
+      if (relic.stackPolicy === 'unique' && !relic.duplicateReplacement) {
+        issues.push(`${file}: duplicateReplacement — unique relics must specify replacement behavior`);
+      }
+      if (relic.stackPolicy !== 'unique' && relic.duplicateReplacement) {
+        issues.push(`${file}: duplicateReplacement — only unique relics use replacement`);
+      }
+      relic.effects.forEach((effect, i) => {
+        if (!this.registries.relicEffectTemplates.has(effect.templateId)) {
+          issues.push(`${file}: effects[${i}].templateId — unknown relic effect template '${effect.templateId}'`);
+        }
+      });
+    }
+    for (const pool of this.registries.relicPools.all()) {
+      const file = this.fileOf(pool.id, this.registries.relicPools);
+      this.checkCommon(issues, pool, file);
+      pool.relicIds.forEach((id, i) => this.ref(issues, id, this.registries.relics, file, `relicIds[${i}]`));
+    }
+    for (const template of this.registries.relicEffectTemplates.all()) {
+      const file = this.fileOf(template.id, this.registries.relicEffectTemplates);
+      this.checkCommon(issues, template, file);
+      if (!RELIC_EFFECT_TYPES.includes(template.effectType as never)) {
+        issues.push(`${file}: effectType — unknown effect type '${template.effectType}'`);
+      }
+    }
+    for (const policy of this.registries.progressionModePolicies.all()) {
+      const file = this.fileOf(policy.id, this.registries.progressionModePolicies);
+      this.checkCommon(issues, policy, file);
+    }
+
     // Items/status effects: generic behavior/stat checks only (empty in Demo).
     for (const item of this.registries.items.all()) {
       this.checkCommon(issues, item, this.fileOf(item.id, this.registries.items));
@@ -280,5 +391,12 @@ export class ReferenceValidator {
 
   private fileOf(id: string, registry: { sourceOf(id: string): string | undefined }): string {
     return registry.sourceOf(id) ?? `${id}.json`;
+  }
+}
+
+function checkProbabilitySum(issues: string[], values: number[], file: string, jsonPath: string): void {
+  const sum = values.reduce((a, b) => a + b, 0);
+  if (Math.abs(sum - 1) > 1e-6) {
+    issues.push(`${file}: ${jsonPath} — probabilities sum to ${sum.toFixed(6)}, expected 1`);
   }
 }

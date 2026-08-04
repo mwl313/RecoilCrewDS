@@ -22,6 +22,20 @@ import type { TerrainProfileDefinition } from './schemas/terrainProfile';
 import type { ValidationProfileDefinition } from './schemas/validationProfile';
 import type { WeaponDefinition } from './schemas/weapon';
 import type {
+  FirstTreasureRuleDefinition,
+  LevelCurveDefinition,
+  ProgressionDefinition,
+  ProgressionModePolicyDefinition,
+  RelicDefinition,
+  RelicEffectTemplateDefinition,
+  RelicPoolDefinition,
+  TreasureRarityTableDefinition,
+  UpgradeCategoryDefinition,
+  UpgradeFirstExperienceDefinition,
+  UpgradeRarityTableDefinition,
+  XpPickupDefinition,
+} from './schemas/progression';
+import type {
   BossWaveDefinition,
   EnemyLodPolicyDefinition,
   FarmingPhaseDefinition,
@@ -71,6 +85,18 @@ export const CONTENT_CATEGORIES = [
   'results',
   'difficulties',
   'presentation',
+  'progressionDefinitions',
+  'levelCurves',
+  'xpPickupDefinitions',
+  'upgradeRarityTables',
+  'upgradeCategories',
+  'upgradeFirstExperiences',
+  'treasureRarityTables',
+  'firstTreasureRules',
+  'relics',
+  'relicPools',
+  'relicEffectTemplates',
+  'progressionModePolicies',
 ] as const;
 
 export type ContentCategory = (typeof CONTENT_CATEGORIES)[number];
@@ -110,6 +136,18 @@ export interface CategoryRegistries {
   results: DefinitionRegistry<ResultsDefinition>;
   difficulties: DefinitionRegistry<DifficultyDefinition>;
   presentation: DefinitionRegistry<PresentationDefinition>;
+  progressionDefinitions: DefinitionRegistry<ProgressionDefinition>;
+  levelCurves: DefinitionRegistry<LevelCurveDefinition>;
+  xpPickupDefinitions: DefinitionRegistry<XpPickupDefinition>;
+  upgradeRarityTables: DefinitionRegistry<UpgradeRarityTableDefinition>;
+  upgradeCategories: DefinitionRegistry<UpgradeCategoryDefinition>;
+  upgradeFirstExperiences: DefinitionRegistry<UpgradeFirstExperienceDefinition>;
+  treasureRarityTables: DefinitionRegistry<TreasureRarityTableDefinition>;
+  firstTreasureRules: DefinitionRegistry<FirstTreasureRuleDefinition>;
+  relics: DefinitionRegistry<RelicDefinition>;
+  relicPools: DefinitionRegistry<RelicPoolDefinition>;
+  relicEffectTemplates: DefinitionRegistry<RelicEffectTemplateDefinition>;
+  progressionModePolicies: DefinitionRegistry<ProgressionModePolicyDefinition>;
 }
 
 export interface ContentPackBundle {
@@ -276,6 +314,42 @@ export class ContentPack {
   }
   getPresentation(id: string): PresentationDefinition {
     return this.require('presentation', id);
+  }
+  getProgressionDefinition(id: string): ProgressionDefinition {
+    return this.require('progressionDefinitions', id);
+  }
+  getLevelCurve(id: string): LevelCurveDefinition {
+    return this.require('levelCurves', id);
+  }
+  getXpPickupDefinition(id: string): XpPickupDefinition {
+    return this.require('xpPickupDefinitions', id);
+  }
+  getUpgradeRarityTable(id: string): UpgradeRarityTableDefinition {
+    return this.require('upgradeRarityTables', id);
+  }
+  getUpgradeCategory(id: string): UpgradeCategoryDefinition {
+    return this.require('upgradeCategories', id);
+  }
+  getUpgradeFirstExperience(id: string): UpgradeFirstExperienceDefinition {
+    return this.require('upgradeFirstExperiences', id);
+  }
+  getTreasureRarityTable(id: string): TreasureRarityTableDefinition {
+    return this.require('treasureRarityTables', id);
+  }
+  getFirstTreasureRule(id: string): FirstTreasureRuleDefinition {
+    return this.require('firstTreasureRules', id);
+  }
+  getRelic(id: string): RelicDefinition {
+    return this.require('relics', id);
+  }
+  getRelicPool(id: string): RelicPoolDefinition {
+    return this.require('relicPools', id);
+  }
+  getRelicEffectTemplate(id: string): RelicEffectTemplateDefinition {
+    return this.require('relicEffectTemplates', id);
+  }
+  getProgressionModePolicy(id: string): ProgressionModePolicyDefinition {
+    return this.require('progressionModePolicies', id);
   }
 
   /** The mode selected by the manifest — the Demo loop for this pack. */
