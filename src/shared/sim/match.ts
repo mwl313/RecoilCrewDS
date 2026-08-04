@@ -77,8 +77,8 @@ export class Match {
     this.runtime.setGunnerInput(input, seq);
   }
 
-  applyGunnerAction(action: Parameters<typeof this.runtime.applyGunnerAction>[0], seq?: number): { accepted: boolean; reason?: string } {
-    return this.runtime.applyGunnerAction(action, seq);
+  applyGunnerAction(action: Parameters<typeof this.runtime.applyGunnerAction>[0], seq?: number, aim?: { aimYaw?: number; aimPitch?: number }): { accepted: boolean; reason?: string } {
+    return this.runtime.applyGunnerAction(action, seq, aim);
   }
 
   takeImpulseEvents() {

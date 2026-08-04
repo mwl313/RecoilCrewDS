@@ -53,10 +53,18 @@ export class WeaponSystem {
     }
 
     // Turret movement is validated/limited by the server at all times.
-    tur.yaw = tur.yaw + clamp(angleDiff(tur.yaw, input.aimYaw), -w.turretTurnRate * dt, w.turretTurnRate * dt);
-    tur.yaw = wrapAngle(tur.yaw);
-    const pitchFollowRate = this.ctx.rules.loadout.turret.pitchFollowRate ?? 8;
-    tur.pitch = clamp(lerp(tur.pitch, input.aimPitch, clamp(dt * pitchFollowRate, 0, 1)), w.turretMinPitch, w.turretMaxPitch);
+    const responseMode = this.ctx.rules.loadout.turret.responseMode ?? 'instant';
+    const aimValid = Number.isFinite(input.aimYaw) && Number.isFinite(input.aimPitch);
+    if (responseMode === 'instant' && aimValid) {
+      // Combat 05: instant response applies the accepted aim directly.
+      tur.yaw = wrapAngle(input.aimYaw);
+      tur.pitch = clamp(input.aimPitch, w.turretMinPitch, w.turretMaxPitch);
+    } else if (aimValid) {
+      tur.yaw = tur.yaw + clamp(angleDiff(tur.yaw, input.aimYaw), -w.turretTurnRate * dt, w.turretTurnRate * dt);
+      tur.yaw = wrapAngle(tur.yaw);
+      const pitchFollowRate = this.ctx.rules.loadout.turret.pitchFollowRate ?? 8;
+      tur.pitch = clamp(lerp(tur.pitch, input.aimPitch, clamp(dt * pitchFollowRate, 0, 1)), w.turretMinPitch, w.turretMaxPitch);
+    }
     tur.cannonCooldown = Math.max(0, tur.cannonCooldown - dt);
     tur.mgCooldown = Math.max(0, tur.mgCooldown - dt);
     tur.cannonFlash = Math.max(0, tur.cannonFlash - dt);

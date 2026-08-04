@@ -259,10 +259,28 @@ export class MatchRuntime {
    * Apply a discrete Gunner action edge immediately (before the next sim
    * step). The weapon system converts the held state into exact firings.
    */
-  applyGunnerAction(action: GunnerActionType, seq?: number): { accepted: boolean; reason?: string } {
+  applyGunnerAction(
+    action: GunnerActionType,
+    seq?: number,
+    aim?: { aimYaw?: number; aimPitch?: number },
+  ): { accepted: boolean; reason?: string } {
     const t = this.state.tank;
     const tur = this.state.turret;
     if (t.deadT > 0) return { accepted: false, reason: 'dead' };
+    // Click-time aim: apply the action's own aim before processing so a
+    // cannon press/release never fires along a stale periodic aim frame.
+    const aimYaw = aim?.aimYaw;
+    const aimPitch = aim?.aimPitch;
+    if (
+      typeof aimYaw === 'number' &&
+      typeof aimPitch === 'number' &&
+      Number.isFinite(aimYaw) &&
+      Number.isFinite(aimPitch)
+    ) {
+      const limits = this.rules.loadout.turret;
+      this.gunnerInput.aimYaw = wrapAngle(aimYaw);
+      this.gunnerInput.aimPitch = clamp(aimPitch, limits.minPitch, limits.maxPitch);
+    }
     switch (action) {
       case 'cannonPressed':
         if (tur.cannonCooldown > 0) return { accepted: false, reason: 'cooldown' };

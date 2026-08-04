@@ -37,8 +37,10 @@ describe('fall damage removal (Combat 05 M2)', () => {
     bug.impulseGrounded = false;
     const hp0 = bug.hp;
     let guard = 0;
-    while (bug.impulseGrounded !== true && guard++ < 600) {
+    let grounded = false;
+    while (!grounded && guard++ < 600) {
       m.runtime.systems.enemyImpulses.update(bug, m.runtime.systems.enemies.defFor(bug), DT);
+      grounded = Boolean(bug.impulseGrounded);
     }
     expect(bug.impulseGrounded).toBe(true);
     expect(bug.hp).toBe(hp0);

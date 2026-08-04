@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '9b71a10eed2bfee42d31b58d9a22f43a0bb0360369fb3d0423baa49caecebab9';
+export const CONTENT_PACK_SOURCE_HASH = 'c5ff83ca29b84c3211ce9c94a6d47620aa23a96d265af47cb7132f184b019720';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '669c58a8103ec86284ce53289af6cfbd402d82c56e49b6ea337fe79737ef87d7';
+export const CONTENT_PACK_HASH = 'bc6942c7ad0a920337a3bae57903941c6ed90f118ca43b1d56662e76d17ca5cd';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -62,8 +62,8 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "tank.default", definition: {"id":"tank.default","label":"Default Tank","behaviors":[],"forwardSpeed":18,"reverseSpeed":8,"accel":14,"reverseAccel":10,"steerLow":1.5,"steerHigh":0.9,"normalGrip":2.1,"airControl":0.55,"airGripMultiplier":0.35,"groundYawDamping":3.2,"airYawDamping":2.2,"hardHorizontalSpeedCap":35,"maxVisualAirPitch":0.22,"maxVisualAirRoll":0.28,"visualAirLevelRate":4,"landingGripSeconds":0.12,"landingGripMultiplier":0.35,"gravity":13.5,"jumpHeight":3,"rampLaunchSpeed":6.5,"dashImpulse":13,"dashCooldown":0.8,"dashAirMultiplier":0.8,"dashMaxHorizontalSpeed":33,"dashPresentationSeconds":0.18,"contactDamage":0,"dashContactDamage":12,"dashDamageWindowSeconds":0.2,"dashContactKnockback":0.92,"dashContactPerTargetCooldown":0.25,"collisionRadius":1.35,"footprint":[{"offset":-1,"radius":0.9},{"offset":0,"radius":1.15},{"offset":1,"radius":0.9}],"maxSafeStep":0.45,"maxSubsteps":8,"reverseSteerMult":0.7,"maxIntegrity":100,"respawnTime":3,"shieldTime":2,"autoRightTime":1.2,"autoRightRoll":1.15,"recoilImpulse":10.5,"recoilSpin":1.7,"jackpotRecoilImpulse":17,"jackpotSpin":4.5,"mgRecoilImpulse":0.15,"rig":{"chassisAssetId":"playerTank.chassis","turretAssetId":"playerTank.turret","barrelAssetId":"playerTank.barrel","turretPivot":[0,1.15,0],"barrelPivot":[0,0.62,0],"muzzleLocal":[0,0.75,2.9],"aimPivotLocal":[0,1.15,0],"cameraAnchorLocal":[0,1.35,0],"forwardAxis":[0,0,1]}} },
   ],
   "loadouts": [
-    { id: "loadout.default", definition: {"id":"loadout.default","label":"Default Crew Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.mainCannon","ability":"weapon.jackpotShell","turret":{"turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-1.45}} },
-    { id: "loadout.truckHunter", definition: {"id":"loadout.truckHunter","label":"Truck Hunter Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.rapidCannon","ability":"weapon.jackpotShell","turret":{"turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-0.12}} },
+    { id: "loadout.default", definition: {"id":"loadout.default","label":"Default Crew Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.mainCannon","ability":"weapon.jackpotShell","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-1.45}} },
+    { id: "loadout.truckHunter", definition: {"id":"loadout.truckHunter","label":"Truck Hunter Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.rapidCannon","ability":"weapon.jackpotShell","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-0.12}} },
   ],
   "weapons": [
     { id: "weapon.jackpotShell", definition: {"id":"weapon.jackpotShell","label":"JACKPOT Shell","behaviors":[],"behaviorId":"weapon.chargeProjectile","fireMode":"charge","cooldownSeconds":12,"chargeSeconds":1,"statBlock":{"weapon.jackpotDamage":60,"weapon.jackpotRadius":9,"weapon.jackpotSpeed":38,"weapon.jackpotLife":3.2,"weapon.splashInnerRatio":0.45,"weapon.splashInnerMultiplier":1,"weapon.splashOuterMultiplier":0.65,"weapon.jackpotRecoilImpulse":17,"weapon.jackpotRecoilSpin":4.5,"weapon.recoilVerticalScale":1,"weapon.recoilGroundLaunchThreshold":0.25,"weapon.splashKnockbackRadiusMultiplier":1,"weapon.splashKnockbackMax":12,"weapon.splashKnockbackMin":2.5,"weapon.splashKnockbackVertical":4,"weapon.splashKnockbackFalloffExponent":1.25,"weapon.splashTankKnockbackMultiplier":0},"projectileId":"projectile.jackpotShell","presentation":{"muzzleVfxId":"vfx.jackpot","fireAudioId":"audio.jackpotRelease"}} },

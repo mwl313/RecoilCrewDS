@@ -6,7 +6,7 @@
  */
 import type { DriverInput, GunnerInput, ModifierId, Role } from '../types';
 
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -64,6 +64,9 @@ export interface GunnerActionMessage extends ProtocolEnvelope {
   t: 'action';
   actionSeq: number;
   action: GunnerActionType;
+  /** Click/release-time aim (chassis-local yaw, pitch). */
+  aimYaw?: number;
+  aimPitch?: number;
 }
 
 export interface RematchMessage extends ProtocolEnvelope {

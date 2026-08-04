@@ -117,6 +117,15 @@ describe('gunner turret ack replay', () => {
 
   it('replays only aim frames newer than the gunner input ack', () => {
     const controller = new PredictionController('gunner', { send: () => undefined });
+    controller.applyMovementRules(
+      {
+        tank: BASE_CONFIG.tank,
+        match: { timeScale: 1, grip: 1, gravity: 13.5 },
+        turret: { responseMode: 'rateLimited', turnRate: 4.6, pitchFollowRate: 8, minPitch: -1.45, maxPitch: 0.42 },
+      },
+      1,
+      'none',
+    );
     controller.setTurretRates(4.6, 8);
     controller.sendGunner({ aimYaw: 0.2, aimPitch: 0.1, primary: false, secondary: false, ability: false });
     controller.sendGunner({ aimYaw: 0.4, aimPitch: 0.1, primary: false, secondary: false, ability: false });
@@ -127,13 +136,13 @@ describe('gunner turret ack replay', () => {
     expect(spaces.predictedYawLocal).toBeLessThan(0.4);
   });
 
-  it('does not pull back the turret when all frames are acked', () => {
+  it('instant mode never pulls the local turret back toward authority', () => {
     const controller = new PredictionController('gunner', { send: () => undefined });
     controller.setTurretRates(4.6, 8);
     controller.sendGunner({ aimYaw: 0.3, aimPitch: 0.1, primary: false, secondary: false, ability: false });
     controller.updateTurretTarget(0.3, 0.1, 0, 1 / 30);
     controller.reconcileTurret(stateWithTurret(0.25), 1); // all acked
-    // No replay; prediction converges toward authority without a snap.
-    expect(controller.getTurretSpaces().predictedYawLocal).toBeGreaterThan(0);
+    // Local visual truth stays at the newest desired aim (no backward blend).
+    expect(controller.getTurretSpaces().predictedYawLocal).toBeCloseTo(0.3, 9);
   });
 });

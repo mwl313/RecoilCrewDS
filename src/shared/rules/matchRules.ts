@@ -277,6 +277,7 @@ export class MatchRules {
         gravity: this.resolver.resolve('match.gravity'),
       },
       turret: {
+        responseMode: this.loadout.turret.responseMode ?? 'instant',
         turnRate: this.resolver.resolve('weapon.turretTurnRate'),
         pitchFollowRate: this.loadout.turret.pitchFollowRate ?? 8,
         minPitch: this.resolver.resolve('weapon.turretMinPitch'),

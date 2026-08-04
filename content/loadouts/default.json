@@ -5,6 +5,7 @@
   "secondary": "weapon.mainCannon",
   "ability": "weapon.jackpotShell",
   "turret": {
+    "responseMode": "instant",
     "turnRate": 60,
     "pitchFollowRate": 40,
     "maxPitch": 0.42,

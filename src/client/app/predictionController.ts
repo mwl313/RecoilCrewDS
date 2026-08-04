@@ -32,13 +32,14 @@ export class PredictionController {
   private authoritativeTurretPitch = 0.05;
   private turretReconcileSeq = 0;
   private pendingAimFrames: Array<{ seq: number; aimYaw: number; aimPitch: number }> = [];
-  private readonly pendingActions = new Map<number, { action: GunnerActionType; sentAt: number; tries: number }>();
+  private readonly pendingActions = new Map<number, { action: GunnerActionType; sentAt: number; tries: number; aimYaw: number; aimPitch: number }>();
   private actionSeq = 0;
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
   private turretMinPitch = -1.45;
   private turretMaxPitch = 0.42;
+  private turretResponseMode: 'instant' | 'rateLimited' = 'instant';
   private latestMovement: MovementRulesBlock | null = null;
   private ground: GroundQuery = STATIC_GROUND_QUERY;
 
@@ -57,6 +58,7 @@ export class PredictionController {
     if (!movement || revision === undefined) return;
     this.latestMovement = movement;
     if (movement.turret) {
+      this.turretResponseMode = movement.turret.responseMode ?? 'instant';
       this.turretTurnRate = movement.turret.turnRate;
       this.pitchFollowRate = movement.turret.pitchFollowRate;
       this.turretMinPitch = movement.turret.minPitch;
@@ -76,6 +78,13 @@ export class PredictionController {
   /** Single Player path: expose the local match's resolved movement/weapon block. */
   setMovementRules(movement: MovementRulesBlock): void {
     this.latestMovement = movement;
+    if (movement.turret) {
+      this.turretResponseMode = movement.turret.responseMode ?? 'instant';
+      this.turretTurnRate = movement.turret.turnRate;
+      this.pitchFollowRate = movement.turret.pitchFollowRate;
+      this.turretMinPitch = movement.turret.minPitch;
+      this.turretMaxPitch = movement.turret.maxPitch;
+    }
   }
 
   /** Latest replicated movement block (online) or local rules (Single Player). */
@@ -187,9 +196,11 @@ export class PredictionController {
   /** Immediate discrete Gunner action (bypasses the periodic timer). */
   sendGunnerAction(action: GunnerActionType): number {
     const actionSeq = ++this.actionSeq;
-    this.pendingActions.set(actionSeq, { action, sentAt: performance.now(), tries: 1 });
+    const aimYaw = this.desiredTurretYawLocal;
+    const aimPitch = this.desiredTurretPitch;
+    this.pendingActions.set(actionSeq, { action, sentAt: performance.now(), tries: 1, aimYaw, aimPitch });
     if (this.pendingActions.size > 16) this.pendingActions.delete(this.pendingActions.keys().next().value as number);
-    this.callbacks.send({ t: 'action', actionSeq, action });
+    this.callbacks.send({ t: 'action', actionSeq, action, aimYaw, aimPitch });
     return actionSeq;
   }
 
@@ -206,7 +217,7 @@ export class PredictionController {
       if (now - entry.sentAt > 100 && entry.tries < 4) {
         entry.tries++;
         entry.sentAt = now;
-        this.callbacks.send({ t: 'action', actionSeq: seq, action: entry.action });
+        this.callbacks.send({ t: 'action', actionSeq: seq, action: entry.action, aimYaw: entry.aimYaw, aimPitch: entry.aimPitch });
       }
     }
   }
@@ -240,16 +251,23 @@ export class PredictionController {
   updateTurretTarget(worldYaw: number, pitch: number, chassisYaw: number, dt: number): void {
     this.desiredTurretYawLocal = wrapAngle(worldYaw - chassisYaw);
     this.desiredTurretPitch = clamp(pitch, this.turretMinPitch, this.turretMaxPitch);
-    this.predictedTurretYawLocal += clamp(
-      angleDiff(this.predictedTurretYawLocal, this.desiredTurretYawLocal),
-      -this.turretTurnRate * dt,
-      this.turretTurnRate * dt,
-    );
-    this.predictedTurretPitch += clamp(
-      this.desiredTurretPitch - this.predictedTurretPitch,
-      -this.pitchFollowRate * dt,
-      this.pitchFollowRate * dt,
-    );
+    if (this.turretResponseMode === 'instant') {
+      // Combat 05: the local turret model matches the mouse target in the
+      // same rendered frame (no rate-limited visual chase).
+      this.predictedTurretYawLocal = this.desiredTurretYawLocal;
+      this.predictedTurretPitch = this.desiredTurretPitch;
+    } else {
+      this.predictedTurretYawLocal += clamp(
+        angleDiff(this.predictedTurretYawLocal, this.desiredTurretYawLocal),
+        -this.turretTurnRate * dt,
+        this.turretTurnRate * dt,
+      );
+      this.predictedTurretPitch += clamp(
+        this.desiredTurretPitch - this.predictedTurretPitch,
+        -this.pitchFollowRate * dt,
+        this.pitchFollowRate * dt,
+      );
+    }
   }
 
   /**
@@ -261,6 +279,23 @@ export class PredictionController {
     this.authoritativeTurretYawLocal = state.turret.yaw;
     this.authoritativeTurretPitch = state.turret.pitch;
     if (this.role === 'gunner') {
+      if (this.turretResponseMode === 'instant') {
+        // Local visual truth is the newest local desired aim. Use the Gunner
+        // input acknowledgement only to discard processed frames; never
+        // blend the predicted turret backward toward every snapshot.
+        this.pendingAimFrames = this.pendingAimFrames.filter((f) => f.seq > lastProcessedGunnerInputSeq);
+        const invalid =
+          !Number.isFinite(this.predictedTurretYawLocal + this.predictedTurretPitch) ||
+          this.predictedTurretPitch < this.turretMinPitch - 0.001 ||
+          this.predictedTurretPitch > this.turretMaxPitch + 0.001;
+        const divergence = Math.abs(angleDiff(this.predictedTurretYawLocal, this.authoritativeTurretYawLocal));
+        if (invalid) {
+          this.predictedTurretYawLocal = this.desiredTurretYawLocal;
+          this.predictedTurretPitch = this.desiredTurretPitch;
+        }
+        netcodeMetrics.markTurretCorrection(invalid ? divergence : 0);
+        return;
+      }
       const remaining = this.pendingAimFrames
         .filter((f) => f.seq > lastProcessedGunnerInputSeq)
         .slice(0, 8);
@@ -333,6 +368,7 @@ export class PredictionController {
     this.inputSeq = 0;
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;
+    this.turretResponseMode = 'instant';
     // NOTE: the ground is owned by the arena lifecycle (setGround on
     // create/start/rematch/reconnect/Single Player reroll). reset() must NOT
     // revert it to the legacy static arena, or a 400x400 (or any other)

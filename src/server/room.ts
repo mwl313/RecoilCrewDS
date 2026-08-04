@@ -420,7 +420,10 @@ export class RoomManager {
       return;
     }
     client.actionSeq = actionSeq;
-    const result = room.match.applyGunnerAction(action, actionSeq);
+    const result = room.match.applyGunnerAction(action, actionSeq, {
+      aimYaw: raw.aimYaw as number | undefined,
+      aimPitch: raw.aimPitch as number | undefined,
+    });
     this.send(client, { t: 'actionResult', actionSeq, accepted: result.accepted, reason: result.reason });
   }
 
