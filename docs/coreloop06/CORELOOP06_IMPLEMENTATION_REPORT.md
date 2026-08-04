@@ -99,7 +99,7 @@ New content categories (`hordeDirectors`, `populationLimits`, `spawnPacks`, `wav
 
 ## 21. Unit/integration/E2E outputs
 
-Executed this session: `npx tsc --noEmit` PASS, `npm run generate:content-pack` PASS, `npm run generate:presentation-content` PASS, `npm run build` PASS, `npm test` **623 passing**, `npm run test:horde` **59 passing** (10 files). The full command gate (demo/e2e/loop/maps/maplab/presentation/netcode/netcode:e2e) has not yet been re-run end-to-end in this session and is listed as pending in BUILD_STATUS.
+Executed this session: `npx tsc --noEmit` PASS, `npm run generate:content-pack` PASS, `npm run generate:presentation-content` PASS, `npm run generate:map-profiles` PASS, `npm run build` PASS, `npm test` **623 passing**, `npm run test:horde` **59 passing** (10 files), `npm run test:demo` PASS, `npm run test:loop` PASS (1803 snapshots + rematch), `npm run test:maps` PASS (64/64, determinism recheck), `npm run test:maps:sweep` PASS (1050 runs), `npm run build:maplab` + `test:maplab` PASS (32), `npm run build:presentation-preview` PASS, `npm run test:presentation` PASS (37), `npm run test:netcode` PASS (27), `npm run test:netcode:e2e` PASS (4), `npm run test:e2e` PASS (**33**). One e2e (arcade downward cannon) was stale against Combat 05 hold-to-release charge semantics and was updated to press-then-release; it passes.
 
 ## 22. Manual verification
 

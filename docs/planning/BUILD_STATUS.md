@@ -212,7 +212,10 @@
   sectors, stage HUD + horde debug overlay. `npm test` 623 passing.
 - M12 capacity: engineering caps selected from measurements (hard 300,
   aggregate visual 500); final release cap pending two-client soak.
+- Full command gate is green: tsc, content generations, build, `npm test`
+  (623), demo, e2e (33), loop, maps + sweep, maplab, presentation,
+  netcode + netcode:e2e. One stale arcade e2e was updated for Combat 05
+  release-to-fire semantics.
 - Pending: flip `horde.mainStage.enforceStage` with a focused demo-golden
-  update, far-horde client visuals, full command gate re-run
-  (demo/e2e/loop/maps/maplab/presentation/netcode/netcode:e2e), two-client
-  soak, and the remaining manual verification scenarios.
+  update, far-horde client visuals, two-client soak, and the remaining
+  manual verification scenarios.

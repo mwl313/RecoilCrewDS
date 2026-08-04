@@ -41,6 +41,7 @@ test('downward cannon aim launches the shared tank on both clients (arcade recoi
   // periodic frame can overwrite the held edge before the server ticks.
   let launched = false;
   for (let attempt = 0; attempt < 3 && !launched; attempt++) {
+    // Combat 05: RMB is hold-to-charge / release-to-fire. Press first...
     await b.evaluate(() => {
       const w = window as unknown as {
         __recoil: {
@@ -50,6 +51,19 @@ test('downward cannon aim launches the shared tank on both clients (arcade recoi
       };
       w.__recoil.setAutoInput(true);
       w.__recoil.input('gunner', { aimYaw: 0, aimPitch: -1.2, primary: false, secondary: true, ability: false });
+      w.__recoil.setAutoInput(false);
+    });
+    await b.waitForTimeout(80);
+    // ...then release to fire the cannon.
+    await b.evaluate(() => {
+      const w = window as unknown as {
+        __recoil: {
+          setAutoInput(v: boolean): void;
+          input(role: string, data: unknown): void;
+        };
+      };
+      w.__recoil.setAutoInput(true);
+      w.__recoil.input('gunner', { aimYaw: 0, aimPitch: -1.2, primary: false, secondary: false, ability: false });
       w.__recoil.setAutoInput(false);
     });
     await b.waitForTimeout(80);
