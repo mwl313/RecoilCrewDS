@@ -124,30 +124,36 @@ describe('entity factory and registry', () => {
     }
   });
 
-  it('resets all views on rematch/single-player restart (no growth)', () => {
-    const assets = { model: () => new THREE.Object3D() } as unknown as AssetService;
-    const factory = new EntityViewFactory(assets);
-    const scene = new THREE.Scene();
-    const registry = new EntityViewRegistry(scene, factory);
-    const bug: EnemyState = {
-      id: 1, type: 'scrapBug', x: 0, y: 0, z: 0, yaw: 0, hp: 3, maxHp: 3,
-      state: 'hunt', stateT: 0, aimYaw: 0, speed: 0, alive: true, telegraph: 0,
-      flash: 0, spawnT: 0, hitCd: 0,
-    };
-    for (let round = 0; round < 3; round++) {
-      for (let i = 0; i < 5; i++) {
-        registry.createEnemy({ ...bug, id: round * 10 + i, type: 'rammer' });
-        registry.upsertFodder({ ...bug, id: round * 10 + i + 100 }, 0);
-        registry.createPickup({ id: round * 10 + i, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
-        registry.createShell({ id: round * 10 + i, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
+  it('resets all views on rematch/single-player restart (no growth)', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => ({ ok: false })) as unknown as typeof fetch;
+    try {
+      const assets = await AssetService.load();
+      const factory = new EntityViewFactory(assets);
+      const scene = new THREE.Scene();
+      const registry = new EntityViewRegistry(scene, factory);
+      const bug: EnemyState = {
+        id: 1, type: 'scrapBug', x: 0, y: 0, z: 0, yaw: 0, hp: 3, maxHp: 3,
+        state: 'hunt', stateT: 0, aimYaw: 0, speed: 0, alive: true, telegraph: 0,
+        flash: 0, spawnT: 0, hitCd: 0,
+      };
+      for (let round = 0; round < 3; round++) {
+        for (let i = 0; i < 5; i++) {
+          registry.createEnemy({ ...bug, id: round * 10 + i, type: 'rammer' });
+          registry.upsertFodder({ ...bug, id: round * 10 + i + 100 }, 0);
+          registry.createPickup({ id: round * 10 + i, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
+          registry.createShell({ id: round * 10 + i, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
+        }
+        registry.reset();
+        expect(registry.enemyRigs.size).toBe(0);
+        expect(registry.fodder.activeCount).toBe(0);
+        expect(registry.pickupRigs.size).toBe(0);
+        expect(registry.shellRigs.size).toBe(0);
       }
-      registry.reset();
-      expect(registry.enemyRigs.size).toBe(0);
-      expect(registry.fodder.activeCount).toBe(0);
-      expect(registry.pickupRigs.size).toBe(0);
-      expect(registry.shellRigs.size).toBe(0);
+      expect(scene.children.filter((c) => c.type === 'Group').length).toBeLessThanOrEqual(3); // truck/marker + none leaked
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-    expect(scene.children.filter((c) => c.type === 'Group').length).toBeLessThanOrEqual(3); // truck/marker + none leaked
   });
 });
 

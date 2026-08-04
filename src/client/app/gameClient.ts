@@ -180,6 +180,7 @@ export class GameClient {
       singlePlayerMatch: () => gameRef!.singlePlayerMatch,
       time: () => gameRef!.time,
       applySinglePlayerWeapons: (dt) => gameRef!.applySinglePlayerWeapons(dt),
+      animationQuality: () => quality.quality,
     });
     deps.presenter = presenter;
     deps.router = router;

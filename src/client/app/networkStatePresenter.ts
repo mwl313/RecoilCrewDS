@@ -7,7 +7,7 @@ import type { Collider } from '../arenaView';
 import type { CameraCollisionQuery } from '../cameraCollision';
 import type { EnemyState, MatchState, Role, SimEvent, TankState } from '../../shared/types';
 import type { CameraManager } from './cameraManager';
-import type { EntityViewRegistry } from './entityViewRegistry';
+import type { EntityViewRegistry, EnemyRig } from './entityViewRegistry';
 import { InstancedEnemyRenderer } from '../enemies/instancedEnemyRenderer';
 import type { PredictionController } from './predictionController';
 import type { RenderWorld } from './renderWorld';
@@ -20,6 +20,9 @@ import type { GameSessionContext } from '../../shared/session/gameSessionKind';
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { solveTurretAim } from '../../shared/vehicle/tankRigGeometry';
 import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
+import { AnimationLodManager, type AnimationLodCandidate } from '../animation/animationLodSelector';
+import type { AnimationLodPolicyDefinition, EnemyAnimationLodTier } from '../../shared/animation/animationProfileTypes';
+import { EntityViewFactory } from './entityViewFactory';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -47,6 +50,8 @@ export interface PresenterDeps {
   singlePlayerMatch: () => { state: MatchState } | null;
   time: () => number;
   applySinglePlayerWeapons(dt: number): void;
+  /** Animation07: graphics quality drives presentation LOD only. */
+  animationQuality?: () => 'high' | 'low';
 }
 
 /**
@@ -75,9 +80,13 @@ export class NetworkStatePresenter {
 
   private tankRig: TankRig;
   private tankRigRevision = 0;
+  private readonly lodManagers = new Map<string, AnimationLodManager>();
+  private readonly midAccumulators = new Map<number, number>();
+  private readonly factory: EntityViewFactory;
 
   constructor(private readonly deps: PresenterDeps) {
     this.tankRig = deps.tankRig;
+    this.factory = new EntityViewFactory(deps.assets);
   }
 
   /** Swap the resolved tank rig (Single Player start / replicated block). */
@@ -205,6 +214,7 @@ export class NetworkStatePresenter {
 
     const registry = deps.registry;
     const seen = new Set<number>();
+    const rigsToSync: Array<{ e: EnemyState; rig: EnemyRig; distance: number }> = [];
     for (const e of frame.enemies) {
       seen.add(e.id);
       if (InstancedEnemyRenderer.isFodder(e.type)) {
@@ -213,6 +223,44 @@ export class NetworkStatePresenter {
       }
       let rig = registry.enemyRigs.get(e.id);
       if (!rig) rig = registry.createEnemy(e);
+      const distance = Math.hypot(e.x - t.x, e.z - t.z);
+      rigsToSync.push({ e, rig, distance });
+    }
+
+    // Per-policy LOD + mixer budget allocation (stable, hysteresis-aware).
+    const byPolicy = new Map<string, { policy: AnimationLodPolicyDefinition; candidates: AnimationLodCandidate[] }>();
+    for (const entry of rigsToSync) {
+      const policy = entry.rig.presentationResolution.lodPolicy;
+      const group = byPolicy.get(policy.id) ?? { policy, candidates: [] };
+      const lastImpulse = entry.e.lastImpulseT ?? -9;
+      group.candidates.push({
+        enemyId: entry.e.id,
+        distance: entry.distance,
+        populationClass: entry.e.ownership?.populationClass,
+        telegraphing: entry.e.telegraph > 0,
+        attacking: isAttackingEnemyState(entry.e),
+        damagedRecently: entry.e.flash > 0 || lastImpulse > deps.time() - 0.5,
+        currentTier: entry.rig.currentLod,
+      });
+      byPolicy.set(policy.id, group);
+    }
+    const lodTiers = new Map<number, EnemyAnimationLodTier>();
+    for (const group of byPolicy.values()) {
+      let manager = this.lodManagers.get(group.policy.id);
+      if (!manager) {
+        manager = new AnimationLodManager(group.policy);
+        this.lodManagers.set(group.policy.id, manager);
+      }
+      for (const [id, tier] of manager.update(group.candidates, deps.animationQuality?.() ?? 'high')) {
+        lodTiers.set(id, tier);
+      }
+    }
+
+    for (const entry of rigsToSync) {
+      const { e, rig, distance } = entry;
+      const tier = lodTiers.get(e.id) ?? 'far';
+      const prevTier = rig.currentLod;
+      if (tier !== prevTier) this.factory.applyPresentationTier(rig, tier);
       rig.group.visible = e.alive || e.state === 'dead';
       if (e.alive || e.state === 'dead') {
         rig.group.position.set(e.x, e.y, e.z);
@@ -220,6 +268,24 @@ export class NetworkStatePresenter {
         if (rig.head) rig.head.rotation.y = e.aimYaw - e.yaw;
         rig.deadT = e.alive ? 0 : rig.deadT + dt;
         if (!e.alive && rig.deadT > 1.2) rig.group.visible = false;
+        if (rig.animation) {
+          const policy = rig.presentationResolution.lodPolicy;
+          const mixerDt = this.animationDelta(rig, tier, e.id, dt, policy.midUpdateHz);
+          rig.animation.update(
+            {
+              alive: e.alive,
+              state: e.state,
+              stateT: e.stateT,
+              speed: e.speed,
+              telegraph: e.telegraph,
+              flash: e.flash,
+              airborne: e.impulseGrounded === false,
+              cue: e.actionCue ?? null,
+              currentTick: Math.round(deps.time() * 30),
+            },
+            mixerDt,
+          );
+        }
         const flash = e.flash > 0 ? 1.4 : 0;
         for (const mat of rig.materials) {
           mat.emissiveIntensity = flash + (e.type === 'rammer' && e.state === 'telegraph' ? 0.7 : 0);
@@ -237,6 +303,7 @@ export class NetworkStatePresenter {
         } else {
           rig.telegraph.visible = false;
         }
+        void distance;
       }
     }
     for (const id of [...registry.enemyRigs.keys()]) {
@@ -355,5 +422,34 @@ export class NetworkStatePresenter {
     this.renderClockStarted = false;
     this.renderTime = 0;
     this.lastRenderTank = null;
+    this.lodManagers.clear();
+    this.midAccumulators.clear();
   }
+
+  /** Reduced-rate mid updates use actual accumulated elapsed time. */
+  private animationDelta(
+    rig: { currentLod: EnemyAnimationLodTier },
+    tier: EnemyAnimationLodTier,
+    enemyId: number,
+    dt: number,
+    midUpdateHz: number,
+  ): number {
+    if (tier !== 'mid' || rig.currentLod !== 'mid') {
+      this.midAccumulators.delete(enemyId);
+      return dt;
+    }
+    const acc = (this.midAccumulators.get(enemyId) ?? 0) + dt;
+    const interval = 1 / Math.max(1, midUpdateHz);
+    if (acc < interval) {
+      this.midAccumulators.set(enemyId, acc);
+      return 0;
+    }
+    this.midAccumulators.set(enemyId, 0);
+    return acc;
+  }
+}
+
+function isAttackingEnemyState(e: EnemyState): boolean {
+  if (e.actionCue) return true;
+  return e.telegraph > 0 || e.state === 'telegraph' || e.state === 'charge' || e.state === 'fire' || e.state === 'lock';
 }

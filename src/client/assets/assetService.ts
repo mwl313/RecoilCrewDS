@@ -67,6 +67,9 @@ export class AssetService {
     // Preload every model referenced at runtime: built-in presentation
     // models, project files, and project catalog fallbacks.
     const preloadIds = new Set<string>(service.presentation.models);
+    for (const entry of manifest.entries) {
+      if (entry.category === 'model' && typeof entry.file === 'string') preloadIds.add(entry.id);
+    }
     for (const asset of projectModels) {
       if (asset.file) preloadIds.add(asset.id);
       if (asset.fallbackAssetId) preloadIds.add(asset.fallbackAssetId);

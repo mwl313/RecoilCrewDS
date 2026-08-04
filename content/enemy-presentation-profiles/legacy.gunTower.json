@@ -4,6 +4,7 @@
   "nearModelAssetId": "enemy.gunTower",
   "lodPolicyId": "animationLod.defaultHorde",
   "shadowPolicyId": "animationShadow.defaultHorde",
+  "socketBindings": { "head": "towerHead" },
   "materialPolicy": { "cloneForHitFlash": true, "allowSharedMaterials": false },
   "tags": ["legacy", "rigid"]
 }

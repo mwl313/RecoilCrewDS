@@ -2,36 +2,51 @@ import * as THREE from 'three';
 import type { AssetService } from '../assets';
 import type { EnemyState, PickupState, ShellState } from '../../shared/types';
 import type { EnemyRig, PickupRig, ShellRig } from './entityViewRegistry';
+import {
+  EnemyAnimationController,
+  animationPhaseSeed,
+} from '../animation/enemyAnimationController';
+import {
+  resolveEnemyPresentation,
+  type EnemyPresentationResolution,
+} from '../animation/enemyPresentationResolver';
+import { collectMaterials } from '../assets/loadedModelAsset';
+import { disposeOwnedMaterials } from '../animation/animationCleanup';
+import { animationTelemetry } from '../animation/animationTelemetry';
+import type {
+  EnemyAnimationLodTier,
+  EnemyPresentationProfileDefinition,
+} from '../../shared/animation/animationProfileTypes';
+import type { AnimationShadowRules } from '../../shared/animation/animationProfileTypes';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
  * presentation concern only (socket resolver), never gameplay.
+ *
+ * Animation07: enemy models resolve through validated presentation
+ * profiles instead of a hardcoded type->model switch. Legacy enemies use
+ * generated legacy profiles; new families use explicit profiles.
  */
 export class EntityViewFactory {
   constructor(readonly assets: AssetService) {}
 
   createEnemyRig(e: EnemyState, scene: THREE.Scene): EnemyRig {
-    const id = this.enemyModelId(e.type);
-    const model = this.assets.model(id).clone(true);
+    const resolution = resolveEnemyPresentation(e);
+    const profile = resolution.profile;
+    const cloneMaterials = profile.materialPolicy?.cloneForHitFlash ?? true;
+    const instance = this.assets.createModelInstance(profile.nearModelAssetId, { cloneMaterials });
+    const model = instance.root;
     const group = new THREE.Group();
     group.add(model);
-    if (e.type === 'lootTruck') group.scale.setScalar(1.15);
+    applyProfileTransform(group, profile.transform);
     scene.add(group);
-    const materials: THREE.MeshStandardMaterial[] = [];
-    model.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      if (mesh.isMesh) {
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        const mat = mesh.material as THREE.MeshStandardMaterial;
-        if (mat && mat.isMeshStandardMaterial) materials.push(mat);
-      }
-    });
+    const materials = collectMaterials(model);
+    applyShadowPolicy(model, resolution.shadowPolicy.tiers.hero);
+    const socketName =
+      profile.socketBindings?.head ?? this.assets.transforms.socketNameFor(profile.nearModelAssetId);
     let head: THREE.Object3D | undefined;
-    if (e.type === 'gunTower') {
-      // Presentation socket resolution (registered by semantic id).
-      const socketName = (this.assets.transforms as { socketNameFor(id: string): string | null }).socketNameFor('enemy.gunTower');
-      head = socketName ? (model.getObjectByName(socketName) ?? undefined) : undefined;
+    if (socketName) {
+      head = model.getObjectByName(socketName) ?? undefined;
     }
     const telegraph = new THREE.Group();
     let telegraphMat!: THREE.MeshBasicMaterial;
@@ -51,7 +66,91 @@ export class EntityViewFactory {
       telegraph.visible = false;
     }
     scene.add(telegraph);
-    return { group, model, head, materials, telegraph, telegraphMat, deadT: 0 };
+    let animation: EnemyAnimationController | null = null;
+    if (
+      resolution.animationProfile &&
+      (instance.skinned || instance.source.animations.length > 0)
+    ) {
+      animation = EnemyAnimationController.create(
+        resolution.animationProfile,
+        instance,
+        animationPhaseSeed(e.id),
+      );
+      animationTelemetry.liveSkinnedRoots++;
+    }
+    return {
+      group,
+      model,
+      presentationProfileId: resolution.profileId,
+      presentationResolution: resolution,
+      animation,
+      currentLod: 'hero',
+      modelVariant: 'near',
+      materials,
+      telegraph,
+      telegraphMat,
+      head,
+      deadT: 0,
+      phaseSeed: animationPhaseSeed(e.id),
+    };
+  }
+
+  /**
+   * Swap a rig's model variant for its animation LOD tier (near skinned
+   * model <-> far rigid model). Same root transform, no duplicate visible
+   * model, animation controller suspended/disposed on demotion and
+   * recreated on promotion.
+   */
+  applyPresentationTier(rig: EnemyRig, tier: EnemyAnimationLodTier): void {
+    const resolution = rig.presentationResolution;
+    const wantFar = tier === 'far' || tier === 'aggregate';
+    if (wantFar && rig.modelVariant === 'far') {
+      rig.currentLod = tier;
+      return;
+    }
+    if (!wantFar && rig.modelVariant === 'near') {
+      rig.currentLod = tier;
+      return;
+    }
+
+    // Remove the old model (and its animation/materials) from the group.
+    if (rig.animation) {
+      rig.animation.dispose();
+      rig.animation = null;
+      animationTelemetry.liveSkinnedRoots = Math.max(0, animationTelemetry.liveSkinnedRoots - 1);
+    }
+    disposeOwnedMaterials(rig.model);
+    rig.group.remove(rig.model);
+
+    const profile = resolution.profile;
+    const farId = profile.farModelAssetId;
+    const assetId = wantFar && farId ? farId : profile.nearModelAssetId;
+    const cloneMaterials = profile.materialPolicy?.cloneForHitFlash ?? true;
+    const instance = this.assets.createModelInstance(assetId, { cloneMaterials });
+    const model = instance.root;
+    rig.model = model;
+    rig.group.add(model);
+    rig.modelVariant = wantFar ? 'far' : 'near';
+    rig.currentLod = tier;
+    rig.materials = collectMaterials(model);
+    applyShadowPolicy(model, resolution.shadowPolicy.tiers[tier] ?? resolution.shadowPolicy.tiers.hero);
+    const socketName =
+      profile.socketBindings?.head ?? this.assets.transforms.socketNameFor(assetId);
+    rig.head = socketName ? (model.getObjectByName(socketName) ?? undefined) : undefined;
+
+    if (!wantFar && resolution.animationProfile && (instance.skinned || instance.source.animations.length > 0)) {
+      rig.animation = EnemyAnimationController.create(
+        resolution.animationProfile,
+        instance,
+        rig.phaseSeed,
+      );
+      animationTelemetry.liveSkinnedRoots++;
+    }
+    if (wantFar) animationTelemetry.liveRigidFarRoots++;
+    if (rig.modelVariant === 'near' && !wantFar) {
+      // Promotion back to near: the far rigid root is gone already.
+      animationTelemetry.liveRigidFarRoots = Math.max(0, animationTelemetry.liveRigidFarRoots - 1);
+    }
   }
 
   createPickupRig(kind: string, scene: THREE.Scene): PickupRig {
@@ -106,18 +205,26 @@ export class EntityViewFactory {
     return g;
   }
 
-  private enemyModelId(type: string): string {
-    switch (type) {
-      case 'scrapBug':
-        return 'enemy.scrapBug';
-      case 'rammer':
-        return 'enemy.rammer';
-      case 'gunTower':
-        return 'enemy.gunTower';
-      case 'lootTruck':
-        return 'enemy.lootTruck';
-      default:
-        throw new Error(`no presentation model for enemy type '${type}'`);
-    }
+}
+
+export function applyProfileTransform(
+  group: THREE.Object3D,
+  transform: EnemyPresentationProfileDefinition['transform'],
+): void {
+  if (!transform) return;
+  if (transform.scale !== undefined) {
+    if (typeof transform.scale === 'number') group.scale.setScalar(transform.scale);
+    else group.scale.set(transform.scale[0], transform.scale[1], transform.scale[2]);
   }
+  if (transform.position) group.position.set(transform.position[0], transform.position[1], transform.position[2]);
+  if (transform.rotation) group.rotation.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]);
+}
+
+export function applyShadowPolicy(model: THREE.Object3D, rules: AnimationShadowRules): void {
+  model.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.castShadow = rules.castShadow;
+    mesh.receiveShadow = rules.receiveShadow;
+  });
 }

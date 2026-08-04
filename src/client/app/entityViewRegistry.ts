@@ -5,10 +5,25 @@ import {
   createScrapBugInstancedHost,
   InstancedEnemyRenderer,
 } from '../enemies/instancedEnemyRenderer';
+import type { EnemyAnimationController } from '../animation/enemyAnimationController';
+import { disposeOwnedMaterials } from '../animation/animationCleanup';
+import { animationTelemetry } from '../animation/animationTelemetry';
+import type {
+  EnemyAnimationLodTier,
+  FarEnemyPresentationRecord,
+} from '../../shared/animation/animationProfileTypes';
+import type { EnemyPresentationResolution } from '../animation/enemyPresentationResolver';
 
 export interface EnemyRig {
   group: THREE.Group;
   model: THREE.Object3D;
+  /** Animation07: resolved content profile id and metadata. */
+  presentationProfileId: string;
+  presentationResolution: EnemyPresentationResolution;
+  animation: EnemyAnimationController | null;
+  currentLod: EnemyAnimationLodTier;
+  modelVariant: 'near' | 'far' | 'aggregate';
+  phaseSeed: number;
   head?: THREE.Object3D;
   materials: THREE.MeshStandardMaterial[];
   telegraph: THREE.Group;
@@ -107,6 +122,7 @@ export class EntityViewRegistry {
 
   reset(): void {
     for (const rig of this.enemyRigs.values()) {
+      this.disposeRig(rig);
       this.scene.remove(rig.group);
       this.scene.remove(rig.telegraph);
     }
@@ -124,10 +140,46 @@ export class EntityViewRegistry {
   removeEnemy(id: number): void {
     const rig = this.enemyRigs.get(id);
     if (rig) {
+      this.disposeRig(rig);
       this.scene.remove(rig.group);
       this.scene.remove(rig.telegraph);
       this.enemyRigs.delete(id);
     }
+  }
+
+  /** Release animation/materials for one rig (removal, purge, reset). */
+  private disposeRig(rig: EnemyRig): void {
+    if (rig.animation) {
+      rig.animation.dispose();
+      rig.animation = null;
+      animationTelemetry.liveSkinnedRoots = Math.max(0, animationTelemetry.liveSkinnedRoots - 1);
+    }
+    if (rig.modelVariant === 'far' || rig.modelVariant === 'aggregate') {
+      animationTelemetry.liveRigidFarRoots = Math.max(0, animationTelemetry.liveRigidFarRoots - 1);
+    }
+    disposeOwnedMaterials(rig.model);
+  }
+
+  /**
+   * Far-tier presentation records — the seam a future instanced horde
+   * renderer consumes. Far enemies have no individual animated hierarchy.
+   */
+  farRecords(): FarEnemyPresentationRecord[] {
+    const out: FarEnemyPresentationRecord[] = [];
+    for (const [enemyId, rig] of this.enemyRigs) {
+      if (rig.currentLod !== 'far' && rig.currentLod !== 'aggregate') continue;
+      out.push({
+        enemyId,
+        presentationProfileId: rig.presentationProfileId,
+        x: rig.group.position.x,
+        y: rig.group.position.y,
+        z: rig.group.position.z,
+        yaw: rig.group.rotation.y,
+        phase: rig.phaseSeed,
+        flash: Math.max(0, ...rig.materials.map((m) => m.emissiveIntensity - 1.4)),
+      });
+    }
+    return out;
   }
 
   removePickup(id: number): void {
