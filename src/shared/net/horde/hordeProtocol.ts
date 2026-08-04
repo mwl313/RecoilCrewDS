@@ -1,4 +1,6 @@
 import type { EnemyState } from '../../types';
+import type { HordeSectorState } from '../../horde/hordeSectors';
+import type { PopulationClass } from '../../horde/spawnOwnership';
 
 /**
  * Core Loop 06 M9: typed horde replication records. Enemy transforms are
@@ -28,6 +30,11 @@ export interface HordeSnapshotBlock {
   mid: number[][];
   /** Tier 2/3 deltas (coalesced, change-driven). */
   far: number[][];
+  /**
+   * Aggregate far sectors: [sectorId, typeIndex, count, xq, zq, flowDxq,
+   * flowDzq, classIndex, waveId, threatq].
+   */
+  sectors: number[][];
   wave: HordeWaveState | null;
 }
 
@@ -104,4 +111,39 @@ export function materializeTypeIndex(type: string): number {
 
 export function materializeTypeName(index: number): string {
   return TYPE_ORDER[Math.max(0, index - 1)] ?? 'scrapBug';
+}
+
+const CLASS_ORDER: PopulationClass[] = ['ambient', 'wave', 'boss', 'special'];
+
+export function encodeSector(s: HordeSectorState): number[] {
+  return [
+    s.sectorId,
+    materializeTypeIndex(s.enemyDefId.startsWith('enemy.scrapBug') ? 'scrapBug' : s.enemyDefId.replace('enemy.', '')),
+    s.count,
+    quantizeXZ(s.centerX),
+    quantizeXZ(s.centerZ),
+    Math.round(s.flowDx * 100),
+    Math.round(s.flowDz * 100),
+    Math.max(0, CLASS_ORDER.indexOf(s.populationClass)),
+    s.waveId ?? 0,
+    quantizeHp(s.threat),
+  ];
+}
+
+export function decodeSector(rec: number[]): HordeSectorState {
+  const [sectorId, typeIndex, count, xq, zq, flowDxq, flowDzq, classIndex, waveId, threatq] = rec;
+  const typeName = materializeTypeName(typeIndex);
+  return {
+    sectorId,
+    enemyDefId: typeName === 'scrapBug' ? 'enemy.scrapBug' : `enemy.${typeName}`,
+    count,
+    centerX: dequantizeXZ(xq),
+    centerZ: dequantizeXZ(zq),
+    flowDx: flowDxq / 100,
+    flowDz: flowDzq / 100,
+    populationClass: CLASS_ORDER[Math.max(0, Math.min(CLASS_ORDER.length - 1, classIndex))] ?? 'ambient',
+    waveId: waveId === 0 ? null : waveId,
+    threat: dequantizeHp(threatq),
+    presentationSeed: sectorId,
+  };
 }

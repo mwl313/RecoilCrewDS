@@ -565,6 +565,7 @@ export class RoomManager {
           room.match.state.time,
           waveStateFor(room.match),
           (e) => room.match!.runtime.systems.enemies.tierFor(e),
+          [...room.match.runtime.systems.hordeSectors.sectors.values()],
         )
       : null;
     const state = hordeBlock

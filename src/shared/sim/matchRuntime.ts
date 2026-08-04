@@ -372,6 +372,8 @@ export class MatchRuntime {
     this.systems.pickups.update(dt);
     if (this.systems.horde && this.stageEnforced) {
       this.systems.horde.step(dt);
+      this.systems.hordeSectors.update(dt, s.tank.x, s.tank.z);
+      this.systems.hordeSectors.materialize(s.tank.x, s.tank.z);
     } else {
       this.systems.spawnDirector.step(dt);
     }

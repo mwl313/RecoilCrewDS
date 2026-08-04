@@ -181,6 +181,7 @@ export class WaveController {
 
   /** Remove only this wave's purgeable cohort (ambient untouched, no hooks). */
   purge(waveId: number): number {
+    this.ctx.hordeSectors?.purgeWave(waveId);
     const removed = this.ctx.enemies.purge((e) => {
       const o = e.ownership;
       return o !== undefined && o.purgeOnLeaderDeath === true && o.waveId === waveId;

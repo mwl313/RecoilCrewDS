@@ -24,6 +24,7 @@ import { SpawnPlanner } from '../../horde/spawnPlanner';
 import { hash32 } from '../../mapgen/seed';
 import { EnemySpatialIndex } from '../../spatial/enemySpatialIndex';
 import { HordeFlowField } from '../../navigation/hordeFlowField';
+import { HordeSectorAggregator } from '../../horde/hordeSectors';
 import type { MatchState, SimEvent } from '../../types';
 import { RoundSystem } from './roundSystem';
 import { ObjectiveSystem } from './objectiveSystem';
@@ -76,6 +77,7 @@ export interface SystemContext {
   spawnPlanner: SpawnPlanner;
   enemySpatial: EnemySpatialIndex;
   flowField: HordeFlowField | null;
+  hordeSectors: HordeSectorAggregator;
 }
 
 export function pushEvent(
@@ -134,6 +136,7 @@ export function createSystemContext(
   );
   ctx.enemySpatial = new EnemySpatialIndex();
   ctx.flowField = hordeDirector ? new HordeFlowField(world, hordeDirector.policies.navigation) : null;
+  ctx.hordeSectors = new HordeSectorAggregator(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);
   ctx.score = new ScoreSystem(ctx);

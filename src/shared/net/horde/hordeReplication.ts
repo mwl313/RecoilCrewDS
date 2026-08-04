@@ -4,6 +4,7 @@ import {
   dequantizeHp,
   dequantizeXZ,
   dequantizeYaw,
+  decodeSector,
   encodeDelta,
   encodeMaterialize,
   flagsFor,
@@ -17,6 +18,8 @@ import {
   type HordeSnapshotBlock,
   type HordeWaveState,
 } from './hordeProtocol';
+import type { HordeSectorState } from '../../horde/hordeSectors';
+import { encodeSector } from './hordeProtocol';
 
 interface LastRecord {
   xq: number;
@@ -46,6 +49,7 @@ export class HordeReplicationTracker {
   private readonly last = new Map<number, LastRecord>();
   private seq = 0;
   private frame = 0;
+  private lastSectors = '';
   stats: HordeReplicationStats = { enemyBytes: 0, serializeMs: 0, deltaQueue: 0 };
   private readonly policy: HordeReplicationPolicyDefinition;
 
@@ -58,6 +62,7 @@ export class HordeReplicationTracker {
     time: number,
     wave: HordeWaveState | null,
     tierOf: (e: EnemyState) => 0 | 1 | 2 | 3,
+    sectors: readonly HordeSectorState[] = [],
   ): HordeSnapshotBlock {
     const t0 = performanceNow();
     this.frame++;
@@ -70,8 +75,14 @@ export class HordeReplicationTracker {
       near: [],
       mid: [],
       far: [],
+      sectors: [],
       wave,
     };
+    const sectorKey = JSON.stringify(sectors.map((s) => [s.sectorId, s.count, s.centerX, s.centerZ, s.waveId]));
+    if (sectorKey !== this.lastSectors) {
+      block.sectors = sectors.map(encodeSector);
+      this.lastSectors = sectorKey;
+    }
     const nearEvery = Math.max(1, Math.round(SNAPSHOT_HZ / this.policy.nearHz));
     const midEvery = Math.max(1, Math.round(SNAPSHOT_HZ / this.policy.midHz));
     const farEvery = Math.max(1, Math.round(SNAPSHOT_HZ / this.policy.farHz));
@@ -149,6 +160,7 @@ export class HordeReplicationTracker {
  */
 export class HordeReplicationClient {
   readonly enemies = new Map<number, EnemyState>();
+  readonly sectors = new Map<number, HordeSectorState>();
 
   constructor(
     private readonly groundY: (x: number, z: number) => number,
@@ -182,6 +194,11 @@ export class HordeReplicationClient {
       };
       this.enemies.set(id, enemy);
     }
+    this.sectors.clear();
+    for (const rec of block.sectors) {
+      const sector = decodeSector(rec);
+      this.sectors.set(sector.sectorId, sector);
+    }
     for (const id of block.death) {
       const e = this.enemies.get(id);
       if (e) {
@@ -213,6 +230,7 @@ export class HordeReplicationClient {
 
   reset(): void {
     this.enemies.clear();
+    this.sectors.clear();
   }
 }
 

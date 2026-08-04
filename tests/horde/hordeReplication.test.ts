@@ -127,6 +127,7 @@ describe('HordeReplicationClient (client, M9)', () => {
       near: [],
       mid: [],
       far: [],
+      sectors: [],
       wave: null,
     };
     const list = client.apply(b1, 0);
@@ -141,6 +142,7 @@ describe('HordeReplicationClient (client, M9)', () => {
       near: [encodeDelta({ ...a, x: 12, yaw: 0.5 })],
       mid: [],
       far: [],
+      sectors: [],
       wave: null,
     };
     const after = client.apply(b2, 0.05);
@@ -162,6 +164,7 @@ describe('HordeReplicationClient (client, M9)', () => {
       near: [],
       mid: [],
       far: [],
+      sectors: [],
       wave: null,
     }, 0);
     const e = client.enemies.get(1)!;
@@ -179,6 +182,7 @@ describe('HordeReplicationClient (client, M9)', () => {
       near: [],
       mid: [],
       far: [],
+      sectors: [],
       wave: null,
     }, 0);
     client.reset();

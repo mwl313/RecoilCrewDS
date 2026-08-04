@@ -37,6 +37,15 @@ export class PopulationManager {
       tally.byClass[cls].entities++;
       tally.byClass[cls].threat += threat;
     }
+    const sectors = this.ctx.hordeSectors?.tally();
+    if (sectors) {
+      tally.entities += sectors.entities;
+      tally.threat += sectors.threat;
+      for (const cls of Object.keys(tally.byClass) as PopulationClass[]) {
+        tally.byClass[cls].entities += sectors.byClass[cls].entities;
+        tally.byClass[cls].threat += sectors.byClass[cls].threat;
+      }
+    }
     return tally;
   }
 
