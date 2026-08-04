@@ -182,6 +182,10 @@ export class MatchRuntime {
       const def = this.rules.enemies.get(spawn.type);
       if (def) this.systems.enemies.spawnEnemyDef(def, spawn.x, spawn.z);
     }
+    // Core Loop 06: the stage director tracks progression in every match
+    // (telemetry); enforcement is enabled once a mode references a horde
+    // director (Milestone 3+), so the legacy Demo round stays byte-identical.
+    this.systems.stage.start();
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */
@@ -342,6 +346,10 @@ export class MatchRuntime {
     this.simTick++;
     this.systems.simTick = this.simTick;
     const s = this.state;
+    this.systems.stage.step({ dt, tankDead: s.tank.deadT > 0 });
+    if (this.stageEnforced && (this.systems.stage.state.phase === 'clear' || this.systems.stage.state.phase === 'gameOver')) {
+      s.phase = 'results';
+    }
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.stepTank(dt);
@@ -543,6 +551,11 @@ export class MatchRuntime {
     this.systems.drops.resolveFor(e);
     this.systems.pickups.noteKill(s.time, scrap);
     this.push('kill', e.x, e.y + 1, e.z, { id: e.id, kind: e.type, value: score, label: `+${Math.floor(score * this.state.combo.multiplier)}` });
+  }
+
+  /** True once a mode references a horde director (Core Loop 06 M3+). */
+  get stageEnforced(): boolean {
+    return Boolean((this.rules.mode as { hordeDirector?: string } | null)?.hordeDirector);
   }
 
   // ------------------------------------------------- score/combo (delegated)
