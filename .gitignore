@@ -10,3 +10,9 @@ coverage/
 test-results/
 playwright-report/
 server.pid
+
+# Local heavyweight import packages (Monster Pack 10 ZIP is canonical here)
+local-imports/
+
+# Generated monster-pack import staging (disposable; re-created by importer)
+build/monsterpack10-import/

@@ -48,15 +48,22 @@ function readJson(file: string): unknown {
 function listJson(dir: string): string[] {
   const full = path.join(CONTENT_ROOT, dir);
   if (!existsSync(full)) return [];
-  return readdirSync(full)
-    .filter((f) => f.endsWith('.json'))
-    .sort();
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const entry of readdirSync(d, { withFileTypes: true })) {
+      const abs = path.join(d, entry.name);
+      if (entry.isDirectory()) walk(abs);
+      else if (entry.name.endsWith('.json')) out.push(path.relative(CONTENT_ROOT, abs).replace(/\\/g, '/'));
+    }
+  };
+  walk(full);
+  return out.sort();
 }
 
 function parseProfiles<T>(dir: string, schema: { safeParse(data: unknown): { success: boolean; data?: T; error?: unknown } }): T[] {
   const out: T[] = [];
   for (const file of listJson(dir)) {
-    const parsed = schema.safeParse(readJson(path.join(CONTENT_ROOT, dir, file)));
+    const parsed = schema.safeParse(readJson(path.join(CONTENT_ROOT, file)));
     if (!parsed.success) {
       throw new Error(`${dir}/${file}: ${JSON.stringify(parsed.error).slice(0, 400)}`);
     }
@@ -67,7 +74,7 @@ function parseProfiles<T>(dir: string, schema: { safeParse(data: unknown): { suc
 
 function loadAssetCatalog(): AssetCatalogDefinition {
   const catalogs = listJson('assets').map((f) => {
-    const parsed = assetCatalogDefinitionSchema.safeParse(readJson(path.join(CONTENT_ROOT, 'assets', f)));
+    const parsed = assetCatalogDefinitionSchema.safeParse(readJson(path.join(CONTENT_ROOT, f)));
     if (!parsed.success) throw new Error(`assets/${f}: ${JSON.stringify(parsed.error).slice(0, 400)}`);
     return parsed.data;
   });
@@ -98,7 +105,7 @@ export function buildEnemyAnimationContent(contentRoot = CONTENT_ROOT): EnemyAni
   const catalog = loadAssetCatalog();
   const resolvable = resolvableAssetIds(catalog);
 
-  const enemyJson = listJson('enemies').map((f) => readJson(path.join(contentRoot, 'enemies', f)) as Record<string, unknown>);
+  const enemyJson = listJson('enemies').map((f) => readJson(path.join(contentRoot, f)) as Record<string, unknown>);
   const issues = validateAnimationContent(
     { presentationProfiles, animationProfiles, lodPolicies, shadowPolicies },
     (id) => resolvable.has(id),

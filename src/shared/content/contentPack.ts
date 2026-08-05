@@ -20,6 +20,7 @@ import type { SpawnDirectorDefinition } from './schemas/spawnDirector';
 import type { TankDefinition } from './schemas/tank';
 import type { TerrainProfileDefinition } from './schemas/terrainProfile';
 import type { ValidationProfileDefinition } from './schemas/validationProfile';
+import type { EnemyArtRosterDefinition } from './schemas/enemyArtRoster';
 import type { WeaponDefinition } from './schemas/weapon';
 import type {
   FirstTreasureRuleDefinition,
@@ -91,6 +92,7 @@ export const CONTENT_CATEGORIES = [
   'upgradeRarityTables',
   'upgradeCategories',
   'upgradeFirstExperiences',
+  'enemyArtRosters',
   'treasureRarityTables',
   'firstTreasureRules',
   'relics',
@@ -142,6 +144,7 @@ export interface CategoryRegistries {
   upgradeRarityTables: DefinitionRegistry<UpgradeRarityTableDefinition>;
   upgradeCategories: DefinitionRegistry<UpgradeCategoryDefinition>;
   upgradeFirstExperiences: DefinitionRegistry<UpgradeFirstExperienceDefinition>;
+  enemyArtRosters: DefinitionRegistry<EnemyArtRosterDefinition>;
   treasureRarityTables: DefinitionRegistry<TreasureRarityTableDefinition>;
   firstTreasureRules: DefinitionRegistry<FirstTreasureRuleDefinition>;
   relics: DefinitionRegistry<RelicDefinition>;
@@ -332,6 +335,9 @@ export class ContentPack {
   }
   getUpgradeFirstExperience(id: string): UpgradeFirstExperienceDefinition {
     return this.require('upgradeFirstExperiences', id);
+  }
+  getEnemyArtRoster(id: string): EnemyArtRosterDefinition {
+    return this.require('enemyArtRosters', id);
   }
   getTreasureRarityTable(id: string): TreasureRarityTableDefinition {
     return this.require('treasureRarityTables', id);
