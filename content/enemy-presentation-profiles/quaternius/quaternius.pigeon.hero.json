@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.pigeon.hero",
+  "label": "Quaternius pigeon Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.pigeon.hero",
+  "animationProfileId": "enemyAnimation.quaternius.pigeon.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "pigeon",
+    "hero"
+  ]
+}

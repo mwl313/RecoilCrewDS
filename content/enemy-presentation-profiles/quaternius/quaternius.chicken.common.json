@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.chicken.common",
+  "label": "Quaternius chicken Common",
+  "nearModelAssetId": "custom.enemy.quaternius.chicken.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.chicken.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.chicken.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.chicken.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "chicken",
+    "common"
+  ]
+}

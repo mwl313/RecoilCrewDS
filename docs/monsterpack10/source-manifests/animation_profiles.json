@@ -1,0 +1,748 @@
+{
+  "schemaVersion": 1,
+  "profiles": {
+    "monster.quaternius.alien": {
+      "profileId": "animation.alien",
+      "sourceModelId": "monster.quaternius.alien",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.alien-high-detail": {
+      "profileId": "animation.alien-high-detail",
+      "sourceModelId": "monster.quaternius.alien-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.alpaking": {
+      "profileId": "animation.alpaking",
+      "sourceModelId": "monster.quaternius.alpaking",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.alpaking-evolved": {
+      "profileId": "animation.alpaking-evolved",
+      "sourceModelId": "monster.quaternius.alpaking-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.armabee": {
+      "profileId": "animation.armabee",
+      "sourceModelId": "monster.quaternius.armabee",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.armabee-evolved": {
+      "profileId": "animation.armabee-evolved",
+      "sourceModelId": "monster.quaternius.armabee-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.birb": {
+      "profileId": "animation.birb",
+      "sourceModelId": "monster.quaternius.birb",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.blue-demon": {
+      "profileId": "animation.blue-demon",
+      "sourceModelId": "monster.quaternius.blue-demon",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.bunny": {
+      "profileId": "animation.bunny",
+      "sourceModelId": "monster.quaternius.bunny",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.cactoro": {
+      "profileId": "animation.cactoro",
+      "sourceModelId": "monster.quaternius.cactoro",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.cactoro-high-detail": {
+      "profileId": "animation.cactoro-high-detail",
+      "sourceModelId": "monster.quaternius.cactoro-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.cat": {
+      "profileId": "animation.cat",
+      "sourceModelId": "monster.quaternius.cat",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.chicken": {
+      "profileId": "animation.chicken",
+      "sourceModelId": "monster.quaternius.chicken",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.demon": {
+      "profileId": "animation.demon",
+      "sourceModelId": "monster.quaternius.demon",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.demon-high-detail": {
+      "profileId": "animation.demon-high-detail",
+      "sourceModelId": "monster.quaternius.demon-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.dino": {
+      "profileId": "animation.dino",
+      "sourceModelId": "monster.quaternius.dino",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.dragon": {
+      "profileId": "animation.dragon",
+      "sourceModelId": "monster.quaternius.dragon",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.dragon-evolved": {
+      "profileId": "animation.dragon-evolved",
+      "sourceModelId": "monster.quaternius.dragon-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.fish": {
+      "profileId": "animation.fish",
+      "sourceModelId": "monster.quaternius.fish",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.fish-high-detail": {
+      "profileId": "animation.fish-high-detail",
+      "sourceModelId": "monster.quaternius.fish-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.frog": {
+      "profileId": "animation.frog",
+      "sourceModelId": "monster.quaternius.frog",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.ghost": {
+      "profileId": "animation.ghost",
+      "sourceModelId": "monster.quaternius.ghost",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.ghost-skull": {
+      "profileId": "animation.ghost-skull",
+      "sourceModelId": "monster.quaternius.ghost-skull",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.glub": {
+      "profileId": "animation.glub",
+      "sourceModelId": "monster.quaternius.glub",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.glub-evolved": {
+      "profileId": "animation.glub-evolved",
+      "sourceModelId": "monster.quaternius.glub-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.goleling": {
+      "profileId": "animation.goleling",
+      "sourceModelId": "monster.quaternius.goleling",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.goleling-evolved": {
+      "profileId": "animation.goleling-evolved",
+      "sourceModelId": "monster.quaternius.goleling-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.green-blob": {
+      "profileId": "animation.green-blob",
+      "sourceModelId": "monster.quaternius.green-blob",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.green-spiky-blob": {
+      "profileId": "animation.green-spiky-blob",
+      "sourceModelId": "monster.quaternius.green-spiky-blob",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.hywirl": {
+      "profileId": "animation.hywirl",
+      "sourceModelId": "monster.quaternius.hywirl",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.monkroose": {
+      "profileId": "animation.monkroose",
+      "sourceModelId": "monster.quaternius.monkroose",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.mushnub": {
+      "profileId": "animation.mushnub",
+      "sourceModelId": "monster.quaternius.mushnub",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.mushnub-evolved": {
+      "profileId": "animation.mushnub-evolved",
+      "sourceModelId": "monster.quaternius.mushnub-evolved",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.mushroom-king": {
+      "profileId": "animation.mushroom-king",
+      "sourceModelId": "monster.quaternius.mushroom-king",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.ninja": {
+      "profileId": "animation.ninja",
+      "sourceModelId": "monster.quaternius.ninja",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.ninja-high-detail": {
+      "profileId": "animation.ninja-high-detail",
+      "sourceModelId": "monster.quaternius.ninja-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.orc": {
+      "profileId": "animation.orc",
+      "sourceModelId": "monster.quaternius.orc",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.orc-enemy": {
+      "profileId": "animation.orc-enemy",
+      "sourceModelId": "monster.quaternius.orc-enemy",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.pigeon": {
+      "profileId": "animation.pigeon",
+      "sourceModelId": "monster.quaternius.pigeon",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.pink-blob": {
+      "profileId": "animation.pink-blob",
+      "sourceModelId": "monster.quaternius.pink-blob",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.squidle": {
+      "profileId": "animation.squidle",
+      "sourceModelId": "monster.quaternius.squidle",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.tribal": {
+      "profileId": "animation.tribal",
+      "sourceModelId": "monster.quaternius.tribal",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Flying_Idle",
+        "move": "CharacterArmature|Fast_Flying",
+        "hover": "CharacterArmature|Flying_Idle",
+        "fastHover": "CharacterArmature|Fast_Flying",
+        "attackPrimary": "CharacterArmature|Headbutt",
+        "attackSecondary": "CharacterArmature|Punch",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "death": "CharacterArmature|Death"
+      }
+    },
+    "monster.quaternius.wizard": {
+      "profileId": "animation.wizard",
+      "sourceModelId": "monster.quaternius.wizard",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.yeti": {
+      "profileId": "animation.yeti",
+      "sourceModelId": "monster.quaternius.yeti",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Bite_Front",
+        "hit": "CharacterArmature|HitRecieve",
+        "stagger": "CharacterArmature|HitRecieve",
+        "spawn": "CharacterArmature|Jump",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    },
+    "monster.quaternius.yeti-high-detail": {
+      "profileId": "animation.yeti-high-detail",
+      "sourceModelId": "monster.quaternius.yeti-high-detail",
+      "semanticClipMap": {
+        "idle": "CharacterArmature|Idle",
+        "walk": "CharacterArmature|Walk",
+        "run": "CharacterArmature|Run",
+        "move": "CharacterArmature|Walk",
+        "attackPrimary": "CharacterArmature|Punch",
+        "attackSecondary": "CharacterArmature|Weapon",
+        "hit": "CharacterArmature|HitReact",
+        "stagger": "CharacterArmature|HitReact",
+        "spawn": "CharacterArmature|Jump",
+        "land": "CharacterArmature|Jump_Land",
+        "death": "CharacterArmature|Death",
+        "entrance": "CharacterArmature|Jump",
+        "recovery": "CharacterArmature|Idle"
+      }
+    }
+  }
+}

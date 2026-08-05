@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.yeti-high-detail.hero",
+  "label": "Quaternius yeti-high-detail Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.yetiHighDetail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "yeti-high-detail",
+    "hero"
+  ]
+}

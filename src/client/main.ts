@@ -22,6 +22,9 @@ import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
 import type { HordeStageView } from '../shared/net/protocol';
+import { createPlayerSettingsStore } from './settings/playerSettingsStore';
+import { PlayerSettingsController } from './settings/playerSettingsController';
+import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -29,6 +32,7 @@ const hud = new Hud();
 const hudController = new HudController(hud);
 const net = new NetClient();
 const input = new InputManager();
+const playerSettings = new PlayerSettingsController(createPlayerSettingsStore());
 
 void assetsPromise.then((loadedAssets) => {
   const lowQuality =
@@ -53,7 +57,7 @@ let sessionKind: GameSessionKind = 'multiplayer';
 // authoritative application state machine. SceneFlowPresenter owns the
 // presentation side (scene runtimes, transitions, hybrid worlds, actions)
 // and mirrors `flow` through showState() for scene selection only.
-let flow: 'boot' | 'main' | 'create' | 'join' | 'ready' | 'game' | 'results' | 'error' = 'boot';
+let flow: 'boot' | 'main' | 'settings' | 'create' | 'join' | 'lobby' | 'ready' | 'game' | 'results' | 'error' = 'boot';
 let lastPingSent = 0;
 let pingMs = 0;
 let latestState: MatchState | null = null;
@@ -66,6 +70,9 @@ let singlePlayerMatchIndex = 0;
 let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
+let localPlayerId = '';
+let lobbyState: ClientLobbyState | null = null;
+let lobbyChat: LobbyChatMessage[] = [];
 
 const params = new URLSearchParams(window.location.search);
 const TEST_MODE = params.has('test');
@@ -76,12 +83,12 @@ hud.bind({
   onBoot: () => {
     audio.unlock();
     hud.onUiSound = () => audio.play('ui');
+    hud.setMainMenuNickname(playerSettings.currentNickname);
     hud.showScreen('main');
     flow = 'main';
   },
   onCreate: () => {
-    net.send({ t: 'create' });
-    hud.showScreen('create');
+    net.send({ t: 'create', displayName: playerSettings.currentNickname });
     flow = 'create';
   },
   onJoin: (code) => {
@@ -90,11 +97,62 @@ hud.bind({
       flow = 'join';
       return;
     }
-    net.send({ t: 'join', code });
+    net.send({ t: 'join', code, displayName: playerSettings.currentNickname });
     flow = 'join';
   },
   onReady: () => {
     net.send({ t: 'ready', ready: true });
+  },
+  onOpenSettings: () => {
+    hud.setSettingsContext({ nicknameDraft: playerSettings.draftNickname, settingsError: '' });
+    hud.showScreen('settings');
+    flow = 'settings';
+  },
+  onRandomizeNickname: () => {
+    const draft = playerSettings.randomize();
+    hud.setSettingsContext({ nicknameDraft: draft, settingsError: '' });
+  },
+  onSaveSettings: (nickname) => {
+    playerSettings.setDraft(nickname);
+    const result = playerSettings.save();
+    if (!result.valid) {
+      const message =
+        result.reason === 'empty'
+          ? 'Choose a nickname.'
+          : result.reason === 'too_long'
+            ? 'Nickname must be 20 characters or fewer.'
+            : 'Nickname contains unsupported control characters.';
+      hud.setSettingsContext({ settingsError: message });
+      return;
+    }
+    hud.setMainMenuNickname(playerSettings.currentNickname);
+    hud.showScreen('main');
+    flow = 'main';
+  },
+  onCancelSettings: () => {
+    playerSettings.cancel();
+    hud.showScreen('main');
+    flow = 'main';
+  },
+  onLobbySeat: (seat) => {
+    net.send({ t: 'lobbySelectSeat', seat, lobbyRevision: lobbyState?.revision ?? 0 });
+  },
+  onLobbyReadyToggle: () => {
+    const me = lobbyState?.players.find((p) => p.playerId === localPlayerId);
+    net.send({ t: 'lobbyReadySet', ready: !(me?.ready ?? false), lobbyRevision: lobbyState?.revision ?? 0 });
+  },
+  onLobbyChatSend: (text) => {
+    net.send({ t: 'lobbyChatSend', text });
+  },
+  onCopyRoomCode: (code) => {
+    void navigator.clipboard?.writeText(code).then(() => {
+      const btn = document.getElementById('copy-code');
+      if (!btn) return;
+      btn.textContent = 'COPIED';
+      setTimeout(() => {
+        if (document.getElementById('copy-code') === btn) btn.textContent = 'COPY';
+      }, 1400);
+    });
   },
   onStartSinglePlayer: () => {
     void startSinglePlayer();
@@ -106,7 +164,12 @@ hud.bind({
     hud.showScreen('howto');
   },
   onBack: () => {
-    if (flow === 'create' || flow === 'join') net.send({ t: 'leave' });
+    if (flow === 'create' || flow === 'join' || flow === 'lobby') {
+      net.send({ t: 'leave' });
+      hud.hideLobby();
+      lobbyState = null;
+      lobbyChat = [];
+    }
     hud.showScreen('main');
     flow = 'main';
   },
@@ -116,6 +179,9 @@ hud.bind({
   onLeave: () => {
     net.send({ t: 'leave' });
     teardownGame();
+    hud.hideLobby();
+    lobbyState = null;
+    lobbyChat = [];
     hud.showScreen('main');
     flow = 'main';
   },
@@ -128,6 +194,9 @@ hud.bind({
   onMainMenu: () => {
     teardownGame();
     net.send({ t: 'leave' });
+    hud.hideLobby();
+    lobbyState = null;
+    lobbyChat = [];
     hud.showScreen('main');
     flow = 'main';
   },
@@ -151,11 +220,13 @@ net.onMessage = (msg) => {
       role = 'driver';
       sessionId = msg.sessionId as string;
       roomCode = msg.code as string;
+      localPlayerId = msg.playerId as string;
+      lobbyState = msg.lobby as ClientLobbyState;
+      lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
       hud.setCreateCode(roomCode);
       hud.setTheme('driver');
-      hud.showScreen('create');
-      hud.updateLobby(false, false, 'driver');
-      flow = 'create';
+      hud.showLobby(lobbyState, lobbyChat, localPlayerId);
+      flow = 'lobby';
       break;
     case 'joined': {
       role = msg.role as Role;
@@ -167,16 +238,26 @@ net.onMessage = (msg) => {
         if (!mapGateFailed) void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
         break;
       }
+      localPlayerId = msg.playerId as string;
+      lobbyState = msg.lobby as ClientLobbyState;
+      lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
       hud.setCreateCode(roomCode);
       hud.setTheme(role);
-      hud.showScreen('ready');
-      flow = 'ready';
+      hud.showLobby(lobbyState, lobbyChat, localPlayerId);
+      flow = 'lobby';
       break;
     }
-    case 'lobby':
-      hud.updateLobby(!!msg.driverReady, !!msg.gunnerReady, role);
-      if (flow === 'create' || flow === 'ready') hud.setCreateCode(msg.code as string);
+    case 'lobbyState': {
+      lobbyState = msg.lobby as ClientLobbyState;
+      lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
+      if (flow === 'lobby') {
+        hud.updateLobbyState(lobbyState, lobbyChat, localPlayerId);
+      } else if (flow === 'create' || flow === 'ready') {
+        hud.showLobby(lobbyState, lobbyChat, localPlayerId);
+        flow = 'lobby';
+      }
       break;
+    }
     case 'peer':
       peerConnected = !!msg.driverConnected && !!msg.gunnerConnected;
       break;
@@ -203,6 +284,14 @@ net.onMessage = (msg) => {
       }
       const horde = msg.horde as HordeSnapshotBlock | undefined;
       latestStageView = msg.stage as HordeStageView | undefined;
+      let sectors: Array<{
+        sectorId: number;
+        x: number;
+        z: number;
+        count: number;
+        enemyDefId: string;
+        presentationSeed: number;
+      }> = [];
       if (horde) {
         if (!hordeClient) {
           hordeClient = new HordeReplicationClient(
@@ -213,6 +302,14 @@ net.onMessage = (msg) => {
           ...(msg.state as MatchState),
           enemies: hordeClient.apply(horde, Number(msg.serverTime)),
         };
+        sectors = [...hordeClient.sectors.values()].map((s) => ({
+          sectorId: s.sectorId,
+          x: s.centerX,
+          z: s.centerZ,
+          count: s.count,
+          enemyDefId: s.enemyDefId,
+          presentationSeed: s.presentationSeed,
+        }));
       } else {
         latestState = msg.state as MatchState;
         hordeClient?.reset();
@@ -234,6 +331,7 @@ net.onMessage = (msg) => {
         movementRulesRevision:
           msg.movementRulesRevision === undefined ? undefined : Number(msg.movementRulesRevision),
         movement: msg.movement as MovementRulesBlock | undefined,
+        sectors,
       });
       break;
     }
@@ -516,8 +614,31 @@ if (TEST_MODE) {
     flow: () => flow,
     create: () => net.send({ t: 'create' }),
     join: (code: string) => net.send({ t: 'join', code }),
+    joinWithName: (code: string, name: string) => net.send({ t: 'join', code, displayName: name }),
     rejoin: (code: string, sid: string) => net.send({ t: 'rejoin', code, sessionId: sid }),
     ready: () => net.send({ t: 'ready', ready: true }),
+    lobby: {
+      state: () => lobbyState,
+      chat: () => lobbyChat,
+      playerId: () => localPlayerId,
+      seat: (seat: CrewSeat | null) =>
+        net.send({ t: 'lobbySelectSeat', seat, lobbyRevision: lobbyState?.revision ?? 0 }),
+      readyToggle: () =>
+        net.send({
+          t: 'lobbyReadySet',
+          ready: !(lobbyState?.players.find((p) => p.playerId === localPlayerId)?.ready ?? false),
+          lobbyRevision: lobbyState?.revision ?? 0,
+        }),
+      sendChat: (text: string) => net.send({ t: 'lobbyChatSend', text }),
+    },
+    settings: {
+      nickname: () => playerSettings.currentNickname,
+      randomize: () => playerSettings.randomize(),
+      save: (name: string) => {
+        playerSettings.setDraft(name);
+        return playerSettings.save();
+      },
+    },
     rematch: (modifier: string) => net.send({ t: 'rematch', modifier }),
     leave: () => net.send({ t: 'leave' }),
     setAutoInput: (enabled: boolean) => {

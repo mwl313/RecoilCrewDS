@@ -11,6 +11,17 @@ import type { HordeWaveState } from '../shared/net/horde/hordeProtocol';
 import type { GunnerActionType } from '../shared/net/protocol';
 import type { TankImpulseWire } from '../shared/effects/tankImpulseSystem';
 import { opLogTail } from '../shared/sim/opLog';
+import type {
+  ClientLobbyState,
+  CrewSeat,
+  LobbyChatMessage,
+  LobbyPlayerInternal,
+} from '../shared/lobby/lobbyTypes';
+import { LOBBY_CHAT_BURST, LOBBY_CHAT_MAX_MESSAGES, LOBBY_CHAT_REFILL_SECONDS, LOBBY_COUNTDOWN_SECONDS } from '../shared/lobby/lobbyTypes';
+import { computeStartEligibility } from '../shared/lobby/lobbyEligibility';
+import { isCrewSeat, seatConflict, validateChatText } from '../shared/lobby/lobbyValidation';
+import { validateNickname } from '../shared/lobby/nicknameValidation';
+import { generateDefaultNickname } from '../shared/lobby/nicknamePool';
 
 export interface SocketLike {
   send(msg: unknown): void;
@@ -51,6 +62,15 @@ export interface Room {
   code: string;
   driver: Client | null;
   gunner: Client | null;
+  /** Lobby V2 generic crew state (authoritative; driver/gunner mirror seats). */
+  players: LobbyPlayerInternal[];
+  hostPlayerId: string;
+  lobbyRevision: number;
+  lobbyPhase: 'lobby' | 'countdown';
+  countdownEndsAtWallMs: number | null;
+  chat: LobbyChatMessage[];
+  chatSequence: number;
+  chatTokens: Map<string, LobbyChatTokens>;
   phase: RoomPhase;
   match: Match | null;
   content: ContentMetadata | null;
@@ -70,6 +90,11 @@ export interface Room {
   lastDriverRelayEdges: { dash: boolean; jump: boolean };
   hordeReplication: HordeReplicationTracker | null;
   createdAt: number;
+}
+
+interface LobbyChatTokens {
+  tokens: number;
+  lastRefillWallMs: number;
 }
 
 export interface ManagerEvents {
@@ -224,7 +249,7 @@ export class RoomManager {
     this.loopMetrics = metrics;
   }
 
-  create(socket: SocketLike): Client {
+  create(socket: SocketLike, displayName?: string): Client {
     if (this.rooms.size >= GAME.maxRooms) {
       this.sendWithSocket(socket, { t: 'error', code: 'limit', message: 'Server is full right now. Try again in a moment.' });
       throw new Error('room limit reached');
@@ -245,10 +270,31 @@ export class RoomManager {
       disconnectedAt: null,
       graceLeft: 0,
     };
+    const playerId = randomId();
+    const normalizedName = this.normalizeOrGenerate(displayName);
     const room: Room = {
       code,
       driver: client,
       gunner: null,
+      players: [
+        {
+          playerId,
+          sessionId: client.sessionId,
+          displayName: normalizedName,
+          connected: true,
+          reconnectDeadlineWallMs: null,
+          seat: 'driver',
+          ready: false,
+          joinedSequence: 1,
+        },
+      ],
+      hostPlayerId: playerId,
+      lobbyRevision: 1,
+      lobbyPhase: 'lobby',
+      countdownEndsAtWallMs: null,
+      chat: [],
+      chatSequence: 0,
+      chatTokens: new Map(),
       phase: 'lobby',
       match: null,
       content: this.contentMeta,
@@ -270,11 +316,24 @@ export class RoomManager {
     client.room = room;
     this.rooms.set(code, room);
     this.clients.set(client.id, client);
-    this.send(client, { t: 'created', code, role: 'driver', sessionId: client.sessionId, phase: 'lobby' });
+    const lobby = this.buildLobbyState(room);
+    this.send(client, {
+      t: 'created',
+      code,
+      role: 'driver',
+      sessionId: client.sessionId,
+      playerId,
+      displayName: normalizedName,
+      seat: 'driver',
+      hostPlayerId: playerId,
+      phase: 'lobby',
+      lobby,
+      chat: room.chat,
+    });
     return client;
   }
 
-  join(codeRaw: string, socket: SocketLike): Client {
+  join(codeRaw: string, socket: SocketLike, displayName?: string): Client {
     const code = codeRaw.trim().toUpperCase();
     const room = this.rooms.get(code);
     if (!room) {
@@ -303,9 +362,39 @@ export class RoomManager {
       disconnectedAt: null,
       graceLeft: 0,
     };
+    if (room.players.length >= 2) {
+      this.sendWithSocket(socket, { t: 'error', code: 'full', message: 'That crew already has two players.' });
+      throw new Error('room full');
+    }
     room.gunner = client;
+    const playerId = randomId();
+    const normalizedName = this.normalizeOrGenerate(displayName);
+    room.players.push({
+      playerId,
+      sessionId: client.sessionId,
+      displayName: normalizedName,
+      connected: true,
+      reconnectDeadlineWallMs: null,
+      seat: 'gunner',
+      ready: false,
+      joinedSequence: room.players.reduce((max, p) => Math.max(max, p.joinedSequence), 0) + 1,
+    });
+    room.lobbyRevision++;
     this.clients.set(client.id, client);
-    this.send(client, { t: 'joined', code, role: 'gunner', sessionId: client.sessionId, phase: room.phase });
+    const lobby = this.buildLobbyState(room);
+    this.send(client, {
+      t: 'joined',
+      code,
+      role: 'gunner',
+      sessionId: client.sessionId,
+      playerId,
+      displayName: normalizedName,
+      seat: 'gunner',
+      hostPlayerId: room.hostPlayerId,
+      phase: room.phase,
+      lobby,
+      chat: room.chat,
+    });
     this.broadcastLobby(room);
     this.broadcastPeers(room);
     return client;
@@ -318,25 +407,47 @@ export class RoomManager {
       this.sendWithSocket(socket, { t: 'error', code: 'not_found', message: 'That crew is gone. Create a new one or play Single Player.' });
       return null;
     }
-    for (const candidate of [room.driver, room.gunner]) {
-      if (candidate && candidate.sessionId === sessionId) {
-        candidate.socket = socket;
-        candidate.disconnectedAt = null;
-        candidate.graceLeft = 0;
-        candidate.lastMsgAt = this.now();
-        candidate.lastInputAt = this.now();
-        this.clients.set(candidate.id, candidate);
-        this.send(candidate, {
-          t: 'joined',
-          code,
-          role: candidate.role,
-          sessionId: candidate.sessionId,
-          phase: room.phase,
-          arena: room.arenaSession?.metadata ?? null,
-        });
-        this.broadcastPeers(room);
-        return candidate;
-      }
+    const player = room.players.find((p) => p.sessionId === sessionId);
+    const candidate = player
+      ? room.driver?.sessionId === sessionId
+        ? room.driver
+        : room.gunner?.sessionId === sessionId
+          ? room.gunner
+          : null
+      : null;
+    if (player && candidate) {
+      candidate.socket = socket;
+      candidate.disconnectedAt = null;
+      candidate.graceLeft = 0;
+      candidate.lastMsgAt = this.now();
+      candidate.lastInputAt = this.now();
+      this.clients.set(candidate.id, candidate);
+      player.connected = true;
+      player.reconnectDeadlineWallMs = null;
+      player.ready = false;
+      // Restore seat → match slot references (unchanged client role).
+      if (player.seat === 'driver') room.driver = candidate;
+      else if (player.seat === 'gunner') room.gunner = candidate;
+      this.cancelCountdown(room, 'reconnect');
+      room.lobbyRevision++;
+      const lobby = this.buildLobbyState(room);
+      this.send(candidate, {
+        t: 'joined',
+        code,
+        role: candidate.role,
+        sessionId: candidate.sessionId,
+        playerId: player.playerId,
+        displayName: player.displayName,
+        seat: player.seat,
+        hostPlayerId: room.hostPlayerId,
+        phase: room.phase,
+        arena: room.arenaSession?.metadata ?? null,
+        lobby,
+        chat: room.chat,
+      });
+      this.broadcastLobby(room);
+      this.broadcastPeers(room);
+      return candidate;
     }
     this.sendWithSocket(socket, { t: 'error', code: 'session', message: 'That session is no longer valid. Create or join a new crew.' });
     return null;
@@ -344,10 +455,20 @@ export class RoomManager {
 
   disconnect(client: Client) {
     if (!client.room) return;
+    const room = client.room;
+    const player = room.players.find((p) => p.sessionId === client.sessionId);
+    if (player) {
+      player.connected = false;
+      player.reconnectDeadlineWallMs = this.now() + GAME.reconnectGrace * 1000;
+      player.ready = false;
+    }
     client.socket = null;
     client.disconnectedAt = this.now();
     client.graceLeft = GAME.reconnectGrace;
-    this.broadcastPeers(client.room);
+    this.cancelCountdown(room, 'disconnect');
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+    this.broadcastPeers(room);
   }
 
   handle(socket: SocketLike, raw: Record<string, unknown>) {
@@ -355,13 +476,13 @@ export class RoomManager {
     const t = raw.t;
     if (t === 'create') {
       if (client?.room) return;
-      this.create(socket);
+      this.create(socket, typeof raw.displayName === 'string' ? raw.displayName : undefined);
       return;
     }
     if (t === 'join') {
       if (typeof raw.code !== 'string') return;
       if (client?.room) return;
-      this.join(raw.code, socket);
+      this.join(raw.code, socket, typeof raw.displayName === 'string' ? raw.displayName : undefined);
       return;
     }
     if (t === 'rejoin') {
@@ -379,15 +500,37 @@ export class RoomManager {
     }
     const room = client.room;
     if (t === 'ready') {
-      if (client.role === 'driver') room.ready.driver = !!raw.ready;
-      else if (client.role === 'gunner') room.ready.gunner = !!raw.ready;
-      this.broadcastLobby(room);
-      if (room.phase === 'lobby' && room.ready.driver && room.ready.gunner && room.driver && room.gunner) {
-        room.phase = 'countdown';
-        room.countdownT = 3.4;
-        room.lastCountdownShown = 3;
-        this.broadcast(room, { t: 'countdown', n: 3 });
+      // Legacy compatibility: map the old ready message onto Lobby V2.
+      this.handleLobbyReady(client, raw.ready === true, room.lobbyRevision);
+      return;
+    }
+    if (t === 'lobbySelectSeat') {
+      if (room.phase !== 'lobby' && room.phase !== 'countdown') return;
+      const seat = isCrewSeat(raw.seat) ? raw.seat : raw.seat === null ? null : undefined;
+      if (seat === undefined) {
+        this.send(client, { t: 'error', code: 'invalid_seat', message: 'Unknown crew role.' });
+        return;
       }
+      const revision = typeof raw.lobbyRevision === 'number' ? raw.lobbyRevision : room.lobbyRevision;
+      const result = this.handleLobbySeat(client, seat, revision);
+      if (!result.accepted && result.reason) {
+        this.send(client, { t: 'error', code: result.reason, message: result.message });
+      }
+      return;
+    }
+    if (t === 'lobbyReadySet') {
+      if (room.phase !== 'lobby' && room.phase !== 'countdown') return;
+      const ready = raw.ready === true;
+      const revision = typeof raw.lobbyRevision === 'number' ? raw.lobbyRevision : room.lobbyRevision;
+      const result = this.handleLobbyReady(client, ready, revision);
+      if (!result.accepted && result.reason) {
+        this.send(client, { t: 'error', code: result.reason, message: result.message });
+      }
+      return;
+    }
+    if (t === 'lobbyChatSend') {
+      if (room.phase !== 'lobby' && room.phase !== 'countdown') return;
+      this.handleLobbyChat(client, typeof raw.text === 'string' ? raw.text : '');
       return;
     }
     if (t === 'input') {
@@ -486,8 +629,13 @@ export class RoomManager {
   tick(dt: number) {
     const now = this.now();
     for (const room of this.rooms.values()) {
-      // Disconnect grace.
-      for (const client of [room.driver, room.gunner]) {
+      // Disconnect grace for every lobby player (including seatless).
+      for (const player of [...room.players]) {
+        const client = room.driver?.sessionId === player.sessionId
+          ? room.driver
+          : room.gunner?.sessionId === player.sessionId
+            ? room.gunner
+            : null;
         if (client && !client.socket) {
           client.graceLeft -= dt;
           if (client.graceLeft <= 0) {
@@ -499,6 +647,8 @@ export class RoomManager {
         this.rooms.delete(room.code);
         continue;
       }
+      // Host migration after grace expiry.
+      this.migrateHostIfNeeded(room, now);
       if (room.phase === 'countdown') {
         room.countdownT -= dt;
         const shown = Math.ceil(room.countdownT);
@@ -506,9 +656,22 @@ export class RoomManager {
           room.lastCountdownShown = shown;
           this.broadcast(room, { t: 'countdown', n: shown });
         }
-        if (room.countdownT <= 0) {
-          this.broadcast(room, { t: 'countdown', n: 0 });
-          this.startMatch(room);
+        if (
+          room.countdownT <= 0 ||
+          (room.countdownEndsAtWallMs !== null && now >= room.countdownEndsAtWallMs)
+        ) {
+          const eligibility = computeStartEligibility({
+            players: room.players,
+            contentAvailable: this.contentAvailable(),
+          });
+          if (eligibility.eligible) {
+            this.broadcast(room, { t: 'countdown', n: 0 });
+            room.lobbyPhase = 'lobby';
+            room.countdownEndsAtWallMs = null;
+            this.startMatch(room);
+          } else {
+            this.cancelCountdown(room, 'eligibility');
+          }
         }
       } else if (room.phase === 'running' && room.match) {
         for (const client of [room.driver, room.gunner]) {
@@ -646,13 +809,177 @@ export class RoomManager {
   }
 
   private broadcastLobby(room: Room) {
-    this.broadcast(room, {
-      t: 'lobby',
-      code: room.code,
-      phase: room.phase,
-      driverReady: room.ready.driver,
-      gunnerReady: room.ready.gunner,
+    const lobby = this.buildLobbyState(room);
+    const msg = { t: 'lobbyState', lobby, chat: room.chat };
+    for (const client of this.clients.values()) {
+      if (client.room !== room || !client.socket) continue;
+      if (room.players.some((p) => p.sessionId === client.sessionId)) {
+        this.send(client, msg);
+      }
+    }
+  }
+
+  private normalizeOrGenerate(raw: unknown): string {
+    if (typeof raw === 'string') {
+      const result = validateNickname(raw);
+      if (result.valid) return result.normalized;
+    }
+    return generateDefaultNickname();
+  }
+
+  private buildLobbyState(room: Room): ClientLobbyState {
+    const eligibility = computeStartEligibility({
+      players: room.players,
+      contentAvailable: this.contentAvailable(),
     });
+    return {
+      revision: room.lobbyRevision,
+      roomCode: room.code,
+      phase: room.lobbyPhase,
+      hostPlayerId: room.hostPlayerId,
+      players: room.players.map((p) => ({
+        playerId: p.playerId,
+        displayName: p.displayName,
+        connected: p.connected,
+        reconnecting: !p.connected,
+        seat: p.seat,
+        ready: p.ready,
+      })),
+      settings: { gameplayType: 'sharedTank', modeId: this.contentMeta?.modeId ?? 'mode.demoScoreAttack' },
+      countdownEndsAtWallMs: room.countdownEndsAtWallMs,
+      startEligibility: eligibility,
+    };
+  }
+
+  private cancelCountdown(room: Room, reason: string): void {
+    if (room.lobbyPhase !== 'countdown' && room.phase !== 'countdown') return;
+    room.lobbyPhase = 'lobby';
+    room.phase = 'lobby';
+    room.countdownEndsAtWallMs = null;
+    room.countdownT = 0;
+    void reason;
+    this.broadcastLobby(room);
+  }
+
+  private contentAvailable(): boolean {
+    // The server either runs with a validated pack or the documented legacy
+    // fallback; both are playable. Kept as a policy seam for future modes.
+    return true;
+  }
+
+  private handleLobbySeat(
+    client: Client,
+    seat: CrewSeat | null,
+    revision: number,
+  ): { accepted: boolean; reason?: string; message?: string } {
+    const room = client.room;
+    const player = room?.players.find((p) => p.sessionId === client.sessionId);
+    if (!room || !player) return { accepted: false, reason: 'no_room' };
+    if (room.phase !== 'lobby' && room.phase !== 'countdown') {
+      return { accepted: false, reason: 'not_lobby', message: 'Seats can only change before the match starts.' };
+    }
+    if (typeof revision !== 'number' || revision < room.lobbyRevision) {
+      return { accepted: false, reason: 'stale', message: 'Lobby state changed; refresh and try again.' };
+    }
+    if (seat !== null && seatConflict(room.players, seat, player.playerId)) {
+      return { accepted: false, reason: 'seat_occupied', message: 'That crew role is already taken.' };
+    }
+    player.seat = seat;
+    if (room.driver?.sessionId === client.sessionId) room.driver = null;
+    if (room.gunner?.sessionId === client.sessionId) room.gunner = null;
+    if (seat === 'driver') room.driver = client;
+    if (seat === 'gunner') room.gunner = client;
+    // Match input routing uses Client.role; keep it in sync with the seat.
+    client.role = seat;
+    for (const p of room.players) p.ready = false;
+    room.lobbyRevision++;
+    this.cancelCountdown(room, 'seat_change');
+    this.broadcastLobby(room);
+    return { accepted: true };
+  }
+
+  private handleLobbyReady(
+    client: Client,
+    ready: boolean,
+    revision: number,
+  ): { accepted: boolean; reason?: string; message?: string } {
+    const room = client.room;
+    const player = room?.players.find((p) => p.sessionId === client.sessionId);
+    if (!room || !player) return { accepted: false, reason: 'no_room' };
+    if (typeof revision !== 'number' || revision < room.lobbyRevision) {
+      return { accepted: false, reason: 'stale', message: 'Lobby state changed; refresh and try again.' };
+    }
+    if (ready && room.lobbyPhase === 'countdown') {
+      return { accepted: false, reason: 'countdown_active', message: 'Countdown already started.' };
+    }
+    if (ready && player.seat === null) {
+      return { accepted: false, reason: 'seat_required', message: 'Choose a crew role before Ready.' };
+    }
+    player.ready = ready;
+    if (!ready) {
+      this.cancelCountdown(room, 'unready');
+      room.lobbyRevision++;
+      this.broadcastLobby(room);
+      return { accepted: true };
+    }
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+    const eligibility = computeStartEligibility({ players: room.players, contentAvailable: this.contentAvailable() });
+    if (eligibility.eligible) {
+      room.lobbyPhase = 'countdown';
+      room.phase = 'countdown';
+      room.countdownEndsAtWallMs = this.now() + LOBBY_COUNTDOWN_SECONDS * 1000;
+      room.countdownT = LOBBY_COUNTDOWN_SECONDS;
+      room.lastCountdownShown = 3;
+      this.broadcast(room, { t: 'countdown', n: 3 });
+      room.lobbyRevision++;
+      this.broadcastLobby(room);
+    }
+    return { accepted: true };
+  }
+
+  private handleLobbyChat(client: Client, rawText: string): void {
+    const room = client.room;
+    const player = room?.players.find((p) => p.sessionId === client.sessionId);
+    if (!room || !player || !player.connected) return;
+    const validation = validateChatText(rawText);
+    if (!validation.valid) return;
+    const now = this.now();
+    let bucket = room.chatTokens.get(client.sessionId) ?? { tokens: LOBBY_CHAT_BURST, lastRefillWallMs: now };
+    const elapsedSeconds = Math.max(0, (now - bucket.lastRefillWallMs) / 1000);
+    bucket.tokens = Math.min(LOBBY_CHAT_BURST, bucket.tokens + elapsedSeconds / LOBBY_CHAT_REFILL_SECONDS);
+    bucket.lastRefillWallMs = now;
+    if (bucket.tokens < 1) {
+      this.send(client, { t: 'error', code: 'rate_limited', message: 'Chat is rate limited — slow down.' });
+      return;
+    }
+    bucket.tokens -= 1;
+    room.chatTokens.set(client.sessionId, bucket);
+    room.chat.push({
+      messageId: ++room.chatSequence,
+      playerId: player.playerId,
+      displayName: player.displayName,
+      text: validation.normalized,
+      sentAtWallMs: now,
+    });
+    if (room.chat.length > LOBBY_CHAT_MAX_MESSAGES) room.chat.splice(0, room.chat.length - LOBBY_CHAT_MAX_MESSAGES);
+    this.broadcastLobby(room);
+  }
+
+  private migrateHostIfNeeded(room: Room, now: number): void {
+    if (room.players.length === 0) return;
+    const hostConnected = room.players.some((p) => p.playerId === room.hostPlayerId && p.connected);
+    if (hostConnected) return;
+    const host = room.players.find((p) => p.playerId === room.hostPlayerId);
+    if (host && host.reconnectDeadlineWallMs !== null && now < host.reconnectDeadlineWallMs) return;
+    const nextHost = [...room.players]
+      .filter((p) => p.connected)
+      .sort((a, b) => a.joinedSequence - b.joinedSequence)[0];
+    if (nextHost) {
+      room.hostPlayerId = nextHost.playerId;
+      room.lobbyRevision++;
+      this.broadcastLobby(room);
+    }
   }
 
   private broadcastPeers(room: Room) {
@@ -673,9 +1000,23 @@ export class RoomManager {
     if (!room) return;
     if (room.driver === client) room.driver = null;
     if (room.gunner === client) room.gunner = null;
+    const playerIndex = room.players.findIndex((p) => p.sessionId === client.sessionId);
+    if (playerIndex >= 0) {
+      const removedPlayerId = room.players[playerIndex].playerId;
+      room.players.splice(playerIndex, 1);
+      if (room.hostPlayerId === removedPlayerId) {
+        const nextHost = [...room.players]
+          .filter((p) => p.connected)
+          .sort((a, b) => a.joinedSequence - b.joinedSequence)[0];
+        if (nextHost) room.hostPlayerId = nextHost.playerId;
+      }
+    }
     this.clients.delete(client.id);
     client.room = null;
     client.socket?.close(1000, 'left');
+    this.cancelCountdown(room, 'leave');
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
     this.broadcastPeers(room);
     if (!room.driver && !room.gunner) {
       this.rooms.delete(room.code);

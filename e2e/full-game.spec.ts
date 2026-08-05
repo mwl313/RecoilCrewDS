@@ -145,8 +145,8 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   await b.click('#join-go');
   await expect(b.locator('#screen-ready')).toBeVisible();
 
-  await a.click('#create-ready');
-  await b.click('#ready-go');
+  await a.click('#lobby-ready');
+  await b.click('#lobby-ready');
 
   // Countdown -> match start on both clients.
   await waitState(a, 's => s.phase === "running"');

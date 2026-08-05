@@ -596,3 +596,87 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   .panel { padding: 24px; }
   .countdown-number { font-size: 110px; }
 }
+
+/* Lobby V2 */
+.lobby-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+}
+.lobby-v2 .lobby-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lobby-v2 .lobby-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+.lobby-v2 .lobby-player {
+  border: 1px solid #2c4350;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: rgba(16, 28, 34, 0.9);
+}
+.lobby-v2 .lobby-player.local {
+  border-color: #35d7e8;
+  box-shadow: 0 0 0 1px #35d7e8;
+}
+.lobby-v2 .lobby-player.reconnecting {
+  opacity: 0.6;
+}
+.lobby-v2 .lobby-badge.you {
+  color: #35d7e8;
+  font-weight: 700;
+}
+.lobby-v2 .lobby-badge.host {
+  color: #ffc94d;
+  font-weight: 700;
+}
+.lobby-v2 .lobby-seat-row {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+.lobby-v2 .lobby-seat-row button.selected {
+  border-color: #35d7e8;
+  color: #35d7e8;
+}
+.lobby-v2 .lobby-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #2c4350;
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(16, 28, 34, 0.9);
+}
+.lobby-v2 .lobby-chat-messages {
+  height: 220px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #cfe6ee;
+}
+.lobby-v2 .lobby-chat-who {
+  color: #7fc9d8;
+  font-weight: 700;
+}
+.lobby-v2 .lobby-chat-row {
+  display: flex;
+  gap: 8px;
+}
+.lobby-v2 .lobby-chat-row input {
+  flex: 1;
+}
+.lobby-v2 .lobby-hint {
+  color: #ffb84a;
+  min-height: 18px;
+  margin: 8px 0;
+}

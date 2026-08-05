@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "families": [
+    {
+      "id": "rig.quaternius.compactFlying",
+      "sourceModelIds": [
+        "monster.quaternius.alpaking",
+        "monster.quaternius.alpaking-evolved",
+        "monster.quaternius.armabee",
+        "monster.quaternius.armabee-evolved",
+        "monster.quaternius.dragon",
+        "monster.quaternius.glub",
+        "monster.quaternius.glub-evolved",
+        "monster.quaternius.goleling",
+        "monster.quaternius.goleling-evolved"
+      ],
+      "expectedBoneRange": [
+        13,
+        13
+      ],
+      "expectedClipNames": [
+        "Death",
+        "Fast_Flying",
+        "Flying_Idle",
+        "Headbutt",
+        "HitReact",
+        "No",
+        "Punch",
+        "Yes"
+      ],
+      "commonEligible": true,
+      "compatibilityFingerprints": [
+        "3b7621546682b03560b1951686880badf11aeed5622aecefc3bbea9d057475df",
+        "6e6bf09e33f0c472c8fb058299cb25af42e5a0b08fdf256782c05317e2073b5c",
+        "83f101ba853aeb587288f11737341391f629e1cd07de5475ccc4ee6641128c4b",
+        "ca781964c60a4299bcfb697aa045eca1a9f0a3bcb13fb9152df8be38bb64b487",
+        "fc0d57d425d02847296c94fe3d84b6857188231e5c0e8f00a420047bcc41a5e4"
+      ],
+      "notes": [
+        "Broad production family; exact compatibility is fingerprinted per source model."
+      ]
+    },
+    {
+      "id": "rig.quaternius.extendedFlying",
+      "sourceModelIds": [
+        "monster.quaternius.demon",
+        "monster.quaternius.dragon-evolved",
+        "monster.quaternius.ghost",
+        "monster.quaternius.ghost-skull",
+        "monster.quaternius.hywirl",
+        "monster.quaternius.squidle",
+        "monster.quaternius.tribal"
+      ],
+      "expectedBoneRange": [
+        38,
+        46
+      ],
+      "expectedClipNames": [
+        "Death",
+        "Fast_Flying",
+        "Flying_Idle",
+        "Headbutt",
+        "HitReact",
+        "No",
+        "Punch",
+        "Yes"
+      ],
+      "commonEligible": false,
+      "compatibilityFingerprints": [
+        "149e1e300662ac32d534215c02a46cc358d2f72889d660c9b182a94cb1137e01",
+        "19f6cb4864da833072358c53849af104b1770778b9fa428a2314dab04f6d6bb6",
+        "bbbf8b13eac2f41cb9359379791fc6ef55bb2dd3ee053cdd8903fe55f3356bd0",
+        "df7cc95157a3ed9a55913bb825272f9c58a5a624315f8a2d7905633432a2100a"
+      ],
+      "notes": [
+        "Broad production family; exact compatibility is fingerprinted per source model."
+      ]
+    },
+    {
+      "id": "rig.quaternius.humanoid",
+      "sourceModelIds": [
+        "monster.quaternius.alien-high-detail",
+        "monster.quaternius.blue-demon",
+        "monster.quaternius.bunny",
+        "monster.quaternius.cactoro-high-detail",
+        "monster.quaternius.demon-high-detail",
+        "monster.quaternius.dino",
+        "monster.quaternius.fish-high-detail",
+        "monster.quaternius.frog",
+        "monster.quaternius.monkroose",
+        "monster.quaternius.mushroom-king",
+        "monster.quaternius.ninja-high-detail",
+        "monster.quaternius.orc",
+        "monster.quaternius.yeti-high-detail"
+      ],
+      "expectedBoneRange": [
+        43,
+        49
+      ],
+      "expectedClipNames": [
+        "Death",
+        "Duck",
+        "HitReact",
+        "Idle",
+        "Jump",
+        "Jump_Idle",
+        "Jump_Land",
+        "No",
+        "Punch",
+        "Run",
+        "Run2",
+        "Walk",
+        "Wave",
+        "Weapon",
+        "Yes"
+      ],
+      "commonEligible": false,
+      "compatibilityFingerprints": [
+        "2269d8c6d942f748658877dd33dbd2bd64dc271207a90669fb018168239f5795",
+        "238776354bff769a9925236069272fda6111c4066107f072d39bfd2f565251a2",
+        "37bc0a4230df825e70e0f63bd70d68a6ce5e5fbdc72a7e208abbe7e102ee8610",
+        "51d648d77fd19e32c69ea30ea04423dc03016374b3778b98080df85f61f71731",
+        "9130d6a8b0d55bc02e14fe7c8a3a82204f5955434bbf8fc06565fb16b25b08bc",
+        "98585da9de9420f8d00894010b32c28c5011ec1e818437f71255bf52a2c7bff4",
+        "a013c4e524791f7106dbaa63898937e75cabc0db8b36c7bc6d3f3d1ec7c5773b",
+        "b21ade0c268a934dbc62473d996b256b29bb9b2cfdae8f13530b2cf7649ae01a",
+        "bc180f3fd5d990d93e5329cdabbb69b75065188d35a73793ce28cdc75c50e3d7",
+        "d189357ae6bf80286fafe3a17596d4131497f5b69539930fc89ade41bc48030a",
+        "d6a7089ce7c56465444a406fc282c138de0b73fe2f295cd5c944e31dc1310071",
+        "ea16e34aa88642306d1b77aa9ff3fafdd7a8aaed22010a5f3678fa6cc1c376e0",
+        "f6abc7a70f42438ddbf4ea876cb540c7ef8ffce72f04acab3f410c566a8cb3c9"
+      ],
+      "notes": [
+        "Broad production family; exact compatibility is fingerprinted per source model."
+      ]
+    },
+    {
+      "id": "rig.quaternius.simpleGround",
+      "sourceModelIds": [
+        "monster.quaternius.alien",
+        "monster.quaternius.birb",
+        "monster.quaternius.cactoro",
+        "monster.quaternius.cat",
+        "monster.quaternius.chicken",
+        "monster.quaternius.fish",
+        "monster.quaternius.green-blob",
+        "monster.quaternius.green-spiky-blob",
+        "monster.quaternius.mushnub",
+        "monster.quaternius.mushnub-evolved",
+        "monster.quaternius.ninja",
+        "monster.quaternius.orc-enemy",
+        "monster.quaternius.pigeon",
+        "monster.quaternius.pink-blob",
+        "monster.quaternius.wizard",
+        "monster.quaternius.yeti"
+      ],
+      "expectedBoneRange": [
+        4,
+        4
+      ],
+      "expectedClipNames": [
+        "Bite_Front",
+        "Dance",
+        "Death",
+        "HitRecieve",
+        "Idle",
+        "Jump",
+        "No",
+        "Walk",
+        "Yes"
+      ],
+      "commonEligible": true,
+      "compatibilityFingerprints": [
+        "054c7759e032bc1d51f0edcf311e0690debdfcc6ade474172958c10e8235186c",
+        "33d42178a856cc60ac2696f9486a9fd4761da9c6a6db19ff40e17504d272f6b5",
+        "3f55f2709ed73859a935c5ef30c9755347d9d6edf87ba90f8c3c47d938f2fcd3",
+        "5b35ef771265a781512cd5ef6902187ec4e1675afb17bda639322905ca0d0e27",
+        "64a2a08f4badc3f584171fb0e90da71cfef90b707ac15b4cafd92d5a070a7b8c",
+        "d7ea49a31047627f8d26f8814d0abf223aedc820775338e2ac7721f2d6d2fde7",
+        "db9834786610aa27b8e7304a2167215181bb8466cb0d39cf64da343cab9cc73e",
+        "f602b3de982c9078ec0370436c2d1f56ac38413d5f3b4818f9e3d488a4f91226"
+      ],
+      "notes": [
+        "Broad production family; exact compatibility is fingerprinted per source model."
+      ]
+    }
+  ],
+  "exactCompatibilityGroups": {
+    "33d42178a856cc60ac2696f9486a9fd4761da9c6a6db19ff40e17504d272f6b5": [
+      "monster.quaternius.alien"
+    ],
+    "ea16e34aa88642306d1b77aa9ff3fafdd7a8aaed22010a5f3678fa6cc1c376e0": [
+      "monster.quaternius.alien-high-detail"
+    ],
+    "83f101ba853aeb587288f11737341391f629e1cd07de5475ccc4ee6641128c4b": [
+      "monster.quaternius.alpaking"
+    ],
+    "fc0d57d425d02847296c94fe3d84b6857188231e5c0e8f00a420047bcc41a5e4": [
+      "monster.quaternius.alpaking-evolved"
+    ],
+    "3b7621546682b03560b1951686880badf11aeed5622aecefc3bbea9d057475df": [
+      "monster.quaternius.armabee",
+      "monster.quaternius.armabee-evolved",
+      "monster.quaternius.glub",
+      "monster.quaternius.goleling",
+      "monster.quaternius.goleling-evolved"
+    ],
+    "3f55f2709ed73859a935c5ef30c9755347d9d6edf87ba90f8c3c47d938f2fcd3": [
+      "monster.quaternius.birb",
+      "monster.quaternius.cat",
+      "monster.quaternius.chicken",
+      "monster.quaternius.green-blob",
+      "monster.quaternius.ninja",
+      "monster.quaternius.pigeon",
+      "monster.quaternius.pink-blob",
+      "monster.quaternius.wizard",
+      "monster.quaternius.yeti"
+    ],
+    "b21ade0c268a934dbc62473d996b256b29bb9b2cfdae8f13530b2cf7649ae01a": [
+      "monster.quaternius.blue-demon"
+    ],
+    "51d648d77fd19e32c69ea30ea04423dc03016374b3778b98080df85f61f71731": [
+      "monster.quaternius.bunny"
+    ],
+    "d7ea49a31047627f8d26f8814d0abf223aedc820775338e2ac7721f2d6d2fde7": [
+      "monster.quaternius.cactoro"
+    ],
+    "9130d6a8b0d55bc02e14fe7c8a3a82204f5955434bbf8fc06565fb16b25b08bc": [
+      "monster.quaternius.cactoro-high-detail"
+    ],
+    "19f6cb4864da833072358c53849af104b1770778b9fa428a2314dab04f6d6bb6": [
+      "monster.quaternius.demon"
+    ],
+    "d6a7089ce7c56465444a406fc282c138de0b73fe2f295cd5c944e31dc1310071": [
+      "monster.quaternius.demon-high-detail"
+    ],
+    "a013c4e524791f7106dbaa63898937e75cabc0db8b36c7bc6d3f3d1ec7c5773b": [
+      "monster.quaternius.dino"
+    ],
+    "ca781964c60a4299bcfb697aa045eca1a9f0a3bcb13fb9152df8be38bb64b487": [
+      "monster.quaternius.dragon"
+    ],
+    "bbbf8b13eac2f41cb9359379791fc6ef55bb2dd3ee053cdd8903fe55f3356bd0": [
+      "monster.quaternius.dragon-evolved"
+    ],
+    "64a2a08f4badc3f584171fb0e90da71cfef90b707ac15b4cafd92d5a070a7b8c": [
+      "monster.quaternius.fish"
+    ],
+    "2269d8c6d942f748658877dd33dbd2bd64dc271207a90669fb018168239f5795": [
+      "monster.quaternius.fish-high-detail"
+    ],
+    "f6abc7a70f42438ddbf4ea876cb540c7ef8ffce72f04acab3f410c566a8cb3c9": [
+      "monster.quaternius.frog"
+    ],
+    "149e1e300662ac32d534215c02a46cc358d2f72889d660c9b182a94cb1137e01": [
+      "monster.quaternius.ghost",
+      "monster.quaternius.ghost-skull",
+      "monster.quaternius.hywirl",
+      "monster.quaternius.tribal"
+    ],
+    "6e6bf09e33f0c472c8fb058299cb25af42e5a0b08fdf256782c05317e2073b5c": [
+      "monster.quaternius.glub-evolved"
+    ],
+    "054c7759e032bc1d51f0edcf311e0690debdfcc6ade474172958c10e8235186c": [
+      "monster.quaternius.green-spiky-blob"
+    ],
+    "d189357ae6bf80286fafe3a17596d4131497f5b69539930fc89ade41bc48030a": [
+      "monster.quaternius.monkroose"
+    ],
+    "5b35ef771265a781512cd5ef6902187ec4e1675afb17bda639322905ca0d0e27": [
+      "monster.quaternius.mushnub"
+    ],
+    "db9834786610aa27b8e7304a2167215181bb8466cb0d39cf64da343cab9cc73e": [
+      "monster.quaternius.mushnub-evolved"
+    ],
+    "238776354bff769a9925236069272fda6111c4066107f072d39bfd2f565251a2": [
+      "monster.quaternius.mushroom-king"
+    ],
+    "bc180f3fd5d990d93e5329cdabbb69b75065188d35a73793ce28cdc75c50e3d7": [
+      "monster.quaternius.ninja-high-detail"
+    ],
+    "98585da9de9420f8d00894010b32c28c5011ec1e818437f71255bf52a2c7bff4": [
+      "monster.quaternius.orc"
+    ],
+    "f602b3de982c9078ec0370436c2d1f56ac38413d5f3b4818f9e3d488a4f91226": [
+      "monster.quaternius.orc-enemy"
+    ],
+    "df7cc95157a3ed9a55913bb825272f9c58a5a624315f8a2d7905633432a2100a": [
+      "monster.quaternius.squidle"
+    ],
+    "37bc0a4230df825e70e0f63bd70d68a6ce5e5fbdc72a7e208abbe7e102ee8610": [
+      "monster.quaternius.yeti-high-detail"
+    ]
+  }
+}

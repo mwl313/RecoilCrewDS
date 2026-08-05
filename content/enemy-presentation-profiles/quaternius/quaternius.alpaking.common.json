@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.alpaking.common",
+  "label": "Quaternius alpaking Common",
+  "nearModelAssetId": "custom.enemy.quaternius.alpaking.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.alpaking.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.alpaking.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.alpaking.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.4,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "alpaking",
+    "common"
+  ]
+}

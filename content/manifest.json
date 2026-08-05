@@ -106,6 +106,7 @@
         "upgrade-categories/weapon.cannonRecoilImpulse.json"
       ],
       "upgradeFirstExperiences": ["upgrade-first-experiences/firstLevelUp.json"],
+      "enemyArtRosters": ["enemy-art-rosters/quaternius.integrationPreview.json"],
       "treasureRarityTables": ["treasure-rarity-tables/default.json"],
       "firstTreasureRules": ["first-treasure-rules/first.json"],
       "relics": [

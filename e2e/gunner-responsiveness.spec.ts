@@ -20,15 +20,15 @@ async function createCrew(a: Page, b: Page, latency = 0): Promise<void> {
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');
-  await a.click('#create-ready');
-  await b.click('#ready-go');
+  await a.click('#lobby-ready');
+  await b.click('#lobby-ready');
   const runningFn = () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running';
   for (let attempt = 0; attempt < 6; attempt++) {
     const okA = await a.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
     const okB = await b.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
     if (okA && okB) return;
-    if (await a.locator('#create-ready').isVisible().catch(() => false)) await a.click('#create-ready');
-    if (await b.locator('#ready-go').isVisible().catch(() => false)) await b.click('#ready-go');
+    if (await a.locator('#lobby-ready').isVisible().catch(() => false)) await a.click('#lobby-ready');
+    if (await b.locator('#lobby-ready').isVisible().catch(() => false)) await b.click('#lobby-ready');
   }
   throw new Error('match did not start');
 }

@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.armabee.common",
+  "label": "Quaternius armabee Common",
+  "nearModelAssetId": "custom.enemy.quaternius.armabee.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.armabee.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.armabee.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.armabee.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.4,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "armabee",
+    "common"
+  ]
+}

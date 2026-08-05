@@ -10,6 +10,7 @@ import { ReferenceValidator } from './referenceValidator';
 import type { PackManifest } from './schemas/pack';
 import { packManifestSchema } from './schemas/pack';
 import { densityProfileSchema } from './schemas/densityProfile';
+import { enemyArtRosterSchema } from './schemas/enemyArtRoster';
 import { difficultySchema } from './schemas/difficulty';
 import { dropTableSchema } from './schemas/dropTable';
 import { enemySchema } from './schemas/enemy';
@@ -102,6 +103,7 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   upgradeRarityTables: upgradeRarityTableSchema,
   upgradeCategories: upgradeCategorySchema,
   upgradeFirstExperiences: upgradeFirstExperienceSchema,
+  enemyArtRosters: enemyArtRosterSchema,
   treasureRarityTables: treasureRarityTableSchema,
   firstTreasureRules: firstTreasureRuleSchema,
   relics: relicSchema,
@@ -145,7 +147,7 @@ export class ContentLoader {
     for (const category of CONTENT_CATEGORIES) {
       const schema = CATEGORY_SCHEMAS[category];
       const registry = (registries as unknown as Record<ContentCategory, DefinitionRegistry<ContentDefinition>>)[category];
-      for (const relPath of manifest.pack.files[category]) {
+      for (const relPath of manifest.pack.files[category] ?? []) {
         const raw = files[relPath];
         if (raw === undefined) {
           throw new ContentValidationError(
@@ -201,7 +203,7 @@ export class ContentLoader {
     const manifest = parsedManifest.data;
     const files: Record<string, unknown> = {};
     for (const category of CONTENT_CATEGORIES) {
-      for (const relPath of manifest.pack.files[category]) {
+      for (const relPath of manifest.pack.files[category] ?? []) {
         const absolute = resolveInsideRoot(rootResolved, relPath);
         files[relPath] = readJson(absolute, relPath);
       }
@@ -288,6 +290,7 @@ function createEmptyRegistries(): CategoryRegistries {
     upgradeRarityTables: new DefinitionRegistry(),
     upgradeCategories: new DefinitionRegistry(),
     upgradeFirstExperiences: new DefinitionRegistry(),
+    enemyArtRosters: new DefinitionRegistry(),
     treasureRarityTables: new DefinitionRegistry(),
     firstTreasureRules: new DefinitionRegistry(),
     relics: new DefinitionRegistry(),

@@ -150,3 +150,18 @@ profiles (`content/enemy-presentation-profiles/`) decide near/far model ids,
 animation profiles, LOD and shadow policies. See
 `docs/animation07/ANIMATION07_CONTENT_AUTHORING_GUIDE.md` and
 `docs/animation07/ANIMATION07_GLTF_EXPORT_GUIDE.md`.
+
+## Monster Pack 10 (Quaternius horde-ready library)
+
+- 90 GLBs live under `public/assets/models/enemies/quaternius/` (45 hero,
+  15 common-near, 15 common-far, 15 aggregate) and are registered as
+  `custom.enemy.quaternius.*` project assets in `content/assets/project.json`.
+- All Quaternius assets are `optional: true`: `AssetService.load()` never
+  downloads them at startup. Stage rosters list `preloadAssetIds` and call
+  `AssetService.preloadModels(ids)` before spawn.
+- Asset telemetry (`registered/requested/loaded counts, bytes, duration,
+  cache hits`) is exposed through `AssetService.telemetry`.
+- Far/common-far models can be instanced through
+  `createAssetInstancedHost` (shared geometry/material per asset);
+  aggregate models render through `AggregateSectorRenderer` with a
+  procedural fallback. Full guide: `docs/monsterpack10/CONTENT_MAPPING_GUIDE.md`.

@@ -22,8 +22,8 @@ test('progression-disabled Demo multiplayer stays inert', async ({ browser }) =>
   await gunner.fill('#join-code', code);
   await gunner.click('#join-go');
   await expect(gunner.locator('#screen-ready')).toBeVisible();
-  await driver.click('#create-ready');
-  await gunner.click('#ready-go');
+  await driver.click('#lobby-ready');
+  await gunner.click('#lobby-ready');
   for (const page of [driver, gunner]) {
     await page.waitForFunction(() => {
       const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();

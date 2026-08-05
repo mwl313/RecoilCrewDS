@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.pink-blob.common",
+  "label": "Quaternius pink-blob Common",
+  "nearModelAssetId": "custom.enemy.quaternius.pinkBlob.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.pinkBlob.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.pinkBlob.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.pink-blob.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "pink-blob",
+    "common"
+  ]
+}

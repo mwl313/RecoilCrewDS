@@ -75,6 +75,10 @@ export const ACTION_IDS = [
   'app.pause',
   'app.returnToMenu',
   'app.copyRoomCode',
+  'app.openSettings',
+  'app.saveSettings',
+  'app.randomizeNickname',
+  'app.cancelSettings',
 ] as const;
 
 export const BINDING_TARGETS = ['text', 'value', 'visible', 'class', 'style', 'attribute'] as const;
@@ -117,6 +121,9 @@ export const SCENE_BINDING_PATHS = [
   'crewMode',
   'singleMode',
   'stats',
+  'currentNickname',
+  'nicknameDraft',
+  'settingsError',
 ] as const;
 
 /** Allowed binding source paths for gameplay HUD documents (HudViewModel). */

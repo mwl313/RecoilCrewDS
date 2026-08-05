@@ -314,6 +314,13 @@ export class SceneFlowPresenter {
     this.actions.register('app.startSinglePlayer', () => ui(() => h().onStartSinglePlayer?.()));
     this.actions.register('app.restartSinglePlayer', () => ui(() => h().onRestartSinglePlayer?.()));
     this.actions.register('app.openHowTo', () => ui(() => h().onHowTo?.()));
+    this.actions.register('app.openSettings', () => ui(() => h().onOpenSettings?.()));
+    this.actions.register('app.saveSettings', (_p, runtime) => {
+      const input = runtime?.getNode('nickname-input')?.element as HTMLInputElement | undefined;
+      ui(() => h().onSaveSettings?.(input?.value ?? ''));
+    });
+    this.actions.register('app.randomizeNickname', () => ui(() => h().onRandomizeNickname?.()));
+    this.actions.register('app.cancelSettings', () => ui(() => h().onCancelSettings?.()));
     this.actions.register('app.back', () => ui(() => h().onBack?.()));
     this.actions.register('app.leave', () => ui(() => h().onLeave?.()));
     this.actions.register('app.rematch', (payload) => ui(() => h().onRematch?.((payload as string ?? 'none') as never)));

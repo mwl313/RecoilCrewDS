@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.frog.hero",
+  "label": "Quaternius frog Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.frog.hero",
+  "animationProfileId": "enemyAnimation.quaternius.frog.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "frog",
+    "hero"
+  ]
+}

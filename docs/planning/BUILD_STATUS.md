@@ -243,3 +243,32 @@
   `npm run test:progression` PASS; `npm run test:progression:simulation`
   PASS; `npm run test:progression:e2e` PASS; demo golden unchanged.
   Details: `docs/progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md`.
+
+## Monster Pack 10 — Quaternius horde-ready import
+
+  Imported 90 GLBs (45 hero / 15 common-near / 15 common-far / 15
+  aggregate) from `local-imports/monsterpack09/` with full SHA-256
+  validation; registered 90 optional native assets; generated 60 animation
+  profiles, 60 presentation profiles, scale/socket mappings, a native
+  content index, and the `enemyArtRoster.quaternius.integrationPreview`
+  roster; added stage-selective preloading + asset telemetry, a generic
+  instanced far host, aggregate sector rendering, a preview gallery, and a
+  browser benchmark.
+  Verified: `npm test` 816/816 PASS (108 files) at baseline and again
+  after this import; `test:monsterpack-import` 37/37 PASS;
+  `validate:enemy-animations` 0 errors; `test:monsterpack-rendering` 7/7
+  scenarios PASS; demo golden unchanged.
+  Details: `docs/monsterpack10/IMPORT_REPORT.md`.
+
+## Lobby V2 — lobby upgrade
+
+  Added persistent nickname settings (curated BaseNN pool + shared
+  validation), a content-driven Settings scene, Main Menu `PLAYING AS`,
+  revisioned authoritative lobby state with playerId/host identity, unified
+  Lobby V2 view (YOU by playerId), Driver/Gunner seat selection, Ready/
+  countdown with cancellation, room-local chat, reconnect restoration, host
+  migration, and a Shared Tank start adapter. Protocol v8.
+  Verified: `npm test` **887/887 PASS** (129 files);
+  `test:lobby` 34/34 PASS; `test:lobby:e2e` 6/6 PASS; full `test:e2e`
+  47/47 PASS; demo golden unchanged.
+  Details: `docs/multiplayer09/LOBBY09_IMPLEMENTATION_REPORT.md`.

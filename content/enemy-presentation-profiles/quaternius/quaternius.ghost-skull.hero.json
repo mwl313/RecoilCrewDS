@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.ghost-skull.hero",
+  "label": "Quaternius ghost-skull Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.ghostSkull.hero",
+  "animationProfileId": "enemyAnimation.quaternius.ghost-skull.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.5,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "ghost-skull",
+    "hero"
+  ]
+}

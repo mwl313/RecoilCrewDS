@@ -46,6 +46,11 @@ export class ModelProvider {
     return this.assets.has(id);
   }
 
+  /** Number of cached model assets (GLB or procedural fallback). */
+  loadedCount(): number {
+    return this.assets.size;
+  }
+
   /** Synchronous cached prototype (available after getPrototype resolved). */
   getPrototypeSync(id: string): THREE.Object3D | undefined {
     return this.assets.get(id)?.scene;

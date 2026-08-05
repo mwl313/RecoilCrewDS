@@ -337,3 +337,13 @@ XP shards replicate as `MatchState.xpShards`; kills route through reward
 events; purge never rewards. Stat layers (level multipliers × relic
 aggregates × conditionals) project through the existing StatResolver.
 See `docs/progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md`.
+
+## Lobby V2
+
+The room owns a generic `players[]` lobby state (playerId/sessionId/
+displayName/seat/ready/connected) with a revisioned `lobbyState` broadcast,
+room-local chat, host identity, and grace-based reconnect/seat restoration.
+At countdown completion a Shared Tank adapter maps chosen seats onto the
+existing `room.driver`/`room.gunner` match slots; the match simulation is
+unchanged. Extended Multiplayer (multi-tank) remains design-only.
+See `docs/multiplayer09/LOBBY09_IMPLEMENTATION_REPORT.md`.

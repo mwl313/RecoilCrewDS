@@ -37,5 +37,11 @@ export default defineConfig({
       reuseExistingServer: true,
       timeout: 120_000,
     },
+    {
+      command: 'npx vite --config tools/enemy-animation-preview/vite.config.ts --port 8097',
+      url: 'http://localhost:8097/?monster=1',
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
   ],
 });

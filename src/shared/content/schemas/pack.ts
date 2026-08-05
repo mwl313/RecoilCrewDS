@@ -46,6 +46,7 @@ export const packManifestSchema = z.object({
       upgradeRarityTables: z.array(z.string()),
       upgradeCategories: z.array(z.string()),
       upgradeFirstExperiences: z.array(z.string()),
+      enemyArtRosters: z.array(z.string()).optional(),
       treasureRarityTables: z.array(z.string()),
       firstTreasureRules: z.array(z.string()),
       relics: z.array(z.string()),

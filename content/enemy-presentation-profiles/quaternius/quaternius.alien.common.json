@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.alien.common",
+  "label": "Quaternius alien Common",
+  "nearModelAssetId": "custom.enemy.quaternius.alien.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.alien.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.alien.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.alien.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "alien",
+    "common"
+  ]
+}

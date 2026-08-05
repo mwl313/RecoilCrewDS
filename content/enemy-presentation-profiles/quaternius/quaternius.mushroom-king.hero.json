@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.mushroom-king.hero",
+  "label": "Quaternius mushroom-king Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.mushroomKing.hero",
+  "animationProfileId": "enemyAnimation.quaternius.mushroom-king.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "mushroom-king",
+    "hero"
+  ]
+}

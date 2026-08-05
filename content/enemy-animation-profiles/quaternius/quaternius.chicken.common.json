@@ -1,0 +1,84 @@
+{
+  "id": "enemyAnimation.quaternius.chicken.common",
+  "label": "Quaternius chicken Common",
+  "clips": {
+    "idle": "CharacterArmature|Idle",
+    "walk": "CharacterArmature|Walk",
+    "attackPrimary": "CharacterArmature|Bite_Front",
+    "hit": "CharacterArmature|HitRecieve",
+    "stagger": "CharacterArmature|HitRecieve",
+    "spawn": "CharacterArmature|Jump",
+    "death": "CharacterArmature|Death",
+    "entrance": "CharacterArmature|Jump",
+    "recovery": "CharacterArmature|Idle"
+  },
+  "fallbacks": {
+    "run": "walk",
+    "fastHover": "hoverMove",
+    "attackSecondary": "attackPrimary",
+    "attackSpecial": "attackPrimary",
+    "land": "idle",
+    "knockback": "hit",
+    "hoverMove": "idle"
+  },
+  "locomotion": {
+    "idleSpeedMax": 0.2,
+    "walkSpeedMax": 4,
+    "walkSpeedReference": 3.5,
+    "runSpeedReference": 8,
+    "playbackMin": 0.5,
+    "playbackMax": 1.5,
+    "randomStartPhase": true
+  },
+  "transitions": {
+    "defaultCrossFadeSeconds": 0.2,
+    "locomotionCrossFadeSeconds": 0.25,
+    "attackCrossFadeSeconds": 0.08,
+    "hitCrossFadeSeconds": 0.06,
+    "deathCrossFadeSeconds": 0.35
+  },
+  "playback": {
+    "idle": {
+      "loop": "repeat"
+    },
+    "walk": {
+      "loop": "repeat"
+    },
+    "attackPrimary": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 2
+    },
+    "hit": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 3
+    },
+    "stagger": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 3
+    },
+    "spawn": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 1
+    },
+    "death": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 100
+    },
+    "entrance": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 1
+    },
+    "recovery": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 1
+    }
+  },
+  "rootMotion": false
+}

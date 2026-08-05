@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.mushnub.common",
+  "label": "Quaternius mushnub Common",
+  "nearModelAssetId": "custom.enemy.quaternius.mushnub.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.mushnub.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.mushnub.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.mushnub.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "mushnub",
+    "common"
+  ]
+}

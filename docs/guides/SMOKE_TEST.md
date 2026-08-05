@@ -261,3 +261,23 @@ code is selected in a textarea fallback so it can still be copied manually.
 - `npm run test:progression:simulation` — 60-second headless telemetry.
 - `npm run test:progression:e2e` — level-up, relic, multiplayer protocol,
   and reset/reconnect E2E specs.
+
+## Monster Pack 10 smoke checks
+
+- `npm run validate:monsterpack-import` — ZIP/hash/staging/destination
+  validation.
+- `npm run test:monsterpack-import` — importer + native content tests.
+- `npm run validate:enemy-animations` — all 90 GLBs vs 60 Quaternius
+  profiles.
+- `npm run test:monsterpack-rendering` — headless Chrome benchmark
+  (7 scenarios; results in
+  `build/monsterpack10-import/BENCHMARK_RESULTS.json`).
+- Preview gallery: `npm run dev:animation-preview` then open
+  `/?monster=1` (on-demand model loading; `?bench=1` for scripted runs).
+
+## Lobby V2 smoke checks
+
+- `npm run test:lobby` — nickname/settings, seats, ready/countdown, chat,
+  reconnect, host migration, start adapter, protocol, presentation.
+- `npm run test:lobby:e2e` — settings persistence, seat/ready match start,
+  chat safety/rate-limit/reconnect, disconnect+rejoin restoration.

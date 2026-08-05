@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.dino.hero",
+  "label": "Quaternius dino Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.dino.hero",
+  "animationProfileId": "enemyAnimation.quaternius.dino.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "dino",
+    "hero"
+  ]
+}

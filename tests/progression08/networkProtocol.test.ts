@@ -4,7 +4,7 @@ import { makeMatch } from './helpers';
 
 describe('progression network protocol (progression08)', () => {
   it('protocol version was bumped deliberately for selectUpgrade + skipRelicPresentation', () => {
-    expect(PROTOCOL_VERSION).toBe(7);
+    expect(PROTOCOL_VERSION).toBe(8);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'selectUpgrade', offerId: 'x', cardIndex: 0 })).toBe(true);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'skipRelicPresentation', acquisitionSequence: 1 })).toBe(true);
   });

@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.orc-enemy.common",
+  "label": "Quaternius orc-enemy Common",
+  "nearModelAssetId": "custom.enemy.quaternius.orcEnemy.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.orcEnemy.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.orcEnemy.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.orc-enemy.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "orc-enemy",
+    "common"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.fish-high-detail.hero",
+  "label": "Quaternius fish-high-detail Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.fishHighDetail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "fish-high-detail",
+    "hero"
+  ]
+}

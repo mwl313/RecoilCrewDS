@@ -1,0 +1,869 @@
+{
+  "monster.quaternius.alien": {
+    "sourceModelId": "monster.quaternius.alien",
+    "slug": "alien",
+    "heroAssetId": "custom.enemy.quaternius.alien.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.alien.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.alien.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.alien.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.alien.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.alien.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.alien.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.alien.common",
+    "scaleMappingId": "scale.quaternius.alien",
+    "socketMappingId": "socket.quaternius.alien",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.alien-high-detail": {
+    "sourceModelId": "monster.quaternius.alien-high-detail",
+    "slug": "alien-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.alienHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.alien-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.alien-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.alien-high-detail",
+    "socketMappingId": "socket.quaternius.alien-high-detail",
+    "roleCandidates": [
+      "elite",
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.alpaking": {
+    "sourceModelId": "monster.quaternius.alpaking",
+    "slug": "alpaking",
+    "heroAssetId": "custom.enemy.quaternius.alpaking.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.alpaking.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.alpaking.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.alpaking.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.alpaking.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.alpaking.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.alpaking.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.alpaking.common",
+    "scaleMappingId": "scale.quaternius.alpaking",
+    "socketMappingId": "socket.quaternius.alpaking",
+    "roleCandidates": [
+      "flying",
+      "swarm",
+      "charger"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.alpaking-evolved": {
+    "sourceModelId": "monster.quaternius.alpaking-evolved",
+    "slug": "alpaking-evolved",
+    "heroAssetId": "custom.enemy.quaternius.alpakingEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.alpaking-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.alpaking-evolved.hero",
+    "scaleMappingId": "scale.quaternius.alpaking-evolved",
+    "socketMappingId": "socket.quaternius.alpaking-evolved",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.armabee": {
+    "sourceModelId": "monster.quaternius.armabee",
+    "slug": "armabee",
+    "heroAssetId": "custom.enemy.quaternius.armabee.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.armabee.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.armabee.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.armabee.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.armabee.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.armabee.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.armabee.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.armabee.common",
+    "scaleMappingId": "scale.quaternius.armabee",
+    "socketMappingId": "socket.quaternius.armabee",
+    "roleCandidates": [
+      "flying",
+      "swarm",
+      "charger"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.armabee-evolved": {
+    "sourceModelId": "monster.quaternius.armabee-evolved",
+    "slug": "armabee-evolved",
+    "heroAssetId": "custom.enemy.quaternius.armabeeEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.armabee-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.armabee-evolved.hero",
+    "scaleMappingId": "scale.quaternius.armabee-evolved",
+    "socketMappingId": "socket.quaternius.armabee-evolved",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.birb": {
+    "sourceModelId": "monster.quaternius.birb",
+    "slug": "birb",
+    "heroAssetId": "custom.enemy.quaternius.birb.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.birb.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.birb.hero",
+    "scaleMappingId": "scale.quaternius.birb",
+    "socketMappingId": "socket.quaternius.birb",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.blue-demon": {
+    "sourceModelId": "monster.quaternius.blue-demon",
+    "slug": "blue-demon",
+    "heroAssetId": "custom.enemy.quaternius.blueDemon.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.blue-demon.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.blue-demon.hero",
+    "scaleMappingId": "scale.quaternius.blue-demon",
+    "socketMappingId": "socket.quaternius.blue-demon",
+    "roleCandidates": [
+      "elite",
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.bunny": {
+    "sourceModelId": "monster.quaternius.bunny",
+    "slug": "bunny",
+    "heroAssetId": "custom.enemy.quaternius.bunny.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.bunny.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.bunny.hero",
+    "scaleMappingId": "scale.quaternius.bunny",
+    "socketMappingId": "socket.quaternius.bunny",
+    "roleCandidates": [
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.cactoro": {
+    "sourceModelId": "monster.quaternius.cactoro",
+    "slug": "cactoro",
+    "heroAssetId": "custom.enemy.quaternius.cactoro.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.cactoro.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.cactoro.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.cactoro.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.cactoro.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.cactoro.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.cactoro.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.cactoro.common",
+    "scaleMappingId": "scale.quaternius.cactoro",
+    "socketMappingId": "socket.quaternius.cactoro",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.cactoro-high-detail": {
+    "sourceModelId": "monster.quaternius.cactoro-high-detail",
+    "slug": "cactoro-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.cactoroHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.cactoro-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.cactoro-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.cactoro-high-detail",
+    "socketMappingId": "socket.quaternius.cactoro-high-detail",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.cat": {
+    "sourceModelId": "monster.quaternius.cat",
+    "slug": "cat",
+    "heroAssetId": "custom.enemy.quaternius.cat.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.cat.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.cat.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.cat.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.cat.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.cat.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.cat.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.cat.common",
+    "scaleMappingId": "scale.quaternius.cat",
+    "socketMappingId": "socket.quaternius.cat",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.chicken": {
+    "sourceModelId": "monster.quaternius.chicken",
+    "slug": "chicken",
+    "heroAssetId": "custom.enemy.quaternius.chicken.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.chicken.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.chicken.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.chicken.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.chicken.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.chicken.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.chicken.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.chicken.common",
+    "scaleMappingId": "scale.quaternius.chicken",
+    "socketMappingId": "socket.quaternius.chicken",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.demon": {
+    "sourceModelId": "monster.quaternius.demon",
+    "slug": "demon",
+    "heroAssetId": "custom.enemy.quaternius.demon.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.demon.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.demon.hero",
+    "scaleMappingId": "scale.quaternius.demon",
+    "socketMappingId": "socket.quaternius.demon",
+    "roleCandidates": [
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.demon-high-detail": {
+    "sourceModelId": "monster.quaternius.demon-high-detail",
+    "slug": "demon-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.demonHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.demon-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.demon-high-detail",
+    "socketMappingId": "socket.quaternius.demon-high-detail",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.dino": {
+    "sourceModelId": "monster.quaternius.dino",
+    "slug": "dino",
+    "heroAssetId": "custom.enemy.quaternius.dino.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.dino.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.dino.hero",
+    "scaleMappingId": "scale.quaternius.dino",
+    "socketMappingId": "socket.quaternius.dino",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.dragon": {
+    "sourceModelId": "monster.quaternius.dragon",
+    "slug": "dragon",
+    "heroAssetId": "custom.enemy.quaternius.dragon.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.dragon.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.dragon.hero",
+    "scaleMappingId": "scale.quaternius.dragon",
+    "socketMappingId": "socket.quaternius.dragon",
+    "roleCandidates": [
+      "flying",
+      "swarm",
+      "charger"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.dragon-evolved": {
+    "sourceModelId": "monster.quaternius.dragon-evolved",
+    "slug": "dragon-evolved",
+    "heroAssetId": "custom.enemy.quaternius.dragonEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.dragon-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.dragon-evolved.hero",
+    "scaleMappingId": "scale.quaternius.dragon-evolved",
+    "socketMappingId": "socket.quaternius.dragon-evolved",
+    "roleCandidates": [
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.fish": {
+    "sourceModelId": "monster.quaternius.fish",
+    "slug": "fish",
+    "heroAssetId": "custom.enemy.quaternius.fish.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.fish.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.fish.hero",
+    "scaleMappingId": "scale.quaternius.fish",
+    "socketMappingId": "socket.quaternius.fish",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.fish-high-detail": {
+    "sourceModelId": "monster.quaternius.fish-high-detail",
+    "slug": "fish-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.fishHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.fish-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.fish-high-detail",
+    "socketMappingId": "socket.quaternius.fish-high-detail",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.frog": {
+    "sourceModelId": "monster.quaternius.frog",
+    "slug": "frog",
+    "heroAssetId": "custom.enemy.quaternius.frog.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.frog.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.frog.hero",
+    "scaleMappingId": "scale.quaternius.frog",
+    "socketMappingId": "socket.quaternius.frog",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.ghost": {
+    "sourceModelId": "monster.quaternius.ghost",
+    "slug": "ghost",
+    "heroAssetId": "custom.enemy.quaternius.ghost.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.ghost.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.ghost.hero",
+    "scaleMappingId": "scale.quaternius.ghost",
+    "socketMappingId": "socket.quaternius.ghost",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.ghost-skull": {
+    "sourceModelId": "monster.quaternius.ghost-skull",
+    "slug": "ghost-skull",
+    "heroAssetId": "custom.enemy.quaternius.ghostSkull.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.ghost-skull.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.ghost-skull.hero",
+    "scaleMappingId": "scale.quaternius.ghost-skull",
+    "socketMappingId": "socket.quaternius.ghost-skull",
+    "roleCandidates": [
+      "specialist",
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.glub": {
+    "sourceModelId": "monster.quaternius.glub",
+    "slug": "glub",
+    "heroAssetId": "custom.enemy.quaternius.glub.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.glub.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.glub.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.glub.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.glub.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.glub.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.glub.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.glub.common",
+    "scaleMappingId": "scale.quaternius.glub",
+    "socketMappingId": "socket.quaternius.glub",
+    "roleCandidates": [
+      "flying",
+      "swarm",
+      "charger"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.glub-evolved": {
+    "sourceModelId": "monster.quaternius.glub-evolved",
+    "slug": "glub-evolved",
+    "heroAssetId": "custom.enemy.quaternius.glubEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.glub-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.glub-evolved.hero",
+    "scaleMappingId": "scale.quaternius.glub-evolved",
+    "socketMappingId": "socket.quaternius.glub-evolved",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.goleling": {
+    "sourceModelId": "monster.quaternius.goleling",
+    "slug": "goleling",
+    "heroAssetId": "custom.enemy.quaternius.goleling.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.goleling.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.goleling.hero",
+    "scaleMappingId": "scale.quaternius.goleling",
+    "socketMappingId": "socket.quaternius.goleling",
+    "roleCandidates": [
+      "flying",
+      "swarm",
+      "charger"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.goleling-evolved": {
+    "sourceModelId": "monster.quaternius.goleling-evolved",
+    "slug": "goleling-evolved",
+    "heroAssetId": "custom.enemy.quaternius.golelingEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.goleling-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.goleling-evolved.hero",
+    "scaleMappingId": "scale.quaternius.goleling-evolved",
+    "socketMappingId": "socket.quaternius.goleling-evolved",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.compactFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.green-blob": {
+    "sourceModelId": "monster.quaternius.green-blob",
+    "slug": "green-blob",
+    "heroAssetId": "custom.enemy.quaternius.greenBlob.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.greenBlob.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.greenBlob.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.greenBlob.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.green-blob.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.green-blob.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.green-blob.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.green-blob.common",
+    "scaleMappingId": "scale.quaternius.green-blob",
+    "socketMappingId": "socket.quaternius.green-blob",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.green-spiky-blob": {
+    "sourceModelId": "monster.quaternius.green-spiky-blob",
+    "slug": "green-spiky-blob",
+    "heroAssetId": "custom.enemy.quaternius.greenSpikyBlob.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.green-spiky-blob.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.green-spiky-blob.hero",
+    "scaleMappingId": "scale.quaternius.green-spiky-blob",
+    "socketMappingId": "socket.quaternius.green-spiky-blob",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.hywirl": {
+    "sourceModelId": "monster.quaternius.hywirl",
+    "slug": "hywirl",
+    "heroAssetId": "custom.enemy.quaternius.hywirl.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.hywirl.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.hywirl.hero",
+    "scaleMappingId": "scale.quaternius.hywirl",
+    "socketMappingId": "socket.quaternius.hywirl",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.monkroose": {
+    "sourceModelId": "monster.quaternius.monkroose",
+    "slug": "monkroose",
+    "heroAssetId": "custom.enemy.quaternius.monkroose.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.monkroose.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.monkroose.hero",
+    "scaleMappingId": "scale.quaternius.monkroose",
+    "socketMappingId": "socket.quaternius.monkroose",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.mushnub": {
+    "sourceModelId": "monster.quaternius.mushnub",
+    "slug": "mushnub",
+    "heroAssetId": "custom.enemy.quaternius.mushnub.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.mushnub.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.mushnub.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.mushnub.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.mushnub.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.mushnub.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.mushnub.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.mushnub.common",
+    "scaleMappingId": "scale.quaternius.mushnub",
+    "socketMappingId": "socket.quaternius.mushnub",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.mushnub-evolved": {
+    "sourceModelId": "monster.quaternius.mushnub-evolved",
+    "slug": "mushnub-evolved",
+    "heroAssetId": "custom.enemy.quaternius.mushnubEvolved.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.mushnub-evolved.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.mushnub-evolved.hero",
+    "scaleMappingId": "scale.quaternius.mushnub-evolved",
+    "socketMappingId": "socket.quaternius.mushnub-evolved",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.mushroom-king": {
+    "sourceModelId": "monster.quaternius.mushroom-king",
+    "slug": "mushroom-king",
+    "heroAssetId": "custom.enemy.quaternius.mushroomKing.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.mushroom-king.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.mushroom-king.hero",
+    "scaleMappingId": "scale.quaternius.mushroom-king",
+    "socketMappingId": "socket.quaternius.mushroom-king",
+    "roleCandidates": [
+      "elite",
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.ninja": {
+    "sourceModelId": "monster.quaternius.ninja",
+    "slug": "ninja",
+    "heroAssetId": "custom.enemy.quaternius.ninja.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.ninja.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.ninja.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.ninja.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.ninja.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.ninja.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.ninja.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.ninja.common",
+    "scaleMappingId": "scale.quaternius.ninja",
+    "socketMappingId": "socket.quaternius.ninja",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.ninja-high-detail": {
+    "sourceModelId": "monster.quaternius.ninja-high-detail",
+    "slug": "ninja-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.ninjaHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.ninja-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.ninja-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.ninja-high-detail",
+    "socketMappingId": "socket.quaternius.ninja-high-detail",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.orc": {
+    "sourceModelId": "monster.quaternius.orc",
+    "slug": "orc",
+    "heroAssetId": "custom.enemy.quaternius.orc.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.orc.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.orc.hero",
+    "scaleMappingId": "scale.quaternius.orc",
+    "socketMappingId": "socket.quaternius.orc",
+    "roleCandidates": [
+      "elite",
+      "boss"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.orc-enemy": {
+    "sourceModelId": "monster.quaternius.orc-enemy",
+    "slug": "orc-enemy",
+    "heroAssetId": "custom.enemy.quaternius.orcEnemy.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.orcEnemy.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.orcEnemy.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.orcEnemy.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.orc-enemy.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.orc-enemy.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.orc-enemy.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.orc-enemy.common",
+    "scaleMappingId": "scale.quaternius.orc-enemy",
+    "socketMappingId": "socket.quaternius.orc-enemy",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.pigeon": {
+    "sourceModelId": "monster.quaternius.pigeon",
+    "slug": "pigeon",
+    "heroAssetId": "custom.enemy.quaternius.pigeon.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.pigeon.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.pigeon.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.pigeon.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.pigeon.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.pigeon.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.pigeon.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.pigeon.common",
+    "scaleMappingId": "scale.quaternius.pigeon",
+    "socketMappingId": "socket.quaternius.pigeon",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.pink-blob": {
+    "sourceModelId": "monster.quaternius.pink-blob",
+    "slug": "pink-blob",
+    "heroAssetId": "custom.enemy.quaternius.pinkBlob.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.pinkBlob.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.pinkBlob.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.pinkBlob.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.pink-blob.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.pink-blob.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.pink-blob.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.pink-blob.common",
+    "scaleMappingId": "scale.quaternius.pink-blob",
+    "socketMappingId": "socket.quaternius.pink-blob",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.squidle": {
+    "sourceModelId": "monster.quaternius.squidle",
+    "slug": "squidle",
+    "heroAssetId": "custom.enemy.quaternius.squidle.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.squidle.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.squidle.hero",
+    "scaleMappingId": "scale.quaternius.squidle",
+    "socketMappingId": "socket.quaternius.squidle",
+    "roleCandidates": [
+      "specialist"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.tribal": {
+    "sourceModelId": "monster.quaternius.tribal",
+    "slug": "tribal",
+    "heroAssetId": "custom.enemy.quaternius.tribal.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.tribal.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.tribal.hero",
+    "scaleMappingId": "scale.quaternius.tribal",
+    "socketMappingId": "socket.quaternius.tribal",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.extendedFlying",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  },
+  "monster.quaternius.wizard": {
+    "sourceModelId": "monster.quaternius.wizard",
+    "slug": "wizard",
+    "heroAssetId": "custom.enemy.quaternius.wizard.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.wizard.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.wizard.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.wizard.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.wizard.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.wizard.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.wizard.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.wizard.common",
+    "scaleMappingId": "scale.quaternius.wizard",
+    "socketMappingId": "socket.quaternius.wizard",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.yeti": {
+    "sourceModelId": "monster.quaternius.yeti",
+    "slug": "yeti",
+    "heroAssetId": "custom.enemy.quaternius.yeti.hero",
+    "commonNearAssetId": "custom.enemy.quaternius.yeti.commonNear",
+    "commonFarAssetId": "custom.enemy.quaternius.yeti.commonFar",
+    "aggregateAssetId": "custom.enemy.quaternius.yeti.aggregate",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.yeti.hero",
+    "commonAnimationProfileId": "enemyAnimation.quaternius.yeti.common",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.yeti.hero",
+    "commonPresentationProfileId": "enemyPresentation.quaternius.yeti.common",
+    "scaleMappingId": "scale.quaternius.yeti",
+    "socketMappingId": "socket.quaternius.yeti",
+    "roleCandidates": [
+      "fodder",
+      "swarm"
+    ],
+    "rigFamilyId": "rig.quaternius.simpleGround",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+    }
+  },
+  "monster.quaternius.yeti-high-detail": {
+    "sourceModelId": "monster.quaternius.yeti-high-detail",
+    "slug": "yeti-high-detail",
+    "heroAssetId": "custom.enemy.quaternius.yetiHighDetail.hero",
+    "heroAnimationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
+    "heroPresentationProfileId": "enemyPresentation.quaternius.yeti-high-detail.hero",
+    "scaleMappingId": "scale.quaternius.yeti-high-detail",
+    "socketMappingId": "socket.quaternius.yeti-high-detail",
+    "roleCandidates": [
+      "elite"
+    ],
+    "rigFamilyId": "rig.quaternius.humanoid",
+    "importedHashes": {
+      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+    }
+  }
+}

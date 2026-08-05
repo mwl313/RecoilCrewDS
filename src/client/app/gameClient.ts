@@ -27,6 +27,8 @@ import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
 import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 import { ProgressionOverlay } from '../progression/progressionOverlay';
+import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
+import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -71,6 +73,8 @@ export class GameClient {
   private inputSendT = 0;
   suppressAutoInput = false;
   private progressionOverlay: ProgressionOverlay | null = null;
+  private readonly aggregateSectors: AggregateSectorRenderer;
+  private latestSectors: AggregateSectorRecord[] = [];
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
@@ -106,6 +110,17 @@ export class GameClient {
     this.audio = deps.audio;
     this.input = deps.input;
     this.arenaWorld = deps.arenaWorld;
+    this.aggregateSectors = new AggregateSectorRenderer(
+      deps.world.scene,
+      this.assets,
+      (sector) => {
+        const resolution = resolveEnemyPresentation({
+          presentationProfileId: sector.presentationProfileId,
+          type: sector.enemyDefId ? sector.enemyDefId.replace(/^enemy\./, '') : '',
+        });
+        return resolution.profile.aggregateModelAssetId ? resolution.profile : null;
+      },
+    );
   }
 
   /** Awaits assets, then builds the full client (called after load()). */
@@ -441,8 +456,41 @@ export class GameClient {
     this.chargeSoundStarted = false;
   }
 
-  setSnapshot(msg: { seq: number; serverTime: number; state: MatchState; lastProcessedDriverInputSeq: number; lastProcessedGunnerInputSeq: number; lastImpulseSeq?: number; opLog?: unknown; serverTick?: number; tickDurationMs?: number; droppedTimeMs?: number; driftMs?: number; outboundBuffered?: number; rulesRevision?: number; movementRulesRevision?: number; movement?: unknown }): void {
+  setSnapshot(msg: {
+    seq: number;
+    serverTime: number;
+    state: MatchState;
+    lastProcessedDriverInputSeq: number;
+    lastProcessedGunnerInputSeq: number;
+    lastImpulseSeq?: number;
+    opLog?: unknown;
+    serverTick?: number;
+    tickDurationMs?: number;
+    droppedTimeMs?: number;
+    driftMs?: number;
+    outboundBuffered?: number;
+    rulesRevision?: number;
+    movementRulesRevision?: number;
+    movement?: unknown;
+    sectors?: AggregateSectorRecord[];
+  }): void {
+    this.latestSectors = msg.sectors ?? [];
     this.presenter.setSnapshot(msg as never);
+  }
+
+  private collectAggregateSectors(): AggregateSectorRecord[] {
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      const sectors = this.singlePlayerMatch.runtime.systems.hordeSectors.sectors;
+      return [...sectors.values()].map((s) => ({
+        sectorId: s.sectorId,
+        x: s.centerX,
+        z: s.centerZ,
+        count: s.count,
+        enemyDefId: s.enemyDefId,
+        presentationSeed: s.presentationSeed,
+      }));
+    }
+    return this.latestSectors;
   }
 
   handleEvent(ev: SimEvent): void {
@@ -535,6 +583,8 @@ export class GameClient {
     if (this.presenter.latest) {
       this.onFrame?.(this.presenter.latest);
       this.updateProgressionOverlay();
+      const latest = this.presenter.latest;
+      this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
     }
 
     this.pollGunnerActions();
@@ -914,6 +964,7 @@ export class GameClient {
     this.running = false;
     cancelAnimationFrame(this.raf);
     this.stopChargeSound();
+    this.aggregateSectors.reset();
     this.world.arena.dispose();
     this.registry.reset();
     this.progressionOverlay?.dispose();
