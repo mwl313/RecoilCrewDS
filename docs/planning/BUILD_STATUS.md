@@ -259,3 +259,16 @@
   `validate:enemy-animations` 0 errors; `test:monsterpack-rendering` 7/7
   scenarios PASS; demo golden unchanged.
   Details: `docs/monsterpack10/IMPORT_REPORT.md`.
+
+## Lobby V2 — lobby upgrade
+
+  Added persistent nickname settings (curated BaseNN pool + shared
+  validation), a content-driven Settings scene, Main Menu `PLAYING AS`,
+  revisioned authoritative lobby state with playerId/host identity, unified
+  Lobby V2 view (YOU by playerId), Driver/Gunner seat selection, Ready/
+  countdown with cancellation, room-local chat, reconnect restoration, host
+  migration, and a Shared Tank start adapter. Protocol v8.
+  Verified: `npm test` **887/887 PASS** (129 files);
+  `test:lobby` 34/34 PASS; `test:lobby:e2e` 6/6 PASS; full `test:e2e`
+  47/47 PASS; demo golden unchanged.
+  Details: `docs/multiplayer09/LOBBY09_IMPLEMENTATION_REPORT.md`.

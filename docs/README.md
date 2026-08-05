@@ -210,3 +210,5 @@ The simulation runs identically on the server (online) and in the browser
 - [Network and capacity report](coreloop06/CORELOOP06_NETWORK_AND_CAPACITY_REPORT.md)
 - [Performance report](coreloop06/CORELOOP06_PERFORMANCE_REPORT.md)
 - [Progression08 implementation report](progression08/PROGRESSION08_IMPLEMENTATION_REPORT.md)
+- [Lobby09 implementation report](multiplayer09/LOBBY09_IMPLEMENTATION_REPORT.md)
+- [Lobby09 protocol guide](multiplayer09/LOBBY09_PROTOCOL_GUIDE.md)

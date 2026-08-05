@@ -124,3 +124,12 @@ Snapshots replicate the full progression state (flow, XP/level, pending
 level-ups, active offers, per-role readiness, relic stacks, chests, XP
 shards) so reconnect reconstructs an active selection. No client-authoritative
 results are possible.
+
+## Lobby V2 (protocol v8)
+
+`create`/`join` carry `displayName`; the lobby adds `lobbySelectSeat`,
+`lobbyReadySet`, and `lobbyChatSend`. Full revisioned `lobbyState` messages
+are broadcast after every accepted mutation; `sessionId` is never exposed in
+player lists. Seat and Ready mutations are validated against a revision and
+room membership; chat is room-local, bounded, and rate-limited. The match
+wire contract (input/action/snapshot/reconnect/rematch) is unchanged.

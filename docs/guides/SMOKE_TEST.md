@@ -274,3 +274,10 @@ code is selected in a textarea fallback so it can still be copied manually.
   `build/monsterpack10-import/BENCHMARK_RESULTS.json`).
 - Preview gallery: `npm run dev:animation-preview` then open
   `/?monster=1` (on-demand model loading; `?bench=1` for scripted runs).
+
+## Lobby V2 smoke checks
+
+- `npm run test:lobby` — nickname/settings, seats, ready/countdown, chat,
+  reconnect, host migration, start adapter, protocol, presentation.
+- `npm run test:lobby:e2e` — settings persistence, seat/ready match start,
+  chat safety/rate-limit/reconnect, disconnect+rejoin restoration.

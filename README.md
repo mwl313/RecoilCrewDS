@@ -37,3 +37,8 @@ Animation07: enemy models, clips, semantic roles, LOD behavior, and
 presentation variants resolve from validated content. Full skeletal
 animation is reserved for nearby enemies; distant hordes use progressively
 cheaper rigid/far presentation without changing gameplay.
+
+Lobby V2: persistent nicknames, Main Menu Settings, a unified two-player
+lobby with YOU identity, Driver/Gunner seat selection, chat, Ready
+validation, and reconnect-safe host/seat restoration before the same Shared
+Tank match. Details: `docs/multiplayer09/LOBBY09_IMPLEMENTATION_REPORT.md`.
