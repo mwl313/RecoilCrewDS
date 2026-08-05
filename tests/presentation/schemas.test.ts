@@ -41,7 +41,7 @@ describe('presentation content pipeline', () => {
 
   it('loads every scene/hud/flow/theme with valid cross-references', () => {
     const loaded = loadPresentationContent(CONTENT_ROOT);
-    expect(Object.keys(loaded.scenes)).toHaveLength(10);
+    expect(Object.keys(loaded.scenes)).toHaveLength(11);
     expect(Object.keys(loaded.huds)).toContain('hud.gameplay');
     expect(Object.keys(loaded.themes)).toContain('theme.driver');
     expect(loaded.flows['flow.primary'].initialSceneId).toBe('scene.boot');

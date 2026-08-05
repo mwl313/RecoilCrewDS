@@ -203,7 +203,7 @@ export class ContentLoader {
     const manifest = parsedManifest.data;
     const files: Record<string, unknown> = {};
     for (const category of CONTENT_CATEGORIES) {
-      for (const relPath of manifest.pack.files[category]) {
+      for (const relPath of manifest.pack.files[category] ?? []) {
         const absolute = resolveInsideRoot(rootResolved, relPath);
         files[relPath] = readJson(absolute, relPath);
       }
