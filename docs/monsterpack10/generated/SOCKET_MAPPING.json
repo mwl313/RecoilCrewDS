@@ -1,0 +1,587 @@
+{
+  "socket.quaternius.alien": {
+    "sourceModelId": "monster.quaternius.alien",
+    "nativeAssetId": "custom.enemy.quaternius.alien.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.alien-high-detail": {
+    "sourceModelId": "monster.quaternius.alien-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.alienHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.alpaking": {
+    "sourceModelId": "monster.quaternius.alpaking",
+    "nativeAssetId": "custom.enemy.quaternius.alpaking.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.alpaking-evolved": {
+    "sourceModelId": "monster.quaternius.alpaking-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.alpakingEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.armabee": {
+    "sourceModelId": "monster.quaternius.armabee",
+    "nativeAssetId": "custom.enemy.quaternius.armabee.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.armabee-evolved": {
+    "sourceModelId": "monster.quaternius.armabee-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.armabeeEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.birb": {
+    "sourceModelId": "monster.quaternius.birb",
+    "nativeAssetId": "custom.enemy.quaternius.birb.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.blue-demon": {
+    "sourceModelId": "monster.quaternius.blue-demon",
+    "nativeAssetId": "custom.enemy.quaternius.blueDemon.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.bunny": {
+    "sourceModelId": "monster.quaternius.bunny",
+    "nativeAssetId": "custom.enemy.quaternius.bunny.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.cactoro": {
+    "sourceModelId": "monster.quaternius.cactoro",
+    "nativeAssetId": "custom.enemy.quaternius.cactoro.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.cactoro-high-detail": {
+    "sourceModelId": "monster.quaternius.cactoro-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.cactoroHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.cat": {
+    "sourceModelId": "monster.quaternius.cat",
+    "nativeAssetId": "custom.enemy.quaternius.cat.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.chicken": {
+    "sourceModelId": "monster.quaternius.chicken",
+    "nativeAssetId": "custom.enemy.quaternius.chicken.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.demon": {
+    "sourceModelId": "monster.quaternius.demon",
+    "nativeAssetId": "custom.enemy.quaternius.demon.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.demon-high-detail": {
+    "sourceModelId": "monster.quaternius.demon-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.demonHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.dino": {
+    "sourceModelId": "monster.quaternius.dino",
+    "nativeAssetId": "custom.enemy.quaternius.dino.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.dragon": {
+    "sourceModelId": "monster.quaternius.dragon",
+    "nativeAssetId": "custom.enemy.quaternius.dragon.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.dragon-evolved": {
+    "sourceModelId": "monster.quaternius.dragon-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.dragonEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.fish": {
+    "sourceModelId": "monster.quaternius.fish",
+    "nativeAssetId": "custom.enemy.quaternius.fish.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.fish-high-detail": {
+    "sourceModelId": "monster.quaternius.fish-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.fishHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.frog": {
+    "sourceModelId": "monster.quaternius.frog",
+    "nativeAssetId": "custom.enemy.quaternius.frog.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.ghost": {
+    "sourceModelId": "monster.quaternius.ghost",
+    "nativeAssetId": "custom.enemy.quaternius.ghost.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.ghost-skull": {
+    "sourceModelId": "monster.quaternius.ghost-skull",
+    "nativeAssetId": "custom.enemy.quaternius.ghostSkull.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.glub": {
+    "sourceModelId": "monster.quaternius.glub",
+    "nativeAssetId": "custom.enemy.quaternius.glub.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.glub-evolved": {
+    "sourceModelId": "monster.quaternius.glub-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.glubEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.goleling": {
+    "sourceModelId": "monster.quaternius.goleling",
+    "nativeAssetId": "custom.enemy.quaternius.goleling.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.goleling-evolved": {
+    "sourceModelId": "monster.quaternius.goleling-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.golelingEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.green-blob": {
+    "sourceModelId": "monster.quaternius.green-blob",
+    "nativeAssetId": "custom.enemy.quaternius.greenBlob.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.green-spiky-blob": {
+    "sourceModelId": "monster.quaternius.green-spiky-blob",
+    "nativeAssetId": "custom.enemy.quaternius.greenSpikyBlob.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.hywirl": {
+    "sourceModelId": "monster.quaternius.hywirl",
+    "nativeAssetId": "custom.enemy.quaternius.hywirl.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.monkroose": {
+    "sourceModelId": "monster.quaternius.monkroose",
+    "nativeAssetId": "custom.enemy.quaternius.monkroose.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.mushnub": {
+    "sourceModelId": "monster.quaternius.mushnub",
+    "nativeAssetId": "custom.enemy.quaternius.mushnub.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.mushnub-evolved": {
+    "sourceModelId": "monster.quaternius.mushnub-evolved",
+    "nativeAssetId": "custom.enemy.quaternius.mushnubEvolved.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.mushroom-king": {
+    "sourceModelId": "monster.quaternius.mushroom-king",
+    "nativeAssetId": "custom.enemy.quaternius.mushroomKing.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.ninja": {
+    "sourceModelId": "monster.quaternius.ninja",
+    "nativeAssetId": "custom.enemy.quaternius.ninja.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.ninja-high-detail": {
+    "sourceModelId": "monster.quaternius.ninja-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.ninjaHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.orc": {
+    "sourceModelId": "monster.quaternius.orc",
+    "nativeAssetId": "custom.enemy.quaternius.orc.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.orc-enemy": {
+    "sourceModelId": "monster.quaternius.orc-enemy",
+    "nativeAssetId": "custom.enemy.quaternius.orcEnemy.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.pigeon": {
+    "sourceModelId": "monster.quaternius.pigeon",
+    "nativeAssetId": "custom.enemy.quaternius.pigeon.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.pink-blob": {
+    "sourceModelId": "monster.quaternius.pink-blob",
+    "nativeAssetId": "custom.enemy.quaternius.pinkBlob.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.squidle": {
+    "sourceModelId": "monster.quaternius.squidle",
+    "nativeAssetId": "custom.enemy.quaternius.squidle.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.tribal": {
+    "sourceModelId": "monster.quaternius.tribal",
+    "nativeAssetId": "custom.enemy.quaternius.tribal.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.wizard": {
+    "sourceModelId": "monster.quaternius.wizard",
+    "nativeAssetId": "custom.enemy.quaternius.wizard.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.yeti": {
+    "sourceModelId": "monster.quaternius.yeti",
+    "nativeAssetId": "custom.enemy.quaternius.yeti.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  },
+  "socket.quaternius.yeti-high-detail": {
+    "sourceModelId": "monster.quaternius.yeti-high-detail",
+    "nativeAssetId": "custom.enemy.quaternius.yetiHighDetail.hero",
+    "socketBindings": {
+      "center": "socket.center",
+      "head": "socket.head",
+      "weapon": "socket.weapon",
+      "projectile": "socket.projectile",
+      "hitVfx": "socket.hitVfx",
+      "deathVfx": "socket.deathVfx",
+      "shadow": "socket.shadow"
+    }
+  }
+}

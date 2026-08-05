@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.green-blob.common",
+  "label": "Quaternius green-blob Common",
+  "nearModelAssetId": "custom.enemy.quaternius.greenBlob.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.greenBlob.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.greenBlob.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.green-blob.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "green-blob",
+    "common"
+  ]
+}

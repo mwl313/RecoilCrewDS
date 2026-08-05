@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.blue-demon.hero",
+  "label": "Quaternius blue-demon Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.blueDemon.hero",
+  "animationProfileId": "enemyAnimation.quaternius.blue-demon.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "blue-demon",
+    "hero"
+  ]
+}

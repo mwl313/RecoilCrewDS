@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.cactoro.common",
+  "label": "Quaternius cactoro Common",
+  "nearModelAssetId": "custom.enemy.quaternius.cactoro.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.cactoro.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.cactoro.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.cactoro.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "cactoro",
+    "common"
+  ]
+}

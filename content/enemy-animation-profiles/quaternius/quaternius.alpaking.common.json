@@ -1,0 +1,75 @@
+{
+  "id": "enemyAnimation.quaternius.alpaking.common",
+  "label": "Quaternius alpaking Common",
+  "clips": {
+    "idle": "CharacterArmature|Flying_Idle",
+    "walk": "CharacterArmature|Fast_Flying",
+    "hoverMove": "CharacterArmature|Flying_Idle",
+    "fastHover": "CharacterArmature|Fast_Flying",
+    "attackPrimary": "CharacterArmature|Headbutt",
+    "hit": "CharacterArmature|HitReact",
+    "stagger": "CharacterArmature|HitReact",
+    "death": "CharacterArmature|Death"
+  },
+  "fallbacks": {
+    "run": "walk",
+    "attackSecondary": "attackPrimary",
+    "attackSpecial": "attackPrimary",
+    "spawn": "idle",
+    "entrance": "idle",
+    "recovery": "idle",
+    "land": "idle",
+    "knockback": "hit"
+  },
+  "locomotion": {
+    "idleSpeedMax": 0.2,
+    "walkSpeedMax": 4,
+    "walkSpeedReference": 3.5,
+    "runSpeedReference": 8,
+    "playbackMin": 0.5,
+    "playbackMax": 1.5,
+    "randomStartPhase": true
+  },
+  "transitions": {
+    "defaultCrossFadeSeconds": 0.2,
+    "locomotionCrossFadeSeconds": 0.25,
+    "attackCrossFadeSeconds": 0.08,
+    "hitCrossFadeSeconds": 0.06,
+    "deathCrossFadeSeconds": 0.35
+  },
+  "playback": {
+    "idle": {
+      "loop": "repeat"
+    },
+    "walk": {
+      "loop": "repeat"
+    },
+    "hoverMove": {
+      "loop": "repeat"
+    },
+    "fastHover": {
+      "loop": "repeat"
+    },
+    "attackPrimary": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 2
+    },
+    "hit": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 3
+    },
+    "stagger": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 3
+    },
+    "death": {
+      "loop": "once",
+      "clampWhenFinished": true,
+      "interruptPriority": 100
+    }
+  },
+  "rootMotion": false
+}

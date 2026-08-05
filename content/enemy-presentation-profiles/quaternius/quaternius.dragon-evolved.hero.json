@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.dragon-evolved.hero",
+  "label": "Quaternius dragon-evolved Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.dragonEvolved.hero",
+  "animationProfileId": "enemyAnimation.quaternius.dragon-evolved.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.5,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "dragon-evolved",
+    "hero"
+  ]
+}

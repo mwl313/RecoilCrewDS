@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.pigeon.common",
+  "label": "Quaternius pigeon Common",
+  "nearModelAssetId": "custom.enemy.quaternius.pigeon.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.pigeon.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.pigeon.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.pigeon.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "pigeon",
+    "common"
+  ]
+}

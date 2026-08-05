@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.green-blob.hero",
+  "label": "Quaternius green-blob Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.greenBlob.hero",
+  "animationProfileId": "enemyAnimation.quaternius.green-blob.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "green-blob",
+    "hero"
+  ]
+}

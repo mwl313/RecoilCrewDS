@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '32ea17ae433e6347bc7c582d6014686a6124c61a1d2b67f0eea53bc0f25576cb';
+export const CONTENT_PACK_SOURCE_HASH = '50ab3f88e29f54e9ab6bd16b8ba076ebdabaa8adeab77a367fc2c9b029f0448e';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '61f59580f95abfe8d100af48d99ff5953f6ed63b692f7fcd42f142eaaf55243c';
+export const CONTENT_PACK_HASH = '2499b3126c1077bdc8cd7b3a20c0517fa4264ec18573251cdfeaee1122e62365';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -198,6 +198,9 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
   ],
   "upgradeFirstExperiences": [
     { id: "firstExperience.levelUp.first", definition: {"id":"firstExperience.levelUp.first","label":"First Level-Up — Epic + normal + 50% Legendary","behaviors":[],"cardRules":[{"kind":"fixed","rarity":"epic"},{"kind":"normal"},{"kind":"branch","branches":[{"rarity":"legendary","probability":0.5},{"rarity":"normal","probability":0.5}]}]} },
+  ],
+  "enemyArtRosters": [
+    { id: "enemyArtRoster.quaternius.integrationPreview", definition: {"id":"enemyArtRoster.quaternius.integrationPreview","behaviors":[],"commonPresentationProfileIds":["enemyPresentation.quaternius.mushnub.common","enemyPresentation.quaternius.wizard.common","enemyPresentation.quaternius.orc-enemy.common","enemyPresentation.quaternius.armabee.common","enemyPresentation.quaternius.glub.common"],"elitePresentationProfileIds":["enemyPresentation.quaternius.blue-demon.hero","enemyPresentation.quaternius.mushroom-king.hero"],"bossPresentationProfileIds":["enemyPresentation.quaternius.dragon-evolved.hero"],"preloadAssetIds":["custom.enemy.quaternius.mushnub.hero","custom.enemy.quaternius.mushnub.commonNear","custom.enemy.quaternius.mushnub.commonFar","custom.enemy.quaternius.mushnub.aggregate","custom.enemy.quaternius.wizard.hero","custom.enemy.quaternius.wizard.commonNear","custom.enemy.quaternius.wizard.commonFar","custom.enemy.quaternius.wizard.aggregate","custom.enemy.quaternius.orcEnemy.hero","custom.enemy.quaternius.orcEnemy.commonNear","custom.enemy.quaternius.orcEnemy.commonFar","custom.enemy.quaternius.orcEnemy.aggregate","custom.enemy.quaternius.armabee.hero","custom.enemy.quaternius.armabee.commonNear","custom.enemy.quaternius.armabee.commonFar","custom.enemy.quaternius.armabee.aggregate","custom.enemy.quaternius.glub.hero","custom.enemy.quaternius.glub.commonNear","custom.enemy.quaternius.glub.commonFar","custom.enemy.quaternius.glub.aggregate","custom.enemy.quaternius.blueDemon.hero","custom.enemy.quaternius.mushroomKing.hero","custom.enemy.quaternius.dragonEvolved.hero"]} },
   ],
   "treasureRarityTables": [
     { id: "rarity.treasure.default", definition: {"id":"rarity.treasure.default","label":"Default Treasure Rarity Table","behaviors":[],"rarities":{"common":0.55,"rare":0.3,"epic":0.13,"legendary":0.02}} },

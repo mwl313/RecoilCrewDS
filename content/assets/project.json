@@ -3,75 +3,16 @@
   "builtins": [],
   "project": [
     {
-      "id": "custom.enemy.witch.common.skinned",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.witch",
-      "tags": ["enemy", "witch", "skinned", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.witch.common.far",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.witch",
-      "tags": ["enemy", "witch", "far", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.witch.elite",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.witch",
-      "tags": ["enemy", "witch", "elite", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.witch.boss",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.witch",
-      "tags": ["enemy", "witch", "boss", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.spider.common.skinned",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.spider",
-      "tags": ["enemy", "spider", "skinned", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.spider.common.far",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.spider",
-      "tags": ["enemy", "spider", "far", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.spider.elite",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.spider",
-      "tags": ["enemy", "spider", "elite", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.spider.boss",
-      "kind": "model",
-      "namespace": "custom",
-      "fallbackAssetId": "enemy.spider",
-      "tags": ["enemy", "spider", "boss", "placeholder"],
-      "optional": true
-    },
-    {
-      "id": "custom.enemy.beast.common.skinned",
+      "id": "custom.enemy.beast.boss",
       "kind": "model",
       "namespace": "custom",
       "fallbackAssetId": "enemy.beast",
-      "tags": ["enemy", "beast", "skinned", "placeholder"],
+      "tags": [
+        "enemy",
+        "beast",
+        "boss",
+        "placeholder"
+      ],
       "optional": true
     },
     {
@@ -79,7 +20,25 @@
       "kind": "model",
       "namespace": "custom",
       "fallbackAssetId": "enemy.beast",
-      "tags": ["enemy", "beast", "far", "placeholder"],
+      "tags": [
+        "enemy",
+        "beast",
+        "far",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.beast.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.beast",
+      "tags": [
+        "enemy",
+        "beast",
+        "skinned",
+        "placeholder"
+      ],
       "optional": true
     },
     {
@@ -87,15 +46,1466 @@
       "kind": "model",
       "namespace": "custom",
       "fallbackAssetId": "enemy.beast",
-      "tags": ["enemy", "beast", "elite", "placeholder"],
+      "tags": [
+        "enemy",
+        "beast",
+        "elite",
+        "placeholder"
+      ],
       "optional": true
     },
     {
-      "id": "custom.enemy.beast.boss",
+      "id": "custom.enemy.quaternius.alien.aggregate",
       "kind": "model",
       "namespace": "custom",
-      "fallbackAssetId": "enemy.beast",
-      "tags": ["enemy", "beast", "boss", "placeholder"],
+      "file": "/assets/models/enemies/quaternius/aggregate/alien.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alien",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alien.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/alien.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alien",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alien.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/alien.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alien",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alien.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/alien.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alien",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alienHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/alien-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alien-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alpaking.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/alpaking.aggregate.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alpaking",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alpaking.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/alpaking.common-far.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alpaking",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alpaking.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/alpaking.common-near.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alpaking",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alpaking.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/alpaking.hero.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alpaking",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.alpakingEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/alpaking-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "alpaking-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.armabee.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/armabee.aggregate.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "armabee",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.armabee.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/armabee.common-far.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "armabee",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.armabee.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/armabee.common-near.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "armabee",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.armabee.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/armabee.hero.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "armabee",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.armabeeEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/armabee-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "armabee-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.birb.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/birb.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "birb",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.blueDemon.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/blue-demon.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "blue-demon",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.bunny.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/bunny.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "bunny",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cactoro.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/cactoro.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cactoro",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cactoro.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/cactoro.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cactoro",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cactoro.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/cactoro.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cactoro",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cactoro.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/cactoro.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cactoro",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cactoroHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/cactoro-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cactoro-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cat.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/cat.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cat",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cat.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/cat.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cat",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cat.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/cat.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cat",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.cat.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/cat.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "cat",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.chicken.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/chicken.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "chicken",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.chicken.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/chicken.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "chicken",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.chicken.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/chicken.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "chicken",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.chicken.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/chicken.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "chicken",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.demon.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/demon.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "demon",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.demonHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/demon-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "demon-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.dino.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/dino.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "dino",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.dragon.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/dragon.hero.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "dragon",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.dragonEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/dragon-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "dragon-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.fish.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/fish.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "fish",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.fishHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/fish-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "fish-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.frog.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/frog.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "frog",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ghost.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/ghost.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ghost",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ghostSkull.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/ghost-skull.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ghost-skull",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.glub.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/glub.aggregate.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "glub",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.glub.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/glub.common-far.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "glub",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.glub.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/glub.common-near.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "glub",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.glub.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/glub.hero.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "glub",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.glubEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/glub-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "glub-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.goleling.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/goleling.hero.glb",
+      "fallbackAssetId": "enemy.rammer",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "goleling",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.golelingEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/goleling-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "goleling-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.greenBlob.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/green-blob.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "green-blob",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.greenBlob.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/green-blob.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "green-blob",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.greenBlob.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/green-blob.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "green-blob",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.greenBlob.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/green-blob.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "green-blob",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.greenSpikyBlob.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/green-spiky-blob.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "green-spiky-blob",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.hywirl.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/hywirl.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "hywirl",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.monkroose.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/monkroose.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "monkroose",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushnub.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/mushnub.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushnub",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushnub.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/mushnub.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushnub",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushnub.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/mushnub.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushnub",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushnub.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/mushnub.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushnub",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushnubEvolved.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/mushnub-evolved.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushnub-evolved",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.mushroomKing.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/mushroom-king.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "mushroom-king",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ninja.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/ninja.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ninja",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ninja.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/ninja.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ninja",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ninja.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/ninja.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ninja",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ninja.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/ninja.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ninja",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.ninjaHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/ninja-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "ninja-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.orc.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/orc.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "orc",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.orcEnemy.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/orc-enemy.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "orc-enemy",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.orcEnemy.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/orc-enemy.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "orc-enemy",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.orcEnemy.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/orc-enemy.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "orc-enemy",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.orcEnemy.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/orc-enemy.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "orc-enemy",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pigeon.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/pigeon.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pigeon",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pigeon.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/pigeon.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pigeon",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pigeon.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/pigeon.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pigeon",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pigeon.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/pigeon.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pigeon",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pinkBlob.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/pink-blob.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pink-blob",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pinkBlob.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/pink-blob.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pink-blob",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pinkBlob.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/pink-blob.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pink-blob",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.pinkBlob.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/pink-blob.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "pink-blob",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.squidle.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/squidle.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "squidle",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.tribal.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/tribal.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "tribal",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.wizard.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/wizard.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "wizard",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.wizard.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/wizard.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "wizard",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.wizard.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/wizard.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "wizard",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.wizard.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/wizard.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "wizard",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.yeti.aggregate",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/aggregate/yeti.aggregate.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "yeti",
+        "aggregate",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.yeti.commonFar",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-far/yeti.common-far.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "yeti",
+        "far",
+        "rigid"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.yeti.commonNear",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/common-near/yeti.common-near.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "yeti",
+        "common",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.yeti.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/yeti.hero.glb",
+      "fallbackAssetId": "enemy.scrapBug",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "yeti",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.quaternius.yetiHighDetail.hero",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/enemies/quaternius/hero/yeti-high-detail.hero.glb",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "quaternius",
+        "yeti-high-detail",
+        "hero",
+        "skinned"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.boss",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": [
+        "enemy",
+        "spider",
+        "boss",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.common.far",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": [
+        "enemy",
+        "spider",
+        "far",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": [
+        "enemy",
+        "spider",
+        "skinned",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.spider.elite",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.spider",
+      "tags": [
+        "enemy",
+        "spider",
+        "elite",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.boss",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "witch",
+        "boss",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.common.far",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "witch",
+        "far",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.common.skinned",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "witch",
+        "skinned",
+        "placeholder"
+      ],
+      "optional": true
+    },
+    {
+      "id": "custom.enemy.witch.elite",
+      "kind": "model",
+      "namespace": "custom",
+      "fallbackAssetId": "enemy.witch",
+      "tags": [
+        "enemy",
+        "witch",
+        "elite",
+        "placeholder"
+      ],
       "optional": true
     },
     {
@@ -103,9 +1513,32 @@
       "kind": "model",
       "namespace": "scene",
       "fallbackAssetId": "playerTank.chassis",
-      "defaultTransform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1.2, 1.2, 1.2] },
-      "materialOverrides": { "roughness": 0.7, "metalness": 0.35 },
-      "tags": ["menu", "tank", "preview"],
+      "defaultTransform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1.2,
+          1.2,
+          1.2
+        ]
+      },
+      "materialOverrides": {
+        "roughness": 0.7,
+        "metalness": 0.35
+      },
+      "tags": [
+        "menu",
+        "tank",
+        "preview"
+      ],
       "optional": false
     }
   ]

@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.chicken.hero",
+  "label": "Quaternius chicken Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.chicken.hero",
+  "animationProfileId": "enemyAnimation.quaternius.chicken.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "chicken",
+    "hero"
+  ]
+}

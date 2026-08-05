@@ -1,0 +1,902 @@
+{
+  "scale.quaternius.alien": {
+    "sourceModelId": "monster.quaternius.alien",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.alien.hero",
+      "custom.enemy.quaternius.alien.commonNear",
+      "custom.enemy.quaternius.alien.commonFar",
+      "custom.enemy.quaternius.alien.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.alien-high-detail": {
+    "sourceModelId": "monster.quaternius.alien-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.alienHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.alpaking": {
+    "sourceModelId": "monster.quaternius.alpaking",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.alpaking.hero",
+      "custom.enemy.quaternius.alpaking.commonNear",
+      "custom.enemy.quaternius.alpaking.commonFar",
+      "custom.enemy.quaternius.alpaking.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.alpaking-evolved": {
+    "sourceModelId": "monster.quaternius.alpaking-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.alpakingEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.armabee": {
+    "sourceModelId": "monster.quaternius.armabee",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.armabee.hero",
+      "custom.enemy.quaternius.armabee.commonNear",
+      "custom.enemy.quaternius.armabee.commonFar",
+      "custom.enemy.quaternius.armabee.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.armabee-evolved": {
+    "sourceModelId": "monster.quaternius.armabee-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.armabeeEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.birb": {
+    "sourceModelId": "monster.quaternius.birb",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.birb.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.blue-demon": {
+    "sourceModelId": "monster.quaternius.blue-demon",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.blueDemon.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.bunny": {
+    "sourceModelId": "monster.quaternius.bunny",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.bunny.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.cactoro": {
+    "sourceModelId": "monster.quaternius.cactoro",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.cactoro.hero",
+      "custom.enemy.quaternius.cactoro.commonNear",
+      "custom.enemy.quaternius.cactoro.commonFar",
+      "custom.enemy.quaternius.cactoro.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.cactoro-high-detail": {
+    "sourceModelId": "monster.quaternius.cactoro-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.cactoroHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.cat": {
+    "sourceModelId": "monster.quaternius.cat",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.cat.hero",
+      "custom.enemy.quaternius.cat.commonNear",
+      "custom.enemy.quaternius.cat.commonFar",
+      "custom.enemy.quaternius.cat.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.chicken": {
+    "sourceModelId": "monster.quaternius.chicken",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.chicken.hero",
+      "custom.enemy.quaternius.chicken.commonNear",
+      "custom.enemy.quaternius.chicken.commonFar",
+      "custom.enemy.quaternius.chicken.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.demon": {
+    "sourceModelId": "monster.quaternius.demon",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.demon.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.demon-high-detail": {
+    "sourceModelId": "monster.quaternius.demon-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.demonHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.dino": {
+    "sourceModelId": "monster.quaternius.dino",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.dino.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.dragon": {
+    "sourceModelId": "monster.quaternius.dragon",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.dragon.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.dragon-evolved": {
+    "sourceModelId": "monster.quaternius.dragon-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.dragonEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.fish": {
+    "sourceModelId": "monster.quaternius.fish",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.fish.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.fish-high-detail": {
+    "sourceModelId": "monster.quaternius.fish-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.fishHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.frog": {
+    "sourceModelId": "monster.quaternius.frog",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.frog.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.ghost": {
+    "sourceModelId": "monster.quaternius.ghost",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.ghost.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.ghost-skull": {
+    "sourceModelId": "monster.quaternius.ghost-skull",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.ghostSkull.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.glub": {
+    "sourceModelId": "monster.quaternius.glub",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.glub.hero",
+      "custom.enemy.quaternius.glub.commonNear",
+      "custom.enemy.quaternius.glub.commonFar",
+      "custom.enemy.quaternius.glub.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.glub-evolved": {
+    "sourceModelId": "monster.quaternius.glub-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.glubEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.goleling": {
+    "sourceModelId": "monster.quaternius.goleling",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.goleling.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.goleling-evolved": {
+    "sourceModelId": "monster.quaternius.goleling-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.golelingEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.4,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.green-blob": {
+    "sourceModelId": "monster.quaternius.green-blob",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.greenBlob.hero",
+      "custom.enemy.quaternius.greenBlob.commonNear",
+      "custom.enemy.quaternius.greenBlob.commonFar",
+      "custom.enemy.quaternius.greenBlob.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.green-spiky-blob": {
+    "sourceModelId": "monster.quaternius.green-spiky-blob",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.greenSpikyBlob.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.hywirl": {
+    "sourceModelId": "monster.quaternius.hywirl",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.hywirl.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.monkroose": {
+    "sourceModelId": "monster.quaternius.monkroose",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.monkroose.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.mushnub": {
+    "sourceModelId": "monster.quaternius.mushnub",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.mushnub.hero",
+      "custom.enemy.quaternius.mushnub.commonNear",
+      "custom.enemy.quaternius.mushnub.commonFar",
+      "custom.enemy.quaternius.mushnub.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.mushnub-evolved": {
+    "sourceModelId": "monster.quaternius.mushnub-evolved",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.mushnubEvolved.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.mushroom-king": {
+    "sourceModelId": "monster.quaternius.mushroom-king",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.mushroomKing.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.ninja": {
+    "sourceModelId": "monster.quaternius.ninja",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.ninja.hero",
+      "custom.enemy.quaternius.ninja.commonNear",
+      "custom.enemy.quaternius.ninja.commonFar",
+      "custom.enemy.quaternius.ninja.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.ninja-high-detail": {
+    "sourceModelId": "monster.quaternius.ninja-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.ninjaHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.orc": {
+    "sourceModelId": "monster.quaternius.orc",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.orc.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.orc-enemy": {
+    "sourceModelId": "monster.quaternius.orc-enemy",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.orcEnemy.hero",
+      "custom.enemy.quaternius.orcEnemy.commonNear",
+      "custom.enemy.quaternius.orcEnemy.commonFar",
+      "custom.enemy.quaternius.orcEnemy.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.pigeon": {
+    "sourceModelId": "monster.quaternius.pigeon",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.pigeon.hero",
+      "custom.enemy.quaternius.pigeon.commonNear",
+      "custom.enemy.quaternius.pigeon.commonFar",
+      "custom.enemy.quaternius.pigeon.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.pink-blob": {
+    "sourceModelId": "monster.quaternius.pink-blob",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.pinkBlob.hero",
+      "custom.enemy.quaternius.pinkBlob.commonNear",
+      "custom.enemy.quaternius.pinkBlob.commonFar",
+      "custom.enemy.quaternius.pinkBlob.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.squidle": {
+    "sourceModelId": "monster.quaternius.squidle",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.squidle.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.tribal": {
+    "sourceModelId": "monster.quaternius.tribal",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.tribal.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0.5,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.576,
+      "height": 1.53
+    },
+    "flyingOffsetApplied": true
+  },
+  "scale.quaternius.wizard": {
+    "sourceModelId": "monster.quaternius.wizard",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.wizard.hero",
+      "custom.enemy.quaternius.wizard.commonNear",
+      "custom.enemy.quaternius.wizard.commonFar",
+      "custom.enemy.quaternius.wizard.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.yeti": {
+    "sourceModelId": "monster.quaternius.yeti",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.yeti.hero",
+      "custom.enemy.quaternius.yeti.commonNear",
+      "custom.enemy.quaternius.yeti.commonFar",
+      "custom.enemy.quaternius.yeti.aggregate"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.384,
+      "height": 1.02
+    },
+    "flyingOffsetApplied": false
+  },
+  "scale.quaternius.yeti-high-detail": {
+    "sourceModelId": "monster.quaternius.yeti-high-detail",
+    "nativeAssetIds": [
+      "custom.enemy.quaternius.yetiHighDetail.hero"
+    ],
+    "presentationTransform": {
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    "recommendedCollision": {
+      "radius": 0.64,
+      "height": 1.7
+    },
+    "flyingOffsetApplied": false
+  }
+}

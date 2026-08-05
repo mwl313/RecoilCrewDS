@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.ninja.common",
+  "label": "Quaternius ninja Common",
+  "nearModelAssetId": "custom.enemy.quaternius.ninja.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.ninja.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.ninja.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.ninja.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "ninja",
+    "common"
+  ]
+}

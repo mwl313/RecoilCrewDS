@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.glub.common",
+  "label": "Quaternius glub Common",
+  "nearModelAssetId": "custom.enemy.quaternius.glub.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.glub.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.glub.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.glub.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.4,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "glub",
+    "common"
+  ]
+}

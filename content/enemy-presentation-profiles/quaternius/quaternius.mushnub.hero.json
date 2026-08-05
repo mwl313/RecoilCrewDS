@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.mushnub.hero",
+  "label": "Quaternius mushnub Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.mushnub.hero",
+  "animationProfileId": "enemyAnimation.quaternius.mushnub.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "mushnub",
+    "hero"
+  ]
+}

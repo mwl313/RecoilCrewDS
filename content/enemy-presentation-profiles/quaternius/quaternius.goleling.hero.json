@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.goleling.hero",
+  "label": "Quaternius goleling Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.goleling.hero",
+  "animationProfileId": "enemyAnimation.quaternius.goleling.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.4,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "goleling",
+    "hero"
+  ]
+}

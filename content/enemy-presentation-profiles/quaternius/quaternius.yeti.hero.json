@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.yeti.hero",
+  "label": "Quaternius yeti Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.yeti.hero",
+  "animationProfileId": "enemyAnimation.quaternius.yeti.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "yeti",
+    "hero"
+  ]
+}

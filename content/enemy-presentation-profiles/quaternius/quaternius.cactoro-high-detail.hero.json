@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.cactoro-high-detail.hero",
+  "label": "Quaternius cactoro-high-detail Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.cactoroHighDetail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.cactoro-high-detail.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "cactoro-high-detail",
+    "hero"
+  ]
+}

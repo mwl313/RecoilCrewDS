@@ -1,0 +1,42 @@
+{
+  "id": "enemyArtRoster.quaternius.integrationPreview",
+  "commonPresentationProfileIds": [
+    "enemyPresentation.quaternius.mushnub.common",
+    "enemyPresentation.quaternius.wizard.common",
+    "enemyPresentation.quaternius.orc-enemy.common",
+    "enemyPresentation.quaternius.armabee.common",
+    "enemyPresentation.quaternius.glub.common"
+  ],
+  "elitePresentationProfileIds": [
+    "enemyPresentation.quaternius.blue-demon.hero",
+    "enemyPresentation.quaternius.mushroom-king.hero"
+  ],
+  "bossPresentationProfileIds": [
+    "enemyPresentation.quaternius.dragon-evolved.hero"
+  ],
+  "preloadAssetIds": [
+    "custom.enemy.quaternius.mushnub.hero",
+    "custom.enemy.quaternius.mushnub.commonNear",
+    "custom.enemy.quaternius.mushnub.commonFar",
+    "custom.enemy.quaternius.mushnub.aggregate",
+    "custom.enemy.quaternius.wizard.hero",
+    "custom.enemy.quaternius.wizard.commonNear",
+    "custom.enemy.quaternius.wizard.commonFar",
+    "custom.enemy.quaternius.wizard.aggregate",
+    "custom.enemy.quaternius.orcEnemy.hero",
+    "custom.enemy.quaternius.orcEnemy.commonNear",
+    "custom.enemy.quaternius.orcEnemy.commonFar",
+    "custom.enemy.quaternius.orcEnemy.aggregate",
+    "custom.enemy.quaternius.armabee.hero",
+    "custom.enemy.quaternius.armabee.commonNear",
+    "custom.enemy.quaternius.armabee.commonFar",
+    "custom.enemy.quaternius.armabee.aggregate",
+    "custom.enemy.quaternius.glub.hero",
+    "custom.enemy.quaternius.glub.commonNear",
+    "custom.enemy.quaternius.glub.commonFar",
+    "custom.enemy.quaternius.glub.aggregate",
+    "custom.enemy.quaternius.blueDemon.hero",
+    "custom.enemy.quaternius.mushroomKing.hero",
+    "custom.enemy.quaternius.dragonEvolved.hero"
+  ]
+}

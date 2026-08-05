@@ -1,0 +1,23 @@
+{
+  "id": "enemyPresentation.quaternius.yeti.common",
+  "label": "Quaternius yeti Common",
+  "nearModelAssetId": "custom.enemy.quaternius.yeti.commonNear",
+  "farModelAssetId": "custom.enemy.quaternius.yeti.commonFar",
+  "aggregateModelAssetId": "custom.enemy.quaternius.yeti.aggregate",
+  "animationProfileId": "enemyAnimation.quaternius.yeti.common",
+  "lodPolicyId": "animationLod.defaultHorde",
+  "shadowPolicyId": "animationShadow.defaultHorde",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "yeti",
+    "common"
+  ]
+}

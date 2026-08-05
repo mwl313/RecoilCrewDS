@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.wizard.hero",
+  "label": "Quaternius wizard Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.wizard.hero",
+  "animationProfileId": "enemyAnimation.quaternius.wizard.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "wizard",
+    "hero"
+  ]
+}

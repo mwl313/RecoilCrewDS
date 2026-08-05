@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.alpaking.hero",
+  "label": "Quaternius alpaking Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.alpaking.hero",
+  "animationProfileId": "enemyAnimation.quaternius.alpaking.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0.4,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "alpaking",
+    "hero"
+  ]
+}

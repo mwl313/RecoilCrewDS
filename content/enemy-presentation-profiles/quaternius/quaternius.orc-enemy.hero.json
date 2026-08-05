@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.orc-enemy.hero",
+  "label": "Quaternius orc-enemy Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.orcEnemy.hero",
+  "animationProfileId": "enemyAnimation.quaternius.orc-enemy.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "orc-enemy",
+    "hero"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.alien.hero",
+  "label": "Quaternius alien Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.alien.hero",
+  "animationProfileId": "enemyAnimation.quaternius.alien.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "alien",
+    "hero"
+  ]
+}

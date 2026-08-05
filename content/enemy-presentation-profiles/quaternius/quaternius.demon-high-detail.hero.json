@@ -1,0 +1,21 @@
+{
+  "id": "enemyPresentation.quaternius.demon-high-detail.hero",
+  "label": "Quaternius demon-high-detail Hero",
+  "nearModelAssetId": "custom.enemy.quaternius.demonHighDetail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
+  "lodPolicyId": "animationLod.hero",
+  "shadowPolicyId": "animationShadow.hero",
+  "transform": {
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ]
+  },
+  "tags": [
+    "quaternius",
+    "demon-high-detail",
+    "hero"
+  ]
+}
