@@ -9,5 +9,6 @@
   "fallbackMapId": "map.fallbackLegacy",
   "furnitureSetId": "furnitureSet.primary",
   "densityProfileId": "densityProfile.primary",
-  "isFallback": false
+  "isFallback": false,
+  "terrainMaterialProfileId": "terrainMaterial.legacyProcedural"
 }

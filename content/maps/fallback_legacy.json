@@ -8,5 +8,6 @@
   "validationProfileId": "validationProfile.fallback",
   "furnitureSetId": "furnitureSet.fallback",
   "densityProfileId": "densityProfile.fallback",
-  "isFallback": true
+  "isFallback": true,
+  "terrainMaterialProfileId": "terrainMaterial.legacyProcedural"
 }

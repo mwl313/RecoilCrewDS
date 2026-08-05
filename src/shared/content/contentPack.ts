@@ -21,6 +21,7 @@ import type { TankDefinition } from './schemas/tank';
 import type { TerrainProfileDefinition } from './schemas/terrainProfile';
 import type { ValidationProfileDefinition } from './schemas/validationProfile';
 import type { EnemyArtRosterDefinition } from './schemas/enemyArtRoster';
+import type { TerrainMaterialProfileSchema } from './schemas/terrainMaterialProfile';
 import type { WeaponDefinition } from './schemas/weapon';
 import type {
   FirstTreasureRuleDefinition,
@@ -56,6 +57,7 @@ export const CONTENT_CATEGORIES = [
   'objectives',
   'maps',
   'terrainProfiles',
+  'terrainMaterialProfiles',
   'validationProfiles',
   'landmarks',
   'furnitureSets',
@@ -108,6 +110,7 @@ export interface CategoryRegistries {
   objectives: DefinitionRegistry<ObjectiveDefinition>;
   maps: DefinitionRegistry<MapDefinition>;
   terrainProfiles: DefinitionRegistry<TerrainProfileDefinition>;
+  terrainMaterialProfiles: DefinitionRegistry<TerrainMaterialProfileSchema>;
   validationProfiles: DefinitionRegistry<ValidationProfileDefinition>;
   landmarks: DefinitionRegistry<LandmarkDefinition>;
   furnitureSets: DefinitionRegistry<FurnitureSetDefinition>;
@@ -227,6 +230,9 @@ export class ContentPack {
   }
   getTerrainProfile(id: string): TerrainProfileDefinition {
     return this.require('terrainProfiles', id);
+  }
+  getTerrainMaterialProfile(id: string): TerrainMaterialProfileSchema {
+    return this.require('terrainMaterialProfiles', id);
   }
   getValidationProfile(id: string): ValidationProfileDefinition {
     return this.require('validationProfiles', id);

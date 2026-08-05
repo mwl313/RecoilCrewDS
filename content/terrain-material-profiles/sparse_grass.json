@@ -1,0 +1,15 @@
+{
+  "id": "terrainMaterial.sparseGrass",
+  "label": "Sparse Grass",
+  "kind": "pbrTextureSet",
+  "baseColorAssetId": "texture.environment.sparseGrass.baseColor",
+  "normalAssetId": "texture.environment.sparseGrass.normal",
+  "roughnessAssetId": "texture.environment.sparseGrass.roughness",
+  "tileSizeMeters": 10,
+  "tint": "#ffffff",
+  "normalScale": [0.5, 0.5],
+  "roughness": 1,
+  "metalness": 0,
+  "anisotropy": 4,
+  "fallbackColor": "#7d7655"
+}

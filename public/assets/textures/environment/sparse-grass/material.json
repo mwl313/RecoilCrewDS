@@ -1,0 +1,11 @@
+{
+  "id": "environmentMaterial.sparseGrass",
+  "baseColor": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp",
+  "normal": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png",
+  "roughness": 1.0,
+  "grassMaskOptional": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png",
+  "tileSizeMeters": 10,
+  "normalScale": 0.5,
+  "metalness": 0.0,
+  "displacementEnabled": false
+}

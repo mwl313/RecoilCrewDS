@@ -9,5 +9,6 @@
   "furnitureSetId": "furnitureSet.rocketJumpHighlands",
   "densityProfileId": "densityProfile.rocketJumpHighlands",
   "fallbackMapId": "map.fallbackLegacy",
-  "isFallback": false
+  "isFallback": false,
+  "terrainMaterialProfileId": "terrainMaterial.sparseGrass"
 }

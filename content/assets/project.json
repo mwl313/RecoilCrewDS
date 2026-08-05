@@ -3,6 +3,30 @@
   "builtins": [],
   "project": [
     {
+      "id": "texture.environment.sparseGrass.baseColor",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp"
+    },
+    {
+      "id": "texture.environment.sparseGrass.normal",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png"
+    },
+    {
+      "id": "texture.environment.sparseGrass.roughness",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_roughness_2k.png"
+    },
+    {
+      "id": "texture.environment.sparseGrass.mask",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
+    },
+    {
       "id": "custom.enemy.beast.boss",
       "kind": "model",
       "namespace": "custom",

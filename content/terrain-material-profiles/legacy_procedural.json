@@ -1,0 +1,11 @@
+{
+  "id": "terrainMaterial.legacyProcedural",
+  "label": "Legacy Procedural Ground",
+  "kind": "proceduralFallback",
+  "tileSizeMeters": 8,
+  "baseColor": "#8a7a55",
+  "gridColor": "#493d29",
+  "patchColor": "#785f37",
+  "roughness": 0.92,
+  "metalness": 0.02
+}

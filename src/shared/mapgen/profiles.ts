@@ -37,6 +37,39 @@ export interface TerrainProfileDef {
   features: MacroFeatureConfigs;
 }
 
+/**
+ * Resolved terrain material profile (validated content, presentation-only).
+ * Plain serializable shape so it travels through the generated client bundle
+ * without carrying content-registry bookkeeping fields.
+ */
+export type TerrainMaterialProfileDef =
+  | {
+      id: string;
+      label?: string;
+      kind: 'pbrTextureSet';
+      baseColorAssetId: string;
+      normalAssetId?: string;
+      roughnessAssetId?: string;
+      tileSizeMeters: number;
+      tint: string;
+      normalScale: [number, number];
+      roughness: number;
+      metalness: number;
+      anisotropy: number;
+      fallbackColor: string;
+    }
+  | {
+      id: string;
+      label?: string;
+      kind: 'proceduralFallback';
+      tileSizeMeters: number;
+      baseColor: string;
+      gridColor: string;
+      patchColor: string;
+      roughness: number;
+      metalness: number;
+    };
+
 export interface SlopeRules {
   driveableMax: number;
   riskyMax: number;
@@ -82,6 +115,7 @@ export interface MapDefinitionDef {
   depthMeters: number;
   cellSize: number;
   terrainProfileId: string;
+  terrainMaterialProfileId: string;
   validationProfileId: string;
   fallbackMapId: string | null;
   isFallback: boolean;
@@ -92,6 +126,7 @@ export interface MapDefinitionDef {
 export interface MapGenerationBundle {
   map: MapDefinitionDef;
   terrainProfile: TerrainProfileDef;
+  terrainMaterialProfile: TerrainMaterialProfileDef;
   validationProfile: ValidationProfileDef;
   furnitureSet: FurnitureSetDef;
   densityProfile: DensityProfileDef;
@@ -113,6 +148,7 @@ export function resolveDefaultMapProfileId(pack: ContentPack): string {
 export function resolveMapBundle(pack: ContentPack, mapId: string): MapGenerationBundle {
   const map = pack.getMap(mapId);
   const terrainProfile = pack.getTerrainProfile(map.terrainProfileId);
+  const terrainMaterialProfile = toTerrainMaterialProfileDef(pack.getTerrainMaterialProfile(map.terrainMaterialProfileId));
   const validationProfile = pack.getValidationProfile(map.validationProfileId);
   const furnitureSet = pack.getFurnitureSet(map.furnitureSetId);
   return {
@@ -123,12 +159,14 @@ export function resolveMapBundle(pack: ContentPack, mapId: string): MapGeneratio
       depthMeters: map.depthMeters,
       cellSize: map.cellSize,
       terrainProfileId: map.terrainProfileId,
+      terrainMaterialProfileId: map.terrainMaterialProfileId,
       validationProfileId: map.validationProfileId,
       fallbackMapId: map.fallbackMapId ?? null,
       isFallback: map.isFallback,
       furnitureSetId: map.furnitureSetId,
       densityProfileId: map.densityProfileId,
     },
+    terrainMaterialProfile,
     terrainProfile: {
       id: terrainProfile.id,
       label: terrainProfile.label,
@@ -206,6 +244,56 @@ export function resolveMapBundle(pack: ContentPack, mapId: string): MapGeneratio
         };
       })
       .sort((a, b) => a.priority - b.priority),
+  };
+}
+
+function toTerrainMaterialProfileDef(
+  profile: {
+    id: string;
+    label?: string;
+    kind: 'pbrTextureSet' | 'proceduralFallback';
+    baseColorAssetId?: string;
+    normalAssetId?: string;
+    roughnessAssetId?: string;
+    tileSizeMeters: number;
+    tint?: string;
+    normalScale?: [number, number];
+    roughness: number;
+    metalness: number;
+    anisotropy?: number;
+    fallbackColor?: string;
+    baseColor?: string;
+    gridColor?: string;
+    patchColor?: string;
+  },
+): TerrainMaterialProfileDef {
+  if (profile.kind === 'pbrTextureSet') {
+    return {
+      id: profile.id,
+      label: profile.label,
+      kind: 'pbrTextureSet',
+      baseColorAssetId: profile.baseColorAssetId!,
+      normalAssetId: profile.normalAssetId,
+      roughnessAssetId: profile.roughnessAssetId,
+      tileSizeMeters: profile.tileSizeMeters,
+      tint: profile.tint!,
+      normalScale: [...profile.normalScale!] as [number, number],
+      roughness: profile.roughness,
+      metalness: profile.metalness,
+      anisotropy: profile.anisotropy!,
+      fallbackColor: profile.fallbackColor!,
+    };
+  }
+  return {
+    id: profile.id,
+    label: profile.label,
+    kind: 'proceduralFallback',
+    tileSizeMeters: profile.tileSizeMeters,
+    baseColor: profile.baseColor!,
+    gridColor: profile.gridColor!,
+    patchColor: profile.patchColor!,
+    roughness: profile.roughness,
+    metalness: profile.metalness,
   };
 }
 

@@ -10,6 +10,7 @@ export const packManifestSchema = z.object({
       objectives: z.array(z.string()),
       maps: z.array(z.string()),
       terrainProfiles: z.array(z.string()),
+      terrainMaterialProfiles: z.array(z.string()).optional(),
       validationProfiles: z.array(z.string()),
       landmarks: z.array(z.string()),
       furnitureSets: z.array(z.string()),

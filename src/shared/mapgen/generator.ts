@@ -28,6 +28,7 @@ import { Heightfield } from './heightfield';
 import type { MapLayoutResult } from './layout';
 import { mulberry32, type Rng } from './prng';
 import { resolveSlopeRules, type SlopeRules, type TerrainProfileDef } from './profiles';
+import type { TerrainMaterialProfileDef } from './profiles';
 import {
   classifyTerrainFlags,
   markProtectedCircle,
@@ -83,6 +84,8 @@ export interface GeneratedArena {
   terrainFlags: Uint32Array;
   terrainMetrics: TerrainMetrics;
   terrainProfile: TerrainProfileDef;
+  /** Resolved presentation-only terrain material (client rendering). */
+  terrainMaterialProfile: TerrainMaterialProfileDef;
   validation: ValidationReport;
   fallbackUsed: boolean;
   source: 'generated' | 'legacy';

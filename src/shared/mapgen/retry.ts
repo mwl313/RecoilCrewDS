@@ -189,6 +189,7 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
     terrainFlags: finalized.terrainFlags,
     terrainMetrics: finalized.terrainMetrics,
     terrainProfile: options.bundle.terrainProfile,
+    terrainMaterialProfile: JSON.parse(JSON.stringify(options.bundle.terrainMaterialProfile)),
     validation: report,
     fallbackUsed: options.fallbackUsed,
     source: 'generated',

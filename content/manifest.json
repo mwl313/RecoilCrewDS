@@ -275,6 +275,10 @@
       "progressionModePolicies": [
         "progression-mode-policies/multiplayer.json",
         "progression-mode-policies/singlePlayer.json"
+      ],
+      "terrainMaterialProfiles": [
+        "terrain-material-profiles/sparse_grass.json",
+        "terrain-material-profiles/legacy_procedural.json"
       ]
     }
   }

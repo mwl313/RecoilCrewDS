@@ -74,6 +74,7 @@ export class ReferenceValidator {
       const file = this.fileOf(map.id, this.registries.maps);
       this.checkCommon(issues, map, file);
       this.ref(issues, map.terrainProfileId, this.registries.terrainProfiles, file, 'terrainProfileId');
+      this.ref(issues, map.terrainMaterialProfileId, this.registries.terrainMaterialProfiles, file, 'terrainMaterialProfileId');
       this.ref(issues, map.validationProfileId, this.registries.validationProfiles, file, 'validationProfileId');
       this.ref(issues, map.furnitureSetId, this.registries.furnitureSets, file, 'furnitureSetId');
       this.ref(issues, map.densityProfileId, this.registries.densityProfiles, file, 'densityProfileId');
@@ -83,6 +84,9 @@ export class ReferenceValidator {
     }
     for (const terrain of this.registries.terrainProfiles.all()) {
       this.checkCommon(issues, terrain, this.fileOf(terrain.id, this.registries.terrainProfiles));
+    }
+    for (const material of this.registries.terrainMaterialProfiles.all()) {
+      this.checkCommon(issues, material, this.fileOf(material.id, this.registries.terrainMaterialProfiles));
     }
     for (const validation of this.registries.validationProfiles.all()) {
       this.checkCommon(issues, validation, this.fileOf(validation.id, this.registries.validationProfiles));

@@ -72,7 +72,8 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
     }
   }
   const slopes = hf.slopeGrid();
-  const profile = GENERATED_MAP_PROFILES['map.fallbackLegacy'].terrainProfile;
+  const fallbackBundle = GENERATED_MAP_PROFILES['map.fallbackLegacy'];
+  const profile = fallbackBundle.terrainProfile;
   const validation = {
     ok: true,
     errors: [] as string[],
@@ -144,6 +145,7 @@ export function buildLegacyArenaModel(): GeneratedArena & { props: ArenaProps } 
       largestDrop: 0,
     },
     terrainProfile: profile,
+    terrainMaterialProfile: JSON.parse(JSON.stringify(fallbackBundle.terrainMaterialProfile)),
     validation,
     fallbackUsed: false,
     source: 'legacy',

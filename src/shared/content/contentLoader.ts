@@ -43,6 +43,7 @@ import {
 } from './schemas/horde';
 import { tankSchema } from './schemas/tank';
 import { terrainProfileSchema } from './schemas/terrainProfile';
+import { terrainMaterialProfileSchema } from './schemas/terrainMaterialProfile';
 import { validationProfileSchema } from './schemas/validationProfile';
 import { weaponSchema } from './schemas/weapon';
 import {
@@ -67,6 +68,7 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   objectives: objectiveSchema,
   maps: mapSchema,
   terrainProfiles: terrainProfileSchema,
+  terrainMaterialProfiles: terrainMaterialProfileSchema,
   validationProfiles: validationProfileSchema,
   landmarks: landmarkSchema,
   furnitureSets: furnitureSetSchema,
@@ -254,6 +256,7 @@ function createEmptyRegistries(): CategoryRegistries {
     objectives: new DefinitionRegistry(),
     maps: new DefinitionRegistry(),
     terrainProfiles: new DefinitionRegistry(),
+    terrainMaterialProfiles: new DefinitionRegistry(),
     validationProfiles: new DefinitionRegistry(),
     landmarks: new DefinitionRegistry(),
     furnitureSets: new DefinitionRegistry(),
