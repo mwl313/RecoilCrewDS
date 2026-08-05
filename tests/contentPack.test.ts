@@ -105,15 +105,17 @@ describe('content pack loading (valid Demo pack)', () => {
       'weapon.mainCannon',
       'weapon.rapidCannon',
     ]);
-    expect(pack.ids('projectiles')).toHaveLength(2);
-    expect([...pack.ids('enemies')].sort()).toEqual([
-      'enemy.gunTower',
-      'enemy.lootTruck',
-      'enemy.rammer',
-      'enemy.scrapBug',
-      'enemy.scrapBugHorde',
-      'enemy.testHound',
-    ]);
+    // 2 legacy projectiles + 7 enemy projectiles (Monster System).
+    expect(pack.ids('projectiles')).toHaveLength(9);
+    expect(pack.ids('projectiles').filter((id) => id.startsWith('projectile.enemy'))).toHaveLength(7);
+    const enemyIds = [...pack.ids('enemies')].sort();
+    expect(enemyIds).toContain('enemy.gunTower');
+    expect(enemyIds).toContain('enemy.lootTruck');
+    expect(enemyIds).toContain('enemy.rammer');
+    expect(enemyIds).toContain('enemy.scrapBug');
+    expect(enemyIds).toContain('enemy.scrapBugHorde');
+    expect(enemyIds).toContain('enemy.testHound');
+    expect(enemyIds.filter((id) => id.startsWith('enemy.quaternius.'))).toHaveLength(45);
     expect(pack.ids('items')).toEqual(['item.overdriveCannon', 'item.relicCannonCharge']);
     expect(pack.ids('statusEffects')).toEqual([]);
     expect([...pack.ids('spawnDirectors')].sort()).toEqual(['spawn.director.demoScoreAttack', 'spawn.director.truckHunter']);

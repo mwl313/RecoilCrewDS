@@ -75,6 +75,16 @@ export interface EnemyState {
   presentationProfileId?: string;
   /** Animation07: optional compact authoritative action cue. */
   actionCue?: EnemyActionCue;
+  /** Monster system: spawn-time-locked scaling (generalized enemies only). */
+  monster?: {
+    spawnLevel: number;
+    healthMultiplierAtSpawn: number;
+    damageMultiplierAtSpawn: number;
+    maxHpAtSpawn: number;
+    resolvedRewardXp: number;
+    scaledContactDps?: number;
+    scaledProjectileDamage?: number;
+  };
 }
 
 export type ScrapKind = 'normal' | 'heavy';
@@ -104,7 +114,7 @@ export interface XpShardState {
 
 export interface ShellState {
   id: number;
-  kind: 'cannon' | 'tower';
+  kind: 'cannon' | 'tower' | 'enemy';
   /** Weapon that fired this shell (per-weapon knockback stats). */
   weaponId?: string;
   x: number;
@@ -114,6 +124,9 @@ export interface ShellState {
   vy: number;
   vz: number;
   life: number;
+  /** Enemy projectile collision radii (presentation/gameplay data). */
+  hitRadius?: number;
+  tankHitRadius?: number;
   /** Combat 05: charge ratio at firing time (0 = normal cannon). */
   chargeRatio?: number;
   /** Effective combat payload captured at firing time (immutable in flight). */

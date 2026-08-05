@@ -2,6 +2,9 @@ import { BASE_CONFIG, GAME } from '../config';
 import { DEMO_GRADE_RULES, DEMO_TITLE_RULES } from '../sim/results';
 import type { DropTableDefinition } from '../content/schemas/dropTable';
 import type { EnemyDefinition } from '../content/schemas/enemy';
+import type { EnemyLevelCurveDefinition } from '../content/schemas/enemyLevelCurve';
+import type { EnemyXpRewardsDefinition } from '../content/schemas/enemyXpRewards';
+import type { MeleeEngagementProfileDefinition } from '../content/schemas/meleeEngagementProfile';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ModeDefinition } from '../content/schemas/mode';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
@@ -10,6 +13,7 @@ import type { ResultsDefinition } from '../content/schemas/results';
 import type { ScoringDefinition } from '../content/schemas/scoring';
 import type { SpawnDirectorDefinition } from '../content/schemas/spawnDirector';
 import type { WeaponDefinition } from '../content/schemas/weapon';
+import type { ProjectileDefinition } from '../content/schemas/projectile';
 import type { StatBlock } from '../stats/statBlock';
 import type { TankDefinition } from '../content/schemas/tank';
 import { DEFAULT_TANK_RIG } from '../vehicle/tankRigTypes';
@@ -29,6 +33,10 @@ export interface DemoRulesBundle {
   loadout: LoadoutDefinition;
   weapons: Record<string, WeaponDefinition>;
   enemies: Record<string, EnemyDefinition>;
+  projectiles: Record<string, ProjectileDefinition>;
+  enemyLevelCurves: Record<string, EnemyLevelCurveDefinition>;
+  enemyXpRewards: Record<string, EnemyXpRewardsDefinition>;
+  meleeEngagementProfiles: Record<string, MeleeEngagementProfileDefinition>;
   dropTables: Record<string, DropTableDefinition>;
   pickups: Record<string, PickupDefinition>;
 }
@@ -441,6 +449,10 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     loadout,
     weapons,
     enemies,
+    projectiles: {},
+    enemyLevelCurves: {},
+    enemyXpRewards: {},
+    meleeEngagementProfiles: {},
     dropTables,
     pickups,
   };

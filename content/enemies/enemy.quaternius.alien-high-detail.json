@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.alien-high-detail",
+  "label": "Alien High Detail Elite",
+  "type": "monster",
+  "tier": "elite",
+  "sizeClass": "medium",
+  "tierScale": 3,
+  "presentationProfileId": "enemyPresentation.quaternius.alien-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.alien-high-detail.hero",
+  "stats": {
+    "hp": 60,
+    "speed": 3.6,
+    "threat": 8
+  },
+  "rewardClass": "elite",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 10,
+    "rate": 1.8,
+    "range": 2.5,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "elite",
+    "melee",
+    "medium"
+  ]
+}

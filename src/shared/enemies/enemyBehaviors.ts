@@ -4,6 +4,11 @@ import type { EnemyState } from '../types';
 import { behaviorParam, EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import type { EnemyRuntimeState } from './enemyRuntimeState';
 import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
+import { enemySpeed, isMonster } from './monsterCompat';
+import {
+  advanceAttackCycle,
+  startAttackCycle,
+} from '../monsters/monsterAttack';
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -449,6 +454,202 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       },
     });
   }
+
+  // ---------------------------------------------------------- monster system
+
+  registry.register({
+    id: 'movement.trackTank',
+    update(ctx, e, runtime) {
+      const s = ctx.state;
+      const def = ctx.enemies.defFor(e);
+      runtime.speed = enemySpeed(def);
+      const dx = s.tank.x - e.x;
+      const dz = s.tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      runtime.distToTank = d;
+      const preferred = behaviorParam(def, 'movement.trackTank', 'preferredRange', 0);
+      let dirX = dx / d;
+      let dirZ = dz / d;
+      // Ranged monsters hold a preferred ring instead of closing in.
+      if (preferred > 0 && d < preferred * 0.85) {
+        dirX = -dirX;
+        dirZ = -dirZ;
+      }
+      runtime.dirX = dirX;
+      runtime.dirZ = dirZ;
+    },
+  });
+
+  registry.register({
+    id: 'movement.meleeEngagement',
+    update(ctx, e, runtime) {
+      const def = ctx.enemies.defFor(e);
+      const range = isMonster(def) && def.attack.type === 'melee' ? def.attack.range : 2;
+      if (runtime.meleeReserved) {
+        // Owner closes to the attack ring.
+        return;
+      }
+      // No reservation: circle and wait for a free arc; never deal damage.
+      const side = e.id % 2 === 0 ? 1 : -1;
+      const nx = -runtime.dirZ * side;
+      const nz = runtime.dirX * side;
+      const ml = Math.hypot(nx, nz) || 1;
+      runtime.dirX = nx / ml;
+      runtime.dirZ = nz / ml;
+      if (runtime.distToTank < range * 0.6) runtime.speed *= 0.45;
+    },
+  });
+
+  registry.register({
+    id: 'attack.meleeCue',
+    update(ctx, e, runtime) {
+      const def = ctx.enemies.defFor(e);
+      if (!isMonster(def)) return;
+      const attack = def.attack;
+      if (attack.type !== 'melee') return;
+      if (!runtime.meleeReserved) return;
+      const s = ctx.state;
+      if (runtime.distToTank > attack.range) {
+        runtime.speed *= 0.6;
+        return;
+      }
+      let atk = runtime.attackRuntime;
+      if (!atk || !atk.active) {
+        atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
+        runtime.attackRuntime = atk;
+      }
+      const res = advanceAttackCycle(atk, s.time, () => {
+        const scaledDps = e.monster?.scaledContactDps ?? attack.contactDps;
+        const damagePerHit = scaledDps / attack.rate;
+        if (s.tank.deadT <= 0) {
+          ctx.damage.applyTank(damagePerHit, 'bug');
+          pushEvent(ctx, 'crash', e.x, e.y + 1, e.z, { value: damagePerHit, kind: 'monster' });
+        }
+      });
+      if (res === 'done') {
+        runtime.attackRuntime = undefined;
+        runtime.attackSequence++;
+      }
+    },
+  });
+
+  registry.register({
+    id: 'attack.projectileCue',
+    update(ctx, e, runtime) {
+      const def = ctx.enemies.defFor(e);
+      if (!isMonster(def)) return;
+      const attack = def.attack;
+      if (attack.type !== 'ranged') return;
+      const s = ctx.state;
+      if (runtime.distToTank > attack.range) return;
+      let atk = runtime.attackRuntime;
+      if (!atk || !atk.active) {
+        atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
+        runtime.attackRuntime = atk;
+      }
+      const res = advanceAttackCycle(atk, s.time, () => {
+        const projectile = ctx.rules.projectiles.get(attack.projectileId);
+        if (!projectile) return;
+        const dx = s.tank.x - e.x;
+        const dz = s.tank.z - e.z;
+        const d = Math.hypot(dx, dz) || 1;
+        const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
+        ctx.projectiles.spawn(
+          e.x,
+          e.y + 1.2,
+          e.z,
+          dx / d,
+          0,
+          dz / d,
+          projectile.speed,
+          'enemy',
+          projectile.life,
+          undefined,
+          {
+            damage,
+            splashRadius: projectile.hitRadius,
+            knockbackMax: 0,
+            knockbackMin: 0,
+            knockbackVertical: 0,
+            knockbackRadiusMultiplier: 1,
+            knockbackFalloffExponent: 1,
+            tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+          },
+        );
+        pushEvent(ctx, 'towerFire', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
+      });
+      if (res === 'done') {
+        runtime.attackRuntime = undefined;
+        runtime.attackSequence++;
+      }
+    },
+  });
+
+  registry.register({
+    id: 'attack.bossCue',
+    update(ctx, e, runtime) {
+      const def = ctx.enemies.defFor(e);
+      if (!isMonster(def)) return;
+      const attack = def.attack;
+      if (attack.type !== 'mixed') return;
+      const s = ctx.state;
+      const patterns = attack.patterns;
+      if (patterns.length === 0) return;
+      const pattern = patterns[runtime.attackSequence % patterns.length];
+      if (pattern.type === 'ranged' && runtime.distToTank > pattern.range) return;
+      if (pattern.type === 'melee' && runtime.distToTank > pattern.range) {
+        runtime.speed *= 0.6;
+        return;
+      }
+      let atk = runtime.attackRuntime;
+      if (!atk || !atk.active || atk.patternId !== pattern.id) {
+        atk = startAttackCycle(s.time, pattern.rate, pattern.attackCueNormalized, runtime.attackSequence, pattern.id);
+        runtime.attackRuntime = atk;
+      }
+      const res = advanceAttackCycle(atk, s.time, () => {
+        // Boss damage is fixed (never level-scaled).
+        if (pattern.type === 'melee') {
+          if (s.tank.deadT <= 0) {
+            ctx.damage.applyTank(pattern.damage, 'bug');
+            pushEvent(ctx, 'crash', e.x, e.y + 1, e.z, { value: pattern.damage, kind: 'boss' });
+          }
+          return;
+        }
+        const projectile = ctx.rules.projectiles.get(pattern.projectileId);
+        if (!projectile) return;
+        const dx = s.tank.x - e.x;
+        const dz = s.tank.z - e.z;
+        const d = Math.hypot(dx, dz) || 1;
+        ctx.projectiles.spawn(
+          e.x,
+          e.y + 2,
+          e.z,
+          dx / d,
+          0,
+          dz / d,
+          projectile.speed,
+          'enemy',
+          projectile.life,
+          undefined,
+          {
+            damage: pattern.damage,
+            splashRadius: projectile.hitRadius,
+            knockbackMax: 0,
+            knockbackMin: 0,
+            knockbackVertical: 0,
+            knockbackRadiusMultiplier: 1,
+            knockbackFalloffExponent: 1,
+            tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+          },
+        );
+        pushEvent(ctx, 'towerFire', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });
+      });
+      if (res === 'done') {
+        runtime.attackRuntime = undefined;
+        runtime.attackSequence++;
+      }
+    },
+  });
 
   return registry;
 }

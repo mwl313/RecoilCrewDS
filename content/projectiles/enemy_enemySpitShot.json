@@ -1,0 +1,10 @@
+{
+  "id": "projectile.enemySpitShot",
+  "label": "Spit Shot",
+  "kind": "enemy",
+  "speed": 10,
+  "gravity": 0,
+  "life": 6,
+  "hitRadius": 0.55,
+  "tankHitRadius": 1.2
+}

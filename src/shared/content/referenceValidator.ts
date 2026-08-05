@@ -105,8 +105,8 @@ export class ReferenceValidator {
 
     for (const enemy of this.registries.enemies.all()) {
       const enemyFile = this.fileOf(enemy.id, this.registries.enemies);
-      this.checkCommon(issues, enemy, enemyFile);
       if (enemy.type === 'monster') {
+        this.checkCommon(issues, enemy, enemyFile, { skipStats: true });
         if (!enemy.presentationProfileId.startsWith('enemyPresentation.')) {
           issues.push(`${enemyFile}: presentationProfileId — must start with enemyPresentation.`);
         }
@@ -138,6 +138,8 @@ export class ReferenceValidator {
             }
           }
         }
+      } else {
+        this.checkCommon(issues, enemy, enemyFile);
       }
       if (enemy.dropTableId) {
         this.ref(issues, enemy.dropTableId, this.registries.dropTables, enemyFile, 'dropTableId');
@@ -417,6 +419,7 @@ export class ReferenceValidator {
     issues: string[],
     def: { id: string; behaviors?: string[] | Array<{ id: string }>; stats?: Record<string, number> },
     file: string,
+    options: { skipStats?: boolean } = {},
   ): void {
     const behaviors = def.behaviors;
     if (behaviors) {
@@ -426,7 +429,7 @@ export class ReferenceValidator {
       });
     }
     const stats = def.stats;
-    if (stats) {
+    if (stats && !options.skipStats) {
       for (const key of Object.keys(stats)) {
         if (!this.statIds.has(key)) issues.push(`${file}: stats.${key} — unknown stat id '${key}'`);
       }

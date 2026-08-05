@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.cactoro",
+  "label": "Cactoro",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "medium",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.cactoro.common",
+  "animationProfileId": "enemyAnimation.quaternius.cactoro.common",
+  "stats": {
+    "hp": 4,
+    "speed": 2.4,
+    "threat": 2
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "ranged",
+    "damage": 7,
+    "rate": 0.5,
+    "range": 36,
+    "preferredRange": 14,
+    "projectileId": "projectile.enemySpitShot",
+    "telegraphTime": 0.9,
+    "shotCount": 1
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {
+        "preferredRange": 14
+      }
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.projectileCue",
+      "parameters": {
+        "shotCount": 1
+      }
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "ranged",
+    "medium"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "projectile.enemyFireball",
+  "label": "Demon Fireball",
+  "kind": "enemy",
+  "speed": 12,
+  "gravity": 0,
+  "life": 8,
+  "hitRadius": 0.7,
+  "tankHitRadius": 1.3
+}

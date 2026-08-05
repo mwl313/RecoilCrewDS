@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.cactoro-high-detail",
+  "label": "Cactoro High Detail Elite",
+  "type": "monster",
+  "tier": "elite",
+  "sizeClass": "medium",
+  "tierScale": 3,
+  "presentationProfileId": "enemyPresentation.quaternius.cactoro-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.cactoro-high-detail.hero",
+  "stats": {
+    "hp": 70,
+    "speed": 2.6,
+    "threat": 8
+  },
+  "rewardClass": "elite",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "ranged",
+    "damage": 16,
+    "rate": 0.45,
+    "range": 40,
+    "preferredRange": 18,
+    "projectileId": "projectile.enemySpitShot",
+    "telegraphTime": 1,
+    "shotCount": 1
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {
+        "preferredRange": 18
+      }
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.projectileCue",
+      "parameters": {
+        "shotCount": 1
+      }
+    }
+  ],
+  "spawnTags": [
+    "elite",
+    "ranged",
+    "medium"
+  ]
+}

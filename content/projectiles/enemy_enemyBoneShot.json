@@ -1,0 +1,10 @@
+{
+  "id": "projectile.enemyBoneShot",
+  "label": "Bone Shot",
+  "kind": "enemy",
+  "speed": 7,
+  "gravity": 0,
+  "life": 5,
+  "hitRadius": 0.5,
+  "tankHitRadius": 1.1
+}

@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.bunny",
+  "label": "Bunny",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "small",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.bunny.hero",
+  "animationProfileId": "enemyAnimation.quaternius.bunny.hero",
+  "stats": {
+    "hp": 3,
+    "speed": 4.5,
+    "threat": 1
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 3,
+    "rate": 2.2,
+    "range": 2,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "melee",
+    "small"
+  ]
+}

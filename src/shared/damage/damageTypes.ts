@@ -12,6 +12,7 @@ export type DamageSource =
   | 'splash'
   | 'relic'
   | 'roadkill'
+  | 'enemy'
   | 'test';
 
 export interface DamageTags {

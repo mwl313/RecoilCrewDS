@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.yeti",
+  "label": "Yeti",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "medium",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.yeti.common",
+  "animationProfileId": "enemyAnimation.quaternius.yeti.common",
+  "stats": {
+    "hp": 5,
+    "speed": 2.8,
+    "threat": 2
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "ranged",
+    "damage": 6,
+    "rate": 0.5,
+    "range": 34,
+    "preferredRange": 14,
+    "projectileId": "projectile.enemyIceShot",
+    "telegraphTime": 0.9,
+    "shotCount": 1
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {
+        "preferredRange": 14
+      }
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.projectileCue",
+      "parameters": {
+        "shotCount": 1
+      }
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "ranged",
+    "medium"
+  ]
+}

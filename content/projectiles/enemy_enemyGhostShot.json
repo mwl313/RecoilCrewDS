@@ -1,0 +1,10 @@
+{
+  "id": "projectile.enemyGhostShot",
+  "label": "Ghost Bolt",
+  "kind": "enemy",
+  "speed": 8,
+  "gravity": 0,
+  "life": 7,
+  "hitRadius": 0.6,
+  "tankHitRadius": 1.2
+}

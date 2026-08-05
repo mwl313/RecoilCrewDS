@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.tribal",
+  "label": "Tribal",
+  "type": "monster",
+  "tier": "specialist",
+  "sizeClass": "medium",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.tribal.hero",
+  "animationProfileId": "enemyAnimation.quaternius.tribal.hero",
+  "stats": {
+    "hp": 10,
+    "speed": 3.4,
+    "threat": 3
+  },
+  "rewardClass": "wave",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 7,
+    "rate": 2,
+    "range": 2.5,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "specialist",
+    "melee",
+    "medium"
+  ]
+}

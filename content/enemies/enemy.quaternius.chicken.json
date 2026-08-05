@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.chicken",
+  "label": "Chicken",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "small",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.chicken.common",
+  "animationProfileId": "enemyAnimation.quaternius.chicken.common",
+  "stats": {
+    "hp": 3,
+    "speed": 4.2,
+    "threat": 1
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 3,
+    "rate": 2.4,
+    "range": 2,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "melee",
+    "small"
+  ]
+}

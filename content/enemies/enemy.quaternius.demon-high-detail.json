@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.demon-high-detail",
+  "label": "Demon High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.demon-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
+  "stats": {
+    "hp": 250,
+    "speed": 3.2,
+    "threat": 50
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "punch",
+        "type": "melee",
+        "damage": 30,
+        "rate": 0.8,
+        "range": 4
+      },
+      {
+        "id": "fireball",
+        "type": "ranged",
+        "damage": 22,
+        "rate": 0.4,
+        "range": 40,
+        "projectileId": "projectile.enemyFireball",
+        "telegraphTime": 1
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

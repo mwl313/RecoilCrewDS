@@ -27,7 +27,7 @@ export class ProjectileSystem {
     kind: ShellState['kind'],
     life: number,
     weaponId?: string,
-    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number },
+    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; hitRadius?: number; tankHitRadius?: number },
   ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
@@ -41,6 +41,8 @@ export class ProjectileSystem {
       vy: dy * speed,
       vz: dz * speed,
       life,
+      hitRadius: payload?.hitRadius,
+      tankHitRadius: payload?.tankHitRadius,
       chargeRatio: payload?.chargeRatio,
       visualScale: payload?.visualScale,
       combat:
@@ -83,6 +85,19 @@ export class ProjectileSystem {
           continue;
         }
       }
+      if (sh.kind === 'enemy') {
+        const tankHitRadius = sh.tankHitRadius ?? 1.2;
+        const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
+        if (td < tankHitRadius && s.tank.deadT <= 0) {
+          const damage = sh.combat?.damage ?? 6;
+          this.ctx.damage.applyTank(damage, 'enemy');
+          pushEvent(this.ctx, 'hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
+            value: damage,
+            kind: 'enemy',
+          });
+          continue;
+        }
+      }
       const h = this.ctx.world.groundHeightAt(sh.x, sh.z);
       let exploded = false;
       if (sh.y <= h + 0.05) {
@@ -121,12 +136,16 @@ export class ProjectileSystem {
   private explode(sh: ShellState): void {
     const s = this.ctx.state;
     const w = this.ctx.rules.config.weapons;
+    this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z, chargeRatio: sh.chargeRatio });
+    if (sh.kind === 'enemy') {
+      pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: sh.hitRadius ?? 0.6, kind: 'enemy' });
+      return;
+    }
     const resolver = this.ctx.rules.resolver;
     const combat = sh.combat;
     const radius = combat?.splashRadius ?? w.cannonRadius;
     const dmg = combat?.damage ?? w.cannonDamage;
     pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon', chargeRatio: sh.chargeRatio });
-    this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z, chargeRatio: sh.chargeRatio });
     const innerRatio = resolver.resolve('weapon.splashInnerRatio');
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
     const outerMult = resolver.resolve('weapon.splashOuterMultiplier');

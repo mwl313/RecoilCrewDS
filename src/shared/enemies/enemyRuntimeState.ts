@@ -1,3 +1,5 @@
+import type { EnemyAttackRuntime } from '../monsters/monsterAttack';
+
 /** Per-enemy scratch state shared by composed behaviors within a frame. */
 export class EnemyRuntimeState {
   /** Normalized movement direction produced by seek/circle/separation. */
@@ -16,4 +18,9 @@ export class EnemyRuntimeState {
   nextUpdateAt = 0;
   lastUpdateT = 0;
   phaseOffset = 0;
+  /** Monster system: melee reservation ownership (authoritative). */
+  meleeReserved = false;
+  /** Monster system: persistent authoritative attack cycle. */
+  attackRuntime?: EnemyAttackRuntime;
+  attackSequence = 0;
 }

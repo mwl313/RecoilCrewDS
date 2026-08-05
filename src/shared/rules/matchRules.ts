@@ -2,6 +2,10 @@ import { BASE_CONFIG, MODIFIER_OVERRIDES, buildMatchConfig, type GameConfig } fr
 import type { ContentPack } from '../content/contentPack';
 import type { DropTableDefinition } from '../content/schemas/dropTable';
 import type { EnemyDefinition } from '../content/schemas/enemy';
+import type { EnemyLevelCurveDefinition } from '../content/schemas/enemyLevelCurve';
+import type { EnemyXpRewardsDefinition } from '../content/schemas/enemyXpRewards';
+import type { MeleeEngagementProfileDefinition } from '../content/schemas/meleeEngagementProfile';
+import type { ProjectileDefinition } from '../content/schemas/projectile';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ModeDefinition, ModeSessionPolicy } from '../content/schemas/mode';
 import type { ObjectiveDefinition } from '../content/schemas/objective';
@@ -78,6 +82,10 @@ export class MatchRules {
   readonly loadout: LoadoutDefinition;
   readonly weapons: ReadonlyMap<string, WeaponDefinition>;
   readonly enemies: ReadonlyMap<string, EnemyDefinition>;
+  readonly projectiles: ReadonlyMap<string, ProjectileDefinition>;
+  readonly enemyLevelCurves: ReadonlyMap<string, EnemyLevelCurveDefinition>;
+  readonly enemyXpRewards: ReadonlyMap<string, EnemyXpRewardsDefinition>;
+  readonly meleeEngagementProfiles: ReadonlyMap<string, MeleeEngagementProfileDefinition>;
   readonly dropTables: ReadonlyMap<string, DropTableDefinition>;
   readonly pickups: ReadonlyMap<string, PickupDefinition>;
   readonly tank: TankDefinition;
@@ -145,6 +153,10 @@ export class MatchRules {
     this.loadout = deepFreeze(options.bundle.loadout);
     this.weapons = deepFreeze(new Map(Object.entries(options.bundle.weapons)));
     this.enemies = deepFreeze(new Map(Object.entries(options.bundle.enemies)));
+    this.projectiles = deepFreeze(new Map(Object.entries(options.bundle.projectiles)));
+    this.enemyLevelCurves = deepFreeze(new Map(Object.entries(options.bundle.enemyLevelCurves)));
+    this.enemyXpRewards = deepFreeze(new Map(Object.entries(options.bundle.enemyXpRewards)));
+    this.meleeEngagementProfiles = deepFreeze(new Map(Object.entries(options.bundle.meleeEngagementProfiles)));
     this.dropTables = deepFreeze(new Map(Object.entries(options.bundle.dropTables)));
     this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
     this.tank = deepFreeze(options.tank);
@@ -231,6 +243,10 @@ export class MatchRules {
         loadout: pack.getLoadout(mode.loadout),
         weapons: packWeapons(pack),
         enemies: packEnemies(pack),
+        projectiles: packProjectiles(pack),
+        enemyLevelCurves: packEnemyLevelCurves(pack),
+        enemyXpRewards: packEnemyXpRewards(pack),
+        meleeEngagementProfiles: packMeleeEngagementProfiles(pack),
         dropTables: packDropTables(pack),
         pickups: packPickups(pack),
       },
@@ -483,6 +499,30 @@ function packWeapons(pack: ContentPack): Record<string, WeaponDefinition> {
 function packEnemies(pack: ContentPack): Record<string, EnemyDefinition> {
   const out: Record<string, EnemyDefinition> = {};
   for (const id of pack.ids('enemies')) out[id] = pack.getEnemy(id);
+  return out;
+}
+
+function packProjectiles(pack: ContentPack): Record<string, ProjectileDefinition> {
+  const out: Record<string, ProjectileDefinition> = {};
+  for (const id of pack.ids('projectiles')) out[id] = pack.getProjectile(id);
+  return out;
+}
+
+function packEnemyLevelCurves(pack: ContentPack): Record<string, EnemyLevelCurveDefinition> {
+  const out: Record<string, EnemyLevelCurveDefinition> = {};
+  for (const id of pack.ids('enemyLevelCurves')) out[id] = pack.getEnemyLevelCurve(id);
+  return out;
+}
+
+function packEnemyXpRewards(pack: ContentPack): Record<string, EnemyXpRewardsDefinition> {
+  const out: Record<string, EnemyXpRewardsDefinition> = {};
+  for (const id of pack.ids('enemyXpRewards')) out[id] = pack.getEnemyXpRewards(id);
+  return out;
+}
+
+function packMeleeEngagementProfiles(pack: ContentPack): Record<string, MeleeEngagementProfileDefinition> {
+  const out: Record<string, MeleeEngagementProfileDefinition> = {};
+  for (const id of pack.ids('meleeEngagementProfiles')) out[id] = pack.getMeleeEngagementProfile(id);
   return out;
 }
 

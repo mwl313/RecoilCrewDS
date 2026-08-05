@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.glub",
+  "label": "Glub",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "small",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.glub.common",
+  "animationProfileId": "enemyAnimation.quaternius.glub.common",
+  "stats": {
+    "hp": 5,
+    "speed": 3.2,
+    "threat": 1
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 5,
+    "rate": 1.8,
+    "range": 2,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "melee",
+    "small"
+  ]
+}

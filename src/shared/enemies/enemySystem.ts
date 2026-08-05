@@ -6,6 +6,13 @@ import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
 import { enemyHp, enemyRadius, enemyThreat } from './monsterCompat';
+import {
+  MAIN_STAGE_CURVE,
+  MAIN_STAGE_XP_REWARDS,
+  monsterLevelAtTime,
+  resolveMonsterSpawnLock,
+} from '../monsters/monsterDifficulty';
+import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
 
@@ -77,6 +84,10 @@ export class EnemySystem {
   spawnEnemyDef(def: EnemyDefinition, x?: number, z?: number, ownership?: SpawnOwnership): EnemyState | null {
     const s = this.ctx.state;
     const type = def.type;
+    const spawnLock =
+      def.type === 'monster'
+        ? this.resolveMonsterSpawnLock(def)
+        : undefined;
     let sx = x;
     let sz = z;
     if (sx === undefined || sz === undefined) {
@@ -104,8 +115,8 @@ export class EnemySystem {
       y: this.ctx.world.groundHeightAt(sx!, sz!),
       z: sz!,
       yaw: Math.atan2(s.tank.x - sx!, s.tank.z - sz!),
-      hp: enemyHp(def),
-      maxHp: enemyHp(def),
+      hp: spawnLock?.maxHpAtSpawn ?? enemyHp(def),
+      maxHp: spawnLock?.maxHpAtSpawn ?? enemyHp(def),
       state: type === 'rammer' ? 'approach' : type === 'gunTower' ? 'idle' : 'hunt',
       stateT: 0,
       aimYaw: 0,
@@ -121,6 +132,19 @@ export class EnemySystem {
       impulseGrounded: true,
       lastImpulseT: 0,
       ...(def.presentationProfileId ? { presentationProfileId: def.presentationProfileId } : {}),
+      ...(spawnLock
+        ? {
+            monster: {
+              spawnLevel: spawnLock.level,
+              healthMultiplierAtSpawn: spawnLock.healthMultiplierAtSpawn,
+              damageMultiplierAtSpawn: spawnLock.damageMultiplierAtSpawn,
+              maxHpAtSpawn: spawnLock.maxHpAtSpawn,
+              resolvedRewardXp: spawnLock.resolvedRewardXp,
+              scaledContactDps: spawnLock.scaledContactDps,
+              scaledProjectileDamage: spawnLock.scaledProjectileDamage,
+            },
+          }
+        : {}),
       ...(ownership ? { ownership } : {}),
     };
     if (type === 'gunTower') {
@@ -133,6 +157,36 @@ export class EnemySystem {
     runtime.phaseOffset = (enemy.id % 16) / 16;
     this.runtimes.set(enemy.id, runtime);
     return enemy;
+  }
+
+  /**
+   * Spawn-time lock for generalized monsters: level, HP multiplier, damage
+   * multiplier (boss exception), and resolved XP are frozen at spawn.
+   * Content-backed defaults mirror `enemyLevelCurve.mainStage` /
+   * `enemyXpRewards.mainStage`; the same content is validated separately.
+   */
+  private resolveMonsterSpawnLock(def: Extract<EnemyDefinition, { type: 'monster' }>) {
+    const curve = this.ctx.rules.enemyLevelCurves.get('enemyLevelCurve.mainStage') ?? MAIN_STAGE_CURVE;
+    const rewards = this.ctx.rules.enemyXpRewards.get('enemyXpRewards.mainStage') ?? MAIN_STAGE_XP_REWARDS;
+    const phaseConfig: MonsterPhaseConfig = {
+      farmingSeconds: 180,
+      bossIntroSeconds: 4,
+      bossPhaseLevel: curve.bossPhaseLevel,
+    };
+    const level = monsterLevelForPhase(this.ctx.state.time, phaseConfig, (t) =>
+      monsterLevelAtTime(t, curve),
+    );
+    const singlePlayerMultiplier = this.ctx.sessionKind === 'singlePlayer' ? 2 : 1;
+    return resolveMonsterSpawnLock({
+      tier: def.tier,
+      baseHp: def.stats.hp,
+      baseDamage: def.attack.type === 'mixed' ? undefined : def.attack.type === 'melee' ? def.attack.contactDps : def.attack.damage,
+      rewardClass: def.rewardClass,
+      level,
+      curve,
+      rewards,
+      singlePlayerMultiplier,
+    });
   }
 
   update(dt: number): void {

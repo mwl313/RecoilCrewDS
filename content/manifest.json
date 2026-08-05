@@ -71,7 +71,14 @@
       ],
       "projectiles": [
         "projectiles/cannonShell.json",
-        "projectiles/towerShot.json"
+        "projectiles/towerShot.json",
+        "projectiles/enemy_enemyBoneShot.json",
+        "projectiles/enemy_enemyFireball.json",
+        "projectiles/enemy_enemyGhostShot.json",
+        "projectiles/enemy_enemyIceBolt.json",
+        "projectiles/enemy_enemyIceShot.json",
+        "projectiles/enemy_enemySpitShot.json",
+        "projectiles/enemy_enemyWizardShot.json"
       ],
       "enemies": [
         "enemies/scrapBug.json",
@@ -79,7 +86,52 @@
         "enemies/rammer.json",
         "enemies/gunTower.json",
         "enemies/lootTruck.json",
-        "enemies/testHound.json"
+        "enemies/testHound.json",
+        "enemies/enemy.quaternius.alien-high-detail.json",
+        "enemies/enemy.quaternius.alien.json",
+        "enemies/enemy.quaternius.alpaking-evolved.json",
+        "enemies/enemy.quaternius.alpaking.json",
+        "enemies/enemy.quaternius.armabee-evolved.json",
+        "enemies/enemy.quaternius.armabee.json",
+        "enemies/enemy.quaternius.birb.json",
+        "enemies/enemy.quaternius.blue-demon.json",
+        "enemies/enemy.quaternius.bunny.json",
+        "enemies/enemy.quaternius.cactoro-high-detail.json",
+        "enemies/enemy.quaternius.cactoro.json",
+        "enemies/enemy.quaternius.cat.json",
+        "enemies/enemy.quaternius.chicken.json",
+        "enemies/enemy.quaternius.demon-high-detail.json",
+        "enemies/enemy.quaternius.demon.json",
+        "enemies/enemy.quaternius.dino.json",
+        "enemies/enemy.quaternius.dragon-evolved.json",
+        "enemies/enemy.quaternius.dragon.json",
+        "enemies/enemy.quaternius.fish-high-detail.json",
+        "enemies/enemy.quaternius.fish.json",
+        "enemies/enemy.quaternius.frog.json",
+        "enemies/enemy.quaternius.ghost-skull.json",
+        "enemies/enemy.quaternius.ghost.json",
+        "enemies/enemy.quaternius.glub-evolved.json",
+        "enemies/enemy.quaternius.glub.json",
+        "enemies/enemy.quaternius.goleling-evolved.json",
+        "enemies/enemy.quaternius.goleling.json",
+        "enemies/enemy.quaternius.green-blob.json",
+        "enemies/enemy.quaternius.green-spiky-blob.json",
+        "enemies/enemy.quaternius.hywirl.json",
+        "enemies/enemy.quaternius.monkroose.json",
+        "enemies/enemy.quaternius.mushnub-evolved.json",
+        "enemies/enemy.quaternius.mushnub.json",
+        "enemies/enemy.quaternius.mushroom-king.json",
+        "enemies/enemy.quaternius.ninja-high-detail.json",
+        "enemies/enemy.quaternius.ninja.json",
+        "enemies/enemy.quaternius.orc-enemy.json",
+        "enemies/enemy.quaternius.orc.json",
+        "enemies/enemy.quaternius.pigeon.json",
+        "enemies/enemy.quaternius.pink-blob.json",
+        "enemies/enemy.quaternius.squidle.json",
+        "enemies/enemy.quaternius.tribal.json",
+        "enemies/enemy.quaternius.wizard.json",
+        "enemies/enemy.quaternius.yeti-high-detail.json",
+        "enemies/enemy.quaternius.yeti.json"
       ],
       "enemyLevelCurves": [
         "enemy-level-curves/main_stage.json"
@@ -207,7 +259,8 @@
         "upgrade-first-experiences/firstLevelUp.json"
       ],
       "enemyArtRosters": [
-        "enemy-art-rosters/quaternius.integrationPreview.json"
+        "enemy-art-rosters/quaternius.integrationPreview.json",
+        "enemy-art-rosters/quaternius.mainStage.json"
       ],
       "treasureRarityTables": [
         "treasure-rarity-tables/default.json"

@@ -1,0 +1,10 @@
+{
+  "id": "projectile.enemyIceBolt",
+  "label": "Yeti Ice Bolt",
+  "kind": "enemy",
+  "speed": 10,
+  "gravity": 0,
+  "life": 8,
+  "hitRadius": 0.7,
+  "tankHitRadius": 1.3
+}

@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.fish-high-detail",
+  "label": "Fish High Detail Elite",
+  "type": "monster",
+  "tier": "elite",
+  "sizeClass": "medium",
+  "tierScale": 3,
+  "presentationProfileId": "enemyPresentation.quaternius.fish-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
+  "stats": {
+    "hp": 55,
+    "speed": 3.8,
+    "threat": 8
+  },
+  "rewardClass": "elite",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 12,
+    "rate": 2,
+    "range": 2.5,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "elite",
+    "melee",
+    "medium"
+  ]
+}

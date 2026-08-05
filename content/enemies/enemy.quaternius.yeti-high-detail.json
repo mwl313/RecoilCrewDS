@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.yeti-high-detail",
+  "label": "Yeti High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.yeti-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
+  "stats": {
+    "hp": 280,
+    "speed": 2.8,
+    "threat": 50
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "heavyStrike",
+        "type": "melee",
+        "damage": 34,
+        "rate": 0.6,
+        "range": 4
+      },
+      {
+        "id": "iceBolt",
+        "type": "ranged",
+        "damage": 26,
+        "rate": 0.3,
+        "range": 40,
+        "projectileId": "projectile.enemyIceBolt",
+        "telegraphTime": 1.2
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

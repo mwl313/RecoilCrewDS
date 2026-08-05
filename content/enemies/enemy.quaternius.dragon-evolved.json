@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.dragon-evolved",
+  "label": "Dragon Evolved",
+  "type": "monster",
+  "tier": "specialist",
+  "sizeClass": "large",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.dragon-evolved.hero",
+  "animationProfileId": "enemyAnimation.quaternius.dragon-evolved.hero",
+  "stats": {
+    "hp": 16,
+    "speed": 3,
+    "threat": 4
+  },
+  "rewardClass": "wave",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 10,
+    "rate": 1.7,
+    "range": 3,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "specialist",
+    "melee",
+    "large"
+  ]
+}

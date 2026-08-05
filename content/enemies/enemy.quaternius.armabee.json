@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.armabee",
+  "label": "Armabee",
+  "type": "monster",
+  "tier": "fodder",
+  "sizeClass": "small",
+  "tierScale": 1,
+  "presentationProfileId": "enemyPresentation.quaternius.armabee.common",
+  "animationProfileId": "enemyAnimation.quaternius.armabee.common",
+  "stats": {
+    "hp": 3,
+    "speed": 2.8,
+    "threat": 2
+  },
+  "rewardClass": "ambient",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "ranged",
+    "damage": 5,
+    "rate": 0.6,
+    "range": 32,
+    "preferredRange": 12,
+    "projectileId": "projectile.enemySpitShot",
+    "telegraphTime": 0.7,
+    "shotCount": 1
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {
+        "preferredRange": 12
+      }
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.projectileCue",
+      "parameters": {
+        "shotCount": 1
+      }
+    }
+  ],
+  "spawnTags": [
+    "fodder",
+    "ranged",
+    "small"
+  ]
+}
