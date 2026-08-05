@@ -92,7 +92,7 @@ describe('arena session selection', () => {
 describe('client reconstruction + checksum gate', () => {
   it('reconstructs the exact server candidate and passes the gate', () => {
     const session = selectRoom('PHASE3C');
-    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle();
+    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle('map.arena400Primary');
     const result = reconstructArenaSession(session.metadata, cb, fb);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -103,7 +103,7 @@ describe('client reconstruction + checksum gate', () => {
 
   it('rejects corrupted checksums, version mismatch, and profile mismatch', () => {
     const session = selectRoom('PHASE3D');
-    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle();
+    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle('map.arena400Primary');
     const corrupt: ArenaMetadata = { ...session.metadata, arenaChecksum: session.metadata.arenaChecksum + 1 };
     expect(reconstructArenaSession(corrupt, cb, fb)).toEqual({ ok: false, reason: 'checksum' });
     const badVersion: ArenaMetadata = { ...session.metadata, arenaGeneratorVersion: 999 };
@@ -114,7 +114,7 @@ describe('client reconstruction + checksum gate', () => {
 
   it('never continues with mismatched geometry (gate blocks world creation)', () => {
     const session = selectRoom('PHASE3E');
-    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle();
+    const { bundle: cb, fallbackBundle: fb } = resolveClientMapBundle('map.arena400Primary');
     const corrupt: ArenaMetadata = { ...session.metadata, arenaChecksum: 1 };
     const result = reconstructArenaSession(corrupt, cb, fb);
     expect(result.ok).toBe(false);
@@ -198,7 +198,7 @@ describe('server room arena lifecycle', () => {
     const manager = new RoomManager({ content: CONTENT_META, pack });
     const { a, room } = startCrew(manager);
     const start = a.last('start') as { arena?: ArenaMetadata };
-    expect(start.arena?.mapProfileId).toBe('map.arena400Primary');
+    expect(start.arena?.mapProfileId).toBe('map.rocketJumpHighlands');
     expect(typeof start.arena?.arenaChecksum).toBe('number');
     const snapshot = a.last('snapshot') as { arena?: ArenaMetadata };
     expect(snapshot.arena).toEqual(start.arena);

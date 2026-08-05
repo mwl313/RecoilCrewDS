@@ -4,21 +4,66 @@
     "version": "1.0.0",
     "mode": "mode.demoScoreAttack",
     "files": {
-      "modes": ["modes/demoScoreAttack.json", "modes/truckHunter.json", "modes/singlePlayerScoreAttack.json"],
-      "objectives": ["objectives/highScore.json", "objectives/truckEscort.json"],
-      "maps": ["maps/arena_400_primary.json", "maps/fallback_legacy.json", "maps/dramatic_highlands.json", "maps/cliff_arena.json", "maps/megaBonkHighlands.json"],
-      "terrainProfiles": ["terrain-profiles/primary.json", "terrain-profiles/fallback.json", "terrain-profiles/dramatic_highlands.json", "terrain-profiles/cliff_arena.json", "terrain-profiles/megaBonkHighlands.json"],
-      "validationProfiles": ["validation-profiles/primary.json", "validation-profiles/fallback.json", "validation-profiles/dramatic_highlands.json", "validation-profiles/cliff_arena.json", "validation-profiles/megaBonkHighlands.json"],
+      "modes": [
+        "modes/demoScoreAttack.json",
+        "modes/truckHunter.json",
+        "modes/singlePlayerScoreAttack.json"
+      ],
+      "objectives": [
+        "objectives/highScore.json",
+        "objectives/truckEscort.json"
+      ],
+      "maps": [
+        "maps/arena_400_primary.json",
+        "maps/fallback_legacy.json",
+        "maps/dramatic_highlands.json",
+        "maps/cliff_arena.json",
+        "maps/megaBonkHighlands.json",
+        "maps/rocket_jump_highlands.json"
+      ],
+      "terrainProfiles": [
+        "terrain-profiles/primary.json",
+        "terrain-profiles/fallback.json",
+        "terrain-profiles/dramatic_highlands.json",
+        "terrain-profiles/cliff_arena.json",
+        "terrain-profiles/megaBonkHighlands.json",
+        "terrain-profiles/rocket_jump_highlands.json"
+      ],
+      "validationProfiles": [
+        "validation-profiles/primary.json",
+        "validation-profiles/fallback.json",
+        "validation-profiles/dramatic_highlands.json",
+        "validation-profiles/cliff_arena.json",
+        "validation-profiles/megaBonkHighlands.json",
+        "validation-profiles/rocket_jump_highlands.json"
+      ],
       "landmarks": [
         "landmarks/basin_center.json",
         "landmarks/resource_plateau.json",
         "landmarks/ramp_park.json",
-        "landmarks/open_combat.json"
+        "landmarks/open_combat.json",
+        "landmarks/rocket_jump_highlands.basin_center.json",
+        "landmarks/rocket_jump_highlands.resource_plateau.json",
+        "landmarks/rocket_jump_highlands.ramp_park.json",
+        "landmarks/rocket_jump_highlands.open_combat.json"
       ],
-      "furnitureSets": ["furniture-sets/primary.json", "furniture-sets/fallback.json"],
-      "densityProfiles": ["density-profiles/primary.json", "density-profiles/fallback.json"],
-      "tanks": ["tanks/default.json"],
-      "loadouts": ["loadouts/default.json", "loadouts/truckHunter.json"],
+      "furnitureSets": [
+        "furniture-sets/primary.json",
+        "furniture-sets/fallback.json",
+        "furniture-sets/rocket_jump_highlands.json"
+      ],
+      "densityProfiles": [
+        "density-profiles/primary.json",
+        "density-profiles/fallback.json",
+        "density-profiles/rocket_jump_highlands.json"
+      ],
+      "tanks": [
+        "tanks/default.json"
+      ],
+      "loadouts": [
+        "loadouts/default.json",
+        "loadouts/truckHunter.json"
+      ],
       "weapons": [
         "weapons/machineGun.json",
         "weapons/mainCannon.json",
@@ -47,13 +92,29 @@
         "pickups/normalScrap.json",
         "pickups/heavyScrap.json"
       ],
-      "items": ["items/overdriveCannon.json", "items/relicCannonCharge.json"],
+      "items": [
+        "items/overdriveCannon.json",
+        "items/relicCannonCharge.json"
+      ],
       "statusEffects": [],
-      "spawnDirectors": ["spawn-directors/demoScoreAttack.json", "spawn-directors/truckHunter.json"],
-      "stageSequences": ["horde/stageSequence.json"],
-      "farmingPhases": ["horde/farmingPhase1.json", "horde/farmingPhase2.json", "horde/farmingPhase3.json"],
-      "hordeDirectors": ["horde/director.json"],
-      "populationLimits": ["horde/populationLimits.json"],
+      "spawnDirectors": [
+        "spawn-directors/demoScoreAttack.json",
+        "spawn-directors/truckHunter.json"
+      ],
+      "stageSequences": [
+        "horde/stageSequence.json"
+      ],
+      "farmingPhases": [
+        "horde/farmingPhase1.json",
+        "horde/farmingPhase2.json",
+        "horde/farmingPhase3.json"
+      ],
+      "hordeDirectors": [
+        "horde/director.json"
+      ],
+      "populationLimits": [
+        "horde/populationLimits.json"
+      ],
       "spawnPacks": [
         "horde/spawnPackWanderingCluster.json",
         "horde/spawnPackVanguardWall.json",
@@ -61,15 +122,34 @@
         "horde/spawnPackReinforcementColumn.json",
         "horde/spawnPackBossGuard.json"
       ],
-      "waves": ["horde/wave1.json", "horde/wave2.json"],
-      "bossWaves": ["horde/bossWave.json"],
-      "spawnAnchorPolicies": ["horde/policyAnchor.json"],
-      "hordeNavigationPolicies": ["horde/policyNavigation.json"],
-      "enemyLodPolicies": ["horde/policyLod.json"],
-      "hordeReplicationPolicies": ["horde/policyReplication.json"],
-      "rewardTables": ["horde/rewardTableMain.json"],
-      "scoring": ["scoring/demoScoreAttack.json"],
-      "results": ["results/demoScoreAttack.json"],
+      "waves": [
+        "horde/wave1.json",
+        "horde/wave2.json"
+      ],
+      "bossWaves": [
+        "horde/bossWave.json"
+      ],
+      "spawnAnchorPolicies": [
+        "horde/policyAnchor.json"
+      ],
+      "hordeNavigationPolicies": [
+        "horde/policyNavigation.json"
+      ],
+      "enemyLodPolicies": [
+        "horde/policyLod.json"
+      ],
+      "hordeReplicationPolicies": [
+        "horde/policyReplication.json"
+      ],
+      "rewardTables": [
+        "horde/rewardTableMain.json"
+      ],
+      "scoring": [
+        "scoring/demoScoreAttack.json"
+      ],
+      "results": [
+        "results/demoScoreAttack.json"
+      ],
       "difficulties": [
         "difficulties/standard.json",
         "difficulties/doubleBarrel.json",
@@ -79,12 +159,21 @@
         "difficulties/scrapMagnet.json",
         "difficulties/overclocked.json"
       ],
-      "presentation": ["presentation/demoScoreAttack.json"]
-      ,
-      "progressionDefinitions": ["progression-definitions/mainStage.json"],
-      "levelCurves": ["level-curves/mainStagePrototype.json"],
-      "xpPickupDefinitions": ["xp-pickup-definitions/default.json"],
-      "upgradeRarityTables": ["upgrade-rarity-tables/default.json"],
+      "presentation": [
+        "presentation/demoScoreAttack.json"
+      ],
+      "progressionDefinitions": [
+        "progression-definitions/mainStage.json"
+      ],
+      "levelCurves": [
+        "level-curves/mainStagePrototype.json"
+      ],
+      "xpPickupDefinitions": [
+        "xp-pickup-definitions/default.json"
+      ],
+      "upgradeRarityTables": [
+        "upgrade-rarity-tables/default.json"
+      ],
       "upgradeCategories": [
         "upgrade-categories/tank.forwardSpeed.json",
         "upgrade-categories/tank.accel.json",
@@ -105,10 +194,18 @@
         "upgrade-categories/weapon.cannonKnockback.json",
         "upgrade-categories/weapon.cannonRecoilImpulse.json"
       ],
-      "upgradeFirstExperiences": ["upgrade-first-experiences/firstLevelUp.json"],
-      "enemyArtRosters": ["enemy-art-rosters/quaternius.integrationPreview.json"],
-      "treasureRarityTables": ["treasure-rarity-tables/default.json"],
-      "firstTreasureRules": ["first-treasure-rules/first.json"],
+      "upgradeFirstExperiences": [
+        "upgrade-first-experiences/firstLevelUp.json"
+      ],
+      "enemyArtRosters": [
+        "enemy-art-rosters/quaternius.integrationPreview.json"
+      ],
+      "treasureRarityTables": [
+        "treasure-rarity-tables/default.json"
+      ],
+      "firstTreasureRules": [
+        "first-treasure-rules/first.json"
+      ],
       "relics": [
         "relics/magnet_core.json",
         "relics/heat_sink.json",
@@ -139,7 +236,9 @@
         "relics/unstoppable.json",
         "relics/apex_predator.json"
       ],
-      "relicPools": ["relic-pools/main.json"],
+      "relicPools": [
+        "relic-pools/main.json"
+      ],
       "relicEffectTemplates": [
         "relic-effect-templates/statPercent.json",
         "relic-effect-templates/statFlat.json",

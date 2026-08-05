@@ -1,0 +1,135 @@
+{
+  "id": "furnitureSet.rocketJumpHighlands",
+  "label": "Rocket-Jump Highlands Furniture",
+  "routeClearance": 14,
+  "routeMinHalfWidth": 12,
+  "maxRouteSlope": 0.55,
+  "landmarks": [
+    "landmark.rocketJumpHighlands.basinCenter",
+    "landmark.rocketJumpHighlands.resourcePlateau",
+    "landmark.rocketJumpHighlands.rampPark",
+    "landmark.rocketJumpHighlands.openCombat"
+  ],
+  "objectPlacement": {
+    "enabled": true
+  },
+  "lightPoles": {
+    "enabled": true,
+    "count": 8
+  },
+  "ramps": {
+    "enabled": true,
+    "count": 5,
+    "length": [
+      10,
+      16
+    ],
+    "width": [
+      9,
+      13
+    ],
+    "rise": [
+      1.2,
+      2.8
+    ],
+    "minSpacing": 55
+  },
+  "barrel": {
+    "enabled": true,
+    "count": 14,
+    "minSpacing": 11,
+    "chainRadius": 8,
+    "maxChain": 3
+  },
+  "entries": [
+    {
+      "enabled": true,
+      "kind": "largeObstacle",
+      "assetId": "prop.container",
+      "obstacleType": "container",
+      "count": 7,
+      "minSpacing": 18,
+      "clearance": 2,
+      "zoneTags": [
+        "openCombat",
+        "resource"
+      ],
+      "slopeMax": 0.15,
+      "collider": true
+    },
+    {
+      "enabled": true,
+      "kind": "largeObstacle",
+      "assetId": "prop.barrier",
+      "obstacleType": "barrier",
+      "count": 5,
+      "minSpacing": 16,
+      "clearance": 1.5,
+      "zoneTags": [
+        "openCombat",
+        "flat"
+      ],
+      "slopeMax": 0.18,
+      "collider": true
+    },
+    {
+      "enabled": true,
+      "kind": "barrel",
+      "assetId": "prop.explosiveBarrel",
+      "count": 14,
+      "minSpacing": 11,
+      "clearance": 1.5,
+      "zoneTags": [
+        "openCombat",
+        "flat"
+      ],
+      "slopeMax": 0.2,
+      "collider": true
+    },
+    {
+      "enabled": true,
+      "kind": "crate",
+      "assetId": "prop.container",
+      "obstacleType": "scrapPile",
+      "count": 7,
+      "minSpacing": 13,
+      "clearance": 1.5,
+      "zoneTags": [
+        "resource",
+        "highland"
+      ],
+      "slopeMax": 0.22,
+      "collider": true
+    },
+    {
+      "enabled": true,
+      "kind": "medium",
+      "assetId": "prop.tire",
+      "obstacleType": "tires",
+      "count": 8,
+      "minSpacing": 11,
+      "clearance": 1,
+      "zoneTags": [
+        "flat",
+        "slope"
+      ],
+      "slopeMax": 0.2,
+      "collider": true
+    },
+    {
+      "enabled": true,
+      "kind": "decoration",
+      "assetId": "prop.tire",
+      "count": 16,
+      "minSpacing": 5,
+      "clearance": 0.5,
+      "zoneTags": [
+        "flat",
+        "slope",
+        "openCombat"
+      ],
+      "slopeMax": 0.3,
+      "collider": false
+    }
+  ]
+}

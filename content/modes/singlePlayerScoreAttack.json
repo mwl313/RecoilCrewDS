@@ -2,7 +2,7 @@
   "id": "mode.singlePlayerScoreAttack",
   "label": "Single Player Score Attack",
   "description": "Local combined-control score attack.",
-  "mapProfileId": "map.arena400Primary",
+  "mapProfileId": "map.rocketJumpHighlands",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.default",

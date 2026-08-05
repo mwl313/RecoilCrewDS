@@ -1,0 +1,8 @@
+{
+  "id": "landmark.rocketJumpHighlands.resourcePlateau",
+  "label": "Rocket-Jump Resource Plateau",
+  "zoneTag": "resource",
+  "source": "plateau",
+  "count": 2,
+  "priority": 8
+}

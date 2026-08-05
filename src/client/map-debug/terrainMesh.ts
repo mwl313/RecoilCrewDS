@@ -182,7 +182,11 @@ export function buildCliffWallChunks(
   for (let c = 0; c < chunkCount; c++) {
     const n = chunkCounts[c];
     if (n === 0) {
-      geometries.push(new THREE.BufferGeometry());
+      const empty = new THREE.BufferGeometry();
+      // Keep a valid empty position attribute so consumers can safely read
+      // `geo.attributes.position.count === 0` (e.g. ArenaView wall chunks).
+      empty.setAttribute('position', new THREE.BufferAttribute(new Float32Array(0), 3));
+      geometries.push(empty);
       continue;
     }
     const pos = new Float32Array(n * 12);

@@ -30,7 +30,7 @@ function setModeMap(root: string, mapProfileId: string): void {
 
 describe('map profile selection (mode-driven)', () => {
   it('the default profile comes from the active mode definition', () => {
-    expect(DEFAULT_MAP_PROFILE_ID).toBe('map.arena400Primary');
+    expect(DEFAULT_MAP_PROFILE_ID).toBe('map.rocketJumpHighlands');
     expect(resolveDefaultMapProfileId(pack)).toBe(DEFAULT_MAP_PROFILE_ID);
   });
 

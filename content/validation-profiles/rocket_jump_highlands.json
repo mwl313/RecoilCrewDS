@@ -1,0 +1,13 @@
+{
+  "id": "validationProfile.rocketJumpHighlands",
+  "label": "Rocket-Jump Highlands Validation",
+  "heightRange": {
+    "min": -10,
+    "max": 22
+  },
+  "maxSlope": 1.8,
+  "minFeatureSeparation": 14,
+  "maxGenerationMs": 1500,
+  "boundsEpsilon": 0.000001,
+  "checkDeterminism": true
+}

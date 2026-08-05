@@ -60,6 +60,7 @@ describe('content pack loading (valid Demo pack)', () => {
       'map.dramaticHighlands',
       'map.fallbackLegacy',
       'map.megaBonkHighlands',
+      'map.rocketJumpHighlands',
     ]);
     expect([...pack.ids('terrainProfiles')].sort()).toEqual([
       'terrainProfile.cliffArena',
@@ -67,6 +68,7 @@ describe('content pack loading (valid Demo pack)', () => {
       'terrainProfile.fallback',
       'terrainProfile.megaBonkHighlands',
       'terrainProfile.primary',
+      'terrainProfile.rocketJumpHighlands',
     ]);
     expect([...pack.ids('validationProfiles')].sort()).toEqual([
       'validationProfile.cliffArena',
@@ -74,15 +76,28 @@ describe('content pack loading (valid Demo pack)', () => {
       'validationProfile.fallback',
       'validationProfile.megaBonkHighlands',
       'validationProfile.primary',
+      'validationProfile.rocketJumpHighlands',
     ]);
     expect([...pack.ids('landmarks')].sort()).toEqual([
       'landmark.basinCenter',
       'landmark.openCombat',
       'landmark.rampPark',
       'landmark.resourcePlateau',
+      'landmark.rocketJumpHighlands.basinCenter',
+      'landmark.rocketJumpHighlands.openCombat',
+      'landmark.rocketJumpHighlands.rampPark',
+      'landmark.rocketJumpHighlands.resourcePlateau',
     ]);
-    expect([...pack.ids('furnitureSets')].sort()).toEqual(['furnitureSet.fallback', 'furnitureSet.primary']);
-    expect([...pack.ids('densityProfiles')].sort()).toEqual(['densityProfile.fallback', 'densityProfile.primary']);
+    expect([...pack.ids('furnitureSets')].sort()).toEqual([
+      'furnitureSet.fallback',
+      'furnitureSet.primary',
+      'furnitureSet.rocketJumpHighlands',
+    ]);
+    expect([...pack.ids('densityProfiles')].sort()).toEqual([
+      'densityProfile.fallback',
+      'densityProfile.primary',
+      'densityProfile.rocketJumpHighlands',
+    ]);
     expect(pack.ids('tanks')).toEqual(['tank.default']);
     expect([...pack.ids('loadouts')].sort()).toEqual(['loadout.default', 'loadout.truckHunter']);
     expect([...pack.ids('weapons')].sort()).toEqual([

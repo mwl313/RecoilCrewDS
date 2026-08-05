@@ -154,6 +154,7 @@ describe('content definitions', () => {
       'map.dramaticHighlands',
       'map.fallbackLegacy',
       'map.megaBonkHighlands',
+      'map.rocketJumpHighlands',
     ]);
     expect([...pack.ids('terrainProfiles')].sort()).toEqual([
       'terrainProfile.cliffArena',
@@ -161,6 +162,7 @@ describe('content definitions', () => {
       'terrainProfile.fallback',
       'terrainProfile.megaBonkHighlands',
       'terrainProfile.primary',
+      'terrainProfile.rocketJumpHighlands',
     ]);
     expect([...pack.ids('validationProfiles')].sort()).toEqual([
       'validationProfile.cliffArena',
@@ -168,6 +170,7 @@ describe('content definitions', () => {
       'validationProfile.fallback',
       'validationProfile.megaBonkHighlands',
       'validationProfile.primary',
+      'validationProfile.rocketJumpHighlands',
     ]);
   });
 

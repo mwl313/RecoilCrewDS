@@ -1,0 +1,14 @@
+{
+  "id": "densityProfile.rocketJumpHighlands",
+  "label": "Rocket-Jump Highlands Density",
+  "budgets": {
+    "maxObjects": 72,
+    "maxColliders": 54,
+    "maxBarrels": 18,
+    "maxCrates": 10,
+    "maxRamps": 6,
+    "maxMedium": 12,
+    "maxDecorations": 20,
+    "maxBarrelChain": 3
+  }
+}

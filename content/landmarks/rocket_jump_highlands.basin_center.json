@@ -1,0 +1,8 @@
+{
+  "id": "landmark.rocketJumpHighlands.basinCenter",
+  "label": "Rocket-Jump Basin Center",
+  "zoneTag": "basin",
+  "source": "basin",
+  "count": 1,
+  "priority": 10
+}

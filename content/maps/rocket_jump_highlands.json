@@ -1,0 +1,13 @@
+{
+  "id": "map.rocketJumpHighlands",
+  "label": "Rocket-Jump Highlands",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.rocketJumpHighlands",
+  "validationProfileId": "validationProfile.rocketJumpHighlands",
+  "furnitureSetId": "furnitureSet.rocketJumpHighlands",
+  "densityProfileId": "densityProfile.rocketJumpHighlands",
+  "fallbackMapId": "map.fallbackLegacy",
+  "isFallback": false
+}
