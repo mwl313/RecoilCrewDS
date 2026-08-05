@@ -40,8 +40,10 @@ export function buildChunkGeometry(
       normals[i * 3] = n.nx;
       normals[i * 3 + 1] = n.ny;
       normals[i * 3 + 2] = n.nz;
-      uvs[i * 2] = wx / 4;
-      uvs[i * 2 + 1] = wz / 4;
+      // World-metre UVs: textures are tiled through repeat = 1/tileSizeMeters
+      // so material switching never requires rebuilding terrain geometry.
+      uvs[i * 2] = wx;
+      uvs[i * 2 + 1] = wz;
     }
   }
   for (let zi = 0; zi < verts - 1; zi++) {

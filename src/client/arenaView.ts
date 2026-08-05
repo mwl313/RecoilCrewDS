@@ -10,6 +10,8 @@ import {
   updateChunkLod,
 } from './map-debug/terrainMesh';
 import { buildCameraCollisionIndex, type CameraCollisionQuery } from './cameraCollision';
+import { TerrainMaterialFactory } from './materials/terrainMaterialFactory';
+import type { TerrainMaterialProfileDef } from '../shared/mapgen/profiles';
 
 export interface Collider {
   box: THREE.Box3;
@@ -19,45 +21,17 @@ export interface Collider {
 }
 
 
-function groundTexture(): THREE.CanvasTexture {
-  const c = document.createElement('canvas');
-  c.width = 512;
-  c.height = 512;
-  const ctx = c.getContext('2d')!;
-  ctx.fillStyle = '#8a7a55';
-  ctx.fillRect(0, 0, 512, 512);
-  ctx.strokeStyle = 'rgba(55,45,28,0.35)';
-  ctx.lineWidth = 4;
-  const gap = 64;
-  for (let x = 0; x <= 512; x += gap) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, 512);
-    ctx.stroke();
-  }
-  for (let y = 0; y <= 512; y += gap) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(512, y);
-    ctx.stroke();
-  }
-  ctx.fillStyle = 'rgba(120,95,55,0.25)';
-  for (let i = 0; i < 90; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random() * 512, Math.random() * 512, 4 + Math.random() * 18, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.strokeStyle = 'rgba(210,180,120,0.45)';
-  ctx.lineWidth = 8;
-  ctx.beginPath();
-  ctx.arc(256, 256, 150, 0, Math.PI * 2);
-  ctx.stroke();
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(3, 3);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
+const LEGACY_PROCEDURAL_FALLBACK: TerrainMaterialProfileDef = {
+  id: 'terrainMaterial.legacyProcedural',
+  label: 'Legacy Procedural Ground',
+  kind: 'proceduralFallback',
+  tileSizeMeters: 8,
+  baseColor: '#8a7a55',
+  gridColor: '#493d29',
+  patchColor: '#785f37',
+  roughness: 0.92,
+  metalness: 0.02,
+};
 
 function hazardTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
@@ -114,12 +88,14 @@ export class ArenaView {
   barrelMeshes = new Map<number, THREE.Object3D>();
   private readonly world: ArenaWorld;
   private readonly assets: AssetService;
+  private readonly materialFactory: TerrainMaterialFactory;
   private readonly chunks: ReturnType<typeof buildTerrainChunks> = [];
   private readonly disposables: Array<THREE.BufferGeometry | THREE.Material | THREE.Texture | THREE.Object3D> = [];
 
   constructor(assets: AssetService, world: ArenaWorld) {
     this.assets = assets;
     this.world = world;
+    this.materialFactory = new TerrainMaterialFactory({ assets });
     setClientGroundHeightAt((x, z) => world.groundHeightAt(x, z));
     this.build();
     this.cameraQuery = buildCameraCollisionIndex(this.colliders);
@@ -175,9 +151,18 @@ export class ArenaView {
   }
 
   private buildLegacyGround(half: number) {
+    const profile = this.world.arena?.terrainMaterialProfile ?? LEGACY_PROCEDURAL_FALLBACK;
+    const planeWidth = half * 2 + 4;
+    const planeDepth = half * 2 + 4;
+    const material = this.materialFactory.create(profile, {
+      repeatOverride: {
+        x: planeWidth / profile.tileSizeMeters,
+        y: planeDepth / profile.tileSizeMeters,
+      },
+    });
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(half * 2 + 4, half * 2 + 4),
-      new THREE.MeshStandardMaterial({ map: groundTexture(), color: 0xc9b487, roughness: 0.92, metalness: 0.02 }),
+      new THREE.PlaneGeometry(planeWidth, planeDepth),
+      material,
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.02;
@@ -206,13 +191,9 @@ export class ArenaView {
 
   private buildTerrainChunks() {
     const hf = this.world.heightfield!;
-    const material = new THREE.MeshStandardMaterial({
-      map: groundTexture(),
-      color: 0xb9a77d,
-      roughness: 0.94,
-      metalness: 0.02,
-    });
-    this.disposables.push(material, material.map as THREE.Texture);
+    const profile = this.world.arena?.terrainMaterialProfile ?? LEGACY_PROCEDURAL_FALLBACK;
+    const material = this.materialFactory.create(profile);
+    this.disposables.push(material);
     const chunks = buildTerrainChunks(hf, this.world.half, material);
     for (const c of chunks) {
       this.group.add(c.mesh);
@@ -382,8 +363,6 @@ export class ArenaView {
     for (const d of this.disposables) {
       if (d instanceof THREE.BufferGeometry) d.dispose();
       else if (d instanceof THREE.Material) {
-      const map = (d as THREE.MeshStandardMaterial).map;
-      if (map) map.dispose();
         d.dispose();
       } else if (d instanceof THREE.Texture) d.dispose();
       else if (d instanceof THREE.Object3D) {
@@ -397,6 +376,7 @@ export class ArenaView {
       }
     }
     this.disposables.length = 0;
+    this.materialFactory.dispose();
     this.colliders.length = 0;
     this.barrelMeshes.clear();
   }
