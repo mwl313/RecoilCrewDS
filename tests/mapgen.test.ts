@@ -441,6 +441,70 @@ describe('legacy arena compatibility', () => {
   });
 });
 
+describe('rocket-jump highlands render-safe terrain (map polish)', () => {
+  const ROCKET_BUNDLE = resolveMapBundle(pack, 'map.rocketJumpHighlands');
+  const ROCKET_FALLBACK = resolveMapBundle(pack, 'map.fallbackLegacy');
+
+  function rocketRoom(roomCode: string): GeneratedArena {
+    return generateArenaWithRetry({
+      roomCode,
+      matchIndex: 0,
+      mapId: ROCKET_BUNDLE.map.id,
+      bundle: ROCKET_BUNDLE,
+      fallbackBundle: ROCKET_FALLBACK,
+    });
+  }
+
+  it('keeps whole-map safe-slope correction active and dedicated cliffs disabled', () => {
+    expect(ROCKET_BUNDLE.terrainProfile.correctAllMap).toBe(true);
+    expect(ROCKET_BUNDLE.terrainProfile.smoothingPasses).toBe(2);
+    expect(ROCKET_BUNDLE.terrainProfile.finalSmoothingPasses).toBe(2);
+    expect(ROCKET_BUNDLE.terrainProfile.features.cliffPlateau?.count).toBe(0);
+    expect(ROCKET_BUNDLE.terrainProfile.features.escarpment?.count).toBe(0);
+    expect(ROCKET_BUNDLE.terrainProfile.maxSlope).toBe(0.9);
+  });
+
+  it('all height samples are finite and stay inside the configured range', () => {
+    for (const room of ['POLISH01', 'POLISH02', 'POLISH03']) {
+      const arena = rocketRoom(room);
+      expect(arena.fallbackUsed).toBe(false);
+      expect(arena.heightfield.allFinite()).toBe(true);
+      expect(arena.validation.metrics.heightMin).toBeGreaterThanOrEqual(-10);
+      expect(arena.validation.metrics.heightMax).toBeLessThanOrEqual(22);
+    }
+  });
+
+  it('neighboring height deltas stay within maxSlope × cellSize + epsilon', () => {
+    const maxDelta = 0.9 * 4 + 1e-6;
+    for (const room of ['POLISH04', 'POLISH05', 'POLISH06', 'POLISH07', 'POLISH08']) {
+      const arena = rocketRoom(room);
+      const hf = arena.heightfield;
+      for (let zi = 0; zi < hf.samplesZ; zi++) {
+        for (let xi = 0; xi < hf.samplesX; xi++) {
+          const h = hf.getSample(xi, zi);
+          if (xi + 1 < hf.samplesX) {
+            expect(Math.abs(h - hf.getSample(xi + 1, zi))).toBeLessThanOrEqual(maxDelta);
+          }
+          if (zi + 1 < hf.samplesZ) {
+            expect(Math.abs(h - hf.getSample(xi, zi + 1))).toBeLessThanOrEqual(maxDelta);
+          }
+        }
+      }
+    }
+  });
+
+  it('same seed produces the same checksum', () => {
+    expect(rocketRoom('POLISH09').heightfield.checksum()).toBe(rocketRoom('POLISH09').heightfield.checksum());
+  });
+
+  it('100-seed qualification uses no fallback', () => {
+    for (let i = 0; i < 100; i++) {
+      const arena = rocketRoom(`POLISH${100 + i}`);
+      expect(arena.fallbackUsed).toBe(false);
+    }
+  }, 30000);
+});
+
 function loadRealPackRecords(): { manifest: unknown; files: Record<string, unknown> } {
   const manifest = JSON.parse(readFileSync(path.join(CONTENT_ROOT, 'manifest.json'), 'utf8'));
   const files: Record<string, unknown> = {};

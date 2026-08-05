@@ -5,18 +5,18 @@
   "heightRange": { "min": -10, "max": 22 },
   "maxSlope": 0.9,
   "slopeRules": {
-    "driveableMax": 0.55,
-    "riskyMax": 0.9,
-    "blockedMin": 1.1,
-    "cliffMin": 1.35,
+    "driveableMax": 0.7,
+    "riskyMax": 0.85,
+    "blockedMin": 1.0,
+    "cliffMin": 1.25,
     "spawnMax": 0.2,
     "recoveryMax": 0.15,
     "landingMax": 0.3,
     "maxStepUp": 0.8
   },
-  "correctAllMap": false,
-  "finalSmoothingPasses": 1,
-  "smoothingPasses": 1,
+  "correctAllMap": true,
+  "finalSmoothingPasses": 2,
+  "smoothingPasses": 2,
   "slopeCorrectionIterations": 48,
   "retryLimit": 32,
   "maxGenerationMs": 1500,
@@ -28,7 +28,7 @@
     "valley": { "count": 2, "minSeparation": 52, "length": [100, 155], "width": [24, 36], "depth": [5, 9], "falloff": 0.23 },
     "hill": { "count": 4, "minSeparation": 22, "radius": [14, 24], "height": [3, 6], "falloff": 0.28 },
     "cliffPlateau": {
-      "count": 2,
+      "count": 0,
       "minSeparation": 60,
       "radius": [26, 36],
       "height": [8, 12],
@@ -43,7 +43,7 @@
       "spawnClearance": 45
     },
     "escarpment": {
-      "count": 1,
+      "count": 0,
       "minSeparation": 58,
       "length": [105, 155],
       "width": [24, 34],

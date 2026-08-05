@@ -230,6 +230,14 @@ export function finalizeTerrainForLayout(
   // 3. Mask-aware final smoothing (cliff walls excluded so edges survive).
   smoothMaskAware(hf, flags, profile.finalSmoothingPasses ?? 1);
 
+  // 3b. Whole-map profiles (correctAllMap) get a second correction pass after
+  // final smoothing so the render-safe neighbor-delta invariant holds even
+  // when smoothing redistributes height across steep feature pairs. Localized
+  // profiles are untouched and keep their existing behavior.
+  if (profile.correctAllMap === true) {
+    correctProtectedTerrain(hf, flags, rules, profile.slopeCorrectionIterations, true);
+  }
+
   // 4. Cliff-edge refresh + final classification.
   const slopes = hf.slopeGrid();
   const cliffMasks = computeCliffMasks(hf, cliffFeatures, rules.cliffMin);
@@ -319,7 +327,7 @@ function correctProtectedTerrain(
         const idx = hf.sampleIndex(xi, zi);
         const f = flags[idx] ?? 0;
         if (!correctAllMap && (f & PROTECTED_FLAG_MASK) === 0) continue;
-        if (f & TerrainFlag.CliffWall) continue;
+        if (!correctAllMap && (f & TerrainFlag.CliffWall)) continue;
         const h = samples[idx];
         const neighbors: number[] = [];
         if (xi > 0) neighbors.push(hf.sampleIndex(xi - 1, zi));
@@ -328,7 +336,9 @@ function correctProtectedTerrain(
         if (zi + 1 < hf.samplesZ) neighbors.push(hf.sampleIndex(xi, zi + 1));
         for (const nIdx of neighbors) {
           if (correctAllMap) {
-            if ((flags[nIdx] ?? 0) & TerrainFlag.CliffWall) continue;
+            // Whole-map mode: procedural slopes are corrected even when the
+            // pre-pass classifier flagged them cliff-like, guaranteeing the
+            // render-safe neighbor-delta invariant for rolling terrain.
           } else if ((flags[nIdx] ?? 0) & TerrainFlag.CliffWall) {
             // A protected cell next to a wall must not be pulled INTO the
             // wall; only the protected side is adjusted.
