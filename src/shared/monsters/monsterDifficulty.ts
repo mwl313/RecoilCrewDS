@@ -34,6 +34,26 @@ export interface MonsterSpawnLock {
   scaledProjectileDamage?: number;
 }
 
+/** Content-backed defaults mirrored from `enemyLevelCurve.mainStage`. */
+export const MAIN_STAGE_CURVE: MonsterLevelCurveData = {
+  levelIntervalSeconds: 15,
+  minimumLevel: 1,
+  maximumLevel: 13,
+  healthMultiplierPerLevel: 1.2,
+  damageMultiplierPerLevel: 1.18,
+  bossPhaseLevel: 13,
+};
+
+/** Content-backed defaults mirrored from `enemyXpRewards.mainStage`. */
+export const MAIN_STAGE_XP_REWARDS: MonsterXpRewardsData = {
+  classes: {
+    ambient: { base: 1, perLevel: 1 },
+    wave: { base: 2, perLevel: 2 },
+    elite: { base: 40, perLevel: 8 },
+    boss: { base: 150, perLevel: 0 },
+  },
+};
+
 export function monsterLevelAtTime(elapsedSeconds: number, curve: MonsterLevelCurveData): number {
   return clamp(
     curve.minimumLevel + Math.floor(elapsedSeconds / curve.levelIntervalSeconds),
