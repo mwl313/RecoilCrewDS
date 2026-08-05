@@ -1,0 +1,32 @@
+{
+  "id": "scene.settings",
+  "label": "Settings",
+  "type": "ui",
+  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "root": {
+    "id": "screen-settings",
+    "type": "container",
+    "class": "screen",
+    "children": [
+      {
+        "id": "settings-panel",
+        "type": "panel",
+        "class": "panel",
+        "children": [
+          { "id": "settings-title", "type": "text", "props": { "tag": "h2" }, "text": "PLAYER SETTINGS" },
+          { "id": "settings-nickname-label", "type": "text", "text": "PLAYER NICKNAME" },
+          { "id": "nickname-input", "type": "input", "props": { "mode": "text", "maxlength": 20, "placeholder": "TurboToad07", "spellcheck": false }, "bindings": [{ "target": "value", "source": "nicknameDraft", "fallback": "" }] },
+          { "id": "settings-error", "type": "text", "class": "settings-error", "bindings": [{ "target": "text", "source": "settingsError", "fallback": "" }] },
+          { "id": "settings-hint", "type": "text", "class": "settings-hint", "text": "This nickname appears in the lobby. It is a local preference, not an account." },
+          { "id": "settings-randomize", "type": "button", "class": "btn", "text": "RANDOMIZE", "actions": [{ "event": "click", "action": "app.randomizeNickname" }] },
+          { "id": "settings-save", "type": "button", "class": "btn primary", "text": "SAVE", "actions": [{ "event": "click", "action": "app.saveSettings" }] },
+          { "id": "settings-cancel", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "CANCEL", "actions": [{ "event": "click", "action": "app.cancelSettings" }] }
+        ]
+      }
+    ]
+  },
+  "previewStates": [
+    { "id": "default", "label": "Default", "context": { "nicknameDraft": "TurboToad07", "settingsError": "" } },
+    { "id": "error", "label": "Invalid", "context": { "nicknameDraft": "", "settingsError": "Choose a nickname." } }
+  ]
+}

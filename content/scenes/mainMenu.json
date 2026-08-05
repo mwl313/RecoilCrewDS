@@ -44,10 +44,12 @@
           { "id": "main-create", "type": "button", "class": "btn primary", "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
           { "id": "main-join", "type": "button", "class": "btn", "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
           { "id": "main-single", "type": "button", "class": "btn", "props": { "dataAct": "single" }, "text": "SINGLE PLAYER", "actions": [{ "event": "click", "action": "app.startSinglePlayer" }] },
-          { "id": "main-howto", "type": "button", "class": "btn ghost", "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] }
+          { "id": "main-settings", "type": "button", "class": "btn", "props": { "dataAct": "settings" }, "text": "SETTINGS", "actions": [{ "event": "click", "action": "app.openSettings" }] },
+          { "id": "main-howto", "type": "button", "class": "btn ghost", "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] },
+          { "id": "main-playing-as", "type": "text", "class": "playing-as", "bindings": [{ "target": "text", "source": "currentNickname", "fallback": "PLAYING AS: ---" }] }
         ]
       }
     ]
   },
-  "previewStates": [{ "id": "idle", "label": "Idle", "context": {} }]
+  "previewStates": [{ "id": "idle", "label": "Idle", "context": { "currentNickname": "TurboToad07" } }]
 }

@@ -1,4 +1,5 @@
 import type { ModifierId, Role } from '../../shared/types';
+import type { CrewSeat } from '../../shared/lobby/lobbyTypes';
 
 /** Application commands owned by code (scene content only references ids). */
 export interface AppFlowHandlers {
@@ -9,6 +10,14 @@ export interface AppFlowHandlers {
   onStartSinglePlayer(): void;
   onRestartSinglePlayer(): void;
   onHowTo(): void;
+  onOpenSettings(): void;
+  onSaveSettings(nickname: string): void;
+  onRandomizeNickname(): void;
+  onCancelSettings(): void;
+  onLobbySeat(seat: CrewSeat | null): void;
+  onLobbyReadyToggle(): void;
+  onLobbyChatSend(text: string): void;
+  onCopyRoomCode(code: string): void;
   onBack(): void;
   onRematch(modifier: ModifierId): void;
   onLeave(): void;
@@ -21,8 +30,10 @@ export interface AppFlowHandlers {
 export type FlowStateId =
   | 'boot'
   | 'main'
+  | 'settings'
   | 'create'
   | 'join'
+  | 'lobby'
   | 'ready'
   | 'countdown'
   | 'game'

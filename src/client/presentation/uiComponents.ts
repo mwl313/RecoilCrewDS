@@ -137,6 +137,7 @@ function inputFactory(node: UiNodeInput, services: UiComponentServices): UiCompo
     autocomplete?: string;
     spellcheck?: boolean;
     enterAction?: string;
+    mode?: 'roomcode' | 'text';
   };
   const instance = base(node, services, { tag: 'input' });
   const input = instance.element as HTMLInputElement;
@@ -145,7 +146,11 @@ function inputFactory(node: UiNodeInput, services: UiComponentServices): UiCompo
   if (props.autocomplete) input.setAttribute('autocomplete', props.autocomplete);
   if (props.spellcheck !== undefined) input.spellcheck = props.spellcheck;
   input.addEventListener('input', () => {
-    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, props.maxlength ?? 6);
+    if (props.mode === 'text') {
+      input.value = input.value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, props.maxlength ?? 20);
+    } else {
+      input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, props.maxlength ?? 6);
+    }
   });
   void props.enterAction;
   return instance;
@@ -249,6 +254,7 @@ const componentSchemas: Record<string, z.ZodType> = {
       autocomplete: z.string().optional(),
       spellcheck: z.boolean().optional(),
       enterAction: z.string().optional(),
+      mode: z.enum(['roomcode', 'text']).optional(),
     })
     .strict(),
   progressBar: z.object({ valueSource: z.string().optional(), maxSource: z.string().optional() }).strict(),
