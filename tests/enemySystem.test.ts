@@ -42,7 +42,7 @@ describe('enemy definition composition', () => {
       'trait.nonAttackingObjective',
     ]);
     for (const enemy of rules.enemies.values()) {
-      expect(rules.dropTables.has(enemy.dropTableId)).toBe(true);
+      if (enemy.dropTableId) expect(rules.dropTables.has(enemy.dropTableId)).toBe(true);
     }
   });
 

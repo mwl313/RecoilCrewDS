@@ -39,7 +39,7 @@ export interface PlayerInput {
   ts: number;
 }
 
-export type EnemyType = 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck';
+export type EnemyType = 'scrapBug' | 'rammer' | 'gunTower' | 'lootTruck' | 'monster';
 
 export interface EnemyState {
   id: number;

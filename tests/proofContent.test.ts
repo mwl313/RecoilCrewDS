@@ -77,7 +77,7 @@ describe('proof enemy (Test Hound)', () => {
       'movement.integrate',
       'attack.contactRam',
     ]);
-    expect(runtime.rules.dropTables.has(def.dropTableId)).toBe(true);
+    if (def.dropTableId) expect(runtime.rules.dropTables.has(def.dropTableId)).toBe(true);
     const d0 = Math.hypot(hound.x - runtime.state.tank.x, hound.z - runtime.state.tank.z);
     for (let i = 0; i < 60; i++) {
       runtime.step(DT);

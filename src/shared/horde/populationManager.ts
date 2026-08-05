@@ -1,6 +1,7 @@
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { PopulationLimitsDefinition } from '../content/schemas/horde';
 import type { PopulationClass } from './spawnOwnership';
+import { enemyThreat } from '../enemies/monsterCompat';
 
 export interface PopulationTally {
   entities: number;
@@ -30,7 +31,7 @@ export class PopulationManager {
     for (const e of this.ctx.state.enemies) {
       if (!e.alive) continue;
       const def = this.ctx.enemies.defFor(e);
-      const threat = def.threat ?? 1;
+      const threat = enemyThreat(def);
       tally.entities++;
       tally.threat += threat;
       const cls = (e.ownership?.populationClass ?? 'ambient') as PopulationClass;

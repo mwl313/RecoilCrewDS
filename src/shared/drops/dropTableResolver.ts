@@ -1,5 +1,6 @@
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState } from '../types';
+import { enemyDropTableId } from '../enemies/monsterCompat';
 
 /**
  * Resolves an enemy's drop table into pickups through PickupSystem.
@@ -11,7 +12,9 @@ export class DropTableResolver {
 
   resolveFor(enemy: EnemyState): void {
     const def = this.ctx.enemies.defFor(enemy);
-    const table = this.ctx.rules.dropTables.get(def.dropTableId);
+    const dropTableId = enemyDropTableId(def);
+    if (!dropTableId) return;
+    const table = this.ctx.rules.dropTables.get(dropTableId);
     if (!table) throw new Error(`missing drop table '${def.dropTableId}' for enemy '${def.id}'`);
     for (const entry of table.entries) {
       if (entry.scatter) {

@@ -1,6 +1,7 @@
 import type { EnemyState } from '../types';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { PopulationClass } from './spawnOwnership';
+import { enemyThreat } from '../enemies/monsterCompat';
 
 /**
  * Core Loop 06 M10: aggregate distant populations. Far (tier 3) ordinary
@@ -69,7 +70,7 @@ export class HordeSectorAggregator {
         sectorId: this.nextSectorId++,
         enemyDefId: first.defId ?? '',
         count: list.length,
-        threat: list.reduce((sum, e) => sum + (this.ctx.enemies.defFor(e).threat ?? 1), 0),
+        threat: list.reduce((sum, e) => sum + enemyThreat(this.ctx.enemies.defFor(e)), 0),
         centerX: list.reduce((sum, e) => sum + e.x, 0) / list.length,
         centerZ: list.reduce((sum, e) => sum + e.z, 0) / list.length,
         flowDx: flow?.x ?? 0,

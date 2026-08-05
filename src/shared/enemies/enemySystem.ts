@@ -5,6 +5,7 @@ import type { EnemyState, EnemyType } from '../types';
 import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
+import { enemyHp, enemyRadius, enemyThreat } from './monsterCompat';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
 
@@ -14,6 +15,7 @@ const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
   rammer: 'enemy.rammer',
   gunTower: 'enemy.gunTower',
   lootTruck: 'enemy.lootTruck',
+  monster: '',
 };
 
 /**
@@ -45,7 +47,12 @@ export class EnemySystem {
   }
 
   radiusFor(enemy: EnemyState): number {
-    return this.defFor(enemy).radius;
+    return enemyRadius(this.defFor(enemy));
+  }
+
+  /** Threat contribution used by population budgets (monster-aware). */
+  threatFor(enemy: EnemyState): number {
+    return enemyThreat(this.defFor(enemy));
   }
 
   traitParameters(enemy: EnemyState, traitId: string): Record<string, number | string | boolean> | null {
@@ -97,8 +104,8 @@ export class EnemySystem {
       y: this.ctx.world.groundHeightAt(sx!, sz!),
       z: sz!,
       yaw: Math.atan2(s.tank.x - sx!, s.tank.z - sz!),
-      hp: def.hp,
-      maxHp: def.hp,
+      hp: enemyHp(def),
+      maxHp: enemyHp(def),
       state: type === 'rammer' ? 'approach' : type === 'gunTower' ? 'idle' : 'hunt',
       stateT: 0,
       aimYaw: 0,

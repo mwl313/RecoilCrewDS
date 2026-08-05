@@ -376,6 +376,8 @@ describe('frozen definitions and registry isolation', () => {
     expect(() => {
       (a.getEnemy('enemy.scrapBug') as { hp: number }).hp = 99;
     }).toThrow();
-    expect(b.getEnemy('enemy.scrapBug').hp).toBe(BASE_CONFIG.enemies.bugHp);
+    const scrapBug = b.getEnemy('enemy.scrapBug');
+    expect(scrapBug.type).not.toBe('monster');
+    if (scrapBug.type !== 'monster') expect(scrapBug.hp).toBe(BASE_CONFIG.enemies.bugHp);
   });
 });
