@@ -14,6 +14,9 @@ import { enemyArtRosterSchema } from './schemas/enemyArtRoster';
 import { difficultySchema } from './schemas/difficulty';
 import { dropTableSchema } from './schemas/dropTable';
 import { enemySchema } from './schemas/enemy';
+import { enemyLevelCurveSchema } from './schemas/enemyLevelCurve';
+import { enemyXpRewardsSchema } from './schemas/enemyXpRewards';
+import { meleeEngagementProfileSchema } from './schemas/meleeEngagementProfile';
 import { furnitureSetSchema } from './schemas/furnitureSet';
 import { itemSchema, statusEffectSchema } from './schemas/item';
 import { landmarkSchema } from './schemas/landmark';
@@ -78,6 +81,9 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   weapons: weaponSchema,
   projectiles: projectileSchema,
   enemies: enemySchema,
+  enemyLevelCurves: enemyLevelCurveSchema,
+  enemyXpRewards: enemyXpRewardsSchema,
+  meleeEngagementProfiles: meleeEngagementProfileSchema,
   dropTables: dropTableSchema,
   pickups: pickupSchema,
   items: itemSchema,
@@ -266,6 +272,9 @@ function createEmptyRegistries(): CategoryRegistries {
     weapons: new DefinitionRegistry(),
     projectiles: new DefinitionRegistry(),
     enemies: new DefinitionRegistry(),
+    enemyLevelCurves: new DefinitionRegistry(),
+    enemyXpRewards: new DefinitionRegistry(),
+    meleeEngagementProfiles: new DefinitionRegistry(),
     dropTables: new DefinitionRegistry(),
     pickups: new DefinitionRegistry(),
     items: new DefinitionRegistry(),

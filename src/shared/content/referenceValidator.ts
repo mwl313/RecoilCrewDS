@@ -106,12 +106,62 @@ export class ReferenceValidator {
     for (const enemy of this.registries.enemies.all()) {
       const enemyFile = this.fileOf(enemy.id, this.registries.enemies);
       this.checkCommon(issues, enemy, enemyFile);
-      this.ref(issues, enemy.dropTableId, this.registries.dropTables, enemyFile, 'dropTableId');
+      if (enemy.type === 'monster') {
+        if (!enemy.presentationProfileId.startsWith('enemyPresentation.')) {
+          issues.push(`${enemyFile}: presentationProfileId — must start with enemyPresentation.`);
+        }
+        if (!enemy.animationProfileId.startsWith('enemyAnimation.')) {
+          issues.push(`${enemyFile}: animationProfileId — must start with enemyAnimation.`);
+        }
+        if (enemy.attack.type === 'ranged') {
+          this.ref(issues, enemy.attack.projectileId, this.registries.projectiles, enemyFile, 'attack.projectileId');
+        }
+        if (enemy.attack.type === 'melee') {
+          this.ref(
+            issues,
+            enemy.attack.engagementProfileId,
+            this.registries.meleeEngagementProfiles,
+            enemyFile,
+            'attack.engagementProfileId',
+          );
+        }
+        if (enemy.attack.type === 'mixed') {
+          for (const pattern of enemy.attack.patterns) {
+            if (pattern.type === 'ranged') {
+              this.ref(
+                issues,
+                pattern.projectileId,
+                this.registries.projectiles,
+                enemyFile,
+                `attack.patterns.${pattern.id}.projectileId`,
+              );
+            }
+          }
+        }
+      }
+      if (enemy.dropTableId) {
+        this.ref(issues, enemy.dropTableId, this.registries.dropTables, enemyFile, 'dropTableId');
+      }
       enemy.behaviors.forEach((behavior, i) => {
         if (!this.behaviors.has(behavior.id)) {
           issues.push(`${enemyFile}: behaviors[${i}].id — unknown enemy behavior '${behavior.id}'`);
         }
       });
+    }
+    for (const curve of this.registries.enemyLevelCurves.all()) {
+      this.checkCommon(issues, curve, this.fileOf(curve.id, this.registries.enemyLevelCurves));
+      if (curve.maximumLevel < curve.minimumLevel) {
+        issues.push(`${this.fileOf(curve.id, this.registries.enemyLevelCurves)}: maximumLevel below minimumLevel`);
+      }
+    }
+    for (const rewards of this.registries.enemyXpRewards.all()) {
+      this.checkCommon(issues, rewards, this.fileOf(rewards.id, this.registries.enemyXpRewards));
+    }
+    for (const profile of this.registries.meleeEngagementProfiles.all()) {
+      this.checkCommon(issues, profile, this.fileOf(profile.id, this.registries.meleeEngagementProfiles));
+      if (profile.maximumSlots < profile.minimumSlots) {
+        issues.push(`${this.fileOf(profile.id, this.registries.meleeEngagementProfiles)}: maximumSlots below minimumSlots`);
+      }
     }
 
     for (const dropTable of this.registries.dropTables.all()) {

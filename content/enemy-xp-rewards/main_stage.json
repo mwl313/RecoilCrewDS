@@ -1,0 +1,10 @@
+{
+  "id": "enemyXpRewards.mainStage",
+  "label": "Main Stage Monster XP Rewards",
+  "classes": {
+    "ambient": { "base": 1, "perLevel": 1 },
+    "wave": { "base": 2, "perLevel": 2 },
+    "elite": { "base": 40, "perLevel": 8 },
+    "boss": { "base": 150, "perLevel": 0 }
+  }
+}

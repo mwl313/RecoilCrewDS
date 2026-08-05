@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '547266eb48e48527607c13bc7ac28a965219e16645010a6fe070e7da1e2b7d48';
+export const CONTENT_PACK_SOURCE_HASH = 'ad72e753ccc1f346fec767d74236c51c7bf8ffaa49db72080f5d6140983243f1';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '23136ef42ccf0823014d9888b4cabbfb2ae4dc36637bf48a95423983ede39da5';
+export const CONTENT_PACK_HASH = '59c0e1dd1b592c06e984219aa979df22840e5406a20c3da8c4f0da731c71c511';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -94,6 +94,15 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "enemy.scrapBug", definition: {"id":"enemy.scrapBug","label":"Scrap Bug","behaviors":[{"id":"movement.seekTank","parameters":{}},{"id":"movement.circleTarget","parameters":{}},{"id":"movement.densitySteering","parameters":{}},{"id":"movement.obstacleAvoid","parameters":{}},{"id":"movement.integrate","parameters":{}},{"id":"attack.contactRam","parameters":{}}],"presentationId":"enemy.scrapBug","hp":3,"threat":1,"radius":0.8,"score":50,"contributionPoints":2,"dropTableId":"drops.scrapBug","knockback":{"immovable":false,"horizontalResistance":1,"verticalResistance":1,"groundDrag":4.5,"airDrag":0.6,"gravityScale":1},"type":"scrapBug","speed":3.2,"damage":4,"hitCooldown":1,"circleDistance":7,"circleStrength":0.85,"separationDistance":2.4,"separationStrength":0.8,"obstacleAvoidTurn":1.1,"speedWobbleAmplitude":0.6,"speedWobbleFrequency":1.7} },
     { id: "enemy.scrapBugHorde", definition: {"id":"enemy.scrapBugHorde","label":"Scrap Bug (Horde)","behaviors":[{"id":"movement.flowSeek","parameters":{"speed":3.2}},{"id":"movement.densitySteering","parameters":{}},{"id":"movement.obstacleAvoid","parameters":{}},{"id":"movement.integrate","parameters":{}},{"id":"attack.contactRam","parameters":{}}],"presentationId":"enemy.scrapBug","hp":3,"threat":1,"radius":0.8,"score":50,"contributionPoints":2,"dropTableId":"drops.scrapBug","knockback":{"immovable":false,"horizontalResistance":1,"verticalResistance":1,"groundDrag":4.5,"airDrag":0.6,"gravityScale":1},"type":"scrapBug","speed":3.2,"damage":4,"hitCooldown":1,"circleDistance":7,"circleStrength":0.85,"separationDistance":2.4,"separationStrength":0.8,"obstacleAvoidTurn":1.1,"speedWobbleAmplitude":0.6,"speedWobbleFrequency":1.7} },
     { id: "enemy.testHound", definition: {"id":"enemy.testHound","label":"Test Hound","behaviors":[{"id":"movement.seekTank","parameters":{"speed":4.5}},{"id":"movement.circleTarget","parameters":{"distance":5,"strength":0.6}},{"id":"movement.integrate","parameters":{}},{"id":"attack.contactRam","parameters":{"damage":3}}],"presentationId":"enemy.scrapBug","hp":8,"threat":1,"radius":0.8,"score":120,"contributionPoints":2,"dropTableId":"drops.testHound","type":"scrapBug","speed":4.5,"damage":3,"hitCooldown":1,"circleDistance":5,"circleStrength":0.6,"separationDistance":2.4,"separationStrength":0.8,"obstacleAvoidTurn":1.1,"speedWobbleAmplitude":0,"speedWobbleFrequency":1.7} },
+  ],
+  "enemyLevelCurves": [
+    { id: "enemyLevelCurve.mainStage", definition: {"id":"enemyLevelCurve.mainStage","label":"Main Stage Monster Level Curve","behaviors":[],"levelIntervalSeconds":15,"minimumLevel":1,"maximumLevel":13,"healthMultiplierPerLevel":1.2,"damageMultiplierPerLevel":1.18,"bossPhaseLevel":13} },
+  ],
+  "enemyXpRewards": [
+    { id: "enemyXpRewards.mainStage", definition: {"id":"enemyXpRewards.mainStage","label":"Main Stage Monster XP Rewards","behaviors":[],"classes":{"ambient":{"base":1,"perLevel":1},"wave":{"base":2,"perLevel":2},"elite":{"base":40,"perLevel":8},"boss":{"base":150,"perLevel":0}}} },
+  ],
+  "meleeEngagementProfiles": [
+    { id: "meleeEngagement.default", definition: {"id":"meleeEngagement.default","label":"Default Melee Engagement","behaviors":[],"spacingMultiplier":1.25,"minimumSlots":3,"maximumSlots":6,"reservationGraceSeconds":0.35,"releaseDistanceMultiplier":1.35} },
   ],
   "dropTables": [
     { id: "drops.gunTower", definition: {"id":"drops.gunTower","label":"Gun Tower Drops","behaviors":[],"entries":[{"kind":"heavy","count":1,"offsetX":0,"offsetZ":0},{"kind":"normal","count":1,"offsetX":1,"offsetZ":0},{"kind":"normal","count":1,"offsetX":-1,"offsetZ":0}]} },

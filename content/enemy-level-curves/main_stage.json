@@ -1,0 +1,10 @@
+{
+  "id": "enemyLevelCurve.mainStage",
+  "label": "Main Stage Monster Level Curve",
+  "levelIntervalSeconds": 15,
+  "minimumLevel": 1,
+  "maximumLevel": 13,
+  "healthMultiplierPerLevel": 1.2,
+  "damageMultiplierPerLevel": 1.18,
+  "bossPhaseLevel": 13
+}

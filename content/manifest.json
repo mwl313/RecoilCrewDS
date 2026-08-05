@@ -81,6 +81,15 @@
         "enemies/lootTruck.json",
         "enemies/testHound.json"
       ],
+      "enemyLevelCurves": [
+        "enemy-level-curves/main_stage.json"
+      ],
+      "enemyXpRewards": [
+        "enemy-xp-rewards/main_stage.json"
+      ],
+      "meleeEngagementProfiles": [
+        "melee-engagement-profiles/default.json"
+      ],
       "dropTables": [
         "drop-tables/scrapBug.json",
         "drop-tables/rammer.json",

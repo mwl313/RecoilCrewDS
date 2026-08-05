@@ -4,6 +4,9 @@ import type { DensityProfileDefinition } from './schemas/densityProfile';
 import type { DifficultyDefinition } from './schemas/difficulty';
 import type { DropTableDefinition } from './schemas/dropTable';
 import type { EnemyDefinition } from './schemas/enemy';
+import type { EnemyLevelCurveDefinition } from './schemas/enemyLevelCurve';
+import type { EnemyXpRewardsDefinition } from './schemas/enemyXpRewards';
+import type { MeleeEngagementProfileDefinition } from './schemas/meleeEngagementProfile';
 import type { FurnitureSetDefinition } from './schemas/furnitureSet';
 import type { ItemDefinition, StatusEffectDefinition } from './schemas/item';
 import type { LandmarkDefinition } from './schemas/landmark';
@@ -67,6 +70,9 @@ export const CONTENT_CATEGORIES = [
   'weapons',
   'projectiles',
   'enemies',
+  'enemyLevelCurves',
+  'enemyXpRewards',
+  'meleeEngagementProfiles',
   'dropTables',
   'pickups',
   'items',
@@ -120,6 +126,9 @@ export interface CategoryRegistries {
   weapons: DefinitionRegistry<WeaponDefinition>;
   projectiles: DefinitionRegistry<ProjectileDefinition>;
   enemies: DefinitionRegistry<EnemyDefinition>;
+  enemyLevelCurves: DefinitionRegistry<EnemyLevelCurveDefinition>;
+  enemyXpRewards: DefinitionRegistry<EnemyXpRewardsDefinition>;
+  meleeEngagementProfiles: DefinitionRegistry<MeleeEngagementProfileDefinition>;
   dropTables: DefinitionRegistry<DropTableDefinition>;
   pickups: DefinitionRegistry<PickupDefinition>;
   items: DefinitionRegistry<ItemDefinition>;
@@ -260,6 +269,15 @@ export class ContentPack {
   }
   getEnemy(id: string): EnemyDefinition {
     return this.require('enemies', id);
+  }
+  getEnemyLevelCurve(id: string): EnemyLevelCurveDefinition {
+    return this.require('enemyLevelCurves', id);
+  }
+  getEnemyXpRewards(id: string): EnemyXpRewardsDefinition {
+    return this.require('enemyXpRewards', id);
+  }
+  getMeleeEngagementProfile(id: string): MeleeEngagementProfileDefinition {
+    return this.require('meleeEngagementProfiles', id);
   }
   getDropTable(id: string): DropTableDefinition {
     return this.require('dropTables', id);

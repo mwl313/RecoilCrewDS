@@ -1,0 +1,9 @@
+{
+  "id": "meleeEngagement.default",
+  "label": "Default Melee Engagement",
+  "spacingMultiplier": 1.25,
+  "minimumSlots": 3,
+  "maximumSlots": 6,
+  "reservationGraceSeconds": 0.35,
+  "releaseDistanceMultiplier": 1.35
+}
