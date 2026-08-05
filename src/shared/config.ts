@@ -35,6 +35,24 @@ export interface GameConfig {
     jumpHeight: number;
     /** Launch speed used by ramp launches (preserved legacy ramp behavior). */
     rampLaunchSpeed: number;
+    /** Minimum horizontal speed for a natural surface crest launch (m/s). */
+    surfaceLaunchMinSpeed: number;
+    /** Distance sampled behind the tank to measure incoming grade (m). */
+    surfaceLaunchLookBehind: number;
+    /** Distance sampled ahead of the tank to measure outgoing grade (m). */
+    surfaceLaunchLookAhead: number;
+    /** Minimum incoming uphill grade (rise/run) to consider a crest launch. */
+    surfaceLaunchMinIncomingGrade: number;
+    /** Maximum outgoing grade that still releases the tank at a crest. */
+    surfaceLaunchMaxOutgoingGrade: number;
+    /** Fraction of horizontal speed converted to launch vertical velocity. */
+    surfaceLaunchRetention: number;
+    /** Minimum accepted launch vertical velocity (m/s). */
+    surfaceLaunchMinVy: number;
+    /** Maximum launch vertical velocity (m/s). */
+    surfaceLaunchMaxVy: number;
+    /** Vertical offset above the crest surface when detaching (m). */
+    surfaceLaunchDetachEpsilon: number;
     /** Forward velocity delta added by a grounded dash (m/s). */
     dashImpulse: number;
     /** Minimum authoritative seconds between accepted dashes. */
@@ -181,6 +199,15 @@ export const BASE_CONFIG: GameConfig = {
     gravity: 13.5,
     jumpHeight: 3.0,
     rampLaunchSpeed: 6.5,
+    surfaceLaunchMinSpeed: 7.0,
+    surfaceLaunchLookBehind: 2.0,
+    surfaceLaunchLookAhead: 2.5,
+    surfaceLaunchMinIncomingGrade: 0.15,
+    surfaceLaunchMaxOutgoingGrade: 0.05,
+    surfaceLaunchRetention: 0.8,
+    surfaceLaunchMinVy: 1.5,
+    surfaceLaunchMaxVy: 8.0,
+    surfaceLaunchDetachEpsilon: 0.05,
     dashImpulse: 13.0,
     dashCooldown: 0.8,
     dashAirMultiplier: 0.8,

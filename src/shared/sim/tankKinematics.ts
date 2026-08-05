@@ -180,12 +180,49 @@ export function stepTankKinematics(
     hits = hits.concat(resolveTankFootprint(t, cfg, ground));
   }
 
+  // Natural surface crest launch. Before the grounded snap, sample terrain
+  // behind, at, and ahead of the tank along the ACTUAL horizontal movement
+  // direction (not chassis forward), so recoil, drift, dash, and reverse
+  // motion behave consistently. A launch is accepted only when the tank
+  // arrived from a meaningful uphill slope and the surface ahead becomes
+  // flat or descends.
+  let crestLaunched = false;
+  if (t.grounded && !jumped) {
+    const speed = Math.hypot(t.vx, t.vz);
+    if (speed >= tankCfg.surfaceLaunchMinSpeed) {
+      const dirX = t.vx / speed;
+      const dirZ = t.vz / speed;
+      const lookBehind = tankCfg.surfaceLaunchLookBehind;
+      const lookAhead = tankCfg.surfaceLaunchLookAhead;
+      const behindHeight = ground.groundHeightAt(t.x - dirX * lookBehind, t.z - dirZ * lookBehind);
+      const currentHeight = ground.groundHeightAt(t.x, t.z);
+      const aheadHeight = ground.groundHeightAt(t.x + dirX * lookAhead, t.z + dirZ * lookAhead);
+      const incomingGrade = (currentHeight - behindHeight) / lookBehind;
+      const outgoingGrade = (aheadHeight - currentHeight) / lookAhead;
+      if (
+        incomingGrade >= tankCfg.surfaceLaunchMinIncomingGrade &&
+        outgoingGrade <= tankCfg.surfaceLaunchMaxOutgoingGrade
+      ) {
+        const launchVy = clamp(
+          speed * incomingGrade * tankCfg.surfaceLaunchRetention,
+          tankCfg.surfaceLaunchMinVy,
+          tankCfg.surfaceLaunchMaxVy,
+        );
+        t.y = currentHeight + tankCfg.surfaceLaunchDetachEpsilon;
+        t.vy = Math.max(t.vy, launchVy);
+        t.grounded = false;
+        crestLaunched = true;
+        callbacks?.onRampLaunch?.(speed);
+      }
+    }
+  }
+
   // 6. Ground/air. A jump applied this step must not immediately snap back
   // to the ground; it integrates upward and stays airborne.
   const h = ground.groundHeightAt(t.x, t.z);
   const wasGrounded = t.grounded;
   const onRamp = ground.ramps.some((r) => pointInBox(t.x, t.z, r.x, r.z, r.w, r.d));
-  if (!jumped && t.y <= h + 0.08) {
+  if (!jumped && !crestLaunched && t.y <= h + 0.08) {
     t.y = h;
     t.vy = 0;
     t.grounded = true;
@@ -197,7 +234,7 @@ export function stepTankKinematics(
   // Ramp launch: leaving a ramp at speed launches the tank.
   const wasOnRamp = t.prevOnRamp === true;
   t.prevOnRamp = onRamp;
-  if (wasOnRamp && !onRamp && Math.abs(newFwd) > 7) {
+  if (!crestLaunched && wasOnRamp && !onRamp && Math.abs(newFwd) > 7) {
     const rampLaunch = tankCfg.rampLaunchSpeed * Math.min(1, Math.abs(newFwd) / tankCfg.forwardSpeed);
     t.vy = rampLaunch;
     t.grounded = false;

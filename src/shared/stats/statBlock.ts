@@ -28,6 +28,10 @@ export function baseStatBlocksFromConfig(config: GameConfig, matchConfig: MatchC
 function pickNumeric(source: Record<string, unknown>, prefix: string): StatBlock {
   const out: StatBlock = {};
   for (const [key, value] of Object.entries(source)) {
+    // surfaceLaunch* fields are movement tuning consumed directly from
+    // GameConfig/BASE_CONFIG; they are not gameplay stats and must not enter
+    // the stat registry.
+    if (prefix === 'tank' && key.startsWith('surfaceLaunch')) continue;
     if (typeof value === 'number') out[`${prefix}.${key}`] = value;
   }
   return out;

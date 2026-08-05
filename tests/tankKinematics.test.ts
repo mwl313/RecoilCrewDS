@@ -475,3 +475,143 @@ describe('dash kinematics', () => {
     expect(Math.abs(t.vx)).toBeLessThan(1e-9);
   });
 });
+
+describe('natural surface crest launch (map polish)', () => {
+  const CFG = BASE_CONFIG;
+  const MCFG = buildMatchConfig('none');
+
+  function crestGround(h: (z: number) => number): GroundQuery {
+    return {
+      groundHeightAt: (_x, z) => h(z),
+      groundNormalAt: () => ({ nx: 0, ny: 1, nz: 0 }),
+      ramps: [],
+      half: 200,
+      bounds: { minX: -200, maxX: 200, minZ: -200, maxZ: 200 },
+      resolveCircleContacts: (x, z) => ({ x, z, contacts: [] }),
+    };
+  }
+
+  function crestState(speed: number, z = 10): TankKinematicState {
+    return { ...tank(0, z), vz: speed, y: 0 };
+  }
+
+  function run(state: TankKinematicState, ground: GroundQuery, input = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false }) {
+    return stepTankKinematics(state, input, CFG, MCFG, DT, undefined, ground);
+  }
+
+  it('fast uphill-to-flat crest launches with positive vy', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4));
+    const t = crestState(15);
+    t.y = 4;
+    run(t, ground);
+    expect(t.grounded).toBe(false);
+    expect(t.vy).toBeGreaterThan(1.5);
+    expect(t.vy).toBeLessThanOrEqual(CFG.tank.surfaceLaunchMaxVy);
+  });
+
+  it('fast uphill-to-downhill crest launches', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4 - (z - 10) * 0.3));
+    const t = crestState(15);
+    t.y = 4;
+    run(t, ground);
+    expect(t.grounded).toBe(false);
+    expect(t.vy).toBeGreaterThan(1.5);
+  });
+
+  it('slow crest stays grounded with zero vy', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4));
+    const t = crestState(4);
+    t.y = 4;
+    run(t, ground);
+    expect(t.grounded).toBe(true);
+    expect(t.vy).toBe(0);
+  });
+
+  it('continuing uphill does not launch', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4 + (z - 10) * 0.4));
+    const t = crestState(15);
+    t.y = 4;
+    run(t, ground);
+    expect(t.grounded).toBe(true);
+    expect(t.vy).toBe(0);
+  });
+
+  it('downhill-only travel does not launch upward', () => {
+    // Terrain rises with +Z, so moving -Z is pure downhill: the sample
+    // behind (higher Z) is above the tank and the incoming grade is negative.
+    const ground = crestGround((z) => z * 0.4);
+    const t = crestState(-15, 10);
+    t.y = 4;
+    run(t, ground);
+    // A downhill step may leave the ground by less than the snap tolerance,
+    // but it must never receive an artificial upward launch impulse.
+    expect(t.vy).toBeLessThanOrEqual(0);
+  });
+
+  it('flat ground does not launch', () => {
+    const ground = crestGround(() => 0);
+    const t = crestState(15, 0);
+    run(t, ground);
+    expect(t.grounded).toBe(true);
+    expect(t.vy).toBe(0);
+  });
+
+  it('launch vertical velocity is capped', () => {
+    const ground = crestGround((z) => (z <= 10 ? z : 10));
+    const t = crestState(30);
+    t.y = 10;
+    run(t, ground);
+    expect(t.vy).toBeLessThanOrEqual(CFG.tank.surfaceLaunchMaxVy + 1e-9);
+    // One gravity tick applies after the launch in the same step.
+    expect(t.vy).toBeGreaterThan(CFG.tank.surfaceLaunchMaxVy - CFG.tank.gravity * DT - 0.01);
+  });
+
+  it('horizontal momentum is retained through the crest launch', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4));
+    const t = crestState(15);
+    t.y = 4;
+    run(t, ground);
+    expect(t.grounded).toBe(false);
+    // Coasting with zero throttle decelerates by accel * dt; the launch must
+    // not change horizontal momentum beyond that.
+    expect(Math.hypot(t.vx, t.vz)).toBeCloseTo(15 - CFG.tank.accel * DT, 2);
+  });
+
+  it('manual jump is not overwritten by the crest detector', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4));
+    const t = crestState(15);
+    t.y = 4;
+    const jumpVy = Math.sqrt(2 * CFG.tank.gravity * CFG.tank.jumpHeight);
+    run(t, ground, { throttle: 0, steer: 0, dashPressed: false, jumpPressed: true });
+    expect(t.grounded).toBe(false);
+    expect(t.vy).toBeGreaterThanOrEqual(jumpVy - CFG.tank.gravity * DT - 0.01);
+  });
+
+  it('existing explicit ramp still launches when the crest detector is quiet', () => {
+    const ground: GroundQuery = {
+      groundHeightAt: () => 0,
+      groundNormalAt: () => ({ nx: 0, ny: 1, nz: 0 }),
+      ramps: [{ id: 'ramp', x: 0, z: 9.5, w: 4, d: 3, dirX: 0, dirZ: 1, rise: 1.2, baseY: 0 }],
+      half: 200,
+      bounds: { minX: -200, maxX: 200, minZ: -200, maxZ: 200 },
+      resolveCircleContacts: (x, z) => ({ x, z, contacts: [] }),
+    };
+    const t = crestState(15, 10.9);
+    t.prevOnRamp = true;
+    t.y = 0;
+    run(t, ground);
+    expect(t.grounded).toBe(false);
+    expect(t.vy).toBeGreaterThan(1);
+  });
+
+  it('same initial state and inputs produce an identical final state', () => {
+    const ground = crestGround((z) => (z <= 10 ? z * 0.4 : 4));
+    const a = crestState(15);
+    const b = crestState(15);
+    a.y = 4;
+    b.y = 4;
+    run(a, ground);
+    run(b, ground);
+    expect(a).toEqual(b);
+  });
+});

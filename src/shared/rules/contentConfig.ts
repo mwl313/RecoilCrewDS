@@ -2,7 +2,7 @@ import type { ContentPack } from '../content/contentPack';
 import type { DifficultyDefinition } from '../content/schemas/difficulty';
 import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { WeaponDefinition } from '../content/schemas/weapon';
-import type { GameConfig } from '../config';
+import { BASE_CONFIG, type GameConfig } from '../config';
 import type { MatchConfig, ModifierId } from '../types';
 
 /**
@@ -14,6 +14,7 @@ import type { MatchConfig, ModifierId } from '../types';
 export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.modeId): GameConfig {
   const mode = pack.getMode(modeId);
   const tank = pack.getTank(mode.tank);
+  const tankLike = tank as typeof tank & Partial<typeof BASE_CONFIG.tank>;
   const loadout = pack.getLoadout(mode.loadout);
   const mg = weaponOfKind(pack, loadout.primary, 'weapon.hitscan');
   const cannon = weaponOfKind(pack, loadout.secondary, 'weapon.projectile');
@@ -47,6 +48,15 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       gravity: tank.gravity,
       jumpHeight: tank.jumpHeight,
       rampLaunchSpeed: tank.rampLaunchSpeed,
+      surfaceLaunchMinSpeed: tankLike.surfaceLaunchMinSpeed ?? BASE_CONFIG.tank.surfaceLaunchMinSpeed,
+      surfaceLaunchLookBehind: tankLike.surfaceLaunchLookBehind ?? BASE_CONFIG.tank.surfaceLaunchLookBehind,
+      surfaceLaunchLookAhead: tankLike.surfaceLaunchLookAhead ?? BASE_CONFIG.tank.surfaceLaunchLookAhead,
+      surfaceLaunchMinIncomingGrade: tankLike.surfaceLaunchMinIncomingGrade ?? BASE_CONFIG.tank.surfaceLaunchMinIncomingGrade,
+      surfaceLaunchMaxOutgoingGrade: tankLike.surfaceLaunchMaxOutgoingGrade ?? BASE_CONFIG.tank.surfaceLaunchMaxOutgoingGrade,
+      surfaceLaunchRetention: tankLike.surfaceLaunchRetention ?? BASE_CONFIG.tank.surfaceLaunchRetention,
+      surfaceLaunchMinVy: tankLike.surfaceLaunchMinVy ?? BASE_CONFIG.tank.surfaceLaunchMinVy,
+      surfaceLaunchMaxVy: tankLike.surfaceLaunchMaxVy ?? BASE_CONFIG.tank.surfaceLaunchMaxVy,
+      surfaceLaunchDetachEpsilon: tankLike.surfaceLaunchDetachEpsilon ?? BASE_CONFIG.tank.surfaceLaunchDetachEpsilon,
       dashImpulse: tank.dashImpulse,
       dashCooldown: tank.dashCooldown,
       dashAirMultiplier: tank.dashAirMultiplier,
