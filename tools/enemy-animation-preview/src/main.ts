@@ -15,6 +15,7 @@ import {
 } from '@app/generated/enemyAnimationContent.generated';
 import { ENEMY_ANIMATION_ROLES, type EnemyAnimationRole } from '@app/shared/animation/animationRoles';
 import type { EnemyAnimationLodTier } from '@app/shared/animation/animationProfileTypes';
+import { startMonsterGallery } from './monsterGallery';
 
 const viewport = document.getElementById('viewport') as HTMLElement;
 const controlsPanel = document.getElementById('controls') as HTMLElement;
@@ -409,11 +410,15 @@ function buildControls(): void {
   controlsPanel.appendChild(restart);
 }
 
-window.addEventListener('resize', resize);
-buildControls();
-void AssetService.load().then((a) => {
-  assets = a;
-  rebuildScene();
-  resize();
-  loop();
-});
+if (new URLSearchParams(window.location.search).has('monster')) {
+  void startMonsterGallery(document.body);
+} else {
+  window.addEventListener('resize', resize);
+  buildControls();
+  void AssetService.load().then((a) => {
+    assets = a;
+    rebuildScene();
+    resize();
+    loop();
+  });
+}

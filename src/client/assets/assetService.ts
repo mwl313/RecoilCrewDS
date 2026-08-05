@@ -12,6 +12,7 @@ import type { AudioSpec, TankRig, UiTheme, VfxSpec } from './types';
 import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.generated';
 import { assertResolvableAssetId, resolveProjectAsset } from '../../shared/assetCatalog';
 import type { TankRigDefinition } from '../../shared/content/schemas/tank';
+import { createAssetTelemetry, type AssetTelemetry } from './assetTelemetry';
 
 export { buildTankRig, getMuzzleWorld };
 
@@ -29,6 +30,7 @@ export class AssetService {
   readonly models: ModelProvider;
   readonly transforms: AssetTransformResolver;
   readonly instances: AssetInstanceFactory;
+  readonly telemetry: AssetTelemetry = createAssetTelemetry();
   manifestLoaded = false;
 
   private constructor(private readonly gltfLoaderFactory?: GltfLoaderFactory) {
@@ -64,18 +66,64 @@ export class AssetService {
       service.instances.registerProject(asset);
       if (asset.file) service.models.registerFile(asset.id, asset.file);
     }
-    // Preload every model referenced at runtime: built-in presentation
-    // models, project files, and project catalog fallbacks.
+    service.telemetry.registeredModelCount = projectModels.length;
+    // Stage-selective preload: built-in presentation models, manifest
+    // entries, and required (optional !== true) project models load at
+    // startup. Optional project assets (e.g. Quaternius heroes) only load
+    // when a roster explicitly requests them through preloadModels().
     const preloadIds = new Set<string>(service.presentation.models);
     for (const entry of manifest.entries) {
       if (entry.category === 'model' && typeof entry.file === 'string') preloadIds.add(entry.id);
     }
     for (const asset of projectModels) {
+      if (asset.optional === true) {
+        // File-less placeholders still need their fallback prototype so
+        // existing custom placeholders resolve; file-backed optional models
+        // (e.g. Quaternius) stay lazy until a roster requests them.
+        if (!asset.file && asset.fallbackAssetId) preloadIds.add(asset.fallbackAssetId);
+        continue;
+      }
       if (asset.file) preloadIds.add(asset.id);
       if (asset.fallbackAssetId) preloadIds.add(asset.fallbackAssetId);
     }
-    await service.instances.preloadModels([...preloadIds]);
+    await service.preloadModels([...preloadIds]);
     return service;
+  }
+
+  /**
+   * Explicit stage-selective preload. Roster content lists the asset ids a
+   * stage needs; calling this before spawning guarantees synchronous
+   * instance creation without startup downloads of unused heroes.
+   */
+  async preloadModels(ids: readonly string[]): Promise<void> {
+    const unique = [...new Set(ids)];
+    this.telemetry.requestedPreloadCount += unique.length;
+    const cacheHits = unique.filter((id) => this.models.hasPrototype(id)).length;
+    this.telemetry.cacheHits += cacheHits;
+    const missing = unique.filter((id) => !this.models.hasPrototype(id));
+    let bytes = 0;
+    if (missing.length > 0) {
+      const sizes = await Promise.all(
+        missing.map(async (id) => {
+          const file = this.models.getFile(id);
+          if (!file) return 0;
+          try {
+            const res = await fetch(file, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+            const length = Number(res.headers.get('content-length') ?? 0);
+            return Number.isFinite(length) ? length : 0;
+          } catch {
+            return 0;
+          }
+        }),
+      );
+      bytes = sizes.reduce((a, b) => a + b, 0);
+      const t0 = performance.now();
+      await this.instances.preloadModels(missing);
+      this.telemetry.loadDurationMs += performance.now() - t0;
+    }
+    this.telemetry.loadedGlbBytes += bytes;
+    this.telemetry.loadedModelCount = this.models.loadedCount();
+    return;
   }
 
   /** Assert + resolve a project asset definition (throws for unknowns). */

@@ -6,6 +6,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
   root: ROOT,
   base: './',
+  publicDir: fileURLToPath(new URL('../../public', import.meta.url)),
   resolve: {
     alias: {
       '@app': fileURLToPath(new URL('../../src', import.meta.url)),

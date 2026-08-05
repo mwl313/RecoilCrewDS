@@ -58,3 +58,15 @@ schema-forward-compatible.
   `AssetManifestLoader`; unknown ids are still skipped with a warning.
 - Missing required gameplay assets keep fallbacks; missing required custom
   scene assets fail presentation-content validation.
+
+## Monster Pack 10 import authoring
+
+- The importer (`scripts/import-monsterpack10.ts`) regenerates
+  `content/assets/project.json` by merging native entries with the
+  Quaternius catalog; reruns are idempotent and dedupe by asset id.
+- Every Quaternius entry uses `optional: true`, a role-class fallback
+  (`enemy.scrapBug`/`enemy.rammer`/`enemy.gunTower`/`enemy.witch`), and a
+  `/assets/models/enemies/quaternius/<tier>/<file>.glb` path.
+- Ownership of generated files is tracked in
+  `docs/monsterpack10/generated/IMPORT_OWNERSHIP.json`; stale managed GLBs
+  are removed on re-import and unrelated files are never touched.

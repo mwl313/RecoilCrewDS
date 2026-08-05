@@ -203,6 +203,14 @@ net.onMessage = (msg) => {
       }
       const horde = msg.horde as HordeSnapshotBlock | undefined;
       latestStageView = msg.stage as HordeStageView | undefined;
+      let sectors: Array<{
+        sectorId: number;
+        x: number;
+        z: number;
+        count: number;
+        enemyDefId: string;
+        presentationSeed: number;
+      }> = [];
       if (horde) {
         if (!hordeClient) {
           hordeClient = new HordeReplicationClient(
@@ -213,6 +221,14 @@ net.onMessage = (msg) => {
           ...(msg.state as MatchState),
           enemies: hordeClient.apply(horde, Number(msg.serverTime)),
         };
+        sectors = [...hordeClient.sectors.values()].map((s) => ({
+          sectorId: s.sectorId,
+          x: s.centerX,
+          z: s.centerZ,
+          count: s.count,
+          enemyDefId: s.enemyDefId,
+          presentationSeed: s.presentationSeed,
+        }));
       } else {
         latestState = msg.state as MatchState;
         hordeClient?.reset();
@@ -234,6 +250,7 @@ net.onMessage = (msg) => {
         movementRulesRevision:
           msg.movementRulesRevision === undefined ? undefined : Number(msg.movementRulesRevision),
         movement: msg.movement as MovementRulesBlock | undefined,
+        sectors,
       });
       break;
     }
