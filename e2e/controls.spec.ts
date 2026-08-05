@@ -11,8 +11,8 @@ async function createCrew(pageA: Page, pageB: Page): Promise<string> {
   await pageB.click('#screen-main [data-act="join"]');
   await pageB.fill('#join-code', code);
   await pageB.click('#join-go');
-  await pageA.click('#create-ready');
-  await pageB.click('#ready-go');
+  await pageA.click('#lobby-ready');
+  await pageB.click('#lobby-ready');
   for (const p of [pageA, pageB]) {
     await p.waitForFunction(
       () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running',

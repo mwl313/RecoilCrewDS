@@ -25,8 +25,8 @@ async function createCrew(a: Page, b: Page): Promise<string> {
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');
-  await a.click('#create-ready');
-  await b.click('#ready-go');
+  await a.click('#lobby-ready');
+  await b.click('#lobby-ready');
   for (const p of [a, b]) {
     await p.waitForFunction(
       () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running',
@@ -89,8 +89,8 @@ test('checksum mismatch blocks gameplay with an error screen', async ({ browser 
   await b.click('#join-go');
   // Corrupt the driver's reconstruction before the match starts.
   await a.evaluate(() => (window as unknown as { __recoil: Recoil }).__recoil.corruptArenaChecksum(12345));
-  await a.click('#create-ready');
-  await b.click('#ready-go');
+  await a.click('#lobby-ready');
+  await b.click('#lobby-ready');
 
   await a.waitForFunction(
     () => (window as unknown as { __recoil: Recoil }).__recoil.flow() === 'error',

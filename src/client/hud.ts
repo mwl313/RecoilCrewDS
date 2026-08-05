@@ -6,6 +6,8 @@ import { registerDefaultUiComponents } from './presentation/uiComponents';
 import { HudProjector, type HudProjectionContext } from './presentation/hudViewModel';
 import { HudRuntime } from './presentation/hudRuntime';
 import type { PresentationWorldFactory } from './presentation/presentationWorld';
+import { LobbyView } from './lobby/lobbyView';
+import type { ClientLobbyState, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
 
 export interface HudHandlers extends AppFlowHandlers {}
 
@@ -23,9 +25,11 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string): HTMLEle
 export class Hud {
   root: HTMLElement;
   private readonly flow: SceneFlowPresenter;
+  private readonly screensHost: HTMLElement;
   private readonly hudRuntime: HudRuntime;
   private readonly projector = new HudProjector();
   private handlers: Partial<HudHandlers> = {};
+  private lobbyView: LobbyView | null = null;
   onUiSound: (() => void) | null = null;
 
   private sound() {
@@ -37,6 +41,7 @@ export class Hud {
     document.getElementById('app')!.appendChild(this.root);
 
     const screens = el('div', 'screens');
+    this.screensHost = screens;
     this.root.appendChild(screens);
     const registry = new UiComponentRegistry();
     registerDefaultUiComponents(registry);
@@ -76,11 +81,49 @@ export class Hud {
   }
 
   showScreen(name: string) {
+    if (name !== 'lobby') this.hideLobby();
     this.flow.showState(name as FlowStateId);
   }
 
   setGameScreen(show: boolean) {
+    if (show) this.hideLobby();
     this.flow.setGameVisible(show);
+  }
+
+  showLobby(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
+    if (!this.lobbyView) {
+      this.lobbyView = new LobbyView(this.screensHost, {
+        onSelectSeat: (seat) => this.handlers.onLobbySeat?.(seat),
+        onReadyToggle: () => this.handlers.onLobbyReadyToggle?.(),
+        onSendChat: (text) => this.handlers.onLobbyChatSend?.(text),
+        onLeave: () => this.handlers.onLeave?.(),
+        onCopy: (code) => this.handlers.onCopyRoomCode?.(code),
+      });
+    }
+    this.lobbyView.update(state, chat, localPlayerId);
+    this.flow.setGameVisible(false);
+    // Hide every presentation scene so only the lobby view is visible.
+    const presenter = this.flow as unknown as { runtimes: Map<string, { element?: HTMLElement | null }> };
+    for (const runtime of presenter.runtimes.values()) {
+      runtime.element?.classList.add('hidden');
+    }
+  }
+
+  updateLobbyState(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
+    this.lobbyView?.update(state, chat, localPlayerId);
+  }
+
+  hideLobby() {
+    this.lobbyView?.dispose();
+    this.lobbyView = null;
+  }
+
+  setMainMenuNickname(nickname: string) {
+    this.flow.setSceneContext('scene.mainMenu', { currentNickname: `PLAYING AS: ${nickname}` });
+  }
+
+  setSettingsContext(patch: Record<string, unknown>) {
+    this.flow.setSceneContext('scene.settings', patch);
   }
 
   setTheme(theme: 'driver' | 'gunner' | 'singlePlayer') {
