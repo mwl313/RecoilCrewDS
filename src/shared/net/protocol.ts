@@ -19,7 +19,7 @@ export interface HordeStageView {
  * Progression08: selectUpgrade client message added (bumped deliberately;
  * snapshots already carry the full progression state for reconnect).
  */
-export const PROTOCOL_VERSION = 7;
+export const PROTOCOL_VERSION = 8;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -30,11 +30,30 @@ export interface ProtocolEnvelope {
 
 export interface CreateMessage extends ProtocolEnvelope {
   t: 'create';
+  displayName?: string;
 }
 
 export interface JoinMessage extends ProtocolEnvelope {
   t: 'join';
   code: string;
+  displayName?: string;
+}
+
+export interface LobbySelectSeatMessage extends ProtocolEnvelope {
+  t: 'lobbySelectSeat';
+  seat: 'driver' | 'gunner' | null;
+  lobbyRevision: number;
+}
+
+export interface LobbyReadySetMessage extends ProtocolEnvelope {
+  t: 'lobbyReadySet';
+  ready: boolean;
+  lobbyRevision: number;
+}
+
+export interface LobbyChatSendMessage extends ProtocolEnvelope {
+  t: 'lobbyChatSend';
+  text: string;
 }
 
 export interface RejoinMessage extends ProtocolEnvelope {
@@ -107,6 +126,9 @@ export type ClientMessage =
   | RejoinMessage
   | PingMessage
   | ReadyMessage
+  | LobbySelectSeatMessage
+  | LobbyReadySetMessage
+  | LobbyChatSendMessage
   | DriverInputMessage
   | GunnerInputMessage
   | GunnerActionMessage
