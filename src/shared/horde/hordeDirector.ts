@@ -169,16 +169,15 @@ export class HordeDirector {
       const packId = def.reinforcementPackIds[0];
       const pack = this.resolved.packs.get(packId);
       if (pack) {
-        // Spawn every authored entry — never collapse a pack to entries[0].
-        const perEntryCost = pack.threatCost / Math.max(1, pack.entries.length);
-        for (const entry of pack.entries) {
-          const resolved = this.resolveEntry(entry);
-          if (waves.spendReinforcement(runtime.waveId, perEntryCost, resolved, entry.count, entry.formationRole)) {
-            this.lastSelectedPack = packId;
-          } else {
-            // Reserve exhausted or entity cap reached: stop this tick.
-            break;
-          }
+        // Atomic reinforcement pack: preflight budget/cap/definitions/wave
+        // state, then spawn every authored entry or none.
+        const entries = pack.entries.map((entry) => ({
+          enemyId: this.resolveEntry(entry),
+          count: Math.max(0, entry.count),
+          formationRole: entry.formationRole,
+        }));
+        if (waves.spendReinforcementPack(runtime.waveId, pack.threatCost, entries)) {
+          this.lastSelectedPack = packId;
         }
       }
     }
@@ -225,24 +224,26 @@ export class HordeDirector {
       if (pack) {
         const plan = this.ctx.spawnPlanner.plan(pack, isBoss ? 'boss' : 'wave');
         const positions = plan?.positions ?? [];
-        let positionOffset = 0;
-        pack.entries.forEach((entry, entryIndex) => {
-          const count = Math.max(0, entry.count);
-          const entryPositions = positions.slice(positionOffset, positionOffset + count);
-          positionOffset += count;
-          this.ctx.waves.spawnCohort(
-            runtime.waveId,
-            this.resolveEntry(entry),
-            count,
-            entryIndex === 0 ? pack.threatCost : 0,
-            entryPositions.length > 0 ? entryPositions : undefined,
-            entry.formationRole,
-          );
-        });
+        const entries = pack.entries.map((entry) => ({
+          enemyId: this.resolveEntry(entry),
+          count: Math.max(0, entry.count),
+          formationRole: entry.formationRole,
+        }));
+        // Atomic opening pack: every authored entry spawns or none does.
+        if (entries.some((e) => !this.ctx.enemies.defById(e.enemyId))) continue;
+        this.ctx.waves.spawnCohortPack(
+          runtime.waveId,
+          entries,
+          pack.threatCost,
+          positions.length > 0 ? positions : undefined,
+        );
       }
     }
+    // Boss-intro presentation is emitted once at the deferred intro start
+    // (see onStageEvent). Activation uses a distinct semantic label so the
+    // incoming sting can never replay.
     pushEvent(this.ctx, 'assist', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {
-      label: isBoss ? 'BOSS INCOMING' : `WAVE ${waveId} INCOMING`,
+      label: isBoss ? 'BOSS ENGAGED' : `WAVE ${waveId} INCOMING`,
     });
   }
 

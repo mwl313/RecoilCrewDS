@@ -26,13 +26,23 @@ const definitionOrderHash = createHash('sha256')
   .update(JSON.stringify(order), 'utf8')
   .digest('hex');
 
-const legacyTypeByDefId: Record<string, string> = {
-  'enemy.scrapBug': 'scrapBug',
-  'enemy.rammer': 'rammer',
-  'enemy.gunTower': 'gunTower',
-  'enemy.lootTruck': 'lootTruck',
-  'enemy.testHound': 'testHound',
-};
+// Exact runtime type for every validated enemy definition (never a partial
+// handwritten map): legacy types keep their wire type, monsters are
+// 'monster', and scrapBugHorde stays a real scrapBug.
+const runtimeTypeByDefId: Record<string, string> = {};
+for (const id of order) {
+  runtimeTypeByDefId[id] = pack.getEnemy(id).type;
+}
+
+// Formation roles are authored on spawn-pack entries; emit the stable
+// sorted order so replication can use one compact index.
+const formationRoles = new Set<string>();
+for (const id of pack.ids('spawnPacks')) {
+  for (const entry of pack.getSpawnPack(id).entries) {
+    if (entry.formationRole) formationRoles.add(entry.formationRole);
+  }
+}
+const formationRoleOrder = [...formationRoles].sort();
 
 const body = `/**
  * AUTO-GENERATED — do not edit by hand.
@@ -43,7 +53,10 @@ export const ENEMY_DEFINITION_ORDER: readonly string[] = ${JSON.stringify(order)
 /** Deterministic hash of the sorted definition order (protocol gate). */
 export const ENEMY_DEFINITION_ORDER_HASH = '${definitionOrderHash}';
 export const ENEMY_DEFINITION_INDEX: Readonly<Record<string, number>> = ${JSON.stringify(index, null, 2)};
-export const LEGACY_ENEMY_TYPE_BY_DEF_ID: Readonly<Record<string, string>> = ${JSON.stringify(legacyTypeByDefId, null, 2)};
+/** Exact runtime type for every enemy definition (generated from content). */
+export const ENEMY_RUNTIME_TYPE_BY_DEF_ID: Readonly<Record<string, string>> = ${JSON.stringify(runtimeTypeByDefId, null, 2)};
+/** Stable authored formation-role order used by compact ownership encoding. */
+export const ENEMY_FORMATION_ROLE_ORDER: readonly string[] = ${JSON.stringify(formationRoleOrder)};
 `;
 
 mkdirSync(OUT_DIR, { recursive: true });

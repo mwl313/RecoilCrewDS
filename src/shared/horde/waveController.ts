@@ -145,6 +145,65 @@ export class WaveController {
     return true;
   }
 
+  /**
+   * Atomic multi-entry pack spawn (second-pass): every authored entry spawns
+   * or none does. Preflight covers wave state, every definition, total count,
+   * and total threat before any enemy is created. Positions are consumed in
+   * entry order when supplied; otherwise a deterministic ring is used.
+   */
+  spawnCohortPack(
+    waveId: number,
+    entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
+    threatCost: number,
+    positions?: Array<{ x: number; z: number }>,
+  ): boolean {
+    const runtime = this.waves.get(waveId);
+    if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
+    const totalCount = entries.reduce((sum, e) => sum + Math.max(0, e.count), 0);
+    if (totalCount === 0) return false;
+    for (const entry of entries) {
+      if (entry.count < 0) return false;
+      if (!this.ctx.enemies.defById(entry.enemyId)) return false;
+    }
+    const leader = this.ctx.state.enemies.find((e) => e.id === runtime.leaderId);
+    const anchor = leader ?? this.ctx.state.tank;
+    const packInstanceId = this.packInstanceCounter++;
+    let positionIndex = 0;
+    for (const entry of entries) {
+      const def = this.ctx.enemies.defById(entry.enemyId)!;
+      for (let i = 0; i < entry.count; i++) {
+        const px = positions?.[positionIndex]?.x;
+        const pz = positions?.[positionIndex]?.z;
+        positionIndex++;
+        if (px === undefined || pz === undefined) {
+          const angle = (i / Math.max(1, entry.count)) * Math.PI * 2;
+          this.ctx.enemies.spawnEnemyDef(def, anchor.x + Math.sin(angle) * (4 + i), anchor.z + Math.cos(angle) * (4 + i), {
+            populationClass: 'wave',
+            waveId,
+            leaderId: runtime.leaderId,
+            packInstanceId,
+            spawnAnchorId: null,
+            purgeOnLeaderDeath: true,
+            formationRole: entry.formationRole,
+          });
+          continue;
+        }
+        this.ctx.enemies.spawnEnemyDef(def, px, pz, {
+          populationClass: 'wave',
+          waveId,
+          leaderId: runtime.leaderId,
+          packInstanceId,
+          spawnAnchorId: null,
+          purgeOnLeaderDeath: true,
+          formationRole: entry.formationRole,
+        });
+      }
+    }
+    runtime.activeWaveEntities += totalCount;
+    runtime.activeWaveThreat += threatCost;
+    return true;
+  }
+
   /** Spend from the finite reinforcement reserve (no spending after death). */
   spendReinforcement(
     waveId: number,
@@ -159,6 +218,28 @@ export class WaveController {
     const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
     if (runtime.activeWaveEntities + count > cap) return false;
     const ok = this.spawnCohort(waveId, packEnemyId, count, threatCost, undefined, formationRole);
+    if (!ok) return false;
+    runtime.reinforcementThreatRemaining -= threatCost;
+    this.emitWaveEvent('reinforcementSpawned', runtime);
+    return true;
+  }
+
+  /**
+   * Atomic reinforcement pack spend: preflight the whole pack (reserve,
+   * entity cap, definitions, wave state), then spawn all entries or none.
+   */
+  spendReinforcementPack(
+    waveId: number,
+    threatCost: number,
+    entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
+  ): boolean {
+    const runtime = this.waves.get(waveId);
+    if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
+    if (threatCost > runtime.reinforcementThreatRemaining) return false;
+    const totalCount = entries.reduce((sum, e) => sum + Math.max(0, e.count), 0);
+    const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
+    if (runtime.activeWaveEntities + totalCount > cap) return false;
+    const ok = this.spawnCohortPack(waveId, entries, threatCost);
     if (!ok) return false;
     runtime.reinforcementThreatRemaining -= threatCost;
     this.emitWaveEvent('reinforcementSpawned', runtime);

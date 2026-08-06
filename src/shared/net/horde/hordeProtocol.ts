@@ -5,8 +5,10 @@ import { ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER } from '../../../generated/e
 import {
   ENEMY_DEFINITION_INDEX,
   ENEMY_DEFINITION_ORDER,
-  LEGACY_ENEMY_TYPE_BY_DEF_ID,
+  ENEMY_FORMATION_ROLE_ORDER,
+  ENEMY_RUNTIME_TYPE_BY_DEF_ID,
 } from '../../../generated/enemyDefinitionIndex.generated';
+import { ENEMY_DEFINITION_SIZE_TIER } from '../../../generated/monsterDimensions.generated';
 
 /**
  * Core Loop 06 M9: typed horde replication records. Enemy transforms are
@@ -26,7 +28,8 @@ export interface HordeSnapshotBlock {
   seq: number;
   /**
    * Materialize: [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags,
-   * profileIndex, yq, vyq, impulseTick] for newly seen enemies.
+   * profileIndex, yq, vyq, impulseTick, classIndex, waveId, leaderId,
+   * ownershipFlags, formationRoleIndex] for newly seen enemies.
    */
   materialize: number[][];
   /** Semantic presentation cues: [id, sequence, actionIndex, startTick, durationTicks]. */
@@ -130,6 +133,7 @@ export function encodeMaterialize(e: EnemyState): number[] {
     quantizeY(e.y),
     quantizeVy(e.impulseVy ?? 0),
     quantizeImpulseTick(e.lastImpulseT),
+    ...encodeOwnership(e),
   ];
 }
 
@@ -155,9 +159,53 @@ export function enemyDefinitionIdForIndex(index: number): string | undefined {
   return ENEMY_DEFINITION_ORDER[index - 1];
 }
 
-/** Exact client type: legacy types keep their wire type, monsters are 'monster'. */
+/** Exact client type: generated from content for every definition. */
 export function typeForDefinitionId(defId: string): string {
-  return LEGACY_ENEMY_TYPE_BY_DEF_ID[defId] ?? 'monster';
+  const type = ENEMY_RUNTIME_TYPE_BY_DEF_ID[defId];
+  if (!type) throw new Error(`unknown enemy definition id '${defId}'`);
+  return type;
+}
+
+// ------------------------------------------------------------- ownership
+
+/** Compact ownership class index: 0 = no ownership, 1..4 = population class. */
+const OWNERSHIP_CLASS_ORDER = ['none', 'ambient', 'wave', 'boss', 'special'] as const;
+
+export const OWNERSHIP_FLAG_LEADER = 1;
+export const OWNERSHIP_FLAG_PURGE = 2;
+export const OWNERSHIP_FLAG_BOSS = 4;
+export const OWNERSHIP_FLAG_ELITE = 8;
+
+/** Presentation priority: 0 = ordinary, 1 = elite, 2 = boss. */
+export function ownershipPriority(e: EnemyState): 0 | 1 | 2 {
+  const meta = e.defId ? ENEMY_DEFINITION_SIZE_TIER[e.defId] : undefined;
+  if (!meta) return 0;
+  return meta.tier === 'boss' ? 2 : meta.tier === 'elite' ? 1 : 0;
+}
+
+/**
+ * Compact ownership metadata appended to each materialize record:
+ * [classIndex, waveId, leaderId, ownershipFlags, formationRoleIndex].
+ * waveId/leaderId use 0 for null; formationRoleIndex is 1-based into the
+ * generated role order (0 = none). Ownership flag bit layout:
+ *   bit0 leader/featured, bit1 purgeOnLeaderDeath,
+ *   bit2 boss priority, bit3 elite priority.
+ */
+export function encodeOwnership(e: EnemyState): number[] {
+  const o = e.ownership;
+  const priority = ownershipPriority(e);
+  let flags = 0;
+  if (o?.leaderId === e.id) flags |= OWNERSHIP_FLAG_LEADER;
+  if (o?.purgeOnLeaderDeath) flags |= OWNERSHIP_FLAG_PURGE;
+  if (priority === 2) flags |= OWNERSHIP_FLAG_BOSS;
+  if (priority === 1) flags |= OWNERSHIP_FLAG_ELITE;
+  return [
+    o ? Math.max(0, OWNERSHIP_CLASS_ORDER.indexOf(o.populationClass)) : 0,
+    o?.waveId ?? 0,
+    o?.leaderId ?? 0,
+    flags,
+    o?.formationRole ? ENEMY_FORMATION_ROLE_ORDER.indexOf(o.formationRole) + 1 : 0,
+  ];
 }
 
 /** Semantic presentation actions (Idle/Walk/Attack/Death) with a tiny codec. */

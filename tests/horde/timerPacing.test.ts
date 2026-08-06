@@ -107,6 +107,22 @@ describe('timer pause, phase pacing, and boss intro (bug-fix phase 4)', () => {
     expect(e.monster?.spawnLevel).toBe(MAIN_STAGE_CURVE.bossPhaseLevel);
   });
 
+  it('emits BOSS INCOMING exactly once and BOSS ENGAGED exactly once', { timeout: 30_000 }, () => {
+    const m = makeMatch();
+    step(m, 61);
+    killWaveLeader(m);
+    step(m, 61);
+    killWaveLeader(m);
+    stepUntilBossWave(m);
+    const introEvents = m.takeEvents().filter((e) => e.label === 'BOSS INCOMING');
+    expect(introEvents.length).toBe(1);
+    step(m, 5);
+    const engagedEvents = m.takeEvents().filter((e) => e.label === 'BOSS ENGAGED');
+    expect(engagedEvents.length).toBe(1);
+    // No second BOSS INCOMING at activation.
+    expect(m.takeEvents().filter((e) => e.label === 'BOSS INCOMING').length).toBe(0);
+  });
+
   it('freezes the farming clock at 60 during a long wave 2', { timeout: 30_000 }, () => {
     const m = makeMatch();
     step(m, 61);

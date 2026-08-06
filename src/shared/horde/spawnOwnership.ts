@@ -15,6 +15,8 @@ export interface SpawnOwnership {
   purgeOnLeaderDeath: boolean;
   /** Authored pack-entry formation role (line/support/vanguard/...). */
   formationRole?: string;
+  /** Replicated presentation priority: 0 none, 1 elite, 2 boss. */
+  priority?: 0 | 1 | 2;
 }
 
 export function isWaveOwned(ownership: SpawnOwnership | undefined, waveId: number | null): boolean {

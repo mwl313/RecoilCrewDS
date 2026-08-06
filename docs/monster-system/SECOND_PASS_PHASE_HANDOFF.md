@@ -197,3 +197,72 @@ npm run test:demo                    PASS (golden unchanged)
 
 Phase 4 (transforms/ownership/atomic packs) and Phase 5 (qualification)
 remain.
+
+---
+
+## Phase 4 — Transforms, ownership, and atomic packs
+
+### Commits
+
+```text
+<pending>  monster-fix2: preserve transforms ownership and atomic packs
+```
+
+### Transforms / aggregate terrain
+
+Profile rotation and full vector scale composition shipped in Phase 1's
+production helper and are re-verified here (world-bounds tests). Aggregate
+sectors sample the world ground-height function at the sector center and
+use a measured local foot offset, so raised terrain and LOD transitions stay
+vertically consistent.
+
+### Boss intro
+
+`BOSS INCOMING` is emitted once at the deferred intro start. Boss activation
+now emits the distinct `BOSS ENGAGED` label, so the incoming sting can never
+replay.
+
+### Atomic packs
+
+`WaveController.spawnCohortPack` / `spendReinforcementPack` preflight wave
+state, every entry definition, total entity count, and threat budget, then
+spawn every authored entry or none (shared pack instance id). Opening packs
+and reinforcements both route through the atomic path.
+
+### Generated runtime typing
+
+`ENEMY_RUNTIME_TYPE_BY_DEF_ID` is generated from validated content for every
+definition (no partial handwritten map); `enemy.scrapBugHorde` is a real
+scrapBug. `ENEMY_FORMATION_ROLE_ORDER` is generated from spawn-pack content
+for compact ownership encoding. `enemy.testHound` correctly resolves to its
+validated content type `scrapBug` (there is no `testHound` runtime type in
+the schema).
+
+### Compact ownership replication
+
+Materialize records append `[classIndex, waveId, leaderId, ownershipFlags,
+formationRoleIndex]` (documented bit layout: leader, purge, boss priority,
+elite priority). Clients reconstruct population class, wave id, leader/
+featured state, purge semantics, formation role, and elite/boss animation
+priority; the LOD selector now keeps priority-1/2 enemies at hero tier.
+
+### Tests added/updated
+
+```text
+tests/horde/waveController.test.ts       (atomic all-or-none packs, cap/unknown-def preflight)
+tests/horde/timerPacing.test.ts          (BOSS INCOMING exactly once, BOSS ENGAGED once)
+tests/horde/hordeReplication.test.ts     (scrapBugHorde typing, ownership round-trip, priority)
+tests/animation/lod.test.ts              (replicated priority -> hero tier)
+```
+
+### Gates run
+
+```text
+npx tsc --noEmit                     PASS
+npm test                             PASS (145 files / 1074 tests)
+npm run test:demo                    PASS (golden unchanged)
+```
+
+### Handoff notes
+
+Phase 5 (full qualification incl. browser rounds and visual review) remains.

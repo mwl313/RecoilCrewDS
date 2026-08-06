@@ -571,6 +571,79 @@ describe('generalized monster identity (bug-fix phase 1)', () => {
     expect(typeForDefinitionId('enemy.scrapBug')).toBe('scrapBug');
   });
 
+  it('generated runtime typing covers every definition including scrapBugHorde', () => {
+    expect(typeForDefinitionId('enemy.scrapBugHorde')).toBe('scrapBug');
+    expect(typeForDefinitionId('enemy.rammer')).toBe('rammer');
+    expect(typeForDefinitionId('enemy.gunTower')).toBe('gunTower');
+    expect(typeForDefinitionId('enemy.lootTruck')).toBe('lootTruck');
+    // enemy.testHound is content-defined with the validated scrapBug type
+    // (there is no 'testHound' runtime type in the schema); the generated
+    // map reproduces the exact validated type.
+    expect(typeForDefinitionId('enemy.testHound')).toBe('scrapBug');
+    expect(typeForDefinitionId('enemy.quaternius.alien')).toBe('monster');
+    expect(typeForDefinitionId('enemy.quaternius.yeti-high-detail.elite')).toBe('monster');
+  });
+
+  it('round-trips scrapBugHorde as an exact scrapBug definition', () => {
+    const e = roundTrip('enemy.scrapBugHorde');
+    expect(e.type).toBe('scrapBug');
+    expect(e.defId).toBe('enemy.scrapBugHorde');
+    expect(e.defId).not.toBe('enemy.scrapBug');
+  });
+
+  it('replicates compact ownership metadata with elite/boss priority', () => {
+    const client = new HordeReplicationClient(() => 0);
+    const boss = monster(701, 'enemy.quaternius.ninja-high-detail.boss', profileFor('enemy.quaternius.ninja-high-detail.boss'));
+    boss.ownership = {
+      populationClass: 'boss',
+      waveId: 3,
+      leaderId: 701,
+      packInstanceId: 42,
+      spawnAnchorId: null,
+      purgeOnLeaderDeath: false,
+      formationRole: 'vanguard',
+    };
+    const elite = monster(702, 'enemy.quaternius.ninja-high-detail', profileFor('enemy.quaternius.ninja-high-detail'));
+    elite.ownership = {
+      populationClass: 'wave',
+      waveId: 1,
+      leaderId: null,
+      packInstanceId: 7,
+      spawnAnchorId: null,
+      purgeOnLeaderDeath: true,
+      formationRole: 'line',
+    };
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(boss), encodeMaterialize(elite)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    const b = client.enemies.get(701)!;
+    expect(b.ownership?.populationClass).toBe('boss');
+    expect(b.ownership?.waveId).toBe(3);
+    expect(b.ownership?.leaderId).toBe(701);
+    expect(b.ownership?.purgeOnLeaderDeath).toBe(false);
+    expect(b.ownership?.formationRole).toBe('vanguard');
+    expect(b.ownership?.priority).toBe(2);
+    const el = client.enemies.get(702)!;
+    expect(el.ownership?.populationClass).toBe('wave');
+    expect(el.ownership?.waveId).toBe(1);
+    expect(el.ownership?.leaderId).toBeNull();
+    expect(el.ownership?.purgeOnLeaderDeath).toBe(true);
+    expect(el.ownership?.formationRole).toBe('line');
+    expect(el.ownership?.priority).toBe(1);
+  });
+
   it('preserves exact definition identity in aggregate sectors', () => {
     const sector = {
       sectorId: 9,

@@ -238,6 +238,7 @@ export class NetworkStatePresenter {
         enemyId: entry.e.id,
         distance: entry.distance,
         populationClass: entry.e.ownership?.populationClass,
+        priority: entry.e.ownership?.priority ?? 0,
         telegraphing: entry.e.telegraph > 0,
         attacking: isAttackingEnemyState(entry.e),
         damagedRecently: entry.e.flash > 0 || lastImpulse > deps.time() - 0.5,

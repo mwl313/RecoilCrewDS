@@ -17,6 +17,10 @@ import {
   HORDE_FLAG_TELEGRAPH,
   enemyDefinitionIdForIndex,
   presentationProfileIdForIndex,
+  OWNERSHIP_FLAG_BOSS,
+  OWNERSHIP_FLAG_ELITE,
+  OWNERSHIP_FLAG_LEADER,
+  OWNERSHIP_FLAG_PURGE,
   semanticActionIdForIndex,
   semanticActionIndex,
   typeForDefinitionId,
@@ -31,6 +35,7 @@ import {
 } from './hordeProtocol';
 import type { HordeSectorState } from '../../horde/hordeSectors';
 import { encodeSector } from './hordeProtocol';
+import { ENEMY_FORMATION_ROLE_ORDER } from '../../../generated/enemyDefinitionIndex.generated';
 
 interface LastRecord {
   xq: number;
@@ -216,7 +221,25 @@ export class HordeReplicationClient {
 
   apply(block: HordeSnapshotBlock, time: number): EnemyState[] {
     for (const rec of block.materialize) {
-      const [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags, profileIndex, yq = 0, vyq = 0, impulseTick = 0] = rec;
+      const [
+        id,
+        defIndex,
+        xq,
+        zq,
+        yawq,
+        hpq,
+        maxHpq,
+        flags,
+        profileIndex,
+        yq = 0,
+        vyq = 0,
+        impulseTick = 0,
+        classIndex = 0,
+        waveId = 0,
+        leaderId = 0,
+        ownershipFlags = 0,
+        formationRoleIndex = 0,
+      ] = rec;
       const x = dequantizeXZ(xq);
       const z = dequantizeXZ(zq);
       const defId = enemyDefinitionIdForIndex(defIndex);
@@ -252,6 +275,29 @@ export class HordeReplicationClient {
       };
       if (enemy.impulseGrounded && enemy.lastImpulseT === undefined) {
         enemy.impulseVy = 0;
+      }
+      if (classIndex > 0) {
+        const classes = ['ambient', 'wave', 'boss', 'special'] as const;
+        enemy.ownership = {
+          populationClass: classes[Math.min(classes.length - 1, classIndex - 1)] ?? 'ambient',
+          waveId: waveId === 0 ? null : waveId,
+          leaderId: leaderId === 0 ? null : leaderId,
+          packInstanceId: 0,
+          spawnAnchorId: null,
+          purgeOnLeaderDeath: (ownershipFlags & OWNERSHIP_FLAG_PURGE) !== 0,
+          ...((ownershipFlags & OWNERSHIP_FLAG_LEADER) !== 0 ? { leaderId: enemy.id } : {}),
+          ...(formationRoleIndex > 0
+            ? {
+                formationRole:
+                  ENEMY_FORMATION_ROLE_ORDER[Math.max(0, formationRoleIndex - 1)],
+              }
+            : {}),
+          priority: (ownershipFlags & OWNERSHIP_FLAG_BOSS) !== 0
+            ? 2
+            : (ownershipFlags & OWNERSHIP_FLAG_ELITE) !== 0
+              ? 1
+              : 0,
+        };
       }
       this.enemies.set(id, enemy);
     }
