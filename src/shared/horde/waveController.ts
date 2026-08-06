@@ -105,6 +105,7 @@ export class WaveController {
     count: number,
     threatCost: number,
     positions?: Array<{ x: number; z: number }>,
+    formationRole?: string,
   ): boolean {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
@@ -125,6 +126,7 @@ export class WaveController {
           packInstanceId,
           spawnAnchorId: null,
           purgeOnLeaderDeath: true,
+          formationRole,
         });
         continue;
       }
@@ -135,6 +137,7 @@ export class WaveController {
         packInstanceId,
         spawnAnchorId: null,
         purgeOnLeaderDeath: true,
+        formationRole,
       });
     }
     runtime.activeWaveEntities += count;
@@ -143,13 +146,19 @@ export class WaveController {
   }
 
   /** Spend from the finite reinforcement reserve (no spending after death). */
-  spendReinforcement(waveId: number, threatCost: number, packEnemyId: string, count: number): boolean {
+  spendReinforcement(
+    waveId: number,
+    threatCost: number,
+    packEnemyId: string,
+    count: number,
+    formationRole?: string,
+  ): boolean {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     if (threatCost > runtime.reinforcementThreatRemaining) return false;
     const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
     if (runtime.activeWaveEntities + count > cap) return false;
-    const ok = this.spawnCohort(waveId, packEnemyId, count, threatCost);
+    const ok = this.spawnCohort(waveId, packEnemyId, count, threatCost, undefined, formationRole);
     if (!ok) return false;
     runtime.reinforcementThreatRemaining -= threatCost;
     this.emitWaveEvent('reinforcementSpawned', runtime);

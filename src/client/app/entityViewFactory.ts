@@ -38,6 +38,11 @@ export class EntityViewFactory {
     const model = instance.root;
     const group = new THREE.Group();
     group.add(model);
+    // Test/telemetry diagnostics: exact identity on the rendered rig.
+    group.userData.enemyId = e.id;
+    group.userData.defId = e.defId ?? '';
+    group.userData.presentationProfile = resolution.profileId;
+    group.userData.type = e.type;
     applyProfileTransform(group, profile.transform);
     scene.add(group);
     const materials = collectMaterials(model);

@@ -13,6 +13,8 @@ export interface SpawnOwnership {
   packInstanceId: number;
   spawnAnchorId: number | null;
   purgeOnLeaderDeath: boolean;
+  /** Authored pack-entry formation role (line/support/vanguard/...). */
+  formationRole?: string;
 }
 
 export function isWaveOwned(ownership: SpawnOwnership | undefined, waveId: number | null): boolean {

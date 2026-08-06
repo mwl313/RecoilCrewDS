@@ -22,7 +22,7 @@
     "generate:map-profiles": "tsx scripts/generate-map-profile-bundle.ts",
     "generate:presentation-content": "tsx scripts/generate-presentation-content.ts",
     "generate:enemy-animation-content": "tsx scripts/generate-enemy-animation-content.ts",
-    "generate:content-pack": "tsx scripts/generate-content-pack.ts",
+    "generate:content-pack": "tsx scripts/generate-enemy-definition-index.ts && tsx scripts/generate-content-pack.ts",
     "dev:maplab": "vite --config tools/maplab/vite.config.ts",
     "dev:presentation-preview": "vite --config tools/presentation-preview/vite.config.ts",
     "dev:animation-preview": "vite --config tools/enemy-animation-preview/vite.config.ts",

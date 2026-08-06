@@ -11,10 +11,11 @@ import {
   HORDE_FLAG_ALIVE,
   HORDE_FLAG_FLASH,
   HORDE_FLAG_TELEGRAPH,
-  materializeTypeName,
+  enemyDefinitionIdForIndex,
   presentationProfileIdForIndex,
   semanticActionIdForIndex,
   semanticActionIndex,
+  typeForDefinitionId,
   quantizeHp,
   quantizeXZ,
   quantizeYaw,
@@ -194,14 +195,15 @@ export class HordeReplicationClient {
 
   apply(block: HordeSnapshotBlock, time: number): EnemyState[] {
     for (const rec of block.materialize) {
-      const [id, typeIndex, xq, zq, yawq, hpq, maxHpq, , profileIndex] = rec;
+      const [id, defIndex, xq, zq, yawq, hpq, maxHpq, , profileIndex] = rec;
       const x = dequantizeXZ(xq);
       const z = dequantizeXZ(zq);
-      const type = materializeTypeName(typeIndex) as EnemyType;
+      const defId = enemyDefinitionIdForIndex(defIndex) ?? '';
+      const type = typeForDefinitionId(defId) as EnemyType;
       const enemy: EnemyState = {
         id,
         type,
-        defId: typeDefId(type),
+        defId,
         x,
         y: this.groundY(x, z),
         z,
@@ -272,21 +274,6 @@ export class HordeReplicationClient {
   reset(): void {
     this.enemies.clear();
     this.sectors.clear();
-  }
-}
-
-function typeDefId(type: EnemyType): string {
-  switch (type) {
-    case 'scrapBug':
-      return 'enemy.scrapBug';
-    case 'rammer':
-      return 'enemy.rammer';
-    case 'gunTower':
-      return 'enemy.gunTower';
-    case 'lootTruck':
-      return 'enemy.lootTruck';
-    default:
-      return `enemy.${type}`;
   }
 }
 

@@ -76,6 +76,28 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
       return s?.phase === 'running';
     });
   }
+  // Exact generalized identity on both clients: a monster with the run's
+  // close-fodder defId must exist and never reconstruct as Scrap Bug.
+  const closeFodder = (runDriver as { phases: Array<{ closeFodderEnemyId: string }> }).phases[0].closeFodderEnemyId;
+  for (const page of [driver, gunner]) {
+    await page.waitForFunction(
+      (defId) => {
+        const s = (window as unknown as {
+          __recoil: { state(): { enemies: Array<{ type: string; defId: string }> } };
+        }).__recoil.state();
+        return s.enemies.some((e) => e.type === 'monster' && e.defId === defId);
+      },
+      closeFodder,
+      { timeout: 60_000 },
+    );
+    const bad = await page.evaluate(() => {
+      const s = (window as unknown as {
+        __recoil: { state(): { enemies: Array<{ type: string; defId: string }> } };
+      }).__recoil.state();
+      return s.enemies.filter((e) => e.type === 'monster' && (e.defId === '' || e.defId === 'enemy.scrapBug'));
+    });
+    expect(bad).toEqual([]);
+  }
   // Qualification guard: keep the idle tank alive so ambient/wave pressure
   // cannot end the run before the boss encounter is exercised.
   await driver.evaluate(() => {

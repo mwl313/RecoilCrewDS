@@ -156,9 +156,18 @@ export class HordeDirector {
       runtime.reinforcementAccumulator -= 1;
       const packId = def.reinforcementPackIds[0];
       const pack = this.resolved.packs.get(packId);
-      const entry = pack?.entries[0];
-      if (pack && entry && waves.spendReinforcement(runtime.waveId, pack.threatCost, this.resolveEntry(entry), entry.count)) {
-        this.lastSelectedPack = packId;
+      if (pack) {
+        // Spawn every authored entry — never collapse a pack to entries[0].
+        const perEntryCost = pack.threatCost / Math.max(1, pack.entries.length);
+        for (const entry of pack.entries) {
+          const resolved = this.resolveEntry(entry);
+          if (waves.spendReinforcement(runtime.waveId, perEntryCost, resolved, entry.count, entry.formationRole)) {
+            this.lastSelectedPack = packId;
+          } else {
+            // Reserve exhausted or entity cap reached: stop this tick.
+            break;
+          }
+        }
       }
     }
   }
@@ -188,15 +197,22 @@ export class HordeDirector {
     for (const packId of def.openingPackIds) {
       const pack = this.resolved.packs.get(packId);
       if (pack) {
-        const totalCount = pack.entries.reduce((sum, e) => sum + e.count, 0);
         const plan = this.ctx.spawnPlanner.plan(pack, isBoss ? 'boss' : 'wave');
-        this.ctx.waves.spawnCohort(
-          runtime.waveId,
-          this.resolveEntry(pack.entries[0]),
-          totalCount,
-          pack.threatCost,
-          plan?.positions,
-        );
+        const positions = plan?.positions ?? [];
+        let positionOffset = 0;
+        pack.entries.forEach((entry, entryIndex) => {
+          const count = Math.max(0, entry.count);
+          const entryPositions = positions.slice(positionOffset, positionOffset + count);
+          positionOffset += count;
+          this.ctx.waves.spawnCohort(
+            runtime.waveId,
+            this.resolveEntry(entry),
+            count,
+            entryIndex === 0 ? pack.threatCost : 0,
+            entryPositions.length > 0 ? entryPositions : undefined,
+            entry.formationRole,
+          );
+        });
       }
     }
     pushEvent(this.ctx, 'assist', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {

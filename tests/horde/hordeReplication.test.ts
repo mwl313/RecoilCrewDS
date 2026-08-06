@@ -19,6 +19,12 @@ import {
   type HordeSnapshotBlock,
 } from '../../src/shared/net/horde/hordeProtocol';
 import { ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER } from '../../src/generated/enemyAnimationContent.generated';
+import { loadContentPackFromFilesystem } from '../../src/shared/content/contentLoader';
+import {
+  decodeSector,
+  encodeSector,
+  typeForDefinitionId,
+} from '../../src/shared/net/horde/hordeProtocol';
 
 function enemy(id: number, x: number, z: number, yaw: number, hp: number, alive = true): EnemyState {
   return {
@@ -40,6 +46,15 @@ function enemy(id: number, x: number, z: number, yaw: number, hp: number, alive 
     flash: 0,
     spawnT: 0,
     hitCd: 0,
+  };
+}
+
+function monster(id: number, defId: string, profileId: string): EnemyState {
+  return {
+    ...enemy(id, 0, 0, 0, 10),
+    type: 'monster',
+    defId,
+    presentationProfileId: profileId,
   };
 }
 
@@ -290,5 +305,92 @@ describe('HordeReplicationClient (client, M9)', () => {
     }, 0);
     client.reset();
     expect(client.enemies.size).toBe(0);
+  });
+});
+
+describe('generalized monster identity (bug-fix phase 1)', () => {
+  const pack = loadContentPackFromFilesystem('content');
+  const profileFor = (defId: string) => pack.getEnemy(defId).presentationProfileId!;
+
+  function roundTrip(defId: string) {
+    const m = monster(700, defId, profileFor(defId));
+    const client = new HordeReplicationClient(() => 0);
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(m)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    return client.enemies.get(700)!;
+  }
+
+  it('round-trips an ordinary melee monster (Ninja) with exact identity', () => {
+    const e = roundTrip('enemy.quaternius.ninja');
+    expect(e.type).toBe('monster');
+    expect(e.defId).toBe('enemy.quaternius.ninja');
+    expect(e.presentationProfileId).toBe(profileFor('enemy.quaternius.ninja'));
+  });
+
+  it('round-trips a ranged monster (Wizard) with exact identity', () => {
+    const e = roundTrip('enemy.quaternius.wizard');
+    expect(e.type).toBe('monster');
+    expect(e.defId).toBe('enemy.quaternius.wizard');
+  });
+
+  it('round-trips a specialist with exact identity', () => {
+    const e = roundTrip('enemy.quaternius.orc-enemy');
+    expect(e.type).toBe('monster');
+    expect(e.defId).toBe('enemy.quaternius.orc-enemy');
+  });
+
+  it('round-trips an elite (Demon elite) with exact identity', () => {
+    const e = roundTrip('enemy.quaternius.demon-high-detail.elite');
+    expect(e.type).toBe('monster');
+    expect(e.defId).toBe('enemy.quaternius.demon-high-detail.elite');
+    expect(e.presentationProfileId).toBe(profileFor('enemy.quaternius.demon-high-detail.elite'));
+  });
+
+  it('round-trips a boss (Ninja boss) with exact identity', () => {
+    const e = roundTrip('enemy.quaternius.ninja-high-detail.boss');
+    expect(e.type).toBe('monster');
+    expect(e.defId).toBe('enemy.quaternius.ninja-high-detail.boss');
+    expect(e.presentationProfileId).toBe(profileFor('enemy.quaternius.ninja-high-detail.boss'));
+  });
+
+  it('never reconstructs a generalized monster as a Scrap Bug', () => {
+    expect(typeForDefinitionId('enemy.quaternius.ninja')).toBe('monster');
+    expect(typeForDefinitionId('enemy.quaternius.wizard')).toBe('monster');
+    expect(typeForDefinitionId('enemy.quaternius.demon-high-detail.elite')).toBe('monster');
+    expect(typeForDefinitionId('enemy.quaternius.ninja-high-detail.boss')).toBe('monster');
+    expect(typeForDefinitionId('enemy.scrapBug')).toBe('scrapBug');
+  });
+
+  it('preserves exact definition identity in aggregate sectors', () => {
+    const sector = {
+      sectorId: 9,
+      enemyDefId: 'enemy.quaternius.wizard',
+      count: 5,
+      centerX: 10,
+      centerZ: -20,
+      flowDx: 0.3,
+      flowDz: -0.2,
+      populationClass: 'wave' as const,
+      waveId: 1,
+      threat: 5,
+      presentationSeed: 9,
+    };
+    const decoded = decodeSector(encodeSector(sector));
+    expect(decoded.enemyDefId).toBe('enemy.quaternius.wizard');
+    expect(decoded.enemyDefId).not.toBe('enemy.scrapBug');
+    expect(decoded.count).toBe(5);
   });
 });

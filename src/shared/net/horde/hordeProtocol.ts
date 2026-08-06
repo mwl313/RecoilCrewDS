@@ -2,6 +2,11 @@ import type { EnemyState } from '../../types';
 import type { HordeSectorState } from '../../horde/hordeSectors';
 import type { PopulationClass } from '../../horde/spawnOwnership';
 import { ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER } from '../../../generated/enemyAnimationContent.generated';
+import {
+  ENEMY_DEFINITION_INDEX,
+  ENEMY_DEFINITION_ORDER,
+  LEGACY_ENEMY_TYPE_BY_DEF_ID,
+} from '../../../generated/enemyDefinitionIndex.generated';
 
 /**
  * Core Loop 06 M9: typed horde replication records. Enemy transforms are
@@ -19,7 +24,7 @@ export interface HordeWaveState {
 
 export interface HordeSnapshotBlock {
   seq: number;
-  /** [id, type, xq, zq, yawq, hpq, maxHpq, flags, profileIndex] for newly seen enemies. */
+  /** [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags, profileIndex] for newly seen enemies. */
   materialize: number[][];
   /** Semantic presentation cues: [id, sequence, actionIndex, startTick, durationTicks]. */
   cues: number[][];
@@ -34,7 +39,7 @@ export interface HordeSnapshotBlock {
   /** Tier 2/3 deltas (coalesced, change-driven). */
   far: number[][];
   /**
-   * Aggregate far sectors: [sectorId, typeIndex, count, xq, zq, flowDxq,
+   * Aggregate far sectors: [sectorId, defIndex, count, xq, zq, flowDxq,
    * flowDzq, classIndex, waveId, threatq].
    */
   sectors: number[][];
@@ -79,7 +84,7 @@ export function flagsFor(e: EnemyState): number {
 export function encodeMaterialize(e: EnemyState): number[] {
   return [
     e.id,
-    materializeTypeIndex(e.type),
+    enemyDefinitionIndex(e.defId ?? ''),
     quantizeXZ(e.x),
     quantizeXZ(e.z),
     quantizeYaw(e.yaw),
@@ -100,6 +105,21 @@ export function presentationProfileIndex(e: EnemyState): number {
 export function presentationProfileIdForIndex(index: number): string | undefined {
   if (!Number.isInteger(index) || index <= 0) return undefined;
   return ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER[index - 1];
+}
+
+/** 0 = unknown; otherwise 1-based index into the generated definition order. */
+export function enemyDefinitionIndex(defId: string): number {
+  return ENEMY_DEFINITION_INDEX[defId] ?? 0;
+}
+
+export function enemyDefinitionIdForIndex(index: number): string | undefined {
+  if (!Number.isInteger(index) || index <= 0) return undefined;
+  return ENEMY_DEFINITION_ORDER[index - 1];
+}
+
+/** Exact client type: legacy types keep their wire type, monsters are 'monster'. */
+export function typeForDefinitionId(defId: string): string {
+  return LEGACY_ENEMY_TYPE_BY_DEF_ID[defId] ?? 'monster';
 }
 
 /** Semantic presentation actions (Idle/Walk/Attack/Death) with a tiny codec. */
@@ -152,7 +172,7 @@ const CLASS_ORDER: PopulationClass[] = ['ambient', 'wave', 'boss', 'special'];
 export function encodeSector(s: HordeSectorState): number[] {
   return [
     s.sectorId,
-    materializeTypeIndex(s.enemyDefId.startsWith('enemy.scrapBug') ? 'scrapBug' : s.enemyDefId.replace('enemy.', '')),
+    enemyDefinitionIndex(s.enemyDefId),
     s.count,
     quantizeXZ(s.centerX),
     quantizeXZ(s.centerZ),
@@ -165,11 +185,11 @@ export function encodeSector(s: HordeSectorState): number[] {
 }
 
 export function decodeSector(rec: number[]): HordeSectorState {
-  const [sectorId, typeIndex, count, xq, zq, flowDxq, flowDzq, classIndex, waveId, threatq] = rec;
-  const typeName = materializeTypeName(typeIndex);
+  const [sectorId, defIndex, count, xq, zq, flowDxq, flowDzq, classIndex, waveId, threatq] = rec;
+  const enemyDefId = enemyDefinitionIdForIndex(defIndex) ?? '';
   return {
     sectorId,
-    enemyDefId: typeName === 'scrapBug' ? 'enemy.scrapBug' : `enemy.${typeName}`,
+    enemyDefId,
     count,
     centerX: dequantizeXZ(xq),
     centerZ: dequantizeXZ(zq),
