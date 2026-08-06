@@ -128,6 +128,8 @@ export class GameClient {
         });
         return resolution.profile.aggregateModelAssetId ? resolution.profile : null;
       },
+      512,
+      (x, z) => this.arenaWorld.groundHeightAt(x, z),
     );
     this.xpShards = new XpShardRenderer(deps.world.scene);
   }
@@ -466,6 +468,8 @@ export class GameClient {
     this.registry.reset();
     this.presenter.reset();
     this.prediction.reset();
+    this.aggregateSectors.reset();
+    this.xpShards.reset();
     this.singlePlayerAcc = 0;
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;

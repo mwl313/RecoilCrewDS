@@ -25,6 +25,7 @@ import {
   resolveMonsterDimensionsForDefId,
   type ResolvedMonsterDimensions,
 } from '../../shared/monsters/monsterNormalization';
+import { applyMonsterScaleAndOffset } from './monsterTransform';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
@@ -247,30 +248,7 @@ export function applyProfileTransform(
   if (transform.rotation) group.rotation.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]);
 }
 
-/**
- * Bug-fix scale/grounding: normalize the raw model to the authoritative
- * resolved envelope (tier scale included) and place its feet on the terrain
- * plane. Authored presentation offsets scale with the model.
- */
-export function applyMonsterScaleAndOffset(
-  model: THREE.Object3D,
-  transform: EnemyPresentationProfileDefinition['transform'] | undefined,
-  dims: ResolvedMonsterDimensions,
-): void {
-  const profileScale =
-    transform?.scale === undefined
-      ? 1
-      : typeof transform.scale === 'number'
-        ? transform.scale
-        : transform.scale[0];
-  model.scale.setScalar(dims.finalScale * profileScale);
-  const position = transform?.position;
-  model.position.set(
-    (position?.[0] ?? 0) * dims.finalScale,
-    (position?.[1] ?? 0) * dims.finalScale - dims.groundOffset,
-    (position?.[2] ?? 0) * dims.finalScale,
-  );
-}
+export { applyMonsterScaleAndOffset } from './monsterTransform';
 
 export function applyShadowPolicy(model: THREE.Object3D, rules: AnimationShadowRules): void {
   model.traverse((obj) => {

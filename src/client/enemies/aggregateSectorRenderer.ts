@@ -3,6 +3,7 @@ import type { AssetService } from '../assets';
 import type { EnemyPresentationProfileDefinition } from '../../shared/animation/animationProfileTypes';
 import { ENEMY_DEFINITION_SIZE_TIER } from '../../generated/monsterDimensions.generated';
 import { resolveMonsterDimensionsForDefId } from '../../shared/monsters/monsterNormalization';
+import { localFootOffset } from '../app/monsterTransform';
 
 export interface AggregateSectorRecord {
   sectorId: number;
@@ -26,6 +27,8 @@ interface AggregateGroup {
   capacity: number;
   loaded: boolean;
   procedural: boolean;
+  /** Profile id -> measured local foot offset at profile scale/rotation. */
+  footOffsets: Map<string, number>;
 }
 
 /**
@@ -48,6 +51,7 @@ export class AggregateSectorRenderer {
     private readonly assets: AssetService,
     private readonly resolveProfile: AggregateSectorResolver,
     private readonly capacityPerAsset = 512,
+    private readonly groundHeightAt: (x: number, z: number) => number = () => 0,
   ) {}
 
   update(sectors: readonly AggregateSectorRecord[], tankX: number, tankZ: number): void {
@@ -77,14 +81,35 @@ export class AggregateSectorRenderer {
       for (const sector of list) {
         if (index >= group.capacity) break;
         group.slots.set(sector.sectorId, index);
+        const profile = this.resolveProfile(sector);
         const dims =
           sector.enemyDefId && ENEMY_DEFINITION_SIZE_TIER[sector.enemyDefId]
             ? resolveMonsterDimensionsForDefId(sector.enemyDefId)
             : undefined;
-        this.dummy.position.set(sector.x, dims?.groundOffset ?? 0, sector.z);
-        this.dummy.rotation.set(0, (sector.presentationSeed % 360) * (Math.PI / 180), 0);
-        const scale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, sector.count)) * 0.25, 0.7, 1.8);
-        this.dummy.scale.setScalar(dims ? dims.finalScale * scale : scale);
+        const profileScale = profile?.transform?.scale;
+        const sx = typeof profileScale === 'number' ? profileScale : (profileScale?.[0] ?? 1);
+        const sy = typeof profileScale === 'number' ? profileScale : (profileScale?.[1] ?? 1);
+        const sz = typeof profileScale === 'number' ? profileScale : (profileScale?.[2] ?? 1);
+        const crowdScale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, sector.count)) * 0.25, 0.7, 1.8);
+        const dimsScale = dims?.finalScale ?? 1;
+        const k = dimsScale * crowdScale;
+        const rotation = profile?.transform?.rotation;
+        const yaw = (sector.presentationSeed % 360) * (Math.PI / 180);
+        this.dummy.rotation.set(rotation?.[0] ?? 0, (rotation?.[1] ?? 0) + yaw, rotation?.[2] ?? 0);
+        this.dummy.scale.set(sx * k, sy * k, sz * k);
+        // foot0 is the root-to-foot distance at profile scale; it scales
+        // linearly with the sector's finalScale x crowdScale multiplier.
+        const foot0 = profile
+          ? this.footOffsetFor(profile, group)
+          : dims
+            ? dims.groundOffset / dimsScale
+            : 0;
+        const position = profile?.transform?.position;
+        this.dummy.position.set(
+          sector.x + (position?.[0] ?? 0) * k,
+          this.groundHeightAt(sector.x, sector.z) + foot0 * k + (position?.[1] ?? 0) * k,
+          sector.z + (position?.[2] ?? 0) * k,
+        );
         this.dummy.updateMatrix();
         for (const mesh of group.instanced) mesh.setMatrixAt(index, this.dummy.matrix);
         index++;
@@ -138,6 +163,7 @@ export class AggregateSectorRenderer {
             capacity: this.capacityPerAsset,
             loaded: true,
             procedural: false,
+            footOffsets: new Map(),
           });
           // Re-apply sectors now that the group exists (async load).
           this.update(this.lastSectors, this.lastTankX, this.lastTankZ);
@@ -170,7 +196,42 @@ export class AggregateSectorRenderer {
       capacity: this.capacityPerAsset,
       loaded: true,
       procedural: true,
+      footOffsets: new Map(),
     });
+  }
+
+  /**
+   * Measured local foot offset for one profile/asset pair. The aggregate
+   * prototype is posed with the profile rotation + full vector scale at
+   * position 0; the resulting foot offset scales linearly with the sector's
+   * `dims.finalScale x crowdScale`, so it is measured once per profile.
+   */
+  private footOffsetFor(
+    profile: EnemyPresentationProfileDefinition,
+    group: AggregateGroup,
+  ): number {
+    const cached = group.footOffsets.get(profile.id);
+    if (cached !== undefined) return cached;
+    if (group.procedural) {
+      // Procedural cone foot sits at its base (local minY = 0).
+      const offset = 0;
+      group.footOffsets.set(profile.id, offset);
+      return offset;
+    }
+    const prototype = group.root;
+    prototype.rotation.set(0, 0, 0);
+    prototype.scale.set(1, 1, 1);
+    prototype.position.set(0, 0, 0);
+    const rotation = profile.transform?.rotation;
+    if (rotation) prototype.rotation.set(rotation[0], rotation[1], rotation[2]);
+    const scale = profile.transform?.scale;
+    const sx = typeof scale === 'number' ? scale : (scale?.[0] ?? 1);
+    const sy = typeof scale === 'number' ? scale : (scale?.[1] ?? 1);
+    const sz = typeof scale === 'number' ? scale : (scale?.[2] ?? 1);
+    prototype.scale.set(sx, sy, sz);
+    const offset = localFootOffset(prototype);
+    group.footOffsets.set(profile.id, offset);
+    return offset;
   }
 
   private disposeGroup(key: string, group: AggregateGroup): void {
