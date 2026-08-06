@@ -1,0 +1,101 @@
+{
+  "id": "enemyGameplayRoster.quaternius.mainStage",
+  "label": "Quaternius Main Stage Gameplay Roster",
+  "phaseDurationSeconds": 60,
+  "ordinaryMix": {
+    "closeFodder": 0.5,
+    "rangedFodder": 0.3,
+    "specialist": 0.2
+  },
+  "featuredWaves": [
+    { "waveIndex": 1, "eliteCount": 1 },
+    { "waveIndex": 2, "eliteCount": 1 }
+  ],
+  "maximumSupportedEliteCountPerWave": 2,
+  "bossEscortCount": [4, 6],
+  "featuredIdentities": [
+    {
+      "identityId": "featuredMonster.alienHighDetail",
+      "label": "Alien",
+      "eliteEnemyId": "enemy.quaternius.alien-high-detail",
+      "bossEnemyId": "enemy.quaternius.alien-high-detail.boss",
+      "selectionWeight": 1
+    },
+    {
+      "identityId": "featuredMonster.cactoroHighDetail",
+      "label": "Cactoro",
+      "eliteEnemyId": "enemy.quaternius.cactoro-high-detail",
+      "bossEnemyId": "enemy.quaternius.cactoro-high-detail.boss",
+      "selectionWeight": 1
+    },
+    {
+      "identityId": "featuredMonster.fishHighDetail",
+      "label": "Fish",
+      "eliteEnemyId": "enemy.quaternius.fish-high-detail",
+      "bossEnemyId": "enemy.quaternius.fish-high-detail.boss",
+      "selectionWeight": 1
+    },
+    {
+      "identityId": "featuredMonster.ninjaHighDetail",
+      "label": "Ninja",
+      "eliteEnemyId": "enemy.quaternius.ninja-high-detail",
+      "bossEnemyId": "enemy.quaternius.ninja-high-detail.boss",
+      "selectionWeight": 1
+    },
+    {
+      "identityId": "featuredMonster.demonHighDetail",
+      "label": "Demon",
+      "eliteEnemyId": "enemy.quaternius.demon-high-detail.elite",
+      "bossEnemyId": "enemy.quaternius.demon-high-detail",
+      "selectionWeight": 1
+    },
+    {
+      "identityId": "featuredMonster.yetiHighDetail",
+      "label": "Yeti",
+      "eliteEnemyId": "enemy.quaternius.yeti-high-detail.elite",
+      "bossEnemyId": "enemy.quaternius.yeti-high-detail",
+      "selectionWeight": 1
+    }
+  ],
+  "ordinaryCandidates": [
+    { "enemyId": "enemy.quaternius.ninja", "slot": "closeFodder", "phaseWeights": [5, 2, 0] },
+    { "enemyId": "enemy.quaternius.alien", "slot": "closeFodder", "phaseWeights": [5, 2, 0] },
+    { "enemyId": "enemy.quaternius.birb", "slot": "closeFodder", "phaseWeights": [4, 2, 0] },
+    { "enemyId": "enemy.quaternius.bunny", "slot": "closeFodder", "phaseWeights": [4, 2, 0] },
+    { "enemyId": "enemy.quaternius.cat", "slot": "closeFodder", "phaseWeights": [3, 3, 0] },
+    { "enemyId": "enemy.quaternius.chicken", "slot": "closeFodder", "phaseWeights": [3, 3, 0] },
+    { "enemyId": "enemy.quaternius.frog", "slot": "closeFodder", "phaseWeights": [2, 4, 2] },
+    { "enemyId": "enemy.quaternius.mushnub", "slot": "closeFodder", "phaseWeights": [2, 4, 2] },
+    { "enemyId": "enemy.quaternius.glub", "slot": "closeFodder", "phaseWeights": [1, 4, 3] },
+    { "enemyId": "enemy.quaternius.green-blob", "slot": "closeFodder", "phaseWeights": [1, 4, 3] },
+    { "enemyId": "enemy.quaternius.pink-blob", "slot": "closeFodder", "phaseWeights": [0, 3, 4] },
+    { "enemyId": "enemy.quaternius.squidle", "slot": "closeFodder", "phaseWeights": [0, 3, 4] },
+    { "enemyId": "enemy.quaternius.wizard", "slot": "rangedFodder", "phaseWeights": [5, 2, 0] },
+    { "enemyId": "enemy.quaternius.pigeon", "slot": "rangedFodder", "phaseWeights": [4, 3, 0] },
+    { "enemyId": "enemy.quaternius.armabee", "slot": "rangedFodder", "phaseWeights": [4, 3, 0] },
+    { "enemyId": "enemy.quaternius.ghost", "slot": "rangedFodder", "phaseWeights": [2, 4, 2] },
+    { "enemyId": "enemy.quaternius.ghost-skull", "slot": "rangedFodder", "phaseWeights": [2, 4, 2] },
+    { "enemyId": "enemy.quaternius.hywirl", "slot": "rangedFodder", "phaseWeights": [2, 4, 2] },
+    { "enemyId": "enemy.quaternius.alpaking", "slot": "rangedFodder", "phaseWeights": [0, 3, 4] },
+    { "enemyId": "enemy.quaternius.yeti", "slot": "rangedFodder", "phaseWeights": [0, 2, 5] },
+    { "enemyId": "enemy.quaternius.cactoro", "slot": "rangedFodder", "phaseWeights": [0, 2, 5] },
+    { "enemyId": "enemy.quaternius.tribal", "slot": "specialist", "phaseWeights": [1, 4, 4] },
+    { "enemyId": "enemy.quaternius.fish", "slot": "specialist", "phaseWeights": [1, 4, 4] },
+    { "enemyId": "enemy.quaternius.orc-enemy", "slot": "specialist", "phaseWeights": [1, 4, 4] },
+    { "enemyId": "enemy.quaternius.blue-demon", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.mushroom-king", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.monkroose", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.orc", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.demon", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.goleling", "slot": "specialist", "phaseWeights": [0, 3, 5] },
+    { "enemyId": "enemy.quaternius.armabee-evolved", "slot": "specialist", "phaseWeights": [0, 2, 5] },
+    { "enemyId": "enemy.quaternius.alpaking-evolved", "slot": "specialist", "phaseWeights": [0, 2, 5] },
+    { "enemyId": "enemy.quaternius.mushnub-evolved", "slot": "specialist", "phaseWeights": [0, 2, 5] },
+    { "enemyId": "enemy.quaternius.dino", "slot": "specialist", "phaseWeights": [0, 2, 6] },
+    { "enemyId": "enemy.quaternius.dragon", "slot": "specialist", "phaseWeights": [0, 2, 6] },
+    { "enemyId": "enemy.quaternius.goleling-evolved", "slot": "specialist", "phaseWeights": [0, 0, 6] },
+    { "enemyId": "enemy.quaternius.dragon-evolved", "slot": "specialist", "phaseWeights": [0, 0, 6] },
+    { "enemyId": "enemy.quaternius.glub-evolved", "slot": "specialist", "phaseWeights": [0, 0, 6] },
+    { "enemyId": "enemy.quaternius.green-spiky-blob", "slot": "specialist", "phaseWeights": [0, 0, 6] }
+  ]
+}

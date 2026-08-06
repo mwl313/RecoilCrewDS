@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.alien-high-detail.boss",
+  "label": "Alien High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.alien-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.alien-high-detail.hero",
+  "stats": {
+    "hp": 220,
+    "speed": 3.4,
+    "threat": 45
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "punch",
+        "type": "melee",
+        "damage": 28,
+        "rate": 0.9,
+        "range": 4
+      },
+      {
+        "id": "spit",
+        "type": "ranged",
+        "damage": 20,
+        "rate": 0.45,
+        "range": 40,
+        "projectileId": "projectile.enemySpitShot",
+        "telegraphTime": 1
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

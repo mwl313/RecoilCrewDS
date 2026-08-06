@@ -159,6 +159,40 @@ export class ReferenceValidator {
     for (const rewards of this.registries.enemyXpRewards.all()) {
       this.checkCommon(issues, rewards, this.fileOf(rewards.id, this.registries.enemyXpRewards));
     }
+    for (const roster of this.registries.enemyGameplayRosters.all()) {
+      const file = this.fileOf(roster.id, this.registries.enemyGameplayRosters);
+      this.checkCommon(issues, roster, file);
+      for (const candidate of roster.ordinaryCandidates) {
+        const def = this.registries.enemies.get(candidate.enemyId);
+        if (!def) {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — unknown enemy reference`);
+          continue;
+        }
+        if (def.type !== 'monster') {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — must be a generalized monster`);
+          continue;
+        }
+        const okSlot =
+          candidate.slot === 'closeFodder'
+            ? def.tier === 'fodder' && def.attack.type === 'melee'
+            : candidate.slot === 'rangedFodder'
+              ? def.tier === 'fodder' && def.attack.type === 'ranged'
+              : def.tier === 'specialist';
+        if (!okSlot) {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — tier/attack does not match slot '${candidate.slot}'`);
+        }
+      }
+      for (const identity of roster.featuredIdentities) {
+        const elite = this.registries.enemies.get(identity.eliteEnemyId);
+        if (!elite || elite.type !== 'monster' || elite.tier !== 'elite') {
+          issues.push(`${file}: featuredIdentities.${identity.identityId}.eliteEnemyId — must reference an elite monster`);
+        }
+        const boss = this.registries.enemies.get(identity.bossEnemyId);
+        if (!boss || boss.type !== 'monster' || boss.tier !== 'boss') {
+          issues.push(`${file}: featuredIdentities.${identity.identityId}.bossEnemyId — must reference a boss monster`);
+        }
+      }
+    }
     for (const profile of this.registries.meleeEngagementProfiles.all()) {
       this.checkCommon(issues, profile, this.fileOf(profile.id, this.registries.meleeEngagementProfiles));
       if (profile.maximumSlots < profile.minimumSlots) {

@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.fish-high-detail.boss",
+  "label": "Fish High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.fish-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
+  "stats": {
+    "hp": 210,
+    "speed": 3.8,
+    "threat": 45
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "bite",
+        "type": "melee",
+        "damage": 30,
+        "rate": 0.9,
+        "range": 4
+      },
+      {
+        "id": "bubble",
+        "type": "ranged",
+        "damage": 18,
+        "rate": 0.5,
+        "range": 38,
+        "projectileId": "projectile.enemyBoneShot",
+        "telegraphTime": 0.9
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

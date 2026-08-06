@@ -6,6 +6,7 @@ import type { DropTableDefinition } from './schemas/dropTable';
 import type { EnemyDefinition } from './schemas/enemy';
 import type { EnemyLevelCurveDefinition } from './schemas/enemyLevelCurve';
 import type { EnemyXpRewardsDefinition } from './schemas/enemyXpRewards';
+import type { EnemyGameplayRosterDefinition } from './schemas/enemyGameplayRoster';
 import type { MeleeEngagementProfileDefinition } from './schemas/meleeEngagementProfile';
 import type { FurnitureSetDefinition } from './schemas/furnitureSet';
 import type { ItemDefinition, StatusEffectDefinition } from './schemas/item';
@@ -72,6 +73,7 @@ export const CONTENT_CATEGORIES = [
   'enemies',
   'enemyLevelCurves',
   'enemyXpRewards',
+  'enemyGameplayRosters',
   'meleeEngagementProfiles',
   'dropTables',
   'pickups',
@@ -128,6 +130,7 @@ export interface CategoryRegistries {
   enemies: DefinitionRegistry<EnemyDefinition>;
   enemyLevelCurves: DefinitionRegistry<EnemyLevelCurveDefinition>;
   enemyXpRewards: DefinitionRegistry<EnemyXpRewardsDefinition>;
+  enemyGameplayRosters: DefinitionRegistry<EnemyGameplayRosterDefinition>;
   meleeEngagementProfiles: DefinitionRegistry<MeleeEngagementProfileDefinition>;
   dropTables: DefinitionRegistry<DropTableDefinition>;
   pickups: DefinitionRegistry<PickupDefinition>;
@@ -275,6 +278,9 @@ export class ContentPack {
   }
   getEnemyXpRewards(id: string): EnemyXpRewardsDefinition {
     return this.require('enemyXpRewards', id);
+  }
+  getEnemyGameplayRoster(id: string): EnemyGameplayRosterDefinition {
+    return this.require('enemyGameplayRosters', id);
   }
   getMeleeEngagementProfile(id: string): MeleeEngagementProfileDefinition {
     return this.require('meleeEngagementProfiles', id);

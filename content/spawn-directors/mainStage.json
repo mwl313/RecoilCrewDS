@@ -1,0 +1,36 @@
+{
+  "id": "spawn.director.mainStage",
+  "label": "Main Stage Spawn Director",
+  "behaviors": ["behavior.spawnDirector.demo"],
+  "initialSpawns": [],
+  "bugPacing": {
+    "minActive": 1,
+    "maxActive": 1,
+    "rampPerSecond": 0.01,
+    "cap": 1
+  },
+  "rammerSpawns": [],
+  "towerSpawns": [],
+  "maxRammers": 0,
+  "maxTowers": 0,
+  "finalChaos": {
+    "start": 9999,
+    "rammerProbability": 0,
+    "rammerMax": 1,
+    "towerProbability": 0
+  },
+  "truck": {
+    "spawnTime": 9999,
+    "escapeTime": 9999,
+    "escapeShortcut": 8
+  },
+  "arena": {
+    "half": 200,
+    "maxPickups": 26
+  },
+  "props": {
+    "barrelHp": 3,
+    "barrelRadius": 2.4,
+    "barrelChainRadius": 6
+  }
+}

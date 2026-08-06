@@ -22,6 +22,7 @@ export const packManifestSchema = z.object({
       enemies: z.array(z.string()),
       enemyLevelCurves: z.array(z.string()).optional(),
       enemyXpRewards: z.array(z.string()).optional(),
+      enemyGameplayRosters: z.array(z.string()).optional(),
       meleeEngagementProfiles: z.array(z.string()).optional(),
       dropTables: z.array(z.string()),
       pickups: z.array(z.string()),

@@ -1,0 +1,27 @@
+{
+  "id": "mode.singlePlayerMainStage",
+  "label": "Single Player Main Stage",
+  "description": "Production single-player survival with combined controls and ×2 XP. Identical enemy difficulty to multiplayer.",
+  "mapProfileId": "map.rocketJumpHighlands",
+  "difficulty": "difficulty.standard",
+  "tank": "tank.default",
+  "loadout": "loadout.default",
+  "objectives": ["objective.mainStage"],
+  "spawnDirector": "spawn.director.mainStage",
+  "hordeDirector": "horde.mainStage.production",
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.mainStage",
+  "presentation": "presentation.demoScoreAttack",
+  "defaultCapabilities": ["cannon.charge"],
+  "progression": true,
+  "session": {
+    "kind": "singlePlayer",
+    "networkRequired": false,
+    "controlScheme": "combinedDriverAndGunner",
+    "showRoleIdentity": false,
+    "showPeerStatus": false,
+    "allowRoleSwap": false,
+    "resultsFlow": "localRestart"
+  },
+  "behaviors": ["behavior.mode.demoScoreAttack"]
+}

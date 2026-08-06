@@ -1,0 +1,37 @@
+{
+  "id": "mode.mainStage",
+  "label": "Main Stage",
+  "description": "Production multiplayer survival: three farming phases, two elite waves, and a boss finale. Boss death wins; tank destruction loses.",
+  "mapProfileId": "map.rocketJumpHighlands",
+  "difficulty": "difficulty.standard",
+  "tank": "tank.default",
+  "loadout": "loadout.default",
+  "objectives": ["objective.mainStage"],
+  "spawnDirector": "spawn.director.mainStage",
+  "hordeDirector": "horde.mainStage.production",
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.mainStage",
+  "presentation": "presentation.demoScoreAttack",
+  "defaultCapabilities": ["cannon.charge"],
+  "progression": true,
+  "session": {
+    "kind": "multiplayer",
+    "networkRequired": true,
+    "controlScheme": "assignedRole",
+    "showRoleIdentity": true,
+    "showPeerStatus": true,
+    "allowRoleSwap": false,
+    "resultsFlow": "crewRematchVote"
+  },
+  "rematch": {
+    "modifiers": [
+      "difficulty.doubleBarrel",
+      "difficulty.soapTracks",
+      "difficulty.moonYard",
+      "difficulty.volatileInventory",
+      "difficulty.scrapMagnet",
+      "difficulty.overclocked"
+    ]
+  },
+  "behaviors": ["behavior.mode.demoScoreAttack"]
+}

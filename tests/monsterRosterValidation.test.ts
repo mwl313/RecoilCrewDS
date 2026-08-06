@@ -19,16 +19,16 @@ describe('monster roster content', () => {
     .map((id) => pack.getEnemy(id))
     .filter((e) => e.type === 'monster');
 
-  it('contains 45 monsters: 39 ordinary, 4 elites, 2 bosses', () => {
-    expect(monsters).toHaveLength(45);
+  it('contains 51 monsters: 39 ordinary + 4+2 elites + 2+4 bosses (cross-role pool)', () => {
+    expect(monsters).toHaveLength(51);
     const tiers = monsters.reduce<Record<string, number>>((acc, m) => {
       if (m.type !== 'monster') return acc;
       acc[m.tier] = (acc[m.tier] ?? 0) + 1;
       return acc;
     }, {});
     expect(tiers.fodder + tiers.specialist).toBe(39);
-    expect(tiers.elite).toBe(4);
-    expect(tiers.boss).toBe(2);
+    expect(tiers.elite).toBe(6);
+    expect(tiers.boss).toBe(6);
   });
 
   it('every ordinary/elite has exactly one melee or ranged attack; bosses are mixed', () => {

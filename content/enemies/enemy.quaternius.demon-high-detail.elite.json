@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.demon-high-detail.elite",
+  "label": "Demon High Detail Elite",
+  "type": "monster",
+  "tier": "elite",
+  "sizeClass": "medium",
+  "tierScale": 3,
+  "presentationProfileId": "enemyPresentation.quaternius.demon-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
+  "stats": {
+    "hp": 65,
+    "speed": 3.2,
+    "threat": 8
+  },
+  "rewardClass": "elite",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "melee",
+    "damageModel": "contactDps",
+    "contactDps": 11,
+    "rate": 1.9,
+    "range": 2.5,
+    "engagementProfileId": "meleeEngagement.default"
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.meleeEngagement",
+      "parameters": {
+        "profileId": "meleeEngagement.default"
+      }
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.meleeCue",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "elite",
+    "melee",
+    "medium"
+  ]
+}
