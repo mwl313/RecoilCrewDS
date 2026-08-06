@@ -13,6 +13,9 @@ import {
   DemoScoreAttackModeRuntime,
 } from '../modes/demoScoreAttack';
 import { createSystemContext, type SystemContext } from './systems/systemContext';
+import { hash32 } from '../mapgen/seed';
+import { selectMonsterRun } from '../monsters/monsterRunSelection';
+import { resolveSelectedSlots } from '../monsters/monsterStage';
 import { resolveHordeDirector, type ResolvedHordeDirector } from '../horde/hordeDirector';
 import { LoadoutRuntime } from '../weapons/loadoutRuntime';
 import { WeaponSystem } from '../weapons/weaponSystem';
@@ -185,6 +188,7 @@ export class MatchRuntime {
     this.world = world ?? createStaticArenaWorld();
     this.state = initialState(matchId, this.rules, this.world);
     this.eventBus = new GameplayEventBus();
+    const monsterSlots = this.resolveMonsterSlots(matchId);
     this.systems = createSystemContext(
       this.state,
       this.rules,
@@ -196,6 +200,7 @@ export class MatchRuntime {
       this.simTick,
       hordeDirector ?? null,
       this.rules.sessionPolicy.kind === 'singlePlayer' ? 'singlePlayer' : 'multiplayer',
+      monsterSlots,
     );
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
@@ -211,6 +216,19 @@ export class MatchRuntime {
     // (telemetry); enforcement is enabled once a mode enables it through
     // the horde director, so the legacy Demo round stays byte-identical.
     this.systems.stage.start();
+  }
+
+  /**
+   * Production: build the deterministic selected-slot plan for the mode's
+   * gameplay roster (if any). Demo modes have no roster and stay null.
+   */
+  private resolveMonsterSlots(matchId: string): Record<string, string> | null {
+    const rosterId = this.rules.hordeDirector?.gameplayRosterId;
+    if (!rosterId) return null;
+    const roster = this.rules.enemyGameplayRosters.get(rosterId);
+    if (!roster) throw new Error(`gameplay roster '${rosterId}' missing from match rules`);
+    const run = selectMonsterRun(roster, hash32('monster-run', matchId));
+    return resolveSelectedSlots(roster, run);
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */

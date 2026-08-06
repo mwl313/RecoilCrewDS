@@ -11,6 +11,7 @@ import {
   type MonsterStageEvent,
 } from '../src/shared/monsters/monsterStage';
 import { monsterLevelAtTime } from '../src/shared/monsters/monsterDifficulty';
+import { MatchRuntime } from '../src/shared/sim/matchRuntime';
 
 const pack = loadContentPackFromFilesystem('content');
 const roster = pack.getEnemyGameplayRoster('enemyGameplayRoster.quaternius.mainStage');
@@ -100,5 +101,16 @@ describe('monster stage timeline', () => {
     expect(slots[wave2.leaderSlotId!]).toBe(run.eliteWaves[1][0].enemyId);
     const bossWave = pack.getBossWave('horde.bossWave.production');
     expect(slots[bossWave.bossSlotId!]).toBe(run.boss.enemyId);
+  });
+
+  it('production matches populate deterministic monster slots; demo stays null', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-match', 'none', 'mode.mainStage');
+    expect(prod.systems.monsterSlots).not.toBeNull();
+    const boss = prod.systems.monsterSlots!['selected.boss'];
+    expect(pack.has('enemies', boss)).toBe(true);
+    const again = MatchRuntime.fromContentPack(pack, 'prod-match', 'none', 'mode.mainStage');
+    expect(again.systems.monsterSlots).toEqual(prod.systems.monsterSlots);
+    const demo = MatchRuntime.fromContentPack(pack, 'demo-match');
+    expect(demo.systems.monsterSlots).toBeNull();
   });
 });
