@@ -18,6 +18,8 @@ import {
   resolveMonsterSpawnLock,
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
+import { mulberry32, type Rng } from '../mapgen/prng';
+import { hash32 } from '../mapgen/seed';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
 
@@ -43,9 +45,11 @@ export class EnemySystem {
   /** Production: deterministic melee engagement reservations (match-scoped). */
   readonly meleeReservations: MeleeReservationManager;
   private readonly runtimes = new Map<number, EnemyRuntimeState>();
+  private readonly spawnRng: Rng;
 
   constructor(private readonly ctx: SystemContext) {
     this.behaviors = createBuiltinEnemyBehaviors();
+    this.spawnRng = mulberry32(hash32('monsterSpawn', this.ctx.state.matchId));
     const profile =
       this.ctx.rules.meleeEngagementProfiles.get('meleeEngagement.default') ??
       DEFAULT_MELEE_ENGAGEMENT_PROFILE;
@@ -108,10 +112,11 @@ export class EnemySystem {
     let sz = z;
     if (sx === undefined || sz === undefined) {
       const gates = this.ctx.world.bugSpawns;
+      const rng = isMonster(def) ? this.spawnRng : Math.random;
       for (let i = 0; i < 12; i++) {
-        const g = gates[Math.floor(Math.random() * gates.length)];
-        const px = g.x + (Math.random() - 0.5) * 4;
-        const pz = g.z + (Math.random() - 0.5) * 4;
+        const g = gates[Math.floor(rng() * gates.length)];
+        const px = g.x + (rng() - 0.5) * 4;
+        const pz = g.z + (rng() - 0.5) * 4;
         if (dist2(px, pz, s.tank.x, s.tank.z) > 10 * 10) {
           sx = px;
           sz = pz;

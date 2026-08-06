@@ -250,4 +250,14 @@ describe('monster stage timeline', () => {
     const playerShell = prod.systems.projectiles.spawn(0, 1, 0, 1, 0, 0, 10, 'cannon', 5);
     expect(playerShell.team).toBe('player');
   });
+
+  it('monster spawn placement is deterministic across identical matches', () => {
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const a = MatchRuntime.fromContentPack(pack, 'prod-spawn-rng', 'none', 'mode.mainStage');
+    const b = MatchRuntime.fromContentPack(pack, 'prod-spawn-rng', 'none', 'mode.mainStage');
+    const ea = a.systems.enemies.spawnEnemyDef(def)!;
+    const eb = b.systems.enemies.spawnEnemyDef(def)!;
+    expect(ea.x).toBe(eb.x);
+    expect(ea.z).toBe(eb.z);
+  });
 });
