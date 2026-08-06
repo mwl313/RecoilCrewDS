@@ -21,7 +21,7 @@ test('single player runs a full local round with combined controls and local res
   // Single Player hides role/peer identity and shows the combined crosshair.
   await expect(page.locator('#role-chip')).toHaveClass(/hidden/);
   await expect(page.locator('#conn-dot')).toHaveClass(/hidden/);
-  await expect(page.locator('#ping')).toHaveClass(/hidden/);
+  await expect(page.locator('#ping')).toBeHidden();
   await expect(page.locator('#practice-tag')).toHaveCount(0);
   await expect(page.locator('#crosshair:not(.hidden)')).toBeVisible();
 

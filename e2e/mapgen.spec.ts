@@ -54,7 +54,7 @@ test('online matches run on the generated arena with checksum-gated metadata', a
   await createCrew(a, b);
 
   const meta = await a.evaluate(() => (window as unknown as { __recoil: Recoil }).__recoil.arena());
-  expect(meta?.mapProfileId).toBe('map.arena400Primary');
+  expect(meta?.mapProfileId).toBe('map.rocketJumpHighlands');
   expect(meta?.arenaFallbackUsed).toBe(false);
   expect(meta && meta.arenaChecksum > 0).toBe(true);
 

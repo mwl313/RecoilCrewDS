@@ -112,6 +112,14 @@ hud.bind({
   onBoot: () => {
     audio.unlock();
     hud.onUiSound = () => audio.play('ui');
+    // A mid-round rejoin can finish while the title-exit choreography is
+    // still pending. Never let that delayed callback reopen the menu over an
+    // already-active game/HUD.
+    if (flow === 'game') {
+      hud.setGameScreen(true);
+      return;
+    }
+    if (flow === 'results') return;
     hud.setMainMenuNickname(playerSettings.currentNickname);
     hud.showScreen('main');
     flow = 'main';

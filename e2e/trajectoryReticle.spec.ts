@@ -22,10 +22,14 @@ test('trajectory reticle stays on-screen in Single Player (no bottom-right drift
       w: window.innerWidth,
       h: window.innerHeight,
       transform: el.style.transform,
+      inlineLeft: el.style.left,
+      inlineTop: el.style.top,
     };
   });
   expect(box).not.toBeNull();
-  expect(box!.transform).toContain('translate(-50%, -50%) translate(');
+  expect(box!.transform).toBe('translate(-50%, -50%)');
+  expect(box!.inlineLeft).toMatch(/^\d+px$/);
+  expect(box!.inlineTop).toMatch(/^\d+px$/);
   // The reticle must never be pushed outside the viewport (the old bug put
   // it at the bottom-right corner because left/top px were applied inside a
   // CSS-transformed host).

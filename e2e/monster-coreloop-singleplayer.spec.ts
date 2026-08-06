@@ -36,12 +36,12 @@ test('production single player completes the full monster loop and rematches cle
     const w = window as unknown as { __recoil: { monster: { healTank(): void } } };
     const heal = w.__recoil.monster.healTank;
     heal();
-    setInterval(heal, 3000);
+    setInterval(heal, 250);
   });
 
   // Farming HUD: exact wave-timer label, monster level, no encounter bars.
   await expect(page.locator('#stage-wave-timer-label')).toHaveText('TIME UNTIL NEW WAVE');
-  await expect(page.locator('#stage-monster-level')).toHaveText(/^LV 1$/);
+  await expect(page.locator('#stage-monster-level')).toHaveText(/^MONSTER LV 1$/);
   await expect(page.locator('#encounter-elite1')).not.toBeVisible();
   await page.screenshot({ path: 'docs/monster-system/qualification-screenshots/sp-farming.png' });
 
