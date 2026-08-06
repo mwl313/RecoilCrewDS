@@ -213,4 +213,41 @@ describe('monster stage timeline', () => {
     expect(newShards.length).toBeLessThanOrEqual(5);
     expect(newShards.reduce((sum, sh) => sum + sh.value, 0)).toBe(eliteXp);
   });
+
+  it('ranged monsters telegraph before firing exactly one enemy-aligned projectile', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-ranged', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.wizard');
+    const foe = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x + 10, prod.state.tank.z);
+    if (!foe) throw new Error('wizard spawn failed');
+    let telegraphSeen = false;
+    for (let i = 0; i < 150; i++) {
+      prod.step(1 / 60);
+      if (foe.telegraph > 0) {
+        telegraphSeen = true;
+        break;
+      }
+    }
+    expect(telegraphSeen).toBe(true);
+    expect(prod.state.shells.filter((sh) => sh.kind === 'enemy')).toHaveLength(0);
+    for (let i = 0; i < 120; i++) prod.step(1 / 60);
+    const enemyShells = prod.state.shells.filter((sh) => sh.kind === 'enemy');
+    expect(enemyShells.length).toBeGreaterThanOrEqual(1);
+    expect(enemyShells[0].team).toBe('enemy');
+    expect(enemyShells[0].ownerEnemyId).toBe(foe.id);
+    expect(foe.telegraph).toBe(0);
+  });
+
+  it('death cancels a pending ranged shot and player shells default to team player', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-cancel', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.wizard');
+    const foe = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x + 10, prod.state.tank.z);
+    if (!foe) throw new Error('wizard spawn failed');
+    for (let i = 0; i < 150 && foe.telegraph === 0; i++) prod.step(1 / 60);
+    expect(foe.telegraph).toBeGreaterThan(0);
+    prod.systems.damage.applyEnemy(foe, 99999, 'test');
+    for (let i = 0; i < 180; i++) prod.step(1 / 60);
+    expect(prod.state.shells.filter((sh) => sh.kind === 'enemy')).toHaveLength(0);
+    const playerShell = prod.systems.projectiles.spawn(0, 1, 0, 1, 0, 0, 10, 'cannon', 5);
+    expect(playerShell.team).toBe('player');
+  });
 });

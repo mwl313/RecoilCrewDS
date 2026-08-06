@@ -546,8 +546,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (!atk || !atk.active) {
         atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
         runtime.attackRuntime = atk;
+        e.telegraph = attack.telegraphTime;
+        pushEvent(ctx, 'rammerTelegraph', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
       }
       const res = advanceAttackCycle(atk, s.time, () => {
+        e.telegraph = 0;
         const projectile = ctx.rules.projectiles.get(attack.projectileId);
         if (!projectile) return;
         const dx = s.tank.x - e.x;
@@ -574,6 +577,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             knockbackRadiusMultiplier: 1,
             knockbackFalloffExponent: 1,
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+            team: 'enemy',
+            ownerEnemyId: e.id,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
@@ -605,8 +610,13 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (!atk || !atk.active || atk.patternId !== pattern.id) {
         atk = startAttackCycle(s.time, pattern.rate, pattern.attackCueNormalized, runtime.attackSequence, pattern.id);
         runtime.attackRuntime = atk;
+        if (pattern.type === 'ranged') {
+          e.telegraph = pattern.telegraphTime;
+          pushEvent(ctx, 'rammerTelegraph', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });
+        }
       }
       const res = advanceAttackCycle(atk, s.time, () => {
+        e.telegraph = 0;
         // Boss damage is fixed (never level-scaled).
         if (pattern.type === 'melee') {
           if (s.tank.deadT <= 0) {
@@ -640,6 +650,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             knockbackRadiusMultiplier: 1,
             knockbackFalloffExponent: 1,
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+            team: 'enemy',
+            ownerEnemyId: e.id,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });

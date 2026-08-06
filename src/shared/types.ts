@@ -118,6 +118,9 @@ export interface XpShardState {
 export interface ShellState {
   id: number;
   kind: 'cannon' | 'tower' | 'enemy';
+  /** Projectile allegiance: enemy shells only affect the tank. */
+  team: 'player' | 'enemy';
+  ownerEnemyId?: number;
   /** Weapon that fired this shell (per-weapon knockback stats). */
   weaponId?: string;
   x: number;

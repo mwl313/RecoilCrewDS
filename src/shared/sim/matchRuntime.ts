@@ -646,6 +646,7 @@ export class MatchRuntime {
     e.alive = false;
     e.state = 'dead';
     e.stateT = 0;
+    e.telegraph = 0;
     if (e.type === 'lootTruck') {
       s.truck.active = false;
     }

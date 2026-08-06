@@ -114,7 +114,7 @@ describe('entity factory and registry', () => {
       expect(registry.upsertFodder(bug, 0)).toBe(true);
       registry.createEnemy({ ...bug, id: 2, type: 'rammer' });
       registry.createPickup({ id: 1, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
-      registry.createShell({ id: 1, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
+      registry.createShell({ id: 1, kind: 'cannon', team: 'player', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
       expect(registry.enemyRigs.size).toBe(1);
       expect(registry.pickupRigs.size).toBe(1);
       expect(registry.shellRigs.size).toBe(1);
@@ -142,7 +142,7 @@ describe('entity factory and registry', () => {
           registry.createEnemy({ ...bug, id: round * 10 + i, type: 'rammer' });
           registry.upsertFodder({ ...bug, id: round * 10 + i + 100 }, 0);
           registry.createPickup({ id: round * 10 + i, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
-          registry.createShell({ id: round * 10 + i, kind: 'cannon', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
+          registry.createShell({ id: round * 10 + i, kind: 'cannon', team: 'player', x: 0, y: 0, z: 0, vx: 1, vy: 0, vz: 0, life: 1 });
         }
         registry.reset();
         expect(registry.enemyRigs.size).toBe(0);
