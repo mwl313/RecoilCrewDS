@@ -189,4 +189,28 @@ describe('monster stage timeline', () => {
     const againOwners = againIds.filter((id) => again.systems.enemies.meleeReservedFor(id)).sort();
     expect(owners.sort()).toEqual(againOwners);
   });
+
+  it('monster kills award spawn-locked XP once via deterministic value-preserving bundles', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-xp', 'none', 'mode.mainStage');
+    const ambient = pack.getEnemy('enemy.quaternius.ninja');
+    const foe = prod.systems.enemies.spawnEnemyDef(ambient, 5, 5);
+    if (!foe) throw new Error('spawn failed');
+    const expected = foe.monster!.resolvedRewardXp;
+    prod.systems.damage.applyEnemy(foe, 99999, 'test');
+    expect(foe.monster!.xpAwarded).toBe(true);
+    const shards = prod.state.xpShards;
+    expect(shards).toHaveLength(1);
+    expect(shards.reduce((sum, sh) => sum + sh.value, 0)).toBe(expected);
+
+    const elite = pack.getEnemy('enemy.quaternius.alien-high-detail');
+    const leader = prod.systems.enemies.spawnEnemyDef(elite, 8, 8);
+    if (!leader) throw new Error('elite spawn failed');
+    const eliteXp = leader.monster!.resolvedRewardXp;
+    const before = prod.state.xpShards.length;
+    prod.systems.damage.applyEnemy(leader, 99999, 'test');
+    const newShards = prod.state.xpShards.slice(before);
+    expect(newShards.length).toBeGreaterThanOrEqual(3);
+    expect(newShards.length).toBeLessThanOrEqual(5);
+    expect(newShards.reduce((sum, sh) => sum + sh.value, 0)).toBe(eliteXp);
+  });
 });

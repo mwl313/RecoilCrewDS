@@ -84,6 +84,9 @@ export interface EnemyState {
     resolvedRewardXp: number;
     scaledContactDps?: number;
     scaledProjectileDamage?: number;
+    rewardClass: 'ambient' | 'wave' | 'elite' | 'boss';
+    /** Award-once guard for XP bundles. */
+    xpAwarded?: boolean;
   };
 }
 

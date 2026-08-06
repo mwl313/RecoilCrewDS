@@ -6,5 +6,11 @@
     "wave": { "base": 2, "perLevel": 2 },
     "elite": { "base": 40, "perLevel": 8 },
     "boss": { "base": 150, "perLevel": 0 }
+  },
+  "visualShardCounts": {
+    "ambient": [1, 1],
+    "wave": [1, 2],
+    "elite": [3, 5],
+    "boss": [6, 10]
   }
 }

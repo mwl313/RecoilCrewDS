@@ -394,6 +394,28 @@ export class ProgressionSystem {
     if (!this.isEnabled) return;
     const s = this.ctx.state;
     const enemy = s.enemies.find((e) => e.id === payload.enemy.id);
+    const monster = enemy?.monster;
+    if (monster) {
+      if (!monster.xpAwarded) {
+        monster.xpAwarded = true;
+        const rewardsDef = this.ctx.rules.enemyXpRewards.get('enemyXpRewards.mainStage');
+        const range = rewardsDef?.visualShardCounts[monster.rewardClass] ?? [1, 1];
+        const count = range[0] + (enemy!.id % (range[1] - range[0] + 1));
+        this.spawnXpBundle(monster.resolvedRewardXp, count, payload.enemy.x, payload.enemy.z);
+        this.ctx.eventBus.emit('progressionEvent', {
+          type: 'reward',
+          payload: {
+            kind: 'enemyKilled',
+            enemyId: payload.enemy.id,
+            enemyDefinitionId: enemy?.defId,
+            populationClass: monster.rewardClass === 'elite' ? 'special' : monster.rewardClass,
+            damageSource: payload.source,
+          } satisfies ProgressionRewardEvent,
+        });
+      }
+      this.dispatchTrigger({ type: 'enemyKilled', enemyId: payload.enemy.id, source: payload.source, weaponId: payload.weaponId });
+      return;
+    }
     const ownership = enemy?.ownership;
     const cls = ownership?.populationClass ?? 'ambient';
     const def = this.ctx.rules.progressionContent!;
@@ -441,6 +463,18 @@ export class ProgressionSystem {
     const def = this.ctx.rules.progressionContent;
     if (!def || value <= 0) return;
     this.ctx.xpShards.spawn(Math.max(1, Math.round(value)), x, z);
+  }
+
+  /** Deterministic value-preserving visual bundle for monster kills. */
+  private spawnXpBundle(value: number, count: number, x: number, z: number): void {
+    if (!this.isEnabled || value <= 0 || count <= 0) return;
+    const base = Math.floor(value / count);
+    const remainder = value % count;
+    for (let i = 0; i < count; i++) {
+      const shardValue = base + (i < remainder ? 1 : 0);
+      if (shardValue <= 0) continue;
+      this.ctx.xpShards.spawn(shardValue, x + (i - (count - 1) / 2) * 0.8, z);
+    }
   }
 
   private onDamageApplied(payload: { targetId: number | string; targetKind: string; source: DamageSource; weaponId?: string }): void {
