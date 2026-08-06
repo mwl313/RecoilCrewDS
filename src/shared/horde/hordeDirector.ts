@@ -71,6 +71,7 @@ export class HordeDirector {
   readonly population: PopulationManager;
   spawnBudget = 0;
   lastSelectedPack: string | null = null;
+  private lastFarmingPhase = -1;
   lastAnchor: { x: number; z: number } | null = null;
   anchorFailures = 0;
   currentWaveId: number | null = null;
@@ -101,6 +102,7 @@ export class HordeDirector {
   }
 
   private stepFarming(dt: number, tally: PopulationTally, phaseIndex: number): void {
+    this.refreshPhaseSlots(phaseIndex);
     const phase = this.resolved.farmingPhases[phaseIndex];
     const stage = this.ctx.stage;
     const progress = Math.max(0, Math.min(1, (phase.durationSeconds - stage.state.farmingTimeRemaining) / Math.max(0.001, phase.durationSeconds)));
@@ -126,6 +128,18 @@ export class HordeDirector {
     this.lastSelectedPack = pack.id;
     this.lastAnchor = { x: plan.anchor.x, z: plan.anchor.z };
     this.packCooldowns.set(pack.id, pack.cooldownSeconds ?? 1);
+  }
+
+  /** Production: rebind selected.phase.* to the current farming roster. */
+  private refreshPhaseSlots(phaseIndex: number): void {
+    if (phaseIndex === this.lastFarmingPhase) return;
+    this.lastFarmingPhase = phaseIndex;
+    const run = this.ctx.monsterRun;
+    if (!run || !this.ctx.monsterSlots) return;
+    const phase = run.phases[phaseIndex];
+    this.ctx.monsterSlots['selected.phase.closeFodder'] = phase.closeFodderEnemyId;
+    this.ctx.monsterSlots['selected.phase.rangedFodder'] = phase.rangedFodderEnemyId;
+    this.ctx.monsterSlots['selected.phase.specialist'] = phase.specialistEnemyId;
   }
 
   private stepWave(dt: number): void {

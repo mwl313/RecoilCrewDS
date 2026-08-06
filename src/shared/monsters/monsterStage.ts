@@ -142,6 +142,18 @@ export function resolveSelectedSlots(
   return slots;
 }
 
+/** Rebind the generic current-phase slots (farming packs) to a phase roster. */
+export function bindPhaseSlots(
+  slots: Record<string, string>,
+  run: SelectedMonsterRun,
+  phaseIndex: 0 | 1 | 2,
+): void {
+  const phase = run.phases[phaseIndex];
+  slots['selected.phase.closeFodder'] = phase.closeFodderEnemyId;
+  slots['selected.phase.rangedFodder'] = phase.rangedFodderEnemyId;
+  slots['selected.phase.specialist'] = phase.specialistEnemyId;
+}
+
 /** Resolve spawn-pack entries (enemyId or symbolic slotId) to concrete ids. */
 export function resolvePackSlotIds(
   entries: ReadonlyArray<{ enemyId?: string; slotId?: string }>,

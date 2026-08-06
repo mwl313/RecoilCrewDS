@@ -14,7 +14,7 @@ import {
 } from '../modes/demoScoreAttack';
 import { createSystemContext, type SystemContext } from './systems/systemContext';
 import { hash32 } from '../mapgen/seed';
-import { selectMonsterRun } from '../monsters/monsterRunSelection';
+import { selectMonsterRun, type SelectedMonsterRun } from '../monsters/monsterRunSelection';
 import { resolveSelectedSlots } from '../monsters/monsterStage';
 import { resolveHordeDirector, type ResolvedHordeDirector } from '../horde/hordeDirector';
 import { LoadoutRuntime } from '../weapons/loadoutRuntime';
@@ -152,6 +152,8 @@ export class MatchRuntime {
   readonly opState = createNetcodeOpState();
   private readonly impulseEvents: TankImpulseWire[] = [];
   private lastGrounded = true;
+  private readonly productionMonster: boolean;
+  private readonly activeBossEnemyId: string | undefined;
   /** Authoritative simulation tick (increments per step). */
   simTick = 0;
   private modeDefinition: DemoScoreAttackModeDefinition | null = null;
@@ -188,7 +190,12 @@ export class MatchRuntime {
     this.world = world ?? createStaticArenaWorld();
     this.state = initialState(matchId, this.rules, this.world);
     this.eventBus = new GameplayEventBus();
-    const monsterSlots = this.resolveMonsterSlots(matchId);
+    const monsterRun = this.resolveMonsterRun(matchId);
+    const monsterSlots = monsterRun
+      ? resolveSelectedSlots(this.rules.enemyGameplayRosters.get(this.rules.hordeDirector!.gameplayRosterId!)!, monsterRun)
+      : null;
+    this.productionMonster = monsterRun !== null;
+    this.activeBossEnemyId = monsterRun?.boss.enemyId;
     this.systems = createSystemContext(
       this.state,
       this.rules,
@@ -201,6 +208,7 @@ export class MatchRuntime {
       hordeDirector ?? null,
       this.rules.sessionPolicy.kind === 'singlePlayer' ? 'singlePlayer' : 'multiplayer',
       monsterSlots,
+      monsterRun,
     );
     this.modeDefinition = definition ?? null;
     this.mode = new DemoScoreAttackModeRuntime(this.modeDefinition ?? this.legacyModeDefinition(), this.systems);
@@ -222,13 +230,22 @@ export class MatchRuntime {
    * Production: build the deterministic selected-slot plan for the mode's
    * gameplay roster (if any). Demo modes have no roster and stay null.
    */
-  private resolveMonsterSlots(matchId: string): Record<string, string> | null {
+  private resolveMonsterRun(matchId: string): SelectedMonsterRun | null {
     const rosterId = this.rules.hordeDirector?.gameplayRosterId;
     if (!rosterId) return null;
     const roster = this.rules.enemyGameplayRosters.get(rosterId);
     if (!roster) throw new Error(`gameplay roster '${rosterId}' missing from match rules`);
-    const run = selectMonsterRun(roster, hash32('monster-run', matchId));
-    return resolveSelectedSlots(roster, run);
+    return selectMonsterRun(roster, hash32('monster-run', matchId));
+  }
+
+  /** Production results: boss death victory or tank destruction defeat. */
+  private endProductionMatch(reason: 'bossDefeated' | 'tankDestroyed'): void {
+    const s = this.state;
+    if (s.phase === 'results') return;
+    s.phase = 'results';
+    s.matchFlow = reason === 'bossDefeated' ? 'clear' : 'gameOver';
+    this.results = this.results ?? this.mode.computeResults();
+    this.eventBus.drain();
   }
 
   /** Authoritative path: rules resolved from the validated content pack. */
@@ -456,6 +473,10 @@ export class MatchRuntime {
     if (t.deadT > 0) {
       t.deadT -= dt;
       if (t.deadT <= 0) {
+        if (this.productionMonster) {
+          this.endProductionMatch('tankDestroyed');
+          return;
+        }
         this.respawn();
       }
       return;
@@ -648,6 +669,9 @@ export class MatchRuntime {
     } else if (e.type === 'lootTruck') {
       score = sc.truckScore;
       contributionPoints = 4;
+    }
+    if (this.productionMonster && e.defId === this.activeBossEnemyId) {
+      this.endProductionMatch('bossDefeated');
     }
     this.systems.score.addScore(score, e.type.toUpperCase());
     this.systems.combo.addContribution(contributionRole, contributionPoints);

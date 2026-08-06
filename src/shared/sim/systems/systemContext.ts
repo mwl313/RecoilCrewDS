@@ -1,4 +1,5 @@
 import type { MatchRules } from '../../rules/matchRules';
+import type { SelectedMonsterRun } from '../../monsters/monsterRunSelection';
 import type { ArenaWorld } from '../arenaWorld';
 import { createStaticArenaWorld } from '../arenaWorld';
 import { GameplayEventBus } from '../../core/gameplayEventBus';
@@ -84,6 +85,8 @@ export interface SystemContext {
   xpShards: XpShardSystem;
   /** Production: selected-slot plan (selected.phase.* / selected.wave.* / selected.boss). */
   monsterSlots: Record<string, string> | null;
+  /** Production: the authoritative selected run (phase rosters/elites/boss). */
+  monsterRun: SelectedMonsterRun | null;
   /** Progression08: selection execution policy picker. */
   sessionKind: 'singlePlayer' | 'multiplayer';
 }
@@ -111,6 +114,7 @@ export function createSystemContext(
   hordeDirector: ResolvedHordeDirector | null = null,
   sessionKind: 'singlePlayer' | 'multiplayer' = 'multiplayer',
   monsterSlots: Record<string, string> | null = null,
+  monsterRun: SelectedMonsterRun | null = null,
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -150,6 +154,7 @@ export function createSystemContext(
   ctx.sessionKind = sessionKind;
   ctx.xpShards = new XpShardSystem(ctx);
   ctx.monsterSlots = monsterSlots;
+  ctx.monsterRun = monsterRun;
   ctx.progression = new ProgressionSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);

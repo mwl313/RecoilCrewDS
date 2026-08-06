@@ -7,6 +7,7 @@ import {
   endMonsterStage,
   resolveSelectedSlots,
   resolvePackSlotIds,
+  bindPhaseSlots,
   DEFAULT_MONSTER_STAGE_CONFIG,
   type MonsterStageEvent,
 } from '../src/shared/monsters/monsterStage';
@@ -112,5 +113,43 @@ describe('monster stage timeline', () => {
     expect(again.systems.monsterSlots).toEqual(prod.systems.monsterSlots);
     const demo = MatchRuntime.fromContentPack(pack, 'demo-match');
     expect(demo.systems.monsterSlots).toBeNull();
+  });
+
+  it('bindPhaseSlots rebinds the generic current-phase roster', () => {
+    const slots = resolveSelectedSlots(roster, run);
+    bindPhaseSlots(slots, run, 2);
+    expect(slots['selected.phase.closeFodder']).toBe(run.phases[2].closeFodderEnemyId);
+    expect(slots['selected.phase.rangedFodder']).toBe(run.phases[2].rangedFodderEnemyId);
+    expect(slots['selected.phase.specialist']).toBe(run.phases[2].specialistEnemyId);
+  });
+
+  it('production boss death is victory; tank destruction is defeat without respawn', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-boss', 'none', 'mode.mainStage');
+    const bossId = prod.systems.monsterSlots!['selected.boss'];
+    const def = pack.getEnemy(bossId);
+    const boss = prod.systems.enemies.spawnEnemyDef(def, 5, 5);
+    if (!boss) throw new Error('boss spawn failed');
+    prod.systems.damage.applyEnemy(boss, 99999, 'test');
+    expect(prod.state.phase).toBe('results');
+    expect(prod.state.matchFlow).toBe('clear');
+
+    const defeat = MatchRuntime.fromContentPack(pack, 'prod-defeat', 'none', 'mode.mainStage');
+    defeat.state.tank.integrity = 0;
+    defeat.state.tank.deadT = 0.001;
+    defeat.step(1 / 60);
+    if (defeat.state.phase === 'countdown') defeat.step(1 / 60);
+    expect(defeat.state.phase).toBe('results');
+    expect(defeat.state.matchFlow).toBe('gameOver');
+    expect(defeat.state.tank.deadT).toBeLessThanOrEqual(0);
+  });
+
+  it('demo tank destruction still respawns', () => {
+    const demo = MatchRuntime.fromContentPack(pack, 'demo-respawn');
+    demo.state.tank.integrity = 0;
+    demo.state.tank.deadT = 0.001;
+    demo.step(1 / 60);
+    if (demo.state.phase === 'countdown') demo.step(1 / 60);
+    expect(demo.state.tank.deadT).toBe(0);
+    expect(demo.state.tank.integrity).toBeGreaterThan(0);
   });
 });
