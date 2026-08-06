@@ -223,6 +223,9 @@ export class ReferenceValidator {
       this.ref(issues, director.navigationPolicyId, this.registries.hordeNavigationPolicies, file, 'navigationPolicyId');
       this.ref(issues, director.spawnAnchorPolicyId, this.registries.spawnAnchorPolicies, file, 'spawnAnchorPolicyId');
       this.ref(issues, director.bossWaveId, this.registries.bossWaves, file, 'bossWaveId');
+      if (director.gameplayRosterId) {
+        this.ref(issues, director.gameplayRosterId, this.registries.enemyGameplayRosters, file, 'gameplayRosterId');
+      }
       director.farmingPhaseIds.forEach((id, i) => this.ref(issues, id, this.registries.farmingPhases, file, `farmingPhaseIds[${i}]`));
       director.waveIds.forEach((id, i) => this.ref(issues, id, this.registries.waves, file, `waveIds[${i}]`));
       director.packIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `packIds[${i}]`));

@@ -207,6 +207,8 @@ export const hordeDirectorSchema = z
     navigationPolicyId: z.string().regex(/^horde\.navigationPolicy\./),
     spawnAnchorPolicyId: z.string().regex(/^horde\.anchorPolicy\./),
     enforceStage: z.boolean().default(false),
+    /** Production integration: gameplay-roster reference for selected-slot spawns. */
+    gameplayRosterId: z.string().regex(/^enemyGameplayRoster\./).optional(),
   })
   .strict();
 

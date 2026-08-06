@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '999a362af5db14b47f37b0539ddcb4c8f12208b16226a0013e0fb419d942fc3a';
+export const CONTENT_PACK_SOURCE_HASH = '7e60d0f77b4bacfb67db5186893d07dd97cb7e3dc7e02834eb0d785ec7613fe2';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = 'b473abc7e60a434553ae09d6612c7eaa089507b68059b1679efa1eb3b948f2d1';
+export const CONTENT_PACK_HASH = 'a1ff3f723d41e1711a8af8f5411f4971db6c33b9a5a44f4caa6b84369466906b';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -200,7 +200,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
   ],
   "hordeDirectors": [
     { id: "horde.mainStage", definition: {"id":"horde.mainStage","label":"Main Stage Horde Director","behaviors":[],"stageSequenceId":"horde.stageSequence.main","farmingPhaseIds":["horde.farming.phase1","horde.farming.phase2","horde.farming.phase3"],"waveIds":["wave.vanguard","wave.encirclement"],"bossWaveId":"horde.bossWave.main","packIds":["pack.wanderingCluster","pack.vanguardWall","pack.escortRing","pack.reinforcementColumn","pack.bossGuard"],"limitsId":"horde.populationLimits.main","lodPolicyId":"horde.lodPolicy.main","replicationPolicyId":"horde.replicationPolicy.main","navigationPolicyId":"horde.navigationPolicy.main","spawnAnchorPolicyId":"horde.anchorPolicy.main","enforceStage":false} },
-    { id: "horde.mainStage.production", definition: {"id":"horde.mainStage.production","label":"Main Stage Production Horde Director","behaviors":[],"stageSequenceId":"horde.stageSequence.main","farmingPhaseIds":["horde.farming.phase1","horde.farming.phase2","horde.farming.phase3"],"waveIds":["wave.vanguard","wave.encirclement"],"bossWaveId":"horde.bossWave.main","packIds":["pack.wanderingCluster","pack.vanguardWall","pack.escortRing","pack.reinforcementColumn","pack.bossGuard"],"limitsId":"horde.populationLimits.main","lodPolicyId":"horde.lodPolicy.main","replicationPolicyId":"horde.replicationPolicy.main","navigationPolicyId":"horde.navigationPolicy.main","spawnAnchorPolicyId":"horde.anchorPolicy.main","enforceStage":true} },
+    { id: "horde.mainStage.production", definition: {"id":"horde.mainStage.production","label":"Main Stage Production Horde Director","behaviors":[],"stageSequenceId":"horde.stageSequence.main","farmingPhaseIds":["horde.farming.phase1","horde.farming.phase2","horde.farming.phase3"],"waveIds":["wave.vanguard","wave.encirclement"],"bossWaveId":"horde.bossWave.main","packIds":["pack.wanderingCluster","pack.vanguardWall","pack.escortRing","pack.reinforcementColumn","pack.bossGuard"],"limitsId":"horde.populationLimits.main","lodPolicyId":"horde.lodPolicy.main","replicationPolicyId":"horde.replicationPolicy.main","navigationPolicyId":"horde.navigationPolicy.main","spawnAnchorPolicyId":"horde.anchorPolicy.main","enforceStage":true,"gameplayRosterId":"enemyGameplayRoster.quaternius.mainStage"} },
   ],
   "populationLimits": [
     { id: "horde.populationLimits.main", definition: {"id":"horde.populationLimits.main","label":"Main Stage Population Limits","behaviors":[],"hardEntityCap":300,"ambientSoftEntityCap":80,"ambientSoftThreatCap":100,"waveSoftEntityCap":100,"waveSoftThreatCap":120,"eliteAndBossReserve":16,"technicalEmergencyReserve":8,"aggregateVisualCap":500,"maximumStoredBudget":40} },

@@ -17,5 +17,6 @@
   "replicationPolicyId": "horde.replicationPolicy.main",
   "navigationPolicyId": "horde.navigationPolicy.main",
   "spawnAnchorPolicyId": "horde.anchorPolicy.main",
-  "enforceStage": true
+  "enforceStage": true,
+  "gameplayRosterId": "enemyGameplayRoster.quaternius.mainStage"
 }
