@@ -12,7 +12,7 @@ Starting SHA: `f3ee97034775f1ee3d216144cb1bc2be489ba542`
 | 2 — Scale, collision, and grounding | IN PROGRESS | (next commit) |
 | 3 — Movement and behavior | IN PROGRESS | (next commit) |
 | 4 — Timer, pacing, boss intro | IN PROGRESS | (next commit) |
-| 5 — XP presentation and cleanup | pending | |
+| 5 — XP presentation and cleanup | IN PROGRESS | (next commit) |
 | 6 — End-to-end qualification | pending | |
 
 ## Phase 1 — Multiplayer identity and wave composition
@@ -219,3 +219,45 @@ frozen timer with the wave label.
 `npx tsc --noEmit` PASS · `npm test` PASS (141 files / 1025 tests) ·
 `npm run build` PASS · `test:demo` PASS (golden unchanged) ·
 `generate:content-pack` PASS.
+
+## Phase 5 — XP presentation and cleanup
+
+### Defect 15 (confirmed): XP shards were not rendered
+
+Added `src/client/pickups/xpShardRenderer.ts`, a bounded (128-slot)
+instanced octahedron renderer with hover/pulse/rotate presentation above the
+grass, magnet travel (positions come from authoritative state), and a short
+pop when a shard disappears. It is updated every frame from the presenter's
+remote frame (both SP and MP) and disposed with the client.
+
+### Defect 16 (confirmed): collection feedback helper was unused
+
+`XpShardSystem` now calls `pushXpEvent(...)` (the existing `pickup` event
+with `kind: 'xp'`) exactly once at collection, alongside the single
+`progression.addXp` grant. The presentation router already turns `pickup`
+events into VFX/audio.
+
+### Defect 17 (confirmed): collected/expired shards accumulated forever
+
+`XpShardSystem` now removes collected and expired shards from authoritative
+state at the end of every update (both the normal and the tank-dead/disabled
+expire paths), so `xpShards` stays bounded and snapshots stay small.
+
+### Tests added
+
+`tests/pickups/xpShardLifecycle.test.ts`:
+
+- monster death → authoritative shards spawn above ground;
+- collection → one XP grant, one `pickup`/`xp` event, shard removed;
+- expired shards removed;
+- `xpShards` included in the remote-frame contract (SP/MP discrete path);
+- renderer draws live instances, releases slots, plays a bounded pop, and
+  disposes cleanly.
+
+`tests/progression08/xpShard.test.ts` updated: collection now asserts
+removal (the previous persistent-collected assertion encoded the bug).
+
+### Gates
+
+`npx tsc --noEmit` PASS · `npm test` PASS (142 files / 1030 tests) ·
+`npm run build` PASS · `test:demo` PASS (golden unchanged).

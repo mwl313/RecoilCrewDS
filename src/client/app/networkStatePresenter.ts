@@ -70,6 +70,7 @@ export class NetworkStatePresenter {
   private readonly frame: RemoteFrame = {
     enemies: [],
     pickups: [],
+    xpShards: [],
     shells: [],
     truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: 0, waypoint: 0, escaped: false, sirenT: 0 },
     turret: { yaw: 0, pitch: 0 },

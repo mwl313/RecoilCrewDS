@@ -29,6 +29,7 @@ import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector'
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
+import { XpShardRenderer } from '../pickups/xpShardRenderer';
 import { stageViewForMatch } from '../../shared/monsters/monsterStageView';
 import {
   resolveSelectedMonsterRun,
@@ -79,6 +80,7 @@ export class GameClient {
   suppressAutoInput = false;
   private progressionOverlay: ProgressionOverlay | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
+  private readonly xpShards: XpShardRenderer;
   private latestSectors: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
@@ -127,6 +129,7 @@ export class GameClient {
         return resolution.profile.aggregateModelAssetId ? resolution.profile : null;
       },
     );
+    this.xpShards = new XpShardRenderer(deps.world.scene);
   }
 
   /** Awaits assets, then builds the full client (called after load()). */
@@ -638,6 +641,8 @@ export class GameClient {
     }
 
     this.world.vfx.update(dt);
+    const shards = this.presenter.remoteFrame?.xpShards ?? this.presenter.latest?.xpShards ?? [];
+    this.xpShards.update(shards, this.time, dt);
     const latest = this.presenter.latest;
     this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
@@ -992,6 +997,7 @@ export class GameClient {
     cancelAnimationFrame(this.raf);
     this.stopChargeSound();
     this.aggregateSectors.reset();
+    this.xpShards.dispose();
     this.world.arena.dispose();
     this.registry.reset();
     this.progressionOverlay?.dispose();

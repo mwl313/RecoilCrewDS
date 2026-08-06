@@ -1,6 +1,14 @@
 import { angleLerp, lerp } from '../../shared/math';
 import type { SnapshotEnvelope } from '../../shared/net/interpolation';
-import type { EnemyState, MatchState, PickupState, ShellState, TankState, TruckState } from '../../shared/types';
+import type {
+  EnemyState,
+  MatchState,
+  PickupState,
+  ShellState,
+  TankState,
+  TruckState,
+  XpShardState,
+} from '../../shared/types';
 
 /**
  * Remote-frame contract. The renderer consumes reusable records instead of
@@ -11,6 +19,7 @@ import type { EnemyState, MatchState, PickupState, ShellState, TankState, TruckS
 export interface RemoteFrame {
   enemies: EnemyState[];
   pickups: PickupState[];
+  xpShards: XpShardState[];
   shells: ShellState[];
   truck: TruckState;
   turret: { yaw: number; pitch: number };
@@ -95,6 +104,7 @@ export class RemoteEntityInterpolator {
     }
 
     frame.pickups = b.pickups; // discrete positions (bob is client-side)
+    frame.xpShards = b.xpShards; // discrete positions (presentation owns bob)
     frame.shells.length = 0;
     for (const s of b.shells) {
       const prev = this.shellById.get(s.id);
@@ -126,6 +136,7 @@ export class RemoteEntityInterpolator {
   fillFromDiscrete(frame: RemoteFrame, state: MatchState): void {
     frame.enemies = state.enemies;
     frame.pickups = state.pickups;
+    frame.xpShards = state.xpShards;
     frame.shells = state.shells;
     frame.truck = state.truck;
     frame.turret.yaw = state.turret.yaw;
