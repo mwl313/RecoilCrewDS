@@ -9,7 +9,7 @@ Starting SHA: `f3ee97034775f1ee3d216144cb1bc2be489ba542`
 | Phase | Status | Commit |
 | --- | --- | --- |
 | 1 — Multiplayer identity and wave composition | IN PROGRESS | (next commit) |
-| 2 — Scale, collision, and grounding | pending | |
+| 2 — Scale, collision, and grounding | IN PROGRESS | (next commit) |
 | 3 — Movement and behavior | pending | |
 | 4 — Timer, pacing, boss intro | pending | |
 | 5 — XP presentation and cleanup | pending | |
@@ -64,3 +64,50 @@ selected Phase 3 close/ranged/specialist identities.
 ### Gates
 
 `npx tsc --noEmit` PASS · `npm test` PASS (138 files / 1005 tests).
+
+## Phase 2 — Scale, collision, and grounding
+
+### Defect 4/5 (confirmed): authored tier scale not applied; collision fell back to 0.8
+
+Root cause:
+
+- `scripts/generate-monster-dimensions.ts` swapped height/depth axes and
+  hardcoded every ground offset to 0.
+- `resolveMonsterDimensions` returned a partial record with no final scale
+  or source foot offset.
+- `EntityViewFactory` rendered raw models with presentation transforms only
+  (no tier scale, no ground offset).
+- `EnemySystem.radiusFor` routed monsters through `enemyRadius(def)` whose
+  monster branch fell back to `0.8`.
+
+Fix:
+
+- Generator now uses Y-up axes (`height = maxY - minY`,
+  `depth = maxZ - minZ`) and preserves the neutral-pose foot plane
+  (`groundOffset = -minY`), and emits `ENEMY_DEFINITION_SIZE_TIER`
+  (defId → sizeClass/tier/variant) for every generalized monster.
+- `monsterNormalization.ts` now produces one authoritative
+  `ResolvedMonsterDimensions` record (source bounds, normalization/tier/
+  variant/final scales, final dimensions, scaled ground offset, collision,
+  spawn clearance, engagement radius, shadow radius, projectile socket).
+- `EnemySystem.radiusFor` resolves monsters through
+  `resolveMonsterDimensions(...).collisionRadius`; the 0.8 fallback is no
+  longer reachable on live monster paths.
+- `EntityViewFactory` applies `finalScale` to the model and places its feet
+  at the terrain plane (`position.y = authoredOffset×scale - groundOffset`),
+  including on near↔far LOD swaps; `AggregateSectorRenderer` uses the same
+  resolved scale/offset per sector definition.
+
+### Tests added
+
+- `tests/monsters/scaleGrounding.test.ts`: small ordinary ≈ 1.02 m, medium
+  elite ≈ 4.59 m, large boss ≈ 8.50 m, boss > elite > ordinary colliders,
+  foot contact 0–0.05 m on the flat plane, all featured bosses tier ×5,
+  projectile/spawn/engagement/shadow fields on the resolved record.
+
+### Gates
+
+`npx tsc --noEmit` PASS · `npm test` PASS (139 files / 1012 tests) ·
+`npm run build` PASS · `test:demo` PASS (golden unchanged). Three pre-existing
+Map Lab integration tests were given a 30 s timeout (they perform real
+mapgen and exceeded vitest's 5 s default only under full-suite load).

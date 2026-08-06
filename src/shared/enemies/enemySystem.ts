@@ -84,7 +84,11 @@ export class EnemySystem {
   }
 
   radiusFor(enemy: EnemyState): number {
-    return enemyRadius(this.defFor(enemy));
+    const def = this.defFor(enemy);
+    if (isMonster(def)) {
+      return resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
+    }
+    return enemyRadius(def);
   }
 
   /** Threat contribution used by population budgets (monster-aware). */

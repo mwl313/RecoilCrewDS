@@ -25,7 +25,10 @@ export const TIER_SCALES: Record<'fodder' | 'specialist' | 'elite' | 'boss', num
   boss: 5,
 };
 
-import { MONSTER_DIMENSIONS } from '../../generated/monsterDimensions.generated';
+import {
+  ENEMY_DEFINITION_SIZE_TIER,
+  MONSTER_DIMENSIONS,
+} from '../../generated/monsterDimensions.generated';
 
 export interface NormalizedEnemyDimensions {
   targetHeight: number;
@@ -40,8 +43,27 @@ export interface NormalizedEnemyDimensions {
   shadowRadius: number;
 }
 
+/** One authoritative resolved record per monster definition/family. */
+export interface ResolvedMonsterDimensions extends NormalizedEnemyDimensions {
+  enemyId: string;
+  familySlug: string;
+  sourceWidth: number;
+  sourceHeight: number;
+  sourceDepth: number;
+  sourceGroundOffset: number;
+  targetBaseHeight: number;
+  normalizationScale: number;
+  tierScale: number;
+  variantScale: number;
+  finalScale: number;
+  finalWidth: number;
+  finalHeight: number;
+  finalDepth: number;
+  projectileSocketY: number;
+}
+
 export function normalizedEnemyDimensions(
-  sourceBounds: { width: number; height: number; depth: number },
+  sourceBounds: { width: number; height: number; depth: number; groundOffset: number },
   sizeClass: 'small' | 'medium' | 'large',
   tier: 'fodder' | 'specialist' | 'elite' | 'boss',
   optionalVariantScale = 1,
@@ -62,10 +84,41 @@ export function normalizedEnemyDimensions(
     normalizedDepth,
     collisionRadius,
     collisionHeight,
-    groundOffset: 0,
+    groundOffset: sourceBounds.groundOffset * finalScale,
     spawnClearanceRadius: collisionRadius * 1.25,
     engagementRadius: collisionRadius * 2,
     shadowRadius: Math.max(collisionRadius * 1.5, normalizedHeight * 0.35),
+  };
+}
+
+export function resolvedMonsterDimensions(
+  enemyId: string,
+  familySlug: string,
+  source: { width: number; height: number; depth: number; groundOffset: number },
+  sizeClass: 'small' | 'medium' | 'large',
+  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  optionalVariantScale = 1,
+): ResolvedMonsterDimensions {
+  const base = normalizedEnemyDimensions(source, sizeClass, tier, optionalVariantScale);
+  const tierScale = TIER_SCALES[tier];
+  const normalizationScale = TARGET_HEIGHTS[sizeClass] / Math.max(0.01, source.height);
+  return {
+    ...base,
+    enemyId,
+    familySlug,
+    sourceWidth: source.width,
+    sourceHeight: source.height,
+    sourceDepth: source.depth,
+    sourceGroundOffset: source.groundOffset,
+    targetBaseHeight: TARGET_HEIGHTS[sizeClass],
+    normalizationScale,
+    tierScale,
+    variantScale: optionalVariantScale,
+    finalScale: normalizationScale * tierScale * optionalVariantScale,
+    finalWidth: base.normalizedWidth,
+    finalHeight: base.normalizedHeight,
+    finalDepth: base.normalizedDepth,
+    projectileSocketY: base.normalizedHeight * 0.7,
   };
 }
 
@@ -75,7 +128,7 @@ export function slugFromEnemyId(enemyId: string): string {
     .replace(/\.(boss|elite)$/, '');
 }
 
-const dimensionCache = new Map<string, NormalizedEnemyDimensions>();
+const dimensionCache = new Map<string, ResolvedMonsterDimensions>();
 
 /**
  * Resolve normalized gameplay dimensions from the generated source cache.
@@ -86,20 +139,31 @@ export function resolveMonsterDimensions(
   sizeClass: 'small' | 'medium' | 'large',
   tier: 'fodder' | 'specialist' | 'elite' | 'boss',
   optionalVariantScale = 1,
-): NormalizedEnemyDimensions {
+): ResolvedMonsterDimensions {
   const key = `${enemyId}|${sizeClass}|${tier}`;
   const cached = dimensionCache.get(key);
   if (cached) return cached;
   const source = MONSTER_DIMENSIONS[slugFromEnemyId(enemyId)];
   if (!source) throw new Error(`no source dimensions for '${enemyId}'`);
-  const dims = normalizedEnemyDimensions(
-    { width: source.width, height: source.height, depth: source.depth },
+  const dims = resolvedMonsterDimensions(
+    enemyId,
+    slugFromEnemyId(enemyId),
+    source,
     sizeClass,
     tier,
     optionalVariantScale,
   );
   dimensionCache.set(key, dims);
   return dims;
+}
+
+/** Resolve by exact definition id using generated size/tier metadata. */
+export function resolveMonsterDimensionsForDefId(
+  defId: string,
+): ResolvedMonsterDimensions {
+  const meta = ENEMY_DEFINITION_SIZE_TIER[defId];
+  if (!meta) throw new Error(`no size/tier metadata for '${defId}'`);
+  return resolveMonsterDimensions(defId, meta.sizeClass, meta.tier, meta.optionalVariantScale);
 }
 
 /** Provisional normalized projectile socket height (centralized tuning point). */

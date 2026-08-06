@@ -135,7 +135,7 @@ describe('mode parity and normalization', () => {
   it('normalizes to 1.02/1.53/1.70 m and propagates tier scale 1/3/5', () => {
     expect(TARGET_HEIGHTS).toEqual({ small: 1.02, medium: 1.53, large: 1.7 });
     expect(TIER_SCALES).toEqual({ fodder: 1, specialist: 1, elite: 3, boss: 5 });
-    const source = { width: 3, height: 3, depth: 2 };
+    const source = { width: 3, height: 3, depth: 2, groundOffset: 0.5 };
     const small = normalizedEnemyDimensions(source, 'small', 'fodder');
     expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
     expect(small.collisionRadius).toBeCloseTo(0.45 * Math.max(small.normalizedWidth, small.normalizedDepth), 6);

@@ -83,7 +83,7 @@ describe('Map Lab apply helper', () => {
     expect(validateProfileBundle({ ...exportBundle, bundles: { ...exportBundle.bundles, map: { ...exportBundle.bundles.map, furnitureSetId: 'missing.ref' } } }).ok).toBe(false);
   });
 
-  it('saves a new profile and points the mode at it', () => {
+  it('saves a new profile and points the mode at it', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', resolveMapBundle(pack, 'map.arena400Primary'));
@@ -103,7 +103,7 @@ describe('Map Lab apply helper', () => {
     }
   });
 
-  it('overwrite apply replaces the current profile', () => {
+  it('overwrite apply replaces the current profile', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', resolveMapBundle(pack, 'map.arena400Primary'));

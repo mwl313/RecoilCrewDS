@@ -18,6 +18,13 @@ import type {
   EnemyPresentationProfileDefinition,
 } from '../../shared/animation/animationProfileTypes';
 import type { AnimationShadowRules } from '../../shared/animation/animationProfileTypes';
+import {
+  ENEMY_DEFINITION_SIZE_TIER,
+} from '../../generated/monsterDimensions.generated';
+import {
+  resolveMonsterDimensionsForDefId,
+  type ResolvedMonsterDimensions,
+} from '../../shared/monsters/monsterNormalization';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
@@ -43,7 +50,18 @@ export class EntityViewFactory {
     group.userData.defId = e.defId ?? '';
     group.userData.presentationProfile = resolution.profileId;
     group.userData.type = e.type;
-    applyProfileTransform(group, profile.transform);
+    const monsterDims =
+      e.defId && ENEMY_DEFINITION_SIZE_TIER[e.defId]
+        ? resolveMonsterDimensionsForDefId(e.defId)
+        : undefined;
+    if (monsterDims) {
+      applyMonsterScaleAndOffset(model, profile.transform, monsterDims);
+      group.userData.finalScale = monsterDims.finalScale;
+      group.userData.groundOffset = monsterDims.groundOffset;
+      group.userData.tier = monsterDims.tierScale;
+    } else {
+      applyProfileTransform(group, profile.transform);
+    }
     scene.add(group);
     const materials = collectMaterials(model);
     applyShadowPolicy(model, resolution.shadowPolicy.tiers.hero);
@@ -86,6 +104,7 @@ export class EntityViewFactory {
     return {
       group,
       model,
+      dimensions: monsterDims,
       presentationProfileId: resolution.profileId,
       presentationResolution: resolution,
       animation,
@@ -135,6 +154,9 @@ export class EntityViewFactory {
     const model = instance.root;
     rig.model = model;
     rig.group.add(model);
+    if (rig.dimensions) {
+      applyMonsterScaleAndOffset(model, profile.transform, rig.dimensions);
+    }
     rig.modelVariant = wantFar ? 'far' : 'near';
     rig.currentLod = tier;
     rig.materials = collectMaterials(model);
@@ -223,6 +245,31 @@ export function applyProfileTransform(
   }
   if (transform.position) group.position.set(transform.position[0], transform.position[1], transform.position[2]);
   if (transform.rotation) group.rotation.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]);
+}
+
+/**
+ * Bug-fix scale/grounding: normalize the raw model to the authoritative
+ * resolved envelope (tier scale included) and place its feet on the terrain
+ * plane. Authored presentation offsets scale with the model.
+ */
+export function applyMonsterScaleAndOffset(
+  model: THREE.Object3D,
+  transform: EnemyPresentationProfileDefinition['transform'] | undefined,
+  dims: ResolvedMonsterDimensions,
+): void {
+  const profileScale =
+    transform?.scale === undefined
+      ? 1
+      : typeof transform.scale === 'number'
+        ? transform.scale
+        : transform.scale[0];
+  model.scale.setScalar(dims.finalScale * profileScale);
+  const position = transform?.position;
+  model.position.set(
+    (position?.[0] ?? 0) * dims.finalScale,
+    (position?.[1] ?? 0) * dims.finalScale - dims.groundOffset,
+    (position?.[2] ?? 0) * dims.finalScale,
+  );
 }
 
 export function applyShadowPolicy(model: THREE.Object3D, rules: AnimationShadowRules): void {

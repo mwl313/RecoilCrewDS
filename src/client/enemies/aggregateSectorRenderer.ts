@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { AssetService } from '../assets';
 import type { EnemyPresentationProfileDefinition } from '../../shared/animation/animationProfileTypes';
+import { ENEMY_DEFINITION_SIZE_TIER } from '../../generated/monsterDimensions.generated';
+import { resolveMonsterDimensionsForDefId } from '../../shared/monsters/monsterNormalization';
 
 export interface AggregateSectorRecord {
   sectorId: number;
@@ -75,10 +77,14 @@ export class AggregateSectorRenderer {
       for (const sector of list) {
         if (index >= group.capacity) break;
         group.slots.set(sector.sectorId, index);
-        this.dummy.position.set(sector.x, 0, sector.z);
+        const dims =
+          sector.enemyDefId && ENEMY_DEFINITION_SIZE_TIER[sector.enemyDefId]
+            ? resolveMonsterDimensionsForDefId(sector.enemyDefId)
+            : undefined;
+        this.dummy.position.set(sector.x, dims?.groundOffset ?? 0, sector.z);
         this.dummy.rotation.set(0, (sector.presentationSeed % 360) * (Math.PI / 180), 0);
         const scale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, sector.count)) * 0.25, 0.7, 1.8);
-        this.dummy.scale.setScalar(scale);
+        this.dummy.scale.setScalar(dims ? dims.finalScale * scale : scale);
         this.dummy.updateMatrix();
         for (const mesh of group.instanced) mesh.setMatrixAt(index, this.dummy.matrix);
         index++;
