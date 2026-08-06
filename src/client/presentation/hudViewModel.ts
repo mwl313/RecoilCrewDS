@@ -356,8 +356,10 @@ export class HudProjector {
           phase: monsterPhase,
           waveTimerLabel,
           waveCountdownText:
-            waveTimerLabel && waveCountdown > 0
-              ? `${String(Math.floor(waveCountdown / 60)).padStart(2, '0')}:${String(waveCountdown % 60).padStart(2, '0')}`
+            waveTimerLabel && monsterPhase === 'FARMING'
+              ? waveCountdown > 0
+                ? `${String(Math.floor(waveCountdown / 60)).padStart(2, '0')}:${String(waveCountdown % 60).padStart(2, '0')}`
+                : '00:00'
               : '',
           waveWarning,
           waveWarningVisible: waveWarning !== '',

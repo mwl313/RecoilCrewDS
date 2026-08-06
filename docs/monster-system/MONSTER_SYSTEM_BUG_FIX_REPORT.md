@@ -13,7 +13,7 @@ Starting SHA: `f3ee97034775f1ee3d216144cb1bc2be489ba542`
 | 3 — Movement and behavior | IN PROGRESS | (next commit) |
 | 4 — Timer, pacing, boss intro | IN PROGRESS | (next commit) |
 | 5 — XP presentation and cleanup | IN PROGRESS | (next commit) |
-| 6 — End-to-end qualification | pending | |
+| 6 — End-to-end qualification | IN PROGRESS | (next commit) |
 
 ## Phase 1 — Multiplayer identity and wave composition
 
@@ -261,3 +261,55 @@ removal (the previous persistent-collected assertion encoded the bug).
 
 `npx tsc --noEmit` PASS · `npm test` PASS (142 files / 1030 tests) ·
 `npm run build` PASS · `test:demo` PASS (golden unchanged).
+
+## Phase 6 — End-to-end qualification
+
+### Single Player (browser, final build)
+
+`e2e/monster-coreloop-singleplayer.spec.ts` PASS (3.2 min):
+
+- farming HUD (`TIME UNTIL NEW WAVE`, monster level) and selected run;
+- wave 1 elite encounter bar; the farming clock is frozen (`00:00`) while
+  the elite wave is active;
+- XP shards present in authoritative browser state after the elite kill;
+- wave 2, `BOSS INCOMING`, deferred boss activation, boss defeat victory,
+  and a clean rematch (fresh HUD, no lingering bars);
+- no critical page errors.
+
+### Multiplayer (two clients, browser, final build)
+
+`e2e/monster-coreloop-multiplayer.spec.ts` PASS (3.3 min):
+
+- both clients receive the identical authoritative run config;
+- exact generalized identities on both clients (no Scrap Bug reconstruction);
+- wave/elite/boss encounter-bar agreement (labels + HP);
+- frozen farming clock during waves on both clients;
+- boss-death results on both clients and rematch through the preload gate;
+- no critical page errors.
+
+Screenshots updated under `docs/monster-system/qualification-screenshots/`
+(SP farming/wave1/wave2/boss-intro/boss/victory; MP wave1/boss driver+gunner).
+
+### State growth
+
+`tests/pickups/xpShardLifecycle.test.ts` runs 40 shards through expiry and
+asserts authoritative state returns to zero; melee reservations fully
+release after owner deaths.
+
+### Performance
+
+`test:horde:benchmark` (final): 500 enemies ≈ 0.971 ms/tick p50,
+1.426 ms p99. `test:monsterpack-rendering` PASS (8.4 s).
+
+### Gates (final)
+
+`npx tsc --noEmit` PASS · `npm test` PASS (142 files / 1031 tests) ·
+`generate:content-pack` / `generate:presentation-content` /
+`generate:map-profiles` PASS · `npm run build` PASS · `test:demo` PASS
+(golden unchanged) · `test:horde` + `test:netcode` + `test:progression` +
+`test:monsterpack10` PASS (263 tests) · `test:horde:benchmark` PASS ·
+`validate:enemy-animations` PASS · `test:monsterpack-import` PASS ·
+`test:monsterpack-rendering` PASS · production SP + two-client e2e PASS.
+
+Remaining known limitations: interactive human playtesting and eyeballing
+the captured screenshots (pixel checks confirm non-blank frames).

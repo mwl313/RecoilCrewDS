@@ -130,6 +130,29 @@ Remaining:
 - Human visual review of `docs/monster-system/qualification-screenshots/`
   (10 PNGs captured and pixel-checked; not eyeballed in this session).
 
+## Bug-fix pass (completed)
+
+Six focused commits on `monster-system` resolve the confirmed integration
+defects (see `MONSTER_SYSTEM_BUG_FIX_REPORT.md`):
+
+- `ab82eb6` preserve monster identity and wave composition (generated enemy
+  definition index, exact aggregate identity, per-entry wave/escort packs);
+- `3a2dbba` apply normalized scale collision and grounding (Y-up axes,
+  foot-plane offsets, resolved dimensions, renderer integration);
+- `32c4bfd` correct pursuit engagement and action ordering (CHASE/STAGE/
+  RESERVED_APPROACH/ATTACK_HOLD, ranged hold band, speed-before-integration,
+  post-behavior semantics);
+- `3472167` pause wave clock and gate boss activation (production
+  `pauseCountdownDuringWave: true`, phase-local farming progress,
+  authoritative 4 s boss intro, frozen HUD countdown);
+- `0de6839` render collect and clean up xp shards (instanced renderer,
+  pickup event wiring, authoritative removal);
+- (next) qualify corrected production monster loop (SP + two-client browser
+  runs, state-growth checks, screenshots, reports).
+
+Final gates: `npm test` 142 files / 1031 tests PASS, build PASS, demo golden
+PASS, all listed browser e2e PASS.
+
 ## Known limitations / tuning notes
 
 - Multiplayer preload starts when the `start` message arrives (after the

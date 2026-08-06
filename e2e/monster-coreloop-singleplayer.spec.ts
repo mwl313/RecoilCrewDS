@@ -49,6 +49,10 @@ test('production single player completes the full monster loop and rematches cle
   await expect(page.locator('#encounter-elite1')).toBeVisible({ timeout: 100_000 });
   await expect(page.locator('#encounter-elite1-label')).not.toHaveText('');
   await page.screenshot({ path: 'docs/monster-system/qualification-screenshots/sp-wave1.png' });
+  // The farming clock is frozen during the elite wave (bug-fix phase 4).
+  await expect(page.locator('#stage-wave-countdown')).toHaveText('00:00');
+  await page.waitForTimeout(3000);
+  await expect(page.locator('#stage-wave-countdown')).toHaveText('00:00');
 
   // Kill wave 1 elite -> farming resumes.
   await page.evaluate(() => {
@@ -69,6 +73,11 @@ test('production single player completes the full monster loop and rematches cle
   await page.waitForFunction(() => {
     const w = window as unknown as { __recoil: { monster: { phase(): string | null } } };
     return w.__recoil.monster.phase() === 'farming2';
+  });
+  // XP shards are present in the authoritative state visible to the browser.
+  await page.waitForFunction(() => {
+    const w = window as unknown as { __recoil: { state(): { xpShards: unknown[] } } };
+    return w.__recoil.state().xpShards.length > 0;
   });
 
   // Wave 2 elite at ~120 s reuses the single active elite bar (one elite

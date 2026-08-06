@@ -106,4 +106,31 @@ describe('XP shard lifecycle (bug-fix phase 5)', () => {
     renderer.dispose();
     expect(scene.children.includes(mesh)).toBe(false);
   });
+
+  it('keeps authoritative XP state bounded under sustained shard pressure', () => {
+    const m = makeMatch();
+    step(m, 4);
+    for (let i = 0; i < 40; i++) {
+      m.runtime.systems.xpShards.spawn(1, m.state.tank.x + 60, m.state.tank.z + i * 0.2);
+    }
+    expect(m.state.xpShards.length).toBe(40);
+    step(m, 31);
+    expect(m.state.xpShards.length).toBe(0);
+    // Reservations also clean up after the monsters that owned them die.
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const ids: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const e = m.runtime.systems.enemies.spawnEnemyDef(def, m.state.tank.x + Math.cos((i / 6) * Math.PI * 2) * 1.6, m.state.tank.z + Math.sin((i / 6) * Math.PI * 2) * 1.6);
+      if (e) ids.push(e.id);
+    }
+    step(m, 2);
+    const manager = m.runtime.systems.enemies.meleeReservations;
+    expect(manager.size).toBeGreaterThan(0);
+    for (const id of ids) {
+      const e = m.state.enemies.find((x) => x.id === id);
+      if (e) m.runtime.systems.damage.applyEnemy(e, 999999, 'test');
+    }
+    step(m, 2);
+    expect(manager.size).toBe(0);
+  });
 });
