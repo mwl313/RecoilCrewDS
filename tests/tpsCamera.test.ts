@@ -27,6 +27,10 @@ const TUNING: TpsCameraTuning = {
   collisionPullInSeconds: 0.02,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
+  horizontalFollowSeconds: 0.16,
+  verticalFollowUpSeconds: 0.2,
+  verticalFollowDownSeconds: 0.13,
+  maxVerticalLag: 2,
 };
 
 function box(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) {
@@ -150,6 +154,83 @@ describe('TPS camera rig placement', () => {
     cam.update(1 / 30, [box(-5, 0, -4, 5, 4, -1)]);
     expect(cam.yaw).toBe(y0);
     expect(cam.pitch).toBe(p0);
+  });
+
+  it('follows a steep valley downward without exceeding the vertical leash', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 8, 0), 0);
+    cam.update(1 / 60, []);
+    for (let i = 1; i <= 90; i++) {
+      cam.setFollowPose(new THREE.Vector3(0, 8 - i * 0.1, i * 0.12), 0);
+      cam.update(1 / 60, []);
+      expect(Math.abs(cam.getFollowDiagnostics().verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
+    }
+    for (let i = 0; i < 60; i++) cam.update(1 / 60, []);
+    expect(Math.abs(cam.getFollowDiagnostics().verticalLag)).toBeLessThan(0.05);
+  });
+
+  it('crosses a hill crest smoothly with bounded upward lag', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    let lastY = cam.getFollowDiagnostics().smoothedAnchorY;
+    for (let i = 1; i <= 60; i++) {
+      cam.setFollowPose(new THREE.Vector3(0, Math.sin((i / 60) * Math.PI) * 4, i * 0.15), 0);
+      cam.update(1 / 60, []);
+      const diagnostics = cam.getFollowDiagnostics();
+      expect(Math.abs(diagnostics.verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
+      expect(Math.abs(diagnostics.smoothedAnchorY - lastY)).toBeLessThan(0.5);
+      lastY = diagnostics.smoothedAnchorY;
+    }
+  });
+
+  it('stays attached through a ridge jump and cliff-side fall', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 5, 0), 0);
+    cam.update(1 / 60, []);
+    for (const y of [5.4, 6.1, 6.8, 6.4, 5.2, 3.4, 1.2, -1.5]) {
+      cam.setFollowPose(new THREE.Vector3(0, y, 0), 0);
+      cam.update(1 / 30, []);
+      expect(Math.abs(cam.getFollowDiagnostics().verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
+    }
+  });
+
+  it('tracks rapid rolling terrain while rotating airborne', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 2, 0), 0);
+    cam.update(1 / 60, []);
+    for (let i = 1; i <= 120; i++) {
+      cam.applyMouseDelta(3, i % 12 === 0 ? 2 : 0);
+      cam.setFollowPose(new THREE.Vector3(i * 0.04, 2 + Math.sin(i * 0.35) * 1.8, i * 0.08), i * 0.02);
+      cam.update(1 / 60, []);
+      expect(Math.abs(cam.getFollowDiagnostics().verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
+      expect(Number.isFinite(cam.camera.position.length())).toBe(true);
+    }
+  });
+
+  it('recovers its boom after a wall without retaining stale follow height', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 4, 0), 0);
+    const wall = [box(-5, 0, -4, 5, 10, -1)];
+    cam.update(1 / 60, wall);
+    const blockedDistance = cam.getFollowDiagnostics().distance;
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    for (let i = 0; i < 90; i++) cam.update(1 / 60, []);
+    const recovered = cam.getFollowDiagnostics();
+    expect(recovered.distance).toBeGreaterThan(blockedDistance);
+    expect(recovered.colliding).toBe(false);
+    expect(Math.abs(recovered.verticalLag)).toBeLessThan(0.05);
+  });
+
+  it('keeps finite bounded follow state after a frame spike', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 12, 0), 0);
+    cam.update(1 / 60, []);
+    cam.setFollowPose(new THREE.Vector3(30, -12, 30), 0);
+    cam.update(5, []);
+    const diagnostics = cam.getFollowDiagnostics();
+    expect(Math.abs(diagnostics.verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
+    expect(Number.isFinite(cam.camera.position.length())).toBe(true);
   });
 });
 

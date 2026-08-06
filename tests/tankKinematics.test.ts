@@ -315,7 +315,7 @@ describe('jump kinematics', () => {
 });
 
 describe('dash kinematics', () => {
-  it('applies one chassis-forward impulse', () => {
+  it('enters burst and accelerates along chassis forward captured at activation', () => {
     const t = tank(-6, 10, 0.6);
     stepTankKinematics(
       t,
@@ -326,7 +326,8 @@ describe('dash kinematics', () => {
     );
     const forward = { x: Math.sin(0.6), z: Math.cos(0.6) };
     const speed = Math.hypot(t.vx, t.vz);
-    expect(speed).toBeCloseTo(BASE_CONFIG.tank.dashImpulse, 5);
+    expect(t.dashState).toBe('burst');
+    expect(speed).toBeGreaterThan(0);
     expect(t.vx / speed).toBeCloseTo(forward.x, 5);
     expect(t.vz / speed).toBeCloseTo(forward.z, 5);
     expect(t.dashCooldown).toBeCloseTo(BASE_CONFIG.tank.dashCooldown, 5);
@@ -375,7 +376,7 @@ describe('dash kinematics', () => {
       DT,
     );
     expect(t.dashCooldown).toBeGreaterThan(0);
-    expect(Math.hypot(t.vx, t.vz)).toBeLessThanOrEqual(BASE_CONFIG.tank.dashImpulse + 0.01);
+    expect(t.dashState).toBe('burst');
     // Wait out the cooldown, then a new press is accepted.
     step(t, { throttle: 0, steer: 0 }, BASE_CONFIG.tank.dashCooldown + 0.1);
     expect(t.dashCooldown).toBe(0);
@@ -386,7 +387,8 @@ describe('dash kinematics', () => {
       mcfg,
       DT,
     );
-    expect(Math.hypot(t.vx, t.vz)).toBeCloseTo(BASE_CONFIG.tank.dashImpulse, 4);
+    expect(t.dashState).toBe('burst');
+    expect(t.dashStateT).toBeCloseTo(DT, 5);
   });
 
   it('dashing while reversing still bursts chassis-forward', () => {
@@ -420,10 +422,7 @@ describe('dash kinematics', () => {
     // Lateral momentum decays only by the normal per-step grip (no dash-side
     // zeroing); the dash itself preserves it.
     expect(t.vx).toBeGreaterThan(2.5);
-    expect(t.vz).toBeCloseTo(
-      BASE_CONFIG.tank.dashImpulse * BASE_CONFIG.tank.dashAirMultiplier,
-      4,
-    );
+    expect(t.vz).toBeGreaterThan(0);
     expect(t.vy).toBeCloseTo(2 - BASE_CONFIG.tank.gravity * DT, 5); // gravity only
   });
 
@@ -437,8 +436,16 @@ describe('dash kinematics', () => {
       buildMatchConfig('none'),
       DT,
     );
+    const ground = tank(-6, 10);
+    stepTankKinematics(
+      ground,
+      { throttle: 0, steer: 0, dashPressed: true, jumpPressed: false },
+      BASE_CONFIG,
+      buildMatchConfig('none'),
+      DT,
+    );
     expect(Math.hypot(air.vx, air.vz)).toBeCloseTo(
-      BASE_CONFIG.tank.dashImpulse * BASE_CONFIG.tank.dashAirMultiplier,
+      Math.hypot(ground.vx, ground.vz) * BASE_CONFIG.tank.dashAirMultiplier,
       5,
     );
 
@@ -473,6 +480,56 @@ describe('dash kinematics', () => {
     expect(speed).toBeCloseTo(20, 5);
     expect(t.vz).toBeGreaterThan(0);
     expect(Math.abs(t.vx)).toBeLessThan(1e-9);
+  });
+
+  it('exceeds normal maximum without the base-drive clamp deleting the burst', () => {
+    const t = tank(-6, 10);
+    const mcfg = buildMatchConfig('none');
+    let peak = 0;
+    stepTankKinematics(t, { throttle: 1, steer: 0, dashPressed: true, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+    for (let i = 0; i < 8; i++) {
+      stepTankKinematics(t, { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+      peak = Math.max(peak, Math.hypot(t.vx, t.vz));
+    }
+    expect(peak).toBeGreaterThan(BASE_CONFIG.tank.forwardSpeed * 1.8);
+    expect(peak).toBeLessThan(BASE_CONFIG.tank.forwardSpeed * 2.3 + 0.1);
+    expect(t.dashState).toBe('burst');
+  });
+
+  it('locks initial steering, allows limited late steering, and keeps captured direction fixed', () => {
+    const t = tank(-6, 10, 0.4);
+    const mcfg = buildMatchConfig('none');
+    stepTankKinematics(t, { throttle: 1, steer: 0, dashPressed: true, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+    const captured = { x: t.dashDirectionX, z: t.dashDirectionZ };
+    const yawAtDash = t.yaw;
+    for (let i = 0; i < 2; i++) {
+      stepTankKinematics(t, { throttle: 1, steer: 1, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+    }
+    expect(t.yaw).toBeCloseTo(yawAtDash, 8);
+    for (let i = 0; i < 1; i++) {
+      stepTankKinematics(t, { throttle: 1, steer: 1, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+    }
+    expect(t.yaw).toBeLessThan(yawAtDash);
+    expect(t.dashDirectionX).toBeCloseTo(captured.x!, 8);
+    expect(t.dashDirectionZ).toBeCloseTo(captured.z!, 8);
+    expect(t.dashSteeringMultiplier).toBeGreaterThan(0);
+    expect(t.dashSteeringMultiplier).toBeLessThanOrEqual(BASE_CONFIG.tank.dashLateSteeringInfluence + 1e-6);
+  });
+
+  it('decays through recovery without a terminal speed snap', () => {
+    const t = tank(-6, 10);
+    const mcfg = buildMatchConfig('none');
+    stepTankKinematics(t, { throttle: 1, steer: 0, dashPressed: true, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+    const speeds: number[] = [];
+    for (let i = 0; i < 24; i++) {
+      stepTankKinematics(t, { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false }, BASE_CONFIG, mcfg, DT);
+      speeds.push(Math.hypot(t.vx, t.vz));
+    }
+    const maxFrameDrop = Math.max(...speeds.slice(1).map((speed, i) => speeds[i] - speed));
+    expect(maxFrameDrop).toBeLessThan(5);
+    expect(t.dashState).toBe('inactive');
+    expect(speeds.at(-1)).toBeGreaterThan(0);
+    expect(speeds.at(-1)).toBeLessThanOrEqual(BASE_CONFIG.tank.forwardSpeed);
   });
 });
 

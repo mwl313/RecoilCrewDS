@@ -39,6 +39,10 @@ export interface TpsCameraTuning {
   collisionPullInSeconds: number;
   collisionReleaseSeconds: number;
   recenterSeconds: number;
+  horizontalFollowSeconds: number;
+  verticalFollowUpSeconds: number;
+  verticalFollowDownSeconds: number;
+  maxVerticalLag: number;
   speedFovBonus?: number;
 }
 
@@ -60,11 +64,24 @@ export const DEFAULT_TPS_TUNING: TpsCameraTuning = {
   collisionPullInSeconds: 0.02,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
+  horizontalFollowSeconds: 0.16,
+  verticalFollowUpSeconds: 0.2,
+  verticalFollowDownSeconds: 0.13,
+  maxVerticalLag: 2,
   speedFovBonus: 5.5,
 };
 
 export interface CameraPose {
   position: THREE.Vector3;
+  distance: number;
+  colliding: boolean;
+}
+
+export interface CameraFollowDiagnostics {
+  targetAnchorY: number;
+  smoothedAnchorY: number;
+  verticalLag: number;
+  horizontalLag: number;
   distance: number;
   colliding: boolean;
 }
@@ -101,12 +118,15 @@ export class TpsCameraController {
   recentering = false;
 
   private tuning: TpsCameraTuning;
-  private followPos = new THREE.Vector3();
+  private followTarget = new THREE.Vector3();
+  private smoothedFollow = new THREE.Vector3();
   private chassisYaw = 0;
   private currentDistance: number;
   private recenterTargetYaw = 0;
   private recenterTargetPitch = 0.12;
   private initialized = false;
+  private followInitialized = false;
+  private lastColliding = false;
 
   constructor(tuning: Partial<TpsCameraTuning> = {}) {
     this.tuning = { ...DEFAULT_TPS_TUNING, ...tuning };
@@ -139,8 +159,22 @@ export class TpsCameraController {
   }
 
   setFollowPose(position: THREE.Vector3, chassisYaw: number): void {
-    this.followPos.copy(position);
+    this.followTarget.copy(position);
     this.chassisYaw = chassisYaw;
+  }
+
+  getFollowDiagnostics(): CameraFollowDiagnostics {
+    return {
+      targetAnchorY: this.followTarget.y + this.tuning.anchorHeight,
+      smoothedAnchorY: this.smoothedFollow.y + this.tuning.anchorHeight,
+      verticalLag: this.followTarget.y - this.smoothedFollow.y,
+      horizontalLag: Math.hypot(
+        this.followTarget.x - this.smoothedFollow.x,
+        this.followTarget.z - this.smoothedFollow.z,
+      ),
+      distance: this.currentDistance,
+      colliding: this.lastColliding,
+    };
   }
 
   /** Consume raw pointer-lock deltas immediately (never multiplied by dt). */
@@ -163,8 +197,29 @@ export class TpsCameraController {
   }
 
   update(dt: number, colliders: CameraCollisionSource, speedRatio = 0): CameraPose {
+    const safeDt = Number.isFinite(dt) ? clamp(dt, 0, 0.1) : 0;
+    if (!this.followInitialized) {
+      this.smoothedFollow.copy(this.followTarget);
+      this.followInitialized = true;
+    } else {
+      const horizontalK = expFollow(safeDt, this.tuning.horizontalFollowSeconds);
+      this.smoothedFollow.x += (this.followTarget.x - this.smoothedFollow.x) * horizontalK;
+      this.smoothedFollow.z += (this.followTarget.z - this.smoothedFollow.z) * horizontalK;
+      const verticalSeconds = this.followTarget.y < this.smoothedFollow.y
+        ? this.tuning.verticalFollowDownSeconds
+        : this.tuning.verticalFollowUpSeconds;
+      const verticalK = expFollow(safeDt, verticalSeconds);
+      this.smoothedFollow.y += (this.followTarget.y - this.smoothedFollow.y) * verticalK;
+      // The leash is measured at the tank-relative pivot and cannot be
+      // affected by boom collision or terrain clearance.
+      this.smoothedFollow.y = clamp(
+        this.smoothedFollow.y,
+        this.followTarget.y - this.tuning.maxVerticalLag,
+        this.followTarget.y + this.tuning.maxVerticalLag,
+      );
+    }
     if (this.recentering) {
-      const k = 1 - Math.exp(-dt / Math.max(0.001, this.tuning.recenterSeconds));
+      const k = 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.recenterSeconds));
       this.yaw += angleDiff(this.yaw, this.recenterTargetYaw) * k;
       this.pitch += (this.recenterTargetPitch - this.pitch) * k;
       if (Math.abs(angleDiff(this.yaw, this.recenterTargetYaw)) < 0.004 && Math.abs(this.pitch - this.recenterTargetPitch) < 0.004) {
@@ -183,7 +238,11 @@ export class TpsCameraController {
     // Horizontal right vector (perpendicular to forwardFlat and world up).
     const right = scratchRight.crossVectors(scratchUp, forwardFlat).normalize();
 
-    const anchor = scratchAnchor.set(this.followPos.x, this.followPos.y + this.tuning.anchorHeight, this.followPos.z);
+    const anchor = scratchAnchor.set(
+      this.smoothedFollow.x,
+      this.smoothedFollow.y + this.tuning.anchorHeight,
+      this.smoothedFollow.z,
+    );
     const desiredEye = scratchDesired
       .copy(anchor)
       .add(scratchEye.set(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
@@ -216,8 +275,8 @@ export class TpsCameraController {
     }
     const pullIn = targetDistance < this.currentDistance - 0.001;
     const rate = pullIn
-      ? 1 - Math.exp(-dt / Math.max(0.001, this.tuning.collisionPullInSeconds))
-      : 1 - Math.exp(-dt / Math.max(0.001, this.tuning.collisionReleaseSeconds));
+      ? 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.collisionPullInSeconds))
+      : 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.collisionReleaseSeconds));
     this.currentDistance = clamp(this.currentDistance + (targetDistance - this.currentDistance) * rate, this.tuning.minimumDistance, boomLen);
 
     const eye = scratchEye.copy(anchor).addScaledVector(rayDir, this.currentDistance);
@@ -234,7 +293,8 @@ export class TpsCameraController {
       this.camera.fov = targetFov;
       this.camera.updateProjectionMatrix();
     }
-    return { position: this.camera.position, distance: this.currentDistance, colliding: pullIn };
+    this.lastColliding = targetDistance < boomLen - 0.001;
+    return { position: this.camera.position, distance: this.currentDistance, colliding: this.lastColliding };
   }
 
   resize(aspect: number): void {
@@ -246,6 +306,10 @@ export class TpsCameraController {
     this.camera.fov = fov;
     this.camera.updateProjectionMatrix();
   }
+}
+
+function expFollow(dt: number, seconds: number): number {
+  return 1 - Math.exp(-dt / Math.max(0.001, seconds));
 }
 
 /**

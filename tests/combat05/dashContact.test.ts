@@ -132,6 +132,7 @@ describe('dash-only contact combat (Combat 05 M1)', () => {
     // Refresh the dash window every step; the cooldown (0.25 s) gates hits.
     for (let i = 0; i < 12; i++) {
       m.state.tank.dashDamageT = 0.2;
+      m.state.tank.dashState = 'burst';
       m.setDriverInput(driver());
       m.step(DT);
       hits += m.takeEvents().filter((e) => e.type === 'dashContact').length;
@@ -139,6 +140,18 @@ describe('dash-only contact combat (Combat 05 M1)', () => {
     // 12 steps = 0.4 s → hits at ~0.00 s and ~0.30 s.
     expect(hits).toBe(2);
     expect(bug.hp).toBe(76);
+  });
+
+  it('recovery state cannot deal dash contact damage even with a stale timer', () => {
+    const m = new Match('recovery-gate');
+    placeTank(m);
+    const bug = adjacentBug(m);
+    bug.hp = 100;
+    m.state.tank.dashState = 'recovery';
+    m.state.tank.dashDamageT = 0.2;
+    m.step(DT);
+    m.takeEvents();
+    expect(bug.hp).toBe(100);
   });
 
   it('enemy contact damage to the tank remains unchanged', () => {

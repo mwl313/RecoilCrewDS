@@ -79,6 +79,7 @@ export class CameraManager {
       recentering: this.activeCam.recentering,
       recenterTargetYaw: (this.activeCam as unknown as { recenterTargetYaw?: number }).recenterTargetYaw,
       lastRenderYaw: this.lastRenderYaw,
+      follow: this.activeCam.getFollowDiagnostics(),
     };
   }
 

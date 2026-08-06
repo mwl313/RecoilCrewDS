@@ -62,6 +62,13 @@ function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
     dashCooldown: 0,
     dashPresentationT: 0,
     dashDamageT: 0,
+    dashState: 'inactive',
+    dashStateT: 0,
+    dashDirectionX: 0,
+    dashDirectionZ: 1,
+    dashPeakSpeed: 0,
+    dashSpeed: 0,
+    dashSteeringMultiplier: 1,
     shieldedT: rules.config.tank.shieldTime,
     deadT: 0,
     grounded: true,
@@ -503,6 +510,7 @@ export class MatchRuntime {
         },
       },
       this.world,
+      { dashModel: this.rules.packId === 'legacy' ? 'legacyImpulse' : 'stateful' },
     );
     this.systems.progression.notifyAirborneTick(dt, t.grounded);
     if (!this.lastGrounded && t.grounded) this.systems.progression.notifyLanded();
@@ -534,6 +542,13 @@ export class MatchRuntime {
     t.dashCooldown = 0;
     t.dashPresentationT = 0;
     t.dashDamageT = 0;
+    t.dashState = 'inactive';
+    t.dashStateT = 0;
+    t.dashDirectionX = 0;
+    t.dashDirectionZ = 1;
+    t.dashPeakSpeed = 0;
+    t.dashSpeed = 0;
+    t.dashSteeringMultiplier = 1;
     t.landingGripT = 0;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;

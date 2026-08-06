@@ -45,6 +45,7 @@ describe('ROADKILL contact rule (progression08)', () => {
     m.state.teamProgression.relicStacks['relic.roadkill'] = 1;
     m.systems.capabilities.grant('tank.roadkillContact', 'relic:relic.roadkill');
     m.state.tank.dashDamageT = 0.2;
+    m.state.tank.dashState = 'burst';
     const hp = e.hp;
     m.systems.contact.update();
     expect(e.hp).toBeLessThan(hp);

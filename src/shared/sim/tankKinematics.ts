@@ -3,7 +3,7 @@ import type { GameConfig } from '../config';
 import { clamp, lerp, pointInBox } from '../math';
 import type { GroundQuery } from './groundQuery';
 import { resolveArenaBounds, STATIC_GROUND_QUERY } from './groundQuery';
-import type { DriverInput, MatchConfig } from '../types';
+import type { DriverInput, MatchConfig, TankDashState } from '../types';
 import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 
 /**
@@ -38,6 +38,13 @@ export interface TankKinematicState {
   dashPresentationT: number;
   /** Authoritative Dash contact-damage window (seconds remaining). */
   dashDamageT: number;
+  dashState?: TankDashState;
+  dashStateT?: number;
+  dashDirectionX?: number;
+  dashDirectionZ?: number;
+  dashPeakSpeed?: number;
+  dashSpeed?: number;
+  dashSteeringMultiplier?: number;
   drift: boolean;
   /** Landing momentum grace window (seconds); affects grip. */
   landingGripT: number;
@@ -56,6 +63,39 @@ export interface CollisionHit {
   normalZ: number;
   penetration: number;
   obstacleId?: string;
+}
+
+export interface TankKinematicsOptions {
+  /** Frozen Phase-0 Demo compatibility; production/content matches use stateful. */
+  dashModel?: 'stateful' | 'legacyImpulse';
+}
+
+export interface TankDashDiagnostics {
+  state: TankDashState;
+  elapsed: number;
+  baseSpeed: number;
+  dashSpeed: number;
+  finalSpeed: number;
+  capturedDirection: { x: number; z: number };
+  steeringMultiplier: number;
+  cooldown: number;
+}
+
+/** Development-only values derived from the same replicated state as the simulation. */
+export function tankDashDiagnostics(t: TankKinematicState): TankDashDiagnostics {
+  const dx = finiteOr(t.dashDirectionX, 0);
+  const dz = finiteOr(t.dashDirectionZ, 1);
+  const dashSpeed = Math.max(0, finiteOr(t.dashSpeed, 0));
+  return {
+    state: t.dashState ?? 'inactive',
+    elapsed: Math.max(0, finiteOr(t.dashStateT, 0)),
+    baseSpeed: Math.hypot(t.vx - dx * dashSpeed, t.vz - dz * dashSpeed),
+    dashSpeed,
+    finalSpeed: Math.hypot(t.vx, t.vz),
+    capturedDirection: { x: dx, z: dz },
+    steeringMultiplier: clamp(finiteOr(t.dashSteeringMultiplier, 1), 0, 1),
+    cooldown: Math.max(0, t.dashCooldown),
+  };
 }
 
 /** Remove only the inward velocity component; preserve tangent sliding. */
@@ -81,10 +121,27 @@ export function stepTankKinematics(
   dt: number,
   callbacks?: TankKinematicsCallbacks,
   ground: GroundQuery = STATIC_GROUND_QUERY,
+  options: TankKinematicsOptions = {},
 ): CollisionHit[] {
   const tankCfg = cfg.tank;
+  normalizeDashState(t);
+  const legacyImpulseDash = options.dashModel === 'legacyImpulse';
+  if (legacyImpulseDash) {
+    // The deterministic Phase-0 Demo is a frozen compatibility contract.
+    // Its impulse model remains isolated here; validated content matches use
+    // the stateful model and replicated phase below.
+    t.dashSpeed = 0;
+    t.dashPeakSpeed = 0;
+    t.dashSteeringMultiplier = 1;
+  }
+  // Remove last tick's temporary contribution before ordinary driving is
+  // decomposed and clamped. External recoil/contact velocity remains base
+  // movement and therefore is never mistaken for dash velocity.
+  const previousDashSpeed = t.dashSpeed!;
+  const baseVx = t.vx - t.dashDirectionX! * previousDashSpeed;
+  const baseVz = t.vz - t.dashDirectionZ! * previousDashSpeed;
   const forward = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
-  const fwdSpeed = t.vx * forward.x + t.vz * forward.z;
+  const fwdSpeed = baseVx * forward.x + baseVz * forward.z;
 
   // Timers decrement by simulation time. The cooldown gates dash acceptance;
   // the presentation timer is cosmetic and deliberately independent.
@@ -92,6 +149,7 @@ export function stepTankKinematics(
   t.dashPresentationT = Math.max(0, t.dashPresentationT - dt);
   t.dashDamageT = Math.max(0, t.dashDamageT - dt);
   t.landingGripT = Math.max(0, t.landingGripT - dt);
+  if (!legacyImpulseDash) advanceDashState(t, tankCfg, dt);
 
   // Jump edge: grounded-only, before normal gravity integration. Launch
   // velocity derives identically on server, predictor, and Single Player from the
@@ -114,6 +172,7 @@ export function stepTankKinematics(
   let steerRate = lerp(tankCfg.steerLow, tankCfg.steerHigh, speedRatio);
   if (!t.grounded) steerRate *= tankCfg.airControl;
   if (newFwd < -0.1) steerRate *= tankCfg.reverseSteerMult;
+  steerRate *= t.dashSteeringMultiplier!;
 
   // 1. Update yaw. Screen-right when viewed from behind is -X, so positive
   // steer (D) rotates the chassis toward -X (yaw decreases).
@@ -126,31 +185,64 @@ export function stepTankKinematics(
 
   // 2. Recompute the basis AFTER steering.
   const f2 = { x: Math.sin(t.yaw), z: Math.cos(t.yaw) };
-  const lateralX = t.vx - forward.x * fwdSpeed;
-  const lateralZ = t.vz - forward.z * fwdSpeed;
+  const lateralX = baseVx - forward.x * fwdSpeed;
+  const lateralZ = baseVz - forward.z * fwdSpeed;
   // Aerial grip is reduced; landing grace briefly carries momentum.
   let grip = mcfg.grip;
   if (!t.grounded) grip *= tankCfg.airGripMultiplier;
   if (t.grounded && t.landingGripT > 0) grip *= tankCfg.landingGripMultiplier;
   const gripF = Math.exp(-grip * dt);
   // 3. Rebuild velocity with the NEW basis; preserve intentional lateral drift.
-  t.vx = f2.x * newFwd + lateralX * gripF;
-  t.vz = f2.z * newFwd + lateralZ * gripF;
+  let nextBaseVx = f2.x * newFwd + lateralX * gripF;
+  let nextBaseVz = f2.z * newFwd + lateralZ * gripF;
 
-  // 4. Dash edge: one instantaneous chassis-forward burst per sequenced
-  // press, cooldown-gated. Lateral momentum is preserved; vertical velocity
-  // is untouched; the horizontal speed cap preserves direction.
+  // 4. Dash edge: enter a temporary authoritative movement state. Capture
+  // chassis forward only at the accepted edge; camera, turret, and current
+  // velocity direction cannot affect the burst direction.
   if (inp.dashPressed && t.dashCooldown <= 0) {
-    const strength = tankCfg.dashImpulse * (t.grounded ? 1 : tankCfg.dashAirMultiplier);
-    if (strength > 0) {
-      t.vx += Math.sin(t.yaw) * strength;
-      t.vz += Math.cos(t.yaw) * strength;
-      capHorizontalSpeed(t, tankCfg.dashMaxHorizontalSpeed);
+    if (legacyImpulseDash) {
+      const strength = tankCfg.dashImpulse * (t.grounded ? 1 : tankCfg.dashAirMultiplier);
+      if (strength > 0) {
+        t.vx = nextBaseVx + Math.sin(t.yaw) * strength;
+        t.vz = nextBaseVz + Math.cos(t.yaw) * strength;
+        capHorizontalSpeed(t, tankCfg.dashMaxHorizontalSpeed);
+        t.dashState = 'burst';
+        t.dashDirectionX = Math.sin(t.yaw);
+        t.dashDirectionZ = Math.cos(t.yaw);
+        t.dashCooldown = tankCfg.dashCooldown;
+        t.dashPresentationT = tankCfg.dashPresentationSeconds;
+        t.dashDamageT = tankCfg.dashDamageWindowSeconds;
+        callbacks?.onDash?.();
+      }
+    } else {
+    const airMultiplier = t.grounded ? 1 : tankCfg.dashAirMultiplier;
+    const peakTotalSpeed = Math.max(
+      tankCfg.forwardSpeed * tankCfg.dashPeakSpeedMultiplier,
+      tankCfg.forwardSpeed + tankCfg.dashImpulse,
+    ) * airMultiplier;
+    if (peakTotalSpeed > 0) {
+      t.dashDirectionX = Math.sin(t.yaw);
+      t.dashDirectionZ = Math.cos(t.yaw);
+      const baseAlongDash = nextBaseVx * t.dashDirectionX + nextBaseVz * t.dashDirectionZ;
+      t.dashPeakSpeed = Math.max(0, peakTotalSpeed - baseAlongDash);
+      t.dashState = 'burst';
+      t.dashStateT = Math.min(dt, tankCfg.dashBurstSeconds);
+      t.dashSpeed = dashCurveSpeed(t, tankCfg);
+      t.dashSteeringMultiplier = dashSteeringMultiplier(t, tankCfg);
       t.dashCooldown = tankCfg.dashCooldown;
       t.dashPresentationT = tankCfg.dashPresentationSeconds;
       t.dashDamageT = tankCfg.dashDamageWindowSeconds;
       callbacks?.onDash?.();
     }
+    }
+  }
+  if (!legacyImpulseDash) {
+    t.vx = nextBaseVx + t.dashDirectionX! * t.dashSpeed!;
+    t.vz = nextBaseVz + t.dashDirectionZ! * t.dashSpeed!;
+    capHorizontalSpeed(t, t.dashState === 'inactive' ? 0 : tankCfg.dashMaxHorizontalSpeed);
+  } else if (!(inp.dashPressed && t.dashCooldown === tankCfg.dashCooldown)) {
+    t.vx = nextBaseVx;
+    t.vz = nextBaseVz;
   }
 
   // 5. Integrate with displacement-based substeps (dash/recoil/rammer/high speed).
@@ -178,6 +270,17 @@ export function stepTankKinematics(
     t.y += t.vy * subDt;
     t.z = nz;
     hits = hits.concat(resolveTankFootprint(t, cfg, ground));
+  }
+  // A wall directly opposing the captured burst ends damage immediately and
+  // transfers the remainder into recovery. Tangential sliding is preserved.
+  if (
+    t.dashState === 'burst' &&
+    hits.some((hit) => hit.normalX * t.dashDirectionX! + hit.normalZ * t.dashDirectionZ! < -0.25)
+  ) {
+    t.dashState = 'recovery';
+    t.dashStateT = 0;
+    t.dashPeakSpeed = t.dashSpeed! / Math.max(0.001, tankCfg.dashRecoveryStartRatio);
+    t.dashDamageT = 0;
   }
 
   // Natural surface crest launch. Before the grounded snap, sample terrain
@@ -272,6 +375,84 @@ export function stepTankKinematics(
   // state exists anymore).
   t.drift = t.grounded && Math.abs(inp.steer) > 0.4 && Math.abs(newFwd) > 6;
   return hits;
+}
+
+function normalizeDashState(t: TankKinematicState): void {
+  t.dashState = t.dashState ?? 'inactive';
+  t.dashStateT = Math.max(0, finiteOr(t.dashStateT, 0));
+  t.dashDirectionX = finiteOr(t.dashDirectionX, 0);
+  t.dashDirectionZ = finiteOr(t.dashDirectionZ, 1);
+  const length = Math.hypot(t.dashDirectionX, t.dashDirectionZ);
+  if (length > 0.0001) {
+    t.dashDirectionX /= length;
+    t.dashDirectionZ /= length;
+  } else {
+    t.dashDirectionX = 0;
+    t.dashDirectionZ = 1;
+  }
+  t.dashPeakSpeed = Math.max(0, finiteOr(t.dashPeakSpeed, 0));
+  t.dashSpeed = Math.max(0, finiteOr(t.dashSpeed, 0));
+  t.dashSteeringMultiplier = clamp(finiteOr(t.dashSteeringMultiplier, 1), 0, 1);
+}
+
+function advanceDashState(t: TankKinematicState, cfg: GameConfig['tank'], dt: number): void {
+  if (t.dashState === 'inactive') {
+    t.dashStateT = 0;
+    t.dashSpeed = 0;
+    t.dashPeakSpeed = 0;
+    t.dashSteeringMultiplier = 1;
+    return;
+  }
+  t.dashStateT! += Math.max(0, dt);
+  if (t.dashState === 'burst' && t.dashStateT! >= cfg.dashBurstSeconds) {
+    t.dashState = 'recovery';
+    t.dashStateT = Math.max(0, t.dashStateT! - cfg.dashBurstSeconds);
+    t.dashDamageT = 0;
+  }
+  if (t.dashState === 'recovery' && t.dashStateT! >= cfg.dashRecoverySeconds) {
+    t.dashState = 'inactive';
+    t.dashStateT = 0;
+    t.dashSpeed = 0;
+    t.dashPeakSpeed = 0;
+    t.dashSteeringMultiplier = 1;
+    return;
+  }
+  t.dashSpeed = dashCurveSpeed(t, cfg);
+  t.dashSteeringMultiplier = dashSteeringMultiplier(t, cfg);
+}
+
+function dashCurveSpeed(t: TankKinematicState, cfg: GameConfig['tank']): number {
+  if (t.dashState === 'inactive') return 0;
+  if (t.dashState === 'recovery') {
+    const u = clamp(t.dashStateT! / Math.max(0.001, cfg.dashRecoverySeconds), 0, 1);
+    return t.dashPeakSpeed! * cfg.dashRecoveryStartRatio * (1 - smoothstep(u));
+  }
+  if (t.dashStateT! <= cfg.dashAccelerationSeconds) {
+    return t.dashPeakSpeed! * smoothstep(t.dashStateT! / Math.max(0.001, cfg.dashAccelerationSeconds));
+  }
+  const decayDuration = Math.max(0.001, cfg.dashBurstSeconds - cfg.dashAccelerationSeconds);
+  const u = clamp((t.dashStateT! - cfg.dashAccelerationSeconds) / decayDuration, 0, 1);
+  return t.dashPeakSpeed! * lerp(1, cfg.dashRecoveryStartRatio, smoothstep(u));
+}
+
+function dashSteeringMultiplier(t: TankKinematicState, cfg: GameConfig['tank']): number {
+  if (t.dashState === 'inactive') return 1;
+  if (t.dashState === 'recovery') {
+    const u = clamp(t.dashStateT! / Math.max(0.001, cfg.dashRecoverySeconds), 0, 1);
+    return lerp(cfg.dashLateSteeringInfluence, 1, smoothstep(u));
+  }
+  if (t.dashStateT! <= cfg.dashDirectionLockSeconds) return 0;
+  const remaining = Math.max(0.001, cfg.dashBurstSeconds - cfg.dashDirectionLockSeconds);
+  return cfg.dashLateSteeringInfluence * smoothstep((t.dashStateT! - cfg.dashDirectionLockSeconds) / remaining);
+}
+
+function smoothstep(value: number): number {
+  const u = clamp(value, 0, 1);
+  return u * u * (3 - 2 * u);
+}
+
+function finiteOr(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) ? value : fallback;
 }
 
 function capHorizontalSpeed(t: TankKinematicState, maxHorizontalSpeed: number): void {

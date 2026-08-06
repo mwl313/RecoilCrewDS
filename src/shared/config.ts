@@ -55,6 +55,20 @@ export interface GameConfig {
     surfaceLaunchDetachEpsilon: number;
     /** Forward velocity delta added by a grounded dash (m/s). */
     dashImpulse: number;
+    /** Peak total dash speed as a multiplier of ordinary forward speed. */
+    dashPeakSpeedMultiplier: number;
+    /** Authoritative burst-state duration (seconds). */
+    dashBurstSeconds: number;
+    /** Time from activation to peak temporary velocity (seconds). */
+    dashAccelerationSeconds: number;
+    /** Initial interval with no input steering influence (seconds). */
+    dashDirectionLockSeconds: number;
+    /** Input steering influence reached late in the burst (0..1). */
+    dashLateSteeringInfluence: number;
+    /** Authoritative recovery-state duration (seconds). */
+    dashRecoverySeconds: number;
+    /** Fraction of peak dash velocity carried into recovery (0..1). */
+    dashRecoveryStartRatio: number;
     /** Minimum authoritative seconds between accepted dashes. */
     dashCooldown: number;
     /** Dash strength multiplier while airborne (0 disables air dash). */
@@ -209,9 +223,16 @@ export const BASE_CONFIG: GameConfig = {
     surfaceLaunchMaxVy: 8.0,
     surfaceLaunchDetachEpsilon: 0.05,
     dashImpulse: 13.0,
+    dashPeakSpeedMultiplier: 2.05,
+    dashBurstSeconds: 0.38,
+    dashAccelerationSeconds: 0.08,
+    dashDirectionLockSeconds: 0.12,
+    dashLateSteeringInfluence: 0.2,
+    dashRecoverySeconds: 0.2,
+    dashRecoveryStartRatio: 0.28,
     dashCooldown: 0.8,
     dashAirMultiplier: 0.8,
-    dashMaxHorizontalSpeed: 33.0,
+    dashMaxHorizontalSpeed: 42.0,
     dashPresentationSeconds: 0.18,
     contactDamage: 0,
     dashContactDamage: 12,

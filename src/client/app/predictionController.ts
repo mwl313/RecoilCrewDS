@@ -10,6 +10,7 @@ import type { GunnerActionType } from '../../shared/net/protocol';
 import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
 import { VERTICAL_AIM_MAX_PITCH, VERTICAL_AIM_MIN_PITCH } from '../../shared/vehicle/tankRigTypes';
+import type { TankDashDiagnostics } from '../../shared/sim/tankKinematics';
 
 export interface PredictionCallbacks {
   send(msg: Record<string, unknown>): void;
@@ -124,6 +125,10 @@ export class PredictionController {
     return this.predictor?.isDisabled ?? false;
   }
 
+  dashDiagnostics(): TankDashDiagnostics | null {
+    return this.predictor?.dashDiagnostics ?? null;
+  }
+
   reconcile(
     state: MatchState,
     ackSeq: number,
@@ -170,6 +175,14 @@ export class PredictionController {
       grounded: d.grounded,
       dashCooldown: d.dashCooldown,
       dashPresentationT: d.dashPresentationT,
+      dashDamageT: d.dashDamageT,
+      dashState: d.dashState,
+      dashStateT: d.dashStateT,
+      dashDirectionX: d.dashDirectionX,
+      dashDirectionZ: d.dashDirectionZ,
+      dashPeakSpeed: d.dashPeakSpeed,
+      dashSpeed: d.dashSpeed,
+      dashSteeringMultiplier: d.dashSteeringMultiplier,
       drift: d.drift,
     };
   }

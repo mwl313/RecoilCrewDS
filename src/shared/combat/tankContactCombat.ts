@@ -24,7 +24,7 @@ export class TankContactCombat {
 
     const tankCfg = this.ctx.rules.config.tank;
     const tankR = this.ctx.rules.config.arena.tankRadius;
-    const dashActive = t.dashDamageT > 0;
+    const dashActive = t.dashState === 'burst' && t.dashDamageT > 0;
     const dashDamage = tankCfg.dashContactDamage;
     const knockback = tankCfg.dashContactKnockback;
     const perTargetCooldown = Math.max(0.001, tankCfg.dashContactPerTargetCooldown);
@@ -64,6 +64,8 @@ export class TankContactCombat {
           // The chassis bleeds a little speed; the enemy gets a small pop.
           t.vx *= knockback;
           t.vz *= knockback;
+          if (t.dashSpeed !== undefined) t.dashSpeed *= knockback;
+          if (t.dashPeakSpeed !== undefined) t.dashPeakSpeed *= knockback;
           const dirX = d > 0.001 ? (e.x - t.x) / d : 0;
           const dirZ = d > 0.001 ? (e.z - t.z) / d : 0;
           this.ctx.enemyImpulses.apply(e, def, dirX, dirZ, 2.5, 1.1, 'dash');

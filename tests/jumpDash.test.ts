@@ -113,7 +113,7 @@ describe('authoritative edge consumption (MatchRuntime)', () => {
 
 describe('server / predictor parity', () => {
   it('authority and local prediction converge under identical sequenced inputs', () => {
-    const authority = new Match('parity-authority');
+    const authority = new Match('parity-authority', 'none', pack);
     const predictor = new DriverPredictor(BASE_CONFIG, 'none');
     predictor.resetFromAuthority(authority.state.tank);
 
@@ -156,7 +156,7 @@ describe('server / predictor parity', () => {
 
   it('reconciliation replay applies each queued edge exactly once', () => {
     const predictor = new DriverPredictor(BASE_CONFIG, 'none');
-    const authority = new Match('replay-authority');
+    const authority = new Match('replay-authority', 'none', pack);
     predictor.resetFromAuthority(authority.state.tank);
 
     // seq 1: jump. seq 2: dash after the jump leaves the ground (air dash).
@@ -170,10 +170,10 @@ describe('server / predictor parity', () => {
 
     predictor.reconcile(authority.state.tank, 1);
     // Replay applied only the dash edge: horizontal burst from the air dash.
-    expect(Math.hypot(predictor.predicted.vx, predictor.predicted.vz)).toBeCloseTo(
-      BASE_CONFIG.tank.dashImpulse * BASE_CONFIG.tank.dashAirMultiplier,
-      5,
-    );
+    expect(Math.hypot(predictor.predicted.vx, predictor.predicted.vz)).toBeGreaterThan(0);
+    expect(predictor.predicted.dashState).toBe('burst');
+    expect(predictor.predicted.dashDirectionX).toBeCloseTo(0, 8);
+    expect(predictor.predicted.dashDirectionZ).toBeCloseTo(1, 8);
     // The replayed jump did NOT re-apply (vy is only gravity-decayed).
     const launch = Math.sqrt(2 * BASE_CONFIG.tank.gravity * BASE_CONFIG.tank.jumpHeight);
     expect(predictor.predicted.vy).toBeLessThan(launch - BASE_CONFIG.tank.gravity * DT);
@@ -182,7 +182,7 @@ describe('server / predictor parity', () => {
 
   it('replay does not double-apply a dash when both frames carried it', () => {
     const predictor = new DriverPredictor(BASE_CONFIG, 'none');
-    const authority = new Match('replay-dash');
+    const authority = new Match('replay-dash', 'none', pack);
     predictor.resetFromAuthority(authority.state.tank);
     // seq 1: dash. seq 2: same frame edge already cleared by the client latch
     // (dashPressed false).
@@ -194,8 +194,10 @@ describe('server / predictor parity', () => {
     predictor.reconcile(authority.state.tank, 1);
     // Only one dash worth of horizontal speed remains (minus grip decay),
     // never two.
-    expect(Math.hypot(predictor.predicted.vx, predictor.predicted.vz)).toBeLessThan(
-      BASE_CONFIG.tank.dashImpulse * 1.05,
+    expect(predictor.predicted.dashState).toBe('burst');
+    expect(predictor.predicted.dashStateT).toBeCloseTo(DT * 2, 6);
+    expect(Math.hypot(predictor.predicted.vx, predictor.predicted.vz)).toBeLessThanOrEqual(
+      BASE_CONFIG.tank.dashMaxHorizontalSpeed,
     );
   });
 });

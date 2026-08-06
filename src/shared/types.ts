@@ -191,6 +191,18 @@ export interface TankState {
   dashPresentationT: number;
   /** Authoritative Dash contact-damage window (seconds remaining). */
   dashDamageT: number;
+  /** Replicated dash movement phase; absent only in protocol-12 fixtures. */
+  dashState?: TankDashState;
+  /** Seconds elapsed in the current dash phase. */
+  dashStateT?: number;
+  /** Captured chassis-forward direction from the accepted activation edge. */
+  dashDirectionX?: number;
+  dashDirectionZ?: number;
+  /** Peak and current temporary dash contributions (m/s). */
+  dashPeakSpeed?: number;
+  dashSpeed?: number;
+  /** Current input-steering multiplier, exposed for development diagnostics. */
+  dashSteeringMultiplier?: number;
   shieldedT: number;
   deadT: number;
   grounded: boolean;
@@ -199,6 +211,8 @@ export interface TankState {
   landingGripT?: number;
   prevOnRamp?: boolean;
 }
+
+export type TankDashState = 'inactive' | 'burst' | 'recovery';
 
 export interface TurretState {
   yaw: number; // chassis-local yaw (chassis yaw added exactly once at world muzzle)

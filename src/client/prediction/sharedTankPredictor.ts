@@ -1,7 +1,7 @@
 import { buildMatchConfig, type GameConfig } from '../../shared/config';
 import type { GroundQuery } from '../../shared/sim/groundQuery';
 import { resolveArenaBounds, STATIC_GROUND_QUERY } from '../../shared/sim/groundQuery';
-import { stepTankKinematics, type TankKinematicState } from '../../shared/sim/tankKinematics';
+import { stepTankKinematics, tankDashDiagnostics, type TankDashDiagnostics, type TankKinematicState } from '../../shared/sim/tankKinematics';
 import type { MovementRulesBlock } from '../../shared/stats/rulesRevision';
 import type { DriverInput, ModifierId, TankState } from '../../shared/types';
 import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
@@ -42,6 +42,8 @@ function emptyState(): TankKinematicState {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, yawVel: 0,
     pitch: 0, roll: 0, grounded: true, dashCooldown: 0, dashPresentationT: 0, dashDamageT: 0, drift: false,
     landingGripT: 0,
+    dashState: 'inactive', dashStateT: 0, dashDirectionX: 0, dashDirectionZ: 1,
+    dashPeakSpeed: 0, dashSpeed: 0, dashSteeringMultiplier: 1,
   };
 }
 
@@ -53,6 +55,13 @@ function fromTank(t: TankState): TankKinematicState {
     dashCooldown: t.dashCooldown,
     dashPresentationT: t.dashPresentationT,
     dashDamageT: t.dashDamageT ?? 0,
+    dashState: t.dashState ?? 'inactive',
+    dashStateT: t.dashStateT ?? 0,
+    dashDirectionX: t.dashDirectionX ?? 0,
+    dashDirectionZ: t.dashDirectionZ ?? 1,
+    dashPeakSpeed: t.dashPeakSpeed ?? 0,
+    dashSpeed: t.dashSpeed ?? 0,
+    dashSteeringMultiplier: t.dashSteeringMultiplier ?? 1,
     drift: t.drift,
     landingGripT: t.landingGripT ?? 0,
     prevOnRamp: t.prevOnRamp ?? false,
@@ -139,6 +148,10 @@ export class SharedTankPredictor {
 
   get pendingImpulseCount(): number {
     return this.pendingImpulses.length;
+  }
+
+  get dashDiagnostics(): TankDashDiagnostics {
+    return tankDashDiagnostics(this.predicted);
   }
 
   resetFromAuthority(t: TankState): void {
@@ -359,5 +372,17 @@ export class SharedTankPredictor {
     d.yawVel = step(d.yawVel, p.yawVel);
     d.pitch = step(d.pitch, p.pitch);
     d.roll = step(d.roll, p.roll);
+    d.grounded = p.grounded;
+    d.dashCooldown = p.dashCooldown;
+    d.dashPresentationT = p.dashPresentationT;
+    d.dashDamageT = p.dashDamageT;
+    d.dashState = p.dashState;
+    d.dashStateT = p.dashStateT;
+    d.dashDirectionX = p.dashDirectionX;
+    d.dashDirectionZ = p.dashDirectionZ;
+    d.dashPeakSpeed = p.dashPeakSpeed;
+    d.dashSpeed = p.dashSpeed;
+    d.dashSteeringMultiplier = p.dashSteeringMultiplier;
+    d.drift = p.drift;
   }
 }

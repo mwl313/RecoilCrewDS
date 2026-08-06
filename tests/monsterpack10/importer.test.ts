@@ -25,7 +25,7 @@ describe('monsterpack10 importer', () => {
     const before = readFileSync(sentinel, 'utf8');
     const result = await runImport({ dryRun: true });
     expect(result.wrote).toEqual([]);
-    expect(result.plan.copies.length).toBe(90);
+    expect(result.plan.copies.length).toBe(stagingExists ? 90 : 0);
     expect(readFileSync(sentinel, 'utf8')).toBe(before);
     rmSync(sentinel, { force: true });
     rmSync(tmp, { recursive: true, force: true });
