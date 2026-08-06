@@ -4,6 +4,7 @@
 
 - Branch: `quality-improvement`
 - Base: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
+- Ending implementation SHA: `a28da4a`
 - Do not merge to `main` as part of this milestone.
 - Preserve the two untracked source-pack ZIPs in `docs/quality/`.
 - Do not modify `tests/fixtures/demo-golden.json`.
@@ -53,14 +54,21 @@
 - Human-reviewed driver, aerial, rooftop, and fair-comparison evidence is committed under `docs/quality/evidence/`.
 - Recommendation: **hybridize with urban elements later**; do not replace the production map in this milestone.
 
-## Next work
+## Final qualification and handoff
 
-1. Run the complete final command matrix and record exact results or renamed equivalents.
-2. Close the reports with the ending implementation SHA and final qualification commit.
-3. Hand off `quality-improvement` without merging it into `main`.
+- TypeScript, all generators, the full 150-file / 1,144-test suite, client/server build, Demo golden, netcode, horde, progression, animation, Monster Pack import/rendering, maps, and Map Lab all passed.
+- All 50 Playwright E2E scenarios passed post-change in bounded groups (16 focused/current-contract cases plus 34 remaining cases). The single monolithic invocation exceeded its external 20-minute wrapper and is not counted as a pass.
+- Full production Single Player and two-client multiplayer loops reached boss victory, results, reconnect, and clean rematch.
+- Qualification exposed and fixed a title-transition race that could reopen the menu over a successful mid-boss reconnect.
+- Refreshed monster-system qualification screenshots and quality evidence were human-reviewed.
+- No listed qualification command was unavailable or renamed.
+- The Demo golden remains unchanged.
+- The branch is ready for review but must remain separate until the user explicitly chooses to merge it.
 
 ## Known observations
 
 - Browser evidence at 5050 recorded a production dash at 125 km/h against a normal maximum of 64.8 km/h.
 - The deterministic valley test observed 0.731 m maximum vertical lag with a 2.0 m leash.
-- Full-suite qualification passed after the roadkill/importer contract updates: 148 files / 1,126 tests.
+- Final full-suite qualification: 150 files / 1,144 tests.
+- Final server 750 baseline step p50/p95/p99: 2.270/3.794/4.465 ms; compact replication 19.3 KB/s.
+- One-machine renderer recommendation: 40 near + 120 mid + 590 far, maximum 750.

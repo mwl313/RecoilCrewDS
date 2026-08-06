@@ -1,5 +1,12 @@
 # Enemy Capacity Benchmark
 
+## Milestone record
+
+- Branch: `quality-improvement`
+- Starting SHA: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
+- Ending implementation SHA at final qualification: `a28da4a`
+- Recommendation: keep the measured current-machine ceiling at 750 with a 40 near / 120 mid mixer budget; treat lower hardware rows as release gates until physically measured.
+
 ## Decision
 
 The engine supports a 750-enemy production ceiling on the current development machine only when skeletal presentation is bounded and the remaining population uses animated rigid or aggregate tiers.
@@ -134,3 +141,5 @@ The server stress case includes up to 240 enemy projectiles, 400 XP shards, an e
 | Current RTX 4060 Ti development machine | 750 total; near 40, mid 120 | Measured pass at 1280×720. |
 
 The lower-class rows are deliberately conservative gates. They become measured recommendations only after evidence JSON is captured on those machines using the same committed route.
+
+The final serial server rerun passed at 750 with baseline step p50/p95/p99 `2.270/3.794/4.465 ms`, combat-pressure step `2.328/3.791/3.944 ms`, compact replication `19.3/21.8 KB/s`, and no unexpected enemy/sector/XP growth. These rerun values confirm the committed evidence conclusions; they do not replace the fixed browser/GPU matrix. No integrated laptop or mid-range desktop was physically available, so no performance claim is made for those classes.

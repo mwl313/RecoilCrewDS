@@ -5,6 +5,7 @@
 - Branch: `quality-improvement`
 - Starting SHA: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
 - Urban implementation SHA: `28806a2`
+- Ending implementation SHA at final qualification: `a28da4a`
 - Production default: unchanged; both urban profiles remain explicit development/test selections.
 - Primary candidate: 200×200 m. The 400×400 m profile is an additional scale and instancing stress case, not a second production proposal.
 

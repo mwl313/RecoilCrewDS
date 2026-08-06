@@ -4,6 +4,7 @@
 
 - Branch: `quality-improvement`
 - Milestone starting SHA: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
+- Ending implementation SHA at final qualification: `a28da4a`
 - Phase: A — vehicle and camera feel
 - Simulation cadence: 30 Hz
 - Protocol: bumped from 12 to 13 because snapshots now carry authoritative dash phase and temporary-velocity state.
@@ -94,7 +95,10 @@ In the deterministic 9 m / 1.5 s valley descent test, maximum observed vertical 
 - TypeScript: `npx tsc --noEmit` passed.
 - Client production build passed.
 - Demo golden passed unchanged.
-- Full repository suite passed: 148 files, 1,126 tests.
+- Final full repository suite passed: 150 files, 1,144 tests.
+- Final browser coverage passed the real one-press dash state check, two-client shared prediction, wall/high-speed collision, complete multiplayer round/rematch, and production boss reconnect.
 - Browser play evidence: [phase-a-stateful-dash.png](evidence/phase-a-stateful-dash.png) shows an accepted production dash at 125 km/h (34.72 m/s), well above the ordinary 64.8 km/h maximum.
 
 Required automated scenarios cover chassis-forward capture, normal-cap separation, steering lock, curve decay, terminal smoothness, authoritative contact gate, server/predictor replay agreement, valley descent, hill crest, ridge jump, cliff fall, rolling terrain, airborne rotation, wall collision/release, and frame spikes.
+
+Browser/device: Chrome 151, Windows, 1280×720, NVIDIA GeForce RTX 4060 Ti through ANGLE D3D11. Video clips were not produced by this environment; the committed screenshot, deterministic camera traces, and Playwright movement/reconnect checks are the retained evidence. Further feel tuning should be based on human play, not a change to the authority/prediction architecture.
