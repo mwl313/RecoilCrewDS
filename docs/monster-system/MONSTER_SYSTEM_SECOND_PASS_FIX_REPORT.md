@@ -17,7 +17,8 @@ a589ad1 monster-fix2: add second-pass binding documents
 82dd72f monster-fix2: align farming difficulty and engagement geometry
 4d56473 monster-fix2: replicate airborne monsters and gate protocol
 6d665b3 monster-fix2: preserve transforms ownership and atomic packs
-<qualification> monster-fix2: qualify second-pass monster corrections
+6d530ab monster-fix2: qualify second-pass monster corrections
+<this commit> monster-fix2: anchor imported monster models to terrain
 ```
 
 ## 2. Files changed (summary)
@@ -352,6 +353,74 @@ Checklist: no buried/floating monsters; no orientation regression; no
 ```
 
 ## 11. Remaining known limitations
+
+### Post-qualification grounding correction (2026-08-06)
+
+A live production report after `6d530ab` showed selected hero/elite GLBs
+rendering hundreds of metres above terrain. The follow-up investigation did
+not accept the initial fallback/preload diagnosis from the handoff:
+
+```text
+authoritative enemy Y                         correct
+Single Player selected-run preload            awaited and correct
+procedural fallback measured grounding        correct
+fresh skinned GLB bind-pose bounds             invalid/unstable
+prepared GLB socketshadow marker               stable terrain anchor
+```
+
+The failed draft marked fallback assets and clamped large measured offsets to
+generated dimension metadata. That removed the extreme values but left real
+models floating by roughly 0.5–2.4 m and could bury unrelated placeholders.
+Those draft changes were discarded.
+
+The production transform now composes full authored position/rotation/vector
+scale first, then anchors prepared imported monsters by their semantic
+`socketshadow` ground marker. Static/procedural models without that marker use
+their rendered local bounds. Authored Y is included before the final
+correction, so it cannot become a second visible lift.
+
+Additional regression coverage now includes:
+
+```text
+nonzero authored Y with final terrain contact
+skinned bind-space vertices far from rendered vertices
+prepared ground marker with an intentionally extreme bind-pose bound
+procedural fallback with a 62 m pivot offset
+```
+
+Follow-up verification actually run:
+
+```text
+npx tsc --noEmit                                      PASS
+npx vitest run tests/monsters/groundingTransform.test.ts PASS (15 tests)
+npx vitest run tests/animation                        PASS (14 files / 92 tests incl. grounding)
+npm run build:client                                  PASS
+production browser randomized selected heroes         PASS (3 consecutive runs)
+npm test                                               PASS (145 files / 1077 tests)
+npm run build                                          PASS (client + server)
+npm run test:demo                                      PASS (golden unchanged)
+npm run test:horde                                     PASS (12 files / 98 tests)
+npm run test:netcode                                   PASS (6 files / 30 tests)
+npm run test:monsterpack-rendering                     PASS (1 browser benchmark)
+monster-fix2 Playwright gallery                        PASS (1 scenario)
+production single-player core loop                     PASS (1 scenario)
+production multiplayer core loop                      PASS on isolated rerun
+```
+
+The first combined core-loop run recorded one multiplayer timing miss: the
+driver/gunner airborne samples differed by `0.725 m` against the suite's
+`0.15 m` cross-client tolerance. The single-player scenario passed in that
+same run, and the complete multiplayer scenario passed when rerun alone. No
+per-client rendered-versus-replicated grounding assertion failed. This is
+recorded as a timing-sensitive test result, not silently counted as a clean
+first-pass run.
+
+The randomized browser probe reproduced pre-fix model offsets of approximately
+365–763 m. With the final correction, Ninja High Detail, Demon High Detail,
+Fish High Detail, and Yeti High Detail runs retained a terrain-anchored model
+root (`modelY = 0`) rather than the extreme offset. One live frame was visually
+inspected in this agent session; the broader 17-image human review below
+remains pending.
 
 ```text
 - Human visual review of the screenshots/clip is pending (paths above).

@@ -313,3 +313,55 @@ Saved under `docs/monster-system/qualification-screenshots/` (17 PNGs +
 ### Handoff notes
 
 All phases complete. Final report written. Branch remains unmerged.
+
+---
+
+## Post-qualification grounding hotfix — 2026-08-06
+
+### Status
+
+The reported sky-flight regression was reproduced in the production browser.
+The uncommitted fallback-stamping/sanity-clamp draft described in
+`HANDOFF_GPT56_SOL.md` was rejected after live evidence contradicted it.
+
+### Root cause and correction
+
+Freshly cloned skinned GLBs can expose import/bind-pose bounds far from the
+rendered character. Using those bounds as a root translation launched selected
+heroes hundreds of metres upward. Clamping to generated offsets was also
+incorrect because it left several real models visibly floating.
+
+Prepared monster GLBs already contain the stable semantic `socketshadow`
+ground marker. The production helper now composes the full profile pose and
+anchors that marker to the entity terrain plane. Procedural/static fallback
+models, which do not have the marker, continue to use measured rendered bounds.
+
+### Files and verification
+
+```text
+src/client/app/monsterTransform.ts
+tests/monsters/groundingTransform.test.ts
+
+npx tsc --noEmit                                      PASS
+npx vitest run tests/monsters/groundingTransform.test.ts PASS (15 tests)
+npx vitest run tests/animation                        PASS
+npm run build:client                                  PASS
+randomized production hero browser probe              PASS (3 runs)
+npm test                                               PASS (145 files / 1077 tests)
+npm run build                                          PASS (client + server)
+npm run test:demo                                      PASS (golden unchanged)
+npm run test:horde                                     PASS (12 files / 98 tests)
+npm run test:netcode                                   PASS (6 files / 30 tests)
+npm run test:monsterpack-rendering                     PASS
+monster-fix2 Playwright gallery                        PASS
+production single-player core loop                     PASS
+production multiplayer core loop                      PASS on isolated rerun
+```
+
+The initial combined core-loop run had one timing-sensitive multiplayer miss:
+the two clients' airborne render samples differed by `0.725 m` against a
+`0.15 m` cross-client tolerance. Neither client's own grounding bound failed,
+and the full multiplayer scenario passed when rerun alone.
+
+Temporary debug hooks/specs were removed. Demo golden and map systems were not
+changed. Branch remains `monster-system` and unmerged.

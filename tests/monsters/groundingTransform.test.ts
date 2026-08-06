@@ -28,6 +28,29 @@ function makeModel(belowRoot: number, height = 1): THREE.Group {
   return model;
 }
 
+/**
+ * Skinned model whose source vertices live around Y=-60 but whose bind pose
+ * renders around the root. Static geometry bounds reproduce the production
+ * GLB failure; skinned vertex bounds describe what Three.js actually draws.
+ */
+function makeSkinnedBindOffsetModel(): THREE.Group {
+  const model = new THREE.Group();
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  geometry.translate(0, -60, 0);
+  const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshBasicMaterial());
+  const position = geometry.getAttribute('position');
+  // Stand in for a bind pose that moves distant source vertices back around
+  // the visible root. Both the production helper and Three.js Box3 consume
+  // getVertexPosition(), while the old broken helper consumed geometry.box.
+  mesh.getVertexPosition = (index, target) => {
+    target.fromBufferAttribute(position, index);
+    target.y += 60;
+    return target;
+  };
+  model.add(mesh);
+  return model;
+}
+
 function dimsFor(
   enemyId: string,
   sizeClass: 'small' | 'medium' | 'large',
@@ -88,9 +111,9 @@ describe('monster grounding production transform (second-pass)', () => {
     }
   });
 
-  it('preserves authored position (X/Y/Z scaled) and still grounds', () => {
+  it('composes a nonzero authored position and still grounds the final pose', () => {
     const model = makeModel(1);
-    applyMonsterScaleAndOffset(model, { position: [2, 0, -1] }, dimsFor('enemy.quaternius.ninja', 'small', 'fodder'));
+    applyMonsterScaleAndOffset(model, { position: [2, 0.5, -1] }, dimsFor('enemy.quaternius.ninja', 'small', 'fodder'));
     const group = new THREE.Group();
     group.add(model);
     group.position.y = 3;
@@ -99,6 +122,47 @@ describe('monster grounding production transform (second-pass)', () => {
     expect(Math.abs(box.min.y - 3)).toBeLessThanOrEqual(FOOT_TOLERANCE);
     expect(box.min.x).toBeGreaterThan(0.5);
     expect(box.max.z).toBeLessThan(-0.2);
+  });
+
+  it('uses rendered skinned bounds instead of distant bind-space geometry', () => {
+    const model = makeSkinnedBindOffsetModel();
+    const d = dimsFor('enemy.quaternius.ninja-high-detail', 'medium', 'elite', 1, 0.5);
+    applyMonsterScaleAndOffset(model, undefined, d);
+
+    // The old static-geometry path produced an offset around 60 * finalScale
+    // and launched this model high above the terrain.
+    expect(model.position.y).toBeLessThan((60 * d.finalScale) / 10);
+    expect(Math.abs(worldMinY(model, 7) - 7)).toBeLessThanOrEqual(FOOT_TOLERANCE);
+  });
+
+  it('uses a prepared GLB ground marker instead of unstable bind-pose bounds', () => {
+    const model = makeModel(80, 2);
+    const anchor = new THREE.Object3D();
+    anchor.name = 'socketshadow';
+    model.add(anchor);
+    applyMonsterScaleAndOffset(
+      model,
+      { position: [0, 0.5, 0] },
+      dimsFor('enemy.quaternius.cactoro-high-detail', 'medium', 'elite', 2, 1),
+    );
+    const group = new THREE.Group();
+    group.position.y = 6;
+    group.add(model);
+    group.updateMatrixWorld(true);
+    const world = new THREE.Vector3();
+    anchor.getWorldPosition(world);
+    expect(world.y).toBeCloseTo(6, 6);
+    expect(Math.abs(model.position.y)).toBeLessThan(1e-6);
+  });
+
+  it('grounds a procedural fallback even when its pivot is far from geometry', () => {
+    const model = makeModel(62, 2);
+    applyMonsterScaleAndOffset(
+      model,
+      { position: [0, 0.5, 0] },
+      dimsFor('enemy.quaternius.ninja-high-detail', 'medium', 'elite', 2, 1),
+    );
+    expect(Math.abs(worldMinY(model, 5) - 5)).toBeLessThanOrEqual(FOOT_TOLERANCE);
   });
 
   it('grounds an authored-rotated model by measuring final bounds', () => {
