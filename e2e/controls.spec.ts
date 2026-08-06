@@ -3,11 +3,13 @@ import { expect, test, type Page } from '@playwright/test';
 async function createCrew(pageA: Page, pageB: Page): Promise<string> {
   await pageA.goto('/?test=1');
   await pageA.click('#screen-boot');
+  await pageA.click('#screen-main [data-act="multiplayer"]');
   await pageA.click('#screen-main [data-act="create"]');
   await pageA.waitForFunction(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code().length === 6);
   const code = await pageA.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
   await pageB.goto('/?test=1');
   await pageB.click('#screen-boot');
+  await pageB.click('#screen-main [data-act="multiplayer"]');
   await pageB.click('#screen-main [data-act="join"]');
   await pageB.fill('#join-code', code);
   await pageB.click('#join-go');

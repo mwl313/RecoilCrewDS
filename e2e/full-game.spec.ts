@@ -131,6 +131,7 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   }
 
   await enterMenu(a);
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => {
     const w = window as unknown as { __recoil: { code: () => string } };
@@ -140,6 +141,7 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   expect(code).toMatch(/^[A-Z2-9]{6}$/);
 
   await enterMenu(b);
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');

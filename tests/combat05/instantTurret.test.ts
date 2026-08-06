@@ -12,7 +12,7 @@ describe('instant turret response (Combat 05 M3)', () => {
   it('protocol version was bumped for click-time aim', () => {
     // Progression08 M17 bumped the protocol for selectUpgrade; the
     // hardening pass bumped it again for skipRelicPresentation.
-    expect(PROTOCOL_VERSION).toBe(11);
+    expect(PROTOCOL_VERSION).toBe(12);
   });
 
   it('instant client mode makes predicted yaw/pitch equal the mouse target in the same frame', () => {

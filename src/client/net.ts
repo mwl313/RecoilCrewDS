@@ -25,13 +25,17 @@ export class NetClient {
 
   connect() {
     if (this.closed) return;
-    this.ws = new WebSocket(this.url);
-    this.ws.onopen = () => {
+    if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) return;
+
+    const ws = new WebSocket(this.url);
+    this.ws = ws;
+    ws.onopen = () => {
+      if (this.ws !== ws) return;
       this.onStatus?.(true);
-      for (const msg of this.queue) this.ws!.send(msg);
+      for (const msg of this.queue) ws.send(msg);
       this.queue = [];
     };
-    this.ws.onmessage = (e) => {
+    ws.onmessage = (e) => {
       const t0 = performance.now();
       netcodeMetrics.markSnapshotArrival(t0);
       netcodeMetrics.snapshotBytes = typeof e.data === 'string' ? e.data.length : 0;
@@ -48,10 +52,14 @@ export class NetClient {
         console.error('[net] message handling failed', err);
       }
     };
-    this.ws.onclose = () => {
+    ws.onclose = () => {
+      // A replacement connection may already be opening while an older socket
+      // finishes closing. Only the active socket owns connection status.
+      if (this.ws !== ws) return;
+      this.ws = null;
       this.onStatus?.(false);
     };
-    this.ws.onerror = () => {
+    ws.onerror = () => {
       // close event follows
     };
   }
@@ -62,6 +70,10 @@ export class NetClient {
     const sendNow = (): void => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         this.queue.push(text);
+        // Leaving a crew intentionally closes the server-side socket. The next
+        // multiplayer action must establish a fresh connection before its
+        // queued request can be delivered.
+        this.connect();
         return;
       }
       this.ws.send(text);

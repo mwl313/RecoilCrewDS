@@ -10,6 +10,7 @@ export type StartEligibilityReason =
   | 'eligible'
   | 'waiting_for_player'
   | 'invalid_seats'
+  | 'role_swap_pending'
   | 'player_not_ready'
   | 'player_disconnected'
   | 'content_unavailable';
@@ -20,7 +21,7 @@ export interface LobbyPlayerInternal {
   displayName: string;
   connected: boolean;
   reconnectDeadlineWallMs: number | null;
-  seat: CrewSeat | null;
+  seat: CrewSeat;
   ready: boolean;
   joinedSequence: number;
 }
@@ -30,8 +31,16 @@ export interface LobbyPlayerView {
   displayName: string;
   connected: boolean;
   reconnecting: boolean;
-  seat: CrewSeat | null;
+  seat: CrewSeat;
   ready: boolean;
+}
+
+export interface LobbyRoleSwapView {
+  requestId: number;
+  requestedByPlayerId: string;
+  targetPlayerId: string;
+  requestedBySeat: CrewSeat;
+  requestedSeat: CrewSeat;
 }
 
 export interface ClientLobbyState {
@@ -49,6 +58,7 @@ export interface ClientLobbyState {
     eligible: boolean;
     reason: StartEligibilityReason;
   };
+  roleSwap: LobbyRoleSwapView | null;
 }
 
 export interface LobbyChatMessage {

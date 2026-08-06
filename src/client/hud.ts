@@ -91,9 +91,13 @@ export class Hud {
   }
 
   showLobby(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
+    let created = false;
     if (!this.lobbyView) {
+      created = true;
       this.lobbyView = new LobbyView(this.screensHost, {
         onSelectSeat: (seat) => this.handlers.onLobbySeat?.(seat),
+        onRequestRoleSwap: () => this.handlers.onLobbyRequestRoleSwap?.(),
+        onResolveRoleSwap: (requestId, accept) => this.handlers.onLobbyResolveRoleSwap?.(requestId, accept),
         onReadyToggle: () => this.handlers.onLobbyReadyToggle?.(),
         onSendChat: (text) => this.handlers.onLobbyChatSend?.(text),
         onLeave: () => this.handlers.onLeave?.(),
@@ -101,8 +105,12 @@ export class Hud {
       });
     }
     this.lobbyView.update(state, chat, localPlayerId);
-    this.flow.setGameVisible(false);
-    this.flow.hideAllScenes();
+    if (created) {
+      const view = this.lobbyView;
+      this.flow.transitionMainToCrew(() => {
+        if (this.lobbyView === view) view.enter();
+      });
+    }
   }
 
   updateLobbyState(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
@@ -114,8 +122,29 @@ export class Hud {
     this.lobbyView = null;
   }
 
+  leaveLobbyToMultiplayer() {
+    const view = this.lobbyView;
+    if (!view) {
+      // Results and other content-driven crew screens still need their normal
+      // SceneRuntime dismissal before the menu is selected.
+      this.flow.showState('main');
+      this.flow.showMainMenuPage('multiplayer');
+      return;
+    }
+    view.leave(() => {
+      if (this.lobbyView !== view) return;
+      view.dispose();
+      this.lobbyView = null;
+      this.flow.showMainMenuFromCrew('multiplayer');
+    });
+  }
+
   setMainMenuNickname(nickname: string) {
     this.flow.setSceneContext('scene.mainMenu', { currentNickname: `CURRENT NICKNAME: ${nickname}` });
+  }
+
+  showMainMenuPage(page: 'main' | 'multiplayer') {
+    this.flow.showMainMenuPage(page);
   }
 
   setSettingsContext(patch: Record<string, unknown>) {

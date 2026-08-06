@@ -18,10 +18,12 @@ async function enter(page: Page) {
 
 async function createCrew(a: Page, b: Page): Promise<string> {
   await enter(a);
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code().length === 6);
   const code = await a.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
   await enter(b);
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');
@@ -80,10 +82,12 @@ test('checksum mismatch blocks gameplay with an error screen', async ({ browser 
   const a = await ctxA.newPage();
   const b = await ctxB.newPage();
   await enter(a);
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code().length === 6);
   const code = await a.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
   await enter(b);
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');

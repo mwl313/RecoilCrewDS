@@ -15,7 +15,7 @@ describe('lobby09 reconnect and host migration', () => {
     expect(joined.displayName).toBe('ScrapFox42');
     expect(joined.seat).toBe('gunner');
     const lobby = b2.last('joined')!.lobby as {
-      players: Array<{ displayName: string; seat: string | null; ready: boolean }>;
+      players: Array<{ displayName: string; seat: string; ready: boolean }>;
     };
     const me = lobby.players.find((p) => p.displayName === 'ScrapFox42')!;
     expect(me.seat).toBe('gunner');

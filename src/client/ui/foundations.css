@@ -176,3 +176,130 @@ body {
 @keyframes ui-scene-exit {
   to { opacity: 0; transform: translateY(-3px); }
 }
+
+/* Reusable authored choreography roles. A scene owns only the trigger class;
+   its children declare direction/behavior through these semantic roles. */
+.ui-choreography--title-exit .ui-exit-to-right,
+.ui-choreography--title-exit .ui-exit-to-left,
+.ui-choreography--title-exit .ui-exit-to-bottom,
+.ui-choreography--title-exit .ui-exit-zoom-up,
+.ui-choreography--split-enter .ui-enter-from-left,
+.ui-choreography--split-enter .ui-enter-from-right,
+.ui-choreography--split-enter .ui-enter-fade,
+.ui-choreography--split-enter .ui-menu-backdrop,
+.ui-choreography--split-enter #presentation-canvas,
+.ui-choreography--menu-exit .ui-menu-rail,
+.ui-choreography--menu-exit .ui-unit-mark,
+.ui-choreography--menu-exit .ui-menu-backdrop,
+.ui-choreography--menu-exit .ui-hero-caption,
+.ui-choreography--menu-exit #presentation-canvas {
+  will-change: transform, opacity;
+}
+
+.ui-choreography--title-exit .ui-exit-to-right {
+  animation: ui-title-shoot-right 500ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--title-exit .ui-exit-to-left {
+  animation: ui-title-shoot-left 500ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--title-exit .ui-exit-to-bottom {
+  animation: ui-title-control-drop 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--title-exit .ui-exit-zoom-up {
+  animation: ui-title-kicker-zoom-up 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--split-enter .ui-enter-from-left {
+  animation: ui-arrive-from-left 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--split-enter .ui-enter-from-right {
+  animation: ui-arrive-from-right 540ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+/* The field backdrop and transparent tank canvas are independent: the field
+   solidifies in place while the tank itself travels in from the right. */
+.ui-choreography--split-enter .ui-menu-backdrop {
+  animation: ui-field-solidify 220ms ease-out both;
+}
+
+.ui-choreography--split-enter #presentation-canvas {
+  animation: ui-arrive-from-right 540ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--split-enter .ui-enter-fade {
+  animation: ui-choreography-fade-in 360ms ease-out 140ms both;
+}
+
+.ui-choreography--split-enter .ui-unit-mark { animation-delay: 60ms; }
+.ui-choreography--split-enter .ui-system-state { animation-delay: 80ms; }
+.ui-choreography--split-enter .ui-hero-caption { animation-delay: 40ms; }
+
+/* Reverse split used when the multiplayer menu yields to the crew lobby. */
+.ui-choreography--menu-exit .ui-menu-rail {
+  animation: ui-scene-leave-left 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--menu-exit .ui-hero-caption,
+.ui-choreography--menu-exit #presentation-canvas {
+  animation: ui-scene-leave-right 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--menu-exit .ui-unit-mark {
+  animation: ui-scene-leave-top 520ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-choreography--menu-exit .ui-menu-backdrop {
+  animation: ui-field-fade-out 320ms ease-in both;
+}
+
+@keyframes ui-title-shoot-right {
+  to { opacity: 0; transform: translate3d(115vw, 0, 0) skewX(-6deg); }
+}
+
+@keyframes ui-title-shoot-left {
+  to { opacity: 0; transform: translate3d(-115vw, 0, 0) skewX(-6deg); }
+}
+
+@keyframes ui-title-control-drop {
+  to { opacity: 0; transform: translate3d(0, 72vh, 0) scale(.96); }
+}
+
+@keyframes ui-title-kicker-zoom-up {
+  to { opacity: 0; transform: translate3d(0, -58vh, 0) scale(1.75); letter-spacing: .36em; }
+}
+
+@keyframes ui-arrive-from-left {
+  from { opacity: 0; transform: translate3d(-72vw, 0, 0); }
+}
+
+@keyframes ui-arrive-from-right {
+  from { opacity: 0; transform: translate3d(72vw, 0, 0); }
+}
+
+@keyframes ui-field-solidify {
+  from { opacity: .24; }
+}
+
+@keyframes ui-field-fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes ui-scene-leave-left {
+  to { opacity: 0; transform: translate3d(-72vw, 0, 0); }
+}
+
+@keyframes ui-scene-leave-right {
+  to { opacity: 0; transform: translate3d(72vw, 0, 0); }
+}
+
+@keyframes ui-scene-leave-top {
+  to { opacity: 0; transform: translate3d(0, -42vh, 0); }
+}
+
+@keyframes ui-choreography-fade-in {
+  from { opacity: 0; }
+}

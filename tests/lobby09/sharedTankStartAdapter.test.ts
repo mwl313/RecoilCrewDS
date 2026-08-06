@@ -4,11 +4,15 @@ import { createAndJoin, makeManager, stepSeconds } from './helpers';
 describe('lobby09 shared tank start adapter', () => {
   it('chosen seats map to Driver/Gunner match slots', () => {
     const { manager, a, b, room } = createAndJoin(makeManager().manager);
-    // Seat switching uses release-then-request: B becomes Driver, A Gunner.
-    manager.handle(a, { t: 'lobbySelectSeat', seat: null, lobbyRevision: 999 });
-    manager.handle(b, { t: 'lobbySelectSeat', seat: null, lobbyRevision: 999 });
-    manager.handle(a, { t: 'lobbySelectSeat', seat: 'gunner', lobbyRevision: 999 });
-    manager.handle(b, { t: 'lobbySelectSeat', seat: 'driver', lobbyRevision: 999 });
+    // B requests the occupied Driver role; A accepts the atomic swap.
+    manager.handle(b, { t: 'lobbyRequestRoleSwap', lobbyRevision: 999 });
+    const pending = a.last('lobbyState')!.lobby as { roleSwap: { requestId: number } };
+    manager.handle(a, {
+      t: 'lobbyResolveRoleSwap',
+      requestId: pending.roleSwap.requestId,
+      accept: true,
+      lobbyRevision: 999,
+    });
     manager.handle(a, { t: 'lobbyReadySet', ready: true, lobbyRevision: 999 });
     manager.handle(b, { t: 'lobbyReadySet', ready: true, lobbyRevision: 999 });
     stepSeconds(manager, 3.6);

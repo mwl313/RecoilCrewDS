@@ -13,10 +13,12 @@ async function enter(page: Page, latency = 0) {
 
 async function createCrew(a: Page, b: Page, latency = 0): Promise<void> {
   await enter(a, latency);
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code().length === 6);
   const code = await a.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
   await enter(b, latency);
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');

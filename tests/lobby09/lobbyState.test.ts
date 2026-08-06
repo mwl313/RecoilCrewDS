@@ -33,12 +33,11 @@ describe('lobby09 eligibility', () => {
         contentAvailable: true,
       }).reason,
     ).toBe('invalid_seats');
-    expect(
-      computeStartEligibility({
-        players: [player({ seat: 'driver' }), player({ seat: null, joinedSequence: 2 })],
-        contentAvailable: true,
-      }).reason,
-    ).toBe('invalid_seats');
+    expect(computeStartEligibility({
+      players: [player({ seat: 'driver' }), player({ seat: 'gunner', joinedSequence: 2 })],
+      contentAvailable: true,
+      roleSwapPending: true,
+    }).reason).toBe('role_swap_pending');
     expect(
       computeStartEligibility({
         players: [player({ seat: 'driver' }), player({ seat: 'gunner', ready: false, joinedSequence: 2 })],

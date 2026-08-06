@@ -159,6 +159,12 @@ hud.bind({
   onLobbySeat: (seat) => {
     net.send({ t: 'lobbySelectSeat', seat, lobbyRevision: lobbyState?.revision ?? 0 });
   },
+  onLobbyRequestRoleSwap: () => {
+    net.send({ t: 'lobbyRequestRoleSwap', lobbyRevision: lobbyState?.revision ?? 0 });
+  },
+  onLobbyResolveRoleSwap: (requestId, accept) => {
+    net.send({ t: 'lobbyResolveRoleSwap', requestId, accept, lobbyRevision: lobbyState?.revision ?? 0 });
+  },
   onLobbyReadyToggle: () => {
     const me = lobbyState?.players.find((p) => p.playerId === localPlayerId);
     net.send({ t: 'lobbyReadySet', ready: !(me?.ready ?? false), lobbyRevision: lobbyState?.revision ?? 0 });
@@ -201,10 +207,9 @@ hud.bind({
   onLeave: () => {
     net.send({ t: 'leave' });
     teardownGame();
-    hud.hideLobby();
     lobbyState = null;
     lobbyChat = [];
-    hud.showScreen('main');
+    hud.leaveLobbyToMultiplayer();
     flow = 'main';
   },
   onRetry: () => {
@@ -304,6 +309,11 @@ net.onMessage = (msg) => {
     case 'lobbyState': {
       lobbyState = msg.lobby as ClientLobbyState;
       lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
+      const localSeat = lobbyState.players.find((player) => player.playerId === localPlayerId)?.seat;
+      if (localSeat) {
+        role = localSeat;
+        hud.setTheme(role);
+      }
       if (flow === 'lobby') {
         hud.updateLobbyState(lobbyState, lobbyChat, localPlayerId);
       } else if (flow === 'create' || flow === 'ready') {
@@ -757,6 +767,7 @@ if (TEST_MODE) {
     code: () => roomCode,
     sessionId: () => sessionId,
     flow: () => flow,
+    role: () => role,
     create: () => net.send({ t: 'create' }),
     join: (code: string) => net.send({ t: 'join', code }),
     joinWithName: (code: string, name: string) => net.send({ t: 'join', code, displayName: name }),
@@ -766,8 +777,12 @@ if (TEST_MODE) {
       state: () => lobbyState,
       chat: () => lobbyChat,
       playerId: () => localPlayerId,
-      seat: (seat: CrewSeat | null) =>
+      seat: (seat: CrewSeat) =>
         net.send({ t: 'lobbySelectSeat', seat, lobbyRevision: lobbyState?.revision ?? 0 }),
+      requestRoleSwap: () =>
+        net.send({ t: 'lobbyRequestRoleSwap', lobbyRevision: lobbyState?.revision ?? 0 }),
+      resolveRoleSwap: (requestId: number, accept: boolean) =>
+        net.send({ t: 'lobbyResolveRoleSwap', requestId, accept, lobbyRevision: lobbyState?.revision ?? 0 }),
       readyToggle: () =>
         net.send({
           t: 'lobbyReadySet',

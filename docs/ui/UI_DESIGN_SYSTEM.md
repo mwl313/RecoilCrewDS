@@ -121,17 +121,17 @@ desktop logo size: clamp(102px, 15vw, 207px)
 desktop optical correction: translateX(clamp(39px, 5.7vw, 79px))
 word slant: skewX(-6deg)
 CREW offset: margin-left -0.78em; margin-top -0.02em
-entry prompt: width min(500px, viewport - 48px), min-height 112px
-entry prompt margin-top: 30px; padding: 24px 54px
-entry prompt type: 38px / 1, italic 850, tracking .12em
+entry prompt: width min(360px, viewport - 48px), min-height 76px
+entry prompt margin-top: 24px; padding: 18px 34px
+entry prompt type: 28px / 1, italic 850, tracking .12em
 entry pulse: 1.5s ease-in-out; midpoint amber-hot and translateY(-2px)
 ```
 
-At `1280×720`, the entry prompt must measure `500×112px` and its left edge must be `390px ±2px`. The full `.boot-inner` must be `760px` wide and its top must be approximately `85px` (`84.6px` in the approved build). The combined composition is intentionally about `50px` above viewport center.
+At `1280×720`, the entry prompt must measure `360×76px` and remain centered beneath the combined wordmark silhouette. The full `.boot-inner` remains `760px` wide. The button is deliberately larger than its label without reading as a second title block.
 
 The wordmark content must use `RECOI\u2009L` with Unicode THIN SPACE `U+2009`. Do not replace it with an ordinary space, CSS-only letter spacing, or the fused string `RECOIL`. Center the visible two-line silhouette, not each word independently.
 
-At `≤560px`: `.boot-inner top: 42%`; logo size `clamp(82px,26vw,112px)`; optical correction `clamp(31px,9.9vw,43px)`; prompt min-height `84px`; margin-top `24px`; padding `18px 28px`; font size `28px`.
+At `≤560px`: `.boot-inner top: 42%`; logo size `clamp(82px,26vw,112px)`; optical correction `clamp(31px,9.9vw,43px)`; prompt width `min(310px, viewport - 48px)`; min-height `66px`; margin-top `20px`; padding `15px 24px`; font size `23px`.
 
 ## 0.6 Main-menu geometry and motion
 
@@ -181,7 +181,7 @@ Pointer-down in the drag region pauses automatic yaw. Horizontal movement change
 
 ## 0.7 Menu-overlay template
 
-Settings and How To must leave `#screen-main` visible and preserve exactly one `#presentation-canvas` while open.
+Settings, How To, and Join Crew must leave `#screen-main` visible and preserve exactly one `#presentation-canvas` while open.
 
 ```text
 overlay root: z-index 60; fixed full screen inherited from .screen; transparent background
@@ -208,7 +208,8 @@ At `≤800px`, panel padding becomes `28px` and the How To columns become one co
 Lobby desktop:
 
 ```text
-mission strip top 78px, centered, skewX(-5deg)
+room-code strip top 78px, width min(620px, viewport - 48px), centered, skewX(-5deg)
+room code 38px condensed italic 900, tracking .18em
 lobby body inset 22% 4% 23%
 role panel width min(28%,360px), min-height 270px, padding 24px
 player name 25px condensed italic 800
@@ -253,8 +254,8 @@ A non-visual agent must collect and report these checks for every affected scree
 document.documentElement.scrollWidth <= window.innerWidth
 all required text exists exactly once
 all visible interactive elements have non-zero bounding rectangles
-all five main-menu actions have equal computed width and height
-boot prompt is 500×112px at 1280×720
+all four root-menu actions have equal computed width; all three multiplayer-menu actions have equal computed width
+boot prompt is 360×76px at 1280×720
 Settings/How To: main visible, overlay visible, presentation canvas count = 1
 overlay close: overlay hidden, main visible, presentation canvas count = 1
 tank drag: ready cursor/state on hero side, active during drag, ready after release
@@ -497,6 +498,88 @@ Use a practical 4px base rhythm:
 --ui-slow:   320ms  meaningful panel or state entrance
 ```
 
+Reusable authored choreography uses a separate, exact timing contract:
+
+```text
+title split exit
+  RECOIL -> right: 500ms, translateX +115vw
+  CREW -> left: 500ms, translateX -115vw
+  primary prompt -> bottom: 520ms, translateY +72vh, scale .96
+  field-unit kicker -> up/zoom: 520ms, translateY -58vh, scale 1.75
+  state handoff: animationend on the primary prompt; 600ms safety fallback
+
+menu split entrance
+  left-side roles: 520ms from translateX -72vw
+  right-side roles: 540ms from translateX +72vw
+  field backdrop: stationary; 220ms opacity .24 -> 1
+  transparent tank canvas: 540ms from translateX +72vw
+  instrument delays: unit 60ms, status 80ms, hero caption 40ms
+  safe frame: stationary and continuously visible across boot -> menu
+  choreography cleanup: 680ms
+
+menu -> crew
+  menu rail: 520ms to translateX -72vw
+  transparent tank canvas + hero caption: 520ms to translateX +72vw
+  field backdrop: stationary 320ms fade to opacity 0
+  top-left unit mark: 520ms to translateY -42vh
+  top-right SYSTEM STATUS: READY: stationary
+  safe frame: stationary
+
+crew -> multiplayer menu
+  crew backdrop: stationary 320ms fade to opacity 0
+  crew unit mark + room-code strip: 520ms to translateY -34vh
+  top-right SYSTEM STATUS: READY: stationary
+  Driver plate: 520ms to translateX -72vw
+  Gunner plate: 520ms to translateX +72vw
+  command line + chat: 520ms to translateY +42vh
+  after dismissal, replay the standard menu split entrance on Multiplayer
+
+multiplayer menu -> crew
+  first run menu -> crew above, then reverse every crew direction for entrance
+  crew backdrop: stationary; 220ms opacity .22 -> 1
+
+menu-page swap
+  outgoing command page: 520ms to translateX -72vw
+  incoming command page: starts only after outgoing completion
+  incoming direction: left-to-right, 520ms from translateX calc(-100% - 64px)
+  opacity throughout both phases: exactly 1.0
+  exit fallback: 560ms; entrance fallback: 560ms
+  shared scene chrome and 3D presentation: no movement or rebuild
+
+overlay summon
+  open: 460ms from bottom, translateY +78vh
+  close: 380ms to bottom, translateY +78vh
+  scale throughout: exactly 1.0 (no size interpolation)
+  panel opacity throughout: exactly 1.0 (no fade)
+  overlay-root opacity throughout: exactly 1.0 (no scrim fade)
+
+authored movement easing: cubic-bezier(.65, 0, .35, 1)
+```
+
+Reusable class contract:
+
+```text
+root trigger: ui-choreography--title-exit
+child roles: ui-exit-to-right | ui-exit-to-left | ui-exit-to-bottom | ui-exit-zoom-up
+
+root trigger: ui-choreography--split-enter
+child roles: ui-enter-from-left | ui-enter-from-right | ui-enter-fade
+
+overlay root: ui-overlay-screen + scene-enter/scene-exit lifecycle classes
+overlay card: ui-overlay-panel
+
+menu stack: ui-menu-stack
+menu page: ui-menu-page
+active swap states: is-leaving | is-entering
+```
+
+Do not permanently hide an animated scene at the start of its exit. The scene
+runtime keeps it mounted for the declared exit duration, disables overlay
+pointer input during dismissal, then adds `hidden`. Full-screen handoffs fire
+only after the outgoing sentinel completes, and repeated input is ignored while
+that handoff is pending. Under `prefers-reduced-motion`, JavaScript choreography
+is skipped and CSS animation durations collapse to approximately 1ms.
+
 Motion principles:
 
 - Use short translations of 3–8px, opacity, fill, and color.
@@ -529,7 +612,7 @@ The safe frame is a framing device, not a container. It must not intercept input
 - The title-screen lockup is intentionally about 50% larger than the original rework version.
 - Preserve the offset between the two words; do not align their left or right edges.
 - Preserve a deliberate narrow gap between the `I` and `L` in every use of the logo.
-- One oversized amber entry prompt (roughly 2.5× the original prompt footprint).
+- One amber entry prompt sized as a clear action: larger than its label, but subordinate to the wordmark.
 - Shift the complete title/prompt composition slightly above geometric center so the enlarged prompt does not make the lockup feel bottom-heavy.
 - No tagline, control legend, or footer slogan beneath the entry prompt.
 - Background remains restrained enough that the wordmark is unmistakable.
@@ -540,20 +623,27 @@ The safe frame is a framing device, not a container. It must not intercept input
 - Left: wordmark, one-line premise, vertical action rail.
 - Right: a restrained tank/world presentation with a small technical caption and enough negative space to read as a hero object.
 - Primary action is solid amber; remaining actions are dark.
-- Create Crew, Join Crew, Single Player, Settings, and How To use the same action-row dimensions. Color may establish priority; size may not.
-- Use numbered actions for the full five-item command rail.
-- Display `CURRENT NICKNAME` beneath the rail at utility-heading scale, not as near-invisible flavor copy.
+- Root page actions are Multiplayer, Single Player, Settings, and How To. Multiplayer replaces separate Create/Join root actions.
+- The Multiplayer page uses Create Crew, Join Crew, and Go Back in the same rail format and dimensions as the root page.
+- Use numbered actions within each page. Numbering restarts at `01` when a replacement page is summoned.
+- Display `CURRENT NICKNAME` beneath the root-page rail at utility-heading scale, not as near-invisible flavor copy. It belongs to the root command page and exits with that page; do not repeat it on submenus.
+- A menu is one persistent environment with replaceable `.ui-menu-page` command groups. Keep the wordmark, kicker, safe frame, topbar, grid, tank, and hero caption mounted during page swaps.
+- Every menu-page swap sends the outgoing page completely offscreen to the left. Only after that exit finishes, reveal the replacement at `translateX(calc(-100% - 64px))`: one complete rail width plus the menu inset, so the rail begins outside the viewport but enters view immediately instead of spending time crossing invisible offscreen space. Move it right into place over the full 520ms tempo. Keep both pages at full opacity. Do not overlap the phases, cross-fade the screen, or reconstruct the presentation world.
+- `LEAVE CREW` returns to the persistent menu scene with the Multiplayer command page selected, not the root command page.
 - The top-right `SYSTEM STATUS: READY` label uses a slow breathing green lamp. Do not flash the text itself.
+- The menu and crew lobby use the exact same top-right status geometry, type, label, and breathing lamp. It does not animate during menu/crew handoffs.
 - The menu tank may rotate slowly on its own. Horizontal pointer drag over the hero side pauses that rotation and directly spins the chassis; normal motion resumes on release.
+- The presentation canvas behind the menu tank must have an alpha-transparent clear. Never put the environment color on a canvas that translates: full-viewport background layers remain stationary and transition only through opacity.
 - Preserve open negative space around the tank. Do not fill it with feature tiles.
 
 ## 4.4 Menu overlays
 
-- Settings and How To Play are overlays over the live main menu, never replacement backgrounds that imitate it.
+- Settings, How To Play, and Join Crew are overlays over the live main menu, never replacement backgrounds that imitate it.
 - Preserve the exact menu DOM and presentation world beneath the dimmed scrim; do not rebuild the tank when the overlay closes.
 - Use the shared field-console shell: dark cut plate, left amber construction edge, one lower amber terminal, kicker, large display heading, rule, content modules, and action row.
+- Overlay summon/dismissal is translation-only. The card and scrim remain fully opaque and the card remains exactly the same size throughout both directions.
 - Scrim blur is permitted here only to protect legibility over the moving tank. Keep the original menu clearly recognizable.
-- Interior modules may vary: Settings uses one large hardware input; How To uses paired Driver/Gunner role plates.
+- Interior modules may vary: Settings uses one large hardware input; How To uses paired Driver/Gunner role plates; Join Crew uses the room-code field and a two-action row.
 - Avoid modal-card conventions such as rounded corners, floating close circles, glassmorphism, and centered app-style icon headings.
 
 ## 4.5 Forms and room-code screens
@@ -568,9 +658,13 @@ The safe frame is a framing device, not a container. It must not intercept input
 
 - Driver panel left, Gunner panel right, shared chassis/connection axis in the center.
 - The two role panels share structure but use their own semantic edge color.
-- Room/run metadata forms a narrow mission strip, not a dashboard grid.
+- The room code and Copy action occupy one narrow top strip. Do not repeat run type, crew format, or channel metadata there.
+- Connected players always own exactly one role. Never expose an unseated/null role action.
+- A lone player may atomically switch to the open role. With two players, the occupied role exposes `REQUEST ROLE SWAP`; only the requested player sees Accept/Decline.
+- Accepting a swap exchanges both authoritative seats in one server transaction and clears both Ready states. Declining preserves both roles. Directly selecting an occupied role is invalid.
+- Current-role controls read `YOUR ROLE`. Pending requests read `SWAP REQUESTED`; do not present two independent Driver/Gunner toggles.
 - Player name and readiness are more prominent than flavor description.
-- Chat remains subordinate and may expand on focus/hover.
+- The solid `#090c0d` chat module is labeled exactly `CHAT`; both its minimized tab and expanded panel remain fully solid, and it may expand on focus/hover.
 - The ready action belongs to the bottom command line and may be amber only when actionable.
 - Empty seats must look intentionally open, not like loading skeletons.
 

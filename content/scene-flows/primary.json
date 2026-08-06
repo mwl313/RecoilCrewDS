@@ -18,6 +18,8 @@
   ],
   "transitions": [
     { "from": "boot", "to": "main", "action": "app.enter" },
+    { "from": "main", "to": "main", "action": "app.openMultiplayer" },
+    { "from": "main", "to": "main", "action": "app.closeMultiplayer" },
     { "from": "main", "to": "create", "action": "app.createCrew" },
     { "from": "main", "to": "join", "action": "app.openJoin" },
     { "from": "main", "to": "howto", "action": "app.openHowTo" },

@@ -72,12 +72,37 @@ describe('presentation content pipeline', () => {
     const menuJson = JSON.stringify(menu);
     expect(menuJson).toContain('SYSTEM STATUS: READY');
     expect(menuJson).toContain('CURRENT NICKNAME: ---');
+    expect(menuJson).toContain('MULTIPLAYER');
+    expect(menuJson).toContain('ui-menu-page--main');
+    expect(menuJson).toContain('ui-menu-page--multiplayer hidden');
     expect(menuJson).toContain('ui-action ui-action--04');
-    expect(menuJson).toContain('ui-action ui-action--05');
+    expect(menuJson).not.toContain('ui-action ui-action--05');
     expect(menu.entities?.[0]?.transform?.scale).toEqual([1.05, 1.05, 1.05]);
     expect(menu.entities?.[0]?.components.some((component) => component.type === 'dragRotate')).toBe(true);
     expect(PRESENTATION_SCENES['scene.settings'].root.class).toContain('ui-overlay-screen');
     expect(PRESENTATION_SCENES['scene.howTo'].root.class).toContain('ui-overlay-screen');
+    expect(PRESENTATION_SCENES['scene.joinCrew'].root.class).toContain('ui-overlay-screen');
+  });
+
+  it('encodes reusable title, menu, and overlay motion roles', () => {
+    const bootJson = JSON.stringify(PRESENTATION_SCENES['scene.boot']);
+    const menuJson = JSON.stringify(PRESENTATION_SCENES['scene.mainMenu']);
+    expect(bootJson).toContain('ui-exit-to-right');
+    expect(bootJson).toContain('ui-exit-to-left');
+    expect(bootJson).toContain('ui-exit-to-bottom');
+    expect(bootJson).toContain('ui-exit-zoom-up');
+    expect(menuJson).toContain('ui-enter-from-left');
+    expect(menuJson).toContain('ui-enter-from-right');
+    expect(PRESENTATION_SCENES['scene.settings'].enterTransition?.durationMs).toBe(460);
+    expect(PRESENTATION_SCENES['scene.settings'].exitTransition?.durationMs).toBe(380);
+    expect(PRESENTATION_SCENES['scene.howTo'].enterTransition?.durationMs).toBe(460);
+    expect(PRESENTATION_SCENES['scene.howTo'].exitTransition?.durationMs).toBe(380);
+    expect(PRESENTATION_SCENES['scene.joinCrew'].enterTransition?.durationMs).toBe(460);
+    expect(PRESENTATION_SCENES['scene.joinCrew'].exitTransition?.durationMs).toBe(380);
+    expect(PRESENTATION_FLOWS['flow.primary'].transitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ from: 'main', to: 'main', action: 'app.openMultiplayer' }),
+      expect.objectContaining({ from: 'main', to: 'main', action: 'app.closeMultiplayer' }),
+    ]));
   });
 
   it('rejects duplicate node ids', () => {

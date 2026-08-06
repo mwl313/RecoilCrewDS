@@ -18,6 +18,7 @@ test('disconnect cancels countdown; reconnect restores nickname and seat but not
   await b.evaluate(() => {
     (window as unknown as { __recoil: { settings: { save: (n: string) => unknown } } }).__recoil.settings.save('ScrapFox42');
   });
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => {
     const w = window as unknown as { __recoil: { code(): string; lobby: { state(): unknown } } };
@@ -27,6 +28,7 @@ test('disconnect cancels countdown; reconnect restores nickname and seat but not
   const sessionId = await b.evaluate(() => {
     return '';
   });
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');
@@ -64,7 +66,7 @@ test('disconnect cancels countdown; reconnect restores nickname and seat but not
     },
     { code, sessionId: bSession },
   );
-  const players = (state as { players: Array<{ displayName: string; seat: string | null; ready: boolean }> }).players;
+  const players = (state as { players: Array<{ displayName: string; seat: string; ready: boolean }> }).players;
   const me = players.find((p) => p.displayName === 'ScrapFox42')!;
   expect(me.seat).toBe('gunner');
   expect(me.ready).toBe(false);

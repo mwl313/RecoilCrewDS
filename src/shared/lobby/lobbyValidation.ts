@@ -9,12 +9,11 @@ export function isCrewSeat(value: unknown): value is CrewSeat {
   return value === 'driver' || value === 'gunner';
 }
 
-export function validateSeat(value: unknown): CrewSeat | null {
-  if (value === null || value === undefined) return null;
-  return isCrewSeat(value) ? value : null;
+export function validateSeat(value: unknown): CrewSeat | undefined {
+  return isCrewSeat(value) ? value : undefined;
 }
 
-/** A player may occupy a seat only when connected and currently seatless. */
+/** A target role is available only when no other connected player owns it. */
 export function seatConflict(
   players: readonly LobbyPlayerInternal[],
   seat: CrewSeat,

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SceneActionRegistry } from '../../src/client/presentation/actionRegistry';
 import { UiComponentRegistry } from '../../src/client/presentation/componentRegistry';
 import { registerDefaultUiComponents } from '../../src/client/presentation/uiComponents';
@@ -97,7 +97,9 @@ describe('SceneRuntime components', () => {
     const { runtime } = makeRuntime(container);
     await runtime.load(PRESENTATION_SCENES['scene.mainMenu']);
     expect(container.querySelector('#screen-main')).not.toBeNull();
+    expect((container.querySelector('[data-act="multiplayer"]') as HTMLElement).textContent).toBe('MULTIPLAYER');
     expect((container.querySelector('[data-act="create"]') as HTMLElement).textContent).toBe('CREATE CREW');
+    expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(true);
     runtime.unload();
   });
 
@@ -307,6 +309,7 @@ describe('HudRuntime trajectory reticle', () => {
 
 describe('SceneFlowPresenter overlay visibility', () => {
   it('keeps the live menu and presentation world mounted beneath menu overlays', () => {
+    vi.useFakeTimers();
     const container = document.createElement('div');
     const themeRoot = document.createElement('div');
     const registry = new UiComponentRegistry();
@@ -328,6 +331,10 @@ describe('SceneFlowPresenter overlay visibility', () => {
     expect(disposed).toEqual([]);
 
     flow.showState('main');
+    const settings = container.querySelector('#screen-settings') as HTMLElement;
+    expect(settings.classList.contains('hidden')).toBe(false);
+    expect(settings.classList.contains('scene-exit')).toBe(true);
+    vi.advanceTimersByTime(421);
     expect((container.querySelector('#screen-settings') as HTMLElement).classList.contains('hidden')).toBe(true);
     expect(started).toEqual([1]);
     expect(disposed).toEqual([]);
@@ -337,6 +344,91 @@ describe('SceneFlowPresenter overlay visibility', () => {
     expect((container.querySelector('#screen-howto') as HTMLElement).classList.contains('hidden')).toBe(false);
     expect(started).toEqual([1]);
     expect(disposed).toEqual([]);
+    vi.useRealTimers();
+  });
+
+  it('presents Join Crew as a reversible overlay over the live multiplayer menu', () => {
+    vi.useFakeTimers();
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    const started = vi.fn();
+    const disposed = vi.fn();
+    flow.setPresentationFactory((() => ({ start: started, dispose: disposed })) as never);
+    flow.bind({} as never);
+
+    flow.showState('main');
+    flow.actionRegistry.execute('app.openMultiplayer');
+    vi.advanceTimersByTime(601);
+    flow.showState('join');
+    const main = container.querySelector('#screen-main') as HTMLElement;
+    const join = container.querySelector('#screen-join') as HTMLElement;
+    expect(main.classList.contains('hidden')).toBe(false);
+    expect(join.classList.contains('hidden')).toBe(false);
+    expect(join.classList.contains('ui-overlay-screen')).toBe(true);
+    expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(false);
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(disposed).not.toHaveBeenCalled();
+
+    flow.showState('main');
+    expect(join.classList.contains('scene-exit')).toBe(true);
+    expect(join.classList.contains('hidden')).toBe(false);
+    vi.advanceTimersByTime(421);
+    expect(join.classList.contains('hidden')).toBe(true);
+    expect(main.classList.contains('hidden')).toBe(false);
+    expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(false);
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(disposed).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('gates boot handoff on the reusable title choreography and ignores repeat input', () => {
+    vi.useFakeTimers();
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    const onBoot = vi.fn();
+    flow.bind({ onBoot } as never);
+    flow.showState('boot');
+
+    flow.actionRegistry.execute('app.enter');
+    flow.actionRegistry.execute('app.enter');
+    const boot = container.querySelector('#screen-boot') as HTMLElement;
+    const hint = container.querySelector('#boot-hint') as HTMLElement;
+    expect(boot.classList.contains('ui-choreography--title-exit')).toBe(true);
+    expect(boot.getAttribute('aria-busy')).toBe('true');
+    expect(onBoot).not.toHaveBeenCalled();
+
+    const end = new Event('animationend', { bubbles: true }) as AnimationEvent;
+    Object.defineProperty(end, 'animationName', { value: 'ui-title-control-drop' });
+    hint.dispatchEvent(end);
+    expect(onBoot).toHaveBeenCalledTimes(1);
+    expect(boot.hasAttribute('aria-busy')).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('marks authored menu regions for a split directional entrance from boot', () => {
+    vi.useFakeTimers();
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    flow.bind({} as never);
+    flow.showState('boot');
+    flow.showState('main');
+
+    const menu = container.querySelector('#screen-main') as HTMLElement;
+    expect(menu.classList.contains('ui-choreography--split-enter')).toBe(true);
+    expect(container.querySelector('#main-panel')?.classList.contains('ui-enter-from-left')).toBe(true);
+    expect(container.querySelector('#main-hero-caption')?.classList.contains('ui-enter-from-right')).toBe(true);
+    vi.advanceTimersByTime(681);
+    expect(menu.classList.contains('ui-choreography--split-enter')).toBe(false);
+    vi.useRealTimers();
   });
 
   it('game visibility hides every scene overlay (pause/menu regression)', async () => {
@@ -369,5 +461,103 @@ describe('SceneFlowPresenter overlay visibility', () => {
     // Leaving to the menu re-shows the menu scene.
     flow.showState('main');
     expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+  });
+});
+
+describe('SceneFlowPresenter menu archetype', () => {
+  it('swaps command pages without replacing shared menu elements or the presentation world', () => {
+    vi.useFakeTimers();
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    const started = vi.fn();
+    const disposed = vi.fn();
+    flow.setPresentationFactory((() => ({ start: started, dispose: disposed })) as never);
+    flow.bind({} as never);
+    flow.showState('main');
+
+    const root = container.querySelector('#screen-main') as HTMLElement;
+    const mainPage = container.querySelector('#main-menu-page') as HTMLElement;
+    const multiplayerPage = container.querySelector('#multiplayer-menu-page') as HTMLElement;
+    const nickname = container.querySelector('#main-playing-as') as HTMLElement;
+    const logo = container.querySelector('#main-logo') as HTMLElement;
+    flow.actionRegistry.execute('app.openMultiplayer');
+
+    expect(root.classList.contains('hidden')).toBe(false);
+    expect(mainPage.classList.contains('is-leaving')).toBe(true);
+    expect(multiplayerPage.classList.contains('hidden')).toBe(true);
+    expect(multiplayerPage.classList.contains('is-entering')).toBe(false);
+    expect(mainPage.contains(nickname)).toBe(true);
+    expect(logo.classList.contains('is-leaving')).toBe(false);
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(disposed).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(561);
+    expect(mainPage.classList.contains('hidden')).toBe(true);
+    expect(multiplayerPage.classList.contains('hidden')).toBe(false);
+    expect(multiplayerPage.classList.contains('is-entering')).toBe(true);
+    vi.advanceTimersByTime(561);
+    expect(multiplayerPage.classList.contains('is-entering')).toBe(false);
+    expect(multiplayerPage.textContent).toContain('CREATE CREW');
+    expect(multiplayerPage.textContent).toContain('JOIN CREW');
+    expect(multiplayerPage.textContent).toContain('GO BACK');
+
+    flow.actionRegistry.execute('app.closeMultiplayer');
+    expect(multiplayerPage.classList.contains('is-leaving')).toBe(true);
+    expect(mainPage.classList.contains('hidden')).toBe(true);
+    expect(mainPage.classList.contains('is-entering')).toBe(false);
+    vi.advanceTimersByTime(561);
+    expect(multiplayerPage.classList.contains('hidden')).toBe(true);
+    expect(mainPage.classList.contains('is-entering')).toBe(true);
+    vi.advanceTimersByTime(561);
+    expect(mainPage.classList.contains('hidden')).toBe(false);
+    expect(multiplayerPage.classList.contains('hidden')).toBe(true);
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(disposed).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('can return directly to the multiplayer command page after leaving a crew', () => {
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    flow.bind({} as never);
+    flow.showState('main');
+    flow.showMainMenuPage('multiplayer');
+
+    expect(container.querySelector('#main-menu-page')?.classList.contains('hidden')).toBe(true);
+    expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(false);
+  });
+
+  it('splits the menu out for a crew scene and restores Multiplayer directionally', () => {
+    vi.useFakeTimers();
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    flow.bind({} as never);
+    flow.showState('main');
+    flow.showMainMenuPage('multiplayer');
+
+    const root = container.querySelector('#screen-main') as HTMLElement;
+    const completed = vi.fn();
+    flow.transitionMainToCrew(completed);
+    expect(root.classList.contains('ui-choreography--menu-exit')).toBe(true);
+    expect(root.getAttribute('aria-busy')).toBe('true');
+    vi.advanceTimersByTime(601);
+    expect(root.classList.contains('hidden')).toBe(true);
+    expect(completed).toHaveBeenCalledTimes(1);
+
+    flow.showMainMenuFromCrew('multiplayer');
+    expect(root.classList.contains('hidden')).toBe(false);
+    expect(root.classList.contains('ui-choreography--split-enter')).toBe(true);
+    expect(container.querySelector('#main-menu-page')?.classList.contains('hidden')).toBe(true);
+    expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(false);
+    vi.useRealTimers();
   });
 });

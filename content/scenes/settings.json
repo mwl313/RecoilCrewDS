@@ -2,7 +2,8 @@
   "id": "scene.settings",
   "label": "Settings",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "enterTransition": { "type": "fade", "durationMs": 460 },
+  "exitTransition": { "type": "fade", "durationMs": 380 },
   "root": {
     "id": "screen-settings",
     "type": "container",

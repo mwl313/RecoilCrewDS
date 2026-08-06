@@ -21,6 +21,7 @@ import type {
   CrewSeat,
   LobbyChatMessage,
   LobbyPlayerInternal,
+  LobbyRoleSwapView,
 } from '../shared/lobby/lobbyTypes';
 import { LOBBY_CHAT_BURST, LOBBY_CHAT_MAX_MESSAGES, LOBBY_CHAT_REFILL_SECONDS, LOBBY_COUNTDOWN_SECONDS } from '../shared/lobby/lobbyTypes';
 import { computeStartEligibility } from '../shared/lobby/lobbyEligibility';
@@ -74,6 +75,8 @@ export interface Room {
   players: LobbyPlayerInternal[];
   hostPlayerId: string;
   lobbyRevision: number;
+  roleSwap: LobbyRoleSwapView | null;
+  roleSwapSequence: number;
   lobbyPhase: 'lobby' | 'countdown';
   /** Production preload gate: elapsed seconds waiting for assetReady. */
   loadingT: number;
@@ -294,6 +297,8 @@ export class RoomManager {
       ],
       hostPlayerId: playerId,
       lobbyRevision: 1,
+      roleSwap: null,
+      roleSwapSequence: 0,
       lobbyPhase: 'lobby',
       loadingT: 0,
       pendingMatchId: null,
@@ -483,6 +488,7 @@ export class RoomManager {
     client.socket = null;
     client.disconnectedAt = this.now();
     client.graceLeft = GAME.reconnectGrace;
+    room.roleSwap = null;
     this.cancelCountdown(room, 'disconnect');
     room.lobbyRevision++;
     this.broadcastLobby(room);
@@ -524,13 +530,30 @@ export class RoomManager {
     }
     if (t === 'lobbySelectSeat') {
       if (room.phase !== 'lobby' && room.phase !== 'countdown') return;
-      const seat = isCrewSeat(raw.seat) ? raw.seat : raw.seat === null ? null : undefined;
-      if (seat === undefined) {
+      const seat = isCrewSeat(raw.seat) ? raw.seat : undefined;
+      if (!seat) {
         this.send(client, { t: 'error', code: 'invalid_seat', message: 'Unknown crew role.' });
         return;
       }
       const revision = typeof raw.lobbyRevision === 'number' ? raw.lobbyRevision : room.lobbyRevision;
       const result = this.handleLobbySeat(client, seat, revision);
+      if (!result.accepted && result.reason) {
+        this.send(client, { t: 'error', code: result.reason, message: result.message });
+      }
+      return;
+    }
+    if (t === 'lobbyRequestRoleSwap') {
+      const revision = typeof raw.lobbyRevision === 'number' ? raw.lobbyRevision : room.lobbyRevision;
+      const result = this.handleLobbyRoleSwapRequest(client, revision);
+      if (!result.accepted && result.reason) {
+        this.send(client, { t: 'error', code: result.reason, message: result.message });
+      }
+      return;
+    }
+    if (t === 'lobbyResolveRoleSwap') {
+      const revision = typeof raw.lobbyRevision === 'number' ? raw.lobbyRevision : room.lobbyRevision;
+      const requestId = typeof raw.requestId === 'number' ? raw.requestId : -1;
+      const result = this.handleLobbyRoleSwapResolution(client, requestId, raw.accept === true, revision);
       if (!result.accepted && result.reason) {
         this.send(client, { t: 'error', code: result.reason, message: result.message });
       }
@@ -717,7 +740,7 @@ export class RoomManager {
   tick(dt: number) {
     const now = this.now();
     for (const room of this.rooms.values()) {
-      // Disconnect grace for every lobby player (including seatless).
+      // Disconnect grace preserves every player's authoritative role.
       for (const player of [...room.players]) {
         const client = room.driver?.sessionId === player.sessionId
           ? room.driver
@@ -944,6 +967,7 @@ export class RoomManager {
     const eligibility = computeStartEligibility({
       players: room.players,
       contentAvailable: this.contentAvailable(),
+      roleSwapPending: room.roleSwap !== null,
     });
     return {
       revision: room.lobbyRevision,
@@ -961,6 +985,7 @@ export class RoomManager {
       settings: { gameplayType: 'sharedTank', modeId: this.contentMeta?.modeId ?? 'mode.demoScoreAttack' },
       countdownEndsAtWallMs: room.countdownEndsAtWallMs,
       startEligibility: eligibility,
+      roleSwap: room.roleSwap,
     };
   }
 
@@ -1052,7 +1077,7 @@ export class RoomManager {
 
   private handleLobbySeat(
     client: Client,
-    seat: CrewSeat | null,
+    seat: CrewSeat,
     revision: number,
   ): { accepted: boolean; reason?: string; message?: string } {
     const room = client.room;
@@ -1064,21 +1089,114 @@ export class RoomManager {
     if (typeof revision !== 'number' || revision < room.lobbyRevision) {
       return { accepted: false, reason: 'stale', message: 'Lobby state changed; refresh and try again.' };
     }
-    if (seat !== null && seatConflict(room.players, seat, player.playerId)) {
-      return { accepted: false, reason: 'seat_occupied', message: 'That crew role is already taken.' };
+    if (seat === player.seat) return { accepted: true };
+    if (seatConflict(room.players, seat, player.playerId)) {
+      return { accepted: false, reason: 'seat_occupied', message: 'That role is occupied. Request a role swap instead.' };
     }
     player.seat = seat;
-    if (room.driver?.sessionId === client.sessionId) room.driver = null;
-    if (room.gunner?.sessionId === client.sessionId) room.gunner = null;
-    if (seat === 'driver') room.driver = client;
-    if (seat === 'gunner') room.gunner = client;
-    // Match input routing uses Client.role; keep it in sync with the seat.
-    client.role = seat;
+    room.roleSwap = null;
+    this.syncRoomSeatOwners(room);
     for (const p of room.players) p.ready = false;
     room.lobbyRevision++;
     this.cancelCountdown(room, 'seat_change');
     this.broadcastLobby(room);
     return { accepted: true };
+  }
+
+  private handleLobbyRoleSwapRequest(
+    client: Client,
+    revision: number,
+  ): { accepted: boolean; reason?: string; message?: string } {
+    const room = client.room;
+    const player = room?.players.find((p) => p.sessionId === client.sessionId);
+    if (!room || !player) return { accepted: false, reason: 'no_room' };
+    if (room.phase !== 'lobby' && room.phase !== 'countdown') {
+      return { accepted: false, reason: 'not_lobby', message: 'Roles can only change before the match starts.' };
+    }
+    if (typeof revision !== 'number' || revision < room.lobbyRevision) {
+      return { accepted: false, reason: 'stale', message: 'Lobby state changed; refresh and try again.' };
+    }
+    if (room.roleSwap) {
+      return { accepted: false, reason: 'swap_pending', message: 'A role swap is already awaiting a response.' };
+    }
+    const target = room.players.find((candidate) => candidate.playerId !== player.playerId && candidate.connected);
+    if (!target) {
+      return { accepted: false, reason: 'no_swap_target', message: 'Another connected crew member is required to swap roles.' };
+    }
+    if (target.seat === player.seat) {
+      return { accepted: false, reason: 'invalid_seats', message: 'Crew roles are not in a swappable state.' };
+    }
+    room.roleSwap = {
+      requestId: ++room.roleSwapSequence,
+      requestedByPlayerId: player.playerId,
+      targetPlayerId: target.playerId,
+      requestedBySeat: player.seat,
+      requestedSeat: target.seat,
+    };
+    for (const p of room.players) p.ready = false;
+    this.cancelCountdown(room, 'role_swap_request');
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+    return { accepted: true };
+  }
+
+  private handleLobbyRoleSwapResolution(
+    client: Client,
+    requestId: number,
+    accept: boolean,
+    revision: number,
+  ): { accepted: boolean; reason?: string; message?: string } {
+    const room = client.room;
+    const player = room?.players.find((p) => p.sessionId === client.sessionId);
+    if (!room || !player) return { accepted: false, reason: 'no_room' };
+    if (typeof revision !== 'number' || revision < room.lobbyRevision) {
+      return { accepted: false, reason: 'stale', message: 'Lobby state changed; refresh and try again.' };
+    }
+    const pending = room.roleSwap;
+    if (!pending || pending.requestId !== requestId) {
+      return { accepted: false, reason: 'swap_missing', message: 'That role swap is no longer pending.' };
+    }
+    if (pending.targetPlayerId !== player.playerId) {
+      return { accepted: false, reason: 'swap_forbidden', message: 'Only the requested crew member can answer this swap.' };
+    }
+    if (!accept) {
+      room.roleSwap = null;
+      room.lobbyRevision++;
+      this.broadcastLobby(room);
+      return { accepted: true };
+    }
+    const requester = room.players.find((candidate) => candidate.playerId === pending.requestedByPlayerId);
+    if (!requester || !requester.connected || !player.connected
+      || requester.seat !== pending.requestedBySeat || player.seat !== pending.requestedSeat) {
+      room.roleSwap = null;
+      room.lobbyRevision++;
+      this.broadcastLobby(room);
+      return { accepted: false, reason: 'swap_invalid', message: 'Crew roles changed before the swap could complete.' };
+    }
+    const requesterSeat = requester.seat;
+    requester.seat = player.seat;
+    player.seat = requesterSeat;
+    room.roleSwap = null;
+    for (const p of room.players) p.ready = false;
+    this.syncRoomSeatOwners(room);
+    this.cancelCountdown(room, 'role_swap_accept');
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+    return { accepted: true };
+  }
+
+  private syncRoomSeatOwners(room: Room): void {
+    room.driver = null;
+    room.gunner = null;
+    for (const player of room.players) {
+      const client = [...this.clients.values()].find(
+        (candidate) => candidate.room === room && candidate.sessionId === player.sessionId,
+      );
+      if (!client) continue;
+      client.role = player.seat;
+      if (player.seat === 'driver') room.driver = client;
+      else room.gunner = client;
+    }
   }
 
   private handleLobbyReady(
@@ -1095,8 +1213,8 @@ export class RoomManager {
     if (ready && room.lobbyPhase === 'countdown') {
       return { accepted: false, reason: 'countdown_active', message: 'Countdown already started.' };
     }
-    if (ready && player.seat === null) {
-      return { accepted: false, reason: 'seat_required', message: 'Choose a crew role before Ready.' };
+    if (ready && room.roleSwap) {
+      return { accepted: false, reason: 'swap_pending', message: 'Resolve the role swap before Ready.' };
     }
     player.ready = ready;
     if (!ready) {
@@ -1178,6 +1296,7 @@ export class RoomManager {
   private removeClient(client: Client) {
     const room = client.room;
     if (!room) return;
+    room.roleSwap = null;
     if (room.driver === client) room.driver = null;
     if (room.gunner === client) room.gunner = null;
     const playerIndex = room.players.findIndex((p) => p.sessionId === client.sessionId);

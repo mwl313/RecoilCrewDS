@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createAndJoin, FakeSocket, makeManager, readyBoth, stepSeconds } from './helpers';
 
 describe('lobby09 ready and countdown', () => {
-  it('Ready requires a seat', () => {
+  it('Ready waits until a pending role swap is resolved', () => {
     const { manager, b } = createAndJoin(makeManager().manager);
-    manager.handle(b, { t: 'lobbySelectSeat', seat: null, lobbyRevision: 999 });
+    manager.handle(b, { t: 'lobbyRequestRoleSwap', lobbyRevision: 999 });
     manager.handle(b, { t: 'lobbyReadySet', ready: true, lobbyRevision: 999 });
-    expect(b.last('error')!.code).toBe('seat_required');
+    expect(b.last('error')!.code).toBe('swap_pending');
     void manager;
   });
 

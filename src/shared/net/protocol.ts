@@ -65,8 +65,10 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * handshake now validates content-pack hash + enemy-definition-order hash.
  * Protocol 11: selected runs carry boss escort count and reconnects reuse
  * the server-selected run instead of reconstructing it client-side.
+ * Protocol 12: lobby roles are always occupied by connected players and
+ * two-player changes use an explicit request/accept swap handshake.
  */
-export const PROTOCOL_VERSION = 11;
+export const PROTOCOL_VERSION = 12;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -88,7 +90,19 @@ export interface JoinMessage extends ProtocolEnvelope {
 
 export interface LobbySelectSeatMessage extends ProtocolEnvelope {
   t: 'lobbySelectSeat';
-  seat: 'driver' | 'gunner' | null;
+  seat: 'driver' | 'gunner';
+  lobbyRevision: number;
+}
+
+export interface LobbyRequestRoleSwapMessage extends ProtocolEnvelope {
+  t: 'lobbyRequestRoleSwap';
+  lobbyRevision: number;
+}
+
+export interface LobbyResolveRoleSwapMessage extends ProtocolEnvelope {
+  t: 'lobbyResolveRoleSwap';
+  requestId: number;
+  accept: boolean;
   lobbyRevision: number;
 }
 
@@ -182,6 +196,8 @@ export type ClientMessage =
   | PingMessage
   | ReadyMessage
   | LobbySelectSeatMessage
+  | LobbyRequestRoleSwapMessage
+  | LobbyResolveRoleSwapMessage
   | LobbyReadySetMessage
   | LobbyChatSendMessage
   | DriverInputMessage

@@ -11,16 +11,16 @@
 @media (max-width: 800px) {
   :root { --ui-safe-x: max(14px, env(safe-area-inset-left)); --ui-safe-y: max(12px, env(safe-area-inset-top)); }
   .ui-topbar { height: 54px; }
+  .lobby-system-status { height: 54px; }
   .ui-menu-rail { top: 12%; left: 6%; width: min(430px, 72vw); }
-  .menu-screen { background: linear-gradient(90deg, rgba(7,9,10,.98), rgba(7,9,10,.64)); }
+  .ui-menu-backdrop { background: linear-gradient(90deg, rgba(7,9,10,.98), rgba(7,9,10,.64)); }
   #presentation-canvas { opacity: .5; transform: translateX(18%); }
   .ui-hero-caption { opacity: .7; }
   .ui-form-panel { padding: 28px 28px 24px; }
   .ui-overlay-panel { padding: 28px; }
-  .ui-howto-grid { grid-template-columns: 1fr; }
+  .ui-howto-grid { grid-template-columns: 1fr !important; }
 
-  .lobby-mission-strip { top: 66px; width: 92%; grid-template-columns: repeat(3, 1fr); }
-  .lobby-mission-strip > div { min-width: 0; padding-inline: 9px; }
+  .lobby-code-strip { top: 66px; width: 92%; }
   .lobby-v2.lobby-screen .lobby-body { inset: 18% 5% 24%; }
   .lobby-v2.lobby-screen .lobby-player { width: 44%; min-height: 240px; }
   .lobby-vehicle-stage { display: none; }
@@ -47,9 +47,10 @@
     --ui-boot-center-correction: clamp(31px, 9.9vw, 43px);
   }
   .boot-inner { top: 42%; }
-  .boot-hint { min-height: 84px; margin-top: 24px; padding: 18px 28px; font-size: 28px; }
+  .boot-hint { width: min(310px, calc(100vw - 48px)); min-height: 66px; margin-top: 20px; padding: 15px 24px; font-size: 23px; }
   .ui-overlay-panel { width: calc(100vw - 28px); max-height: calc(100vh - 28px); padding: 24px 20px 22px; }
-  .ui-overlay-actions--three { grid-template-columns: 1fr; }
+  .ui-overlay-actions--two,
+  .ui-overlay-actions--three { grid-template-columns: 1fr !important; }
   .ui-overlay-actions .ui-action { font-size: 18px; }
   .ui-screen-footer { justify-content: center; font-size: 8px; }
   .ui-form-panel { width: calc(100vw - 28px); }
@@ -57,7 +58,8 @@
 
   .lobby-header .ui-unit-mark { display: none; }
   .lobby-v2.lobby-screen .lobby-header { justify-content: center; }
-  .lobby-mission-strip strong { font-size: 10px; }
+  .lobby-code-strip { grid-template-columns: auto 1fr auto; gap: 10px; padding-left: 12px; }
+  .lobby-code-strip .code { font-size: 30px; }
   .lobby-v2.lobby-screen .lobby-body { inset: 17% 5% 26%; }
   .lobby-players { flex-direction: column; gap: 8px; }
   .lobby-v2.lobby-screen .lobby-player { width: 100%; min-height: 180px; padding: 16px; }

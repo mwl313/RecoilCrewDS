@@ -1,33 +1,49 @@
-.lobby-screen {
+.ui-screen.lobby-screen {
   display: block;
+  background: transparent;
+}
+
+.lobby-backdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
   background: radial-gradient(circle at 50% 55%, #343c3d 0, #151b1d 40%, #080b0c 82%);
 }
 
-.lobby-code-box { display: flex; align-items: center; gap: 12px; }
-.lobby-code-box small { color: var(--ui-muted); font-size: 8px; letter-spacing: 0.16em; }
-.lobby-code-box .code { color: var(--ui-amber); text-shadow: none; font: italic 850 24px/1 var(--ui-display); letter-spacing: 0.08em; }
-
-.lobby-mission-strip {
+.lobby-code-strip {
   position: absolute;
   z-index: 8;
   top: 78px;
   left: 50%;
   display: grid;
-  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  width: min(620px, calc(100vw - 48px));
+  min-height: 62px;
+  padding: 9px 12px 9px 20px;
   transform: translateX(-50%) skewX(-5deg);
   border-block: 1px solid var(--ui-line);
-  background: rgba(9, 12, 13, 0.74);
+  border-left: 3px solid var(--ui-amber);
+  background: #090c0d;
 }
 
-.lobby-mission-strip > div { min-width: 155px; padding: 8px 18px; border-right: 1px solid var(--ui-line); }
-.lobby-mission-strip > div:last-child { border: 0; }
-.lobby-mission-strip small,
-.lobby-mission-strip strong { display: block; transform: skewX(5deg); }
-.lobby-mission-strip small { color: var(--ui-muted); font-size: 7px; letter-spacing: 0.16em; }
-.lobby-mission-strip strong { margin-top: 2px; font: italic 800 13px/1 var(--ui-display); }
+.lobby-code-strip > * { transform: skewX(5deg); }
+.lobby-code-strip small { color: var(--ui-muted); font-size: 8px; font-weight: 800; letter-spacing: 0.18em; }
+.lobby-code-strip .code { color: var(--ui-amber); text-shadow: none; font: italic 900 38px/1 var(--ui-display); letter-spacing: 0.18em; text-align: center; }
+.lobby-code-strip .ui-compact-action { min-width: 86px; }
 
 .lobby-v2.lobby-screen { display: block; gap: 0; padding: 0; }
 .lobby-v2.lobby-screen .lobby-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lobby-system-status {
+  position: absolute;
+  z-index: 13;
+  top: 0;
+  right: calc(var(--ui-safe-x) + 14px);
+  display: inline-flex;
+  align-items: center;
+  height: 64px;
+}
 .lobby-v2.lobby-screen .lobby-body { position: absolute; inset: 22% 4% 23%; display: block; width: auto; max-width: none; margin: 0; }
 .lobby-crew { position: absolute; inset: 0; }
 .lobby-players { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; }
@@ -60,13 +76,19 @@
 .lobby-player__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: italic 800 25px/1 var(--ui-display); }
 .lobby-player__empty { color: #687273; }
 .lobby-badge { padding: 3px 5px; font-size: 7px; font-weight: 800; letter-spacing: 0.08em; }
-.lobby-badge.host { color: var(--ui-ink-0); background: var(--ui-amber); }
+.lobby-v2.lobby-screen .lobby-badge.host {
+  color: var(--ui-ink-0);
+  background: var(--ui-amber);
+}
 .lobby-badge.you { color: currentColor; border: 1px solid currentColor; }
 .lobby-badge:empty { display: none; }
 
 .lobby-player__duty { margin: 7px 0 0; color: var(--ui-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
 .lobby-v2.lobby-screen .lobby-seat-row { display: flex; gap: 7px; margin: 22px 0 0; }
-.lobby-v2.lobby-screen .lobby-seat-row button.selected { color: currentColor; border-color: currentColor; }
+.lobby-v2.lobby-screen .lobby-seat-row button.selected {
+  color: var(--ui-ink-0);
+  border-color: var(--role);
+}
 
 .lobby-status { position: absolute; left: 24px; right: 24px; bottom: 22px; display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid currentColor; }
 .lobby-status span { color: var(--ui-muted); font-size: 8px; letter-spacing: 0.16em; }
@@ -107,9 +129,15 @@
   border: 0;
   border-top: 2px solid var(--ui-amber);
   border-radius: 0;
-  background: rgba(7, 9, 10, 0.94);
+  background: #090c0d;
   clip-path: var(--ui-cut-sm);
   transition: height var(--ui-normal), box-shadow var(--ui-normal);
+}
+
+.lobby-v2.lobby-screen .lobby-chat:not(:hover):not(:focus-within) {
+  opacity: 1;
+  background: #090c0d;
+  backdrop-filter: none;
 }
 
 .lobby-v2.lobby-screen .lobby-chat:hover,
@@ -123,3 +151,36 @@
 .lobby-v2.lobby-screen .lobby-chat-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
 .lobby-v2.lobby-screen .lobby-chat-row input { width: 100%; min-width: 0; height: 34px; padding: 7px 10px; color: var(--ui-paper); border: 1px solid var(--ui-line); border-radius: 0; outline: 0; background: #111719; font: 12px/1 var(--ui-body); letter-spacing: 0; text-align: left; text-transform: none; }
 .lobby-chat-row input:focus { border-color: var(--ui-amber); box-shadow: none; }
+
+/* Crew scene archetype. Its safe frame stays fixed while semantic regions
+   enter from, and leave toward, the edge nearest their resting position. */
+.lobby-screen.is-entering .lobby-backdrop { animation: ui-crew-backdrop-in 220ms ease-out both; }
+.lobby-screen.is-entering .lobby-header .ui-unit-mark,
+.lobby-screen.is-entering .lobby-code-strip { animation: ui-crew-enter-top 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-entering .lobby-player--driver { animation: ui-crew-enter-left 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-entering .lobby-player--gunner { animation: ui-crew-enter-right 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-entering .lobby-actions,
+.lobby-screen.is-entering .lobby-chat { animation: ui-crew-enter-bottom 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-entering .lobby-vehicle-stage { animation: ui-crew-center-in 420ms ease-out 80ms both; }
+
+.lobby-screen.is-leaving .lobby-header .ui-unit-mark,
+.lobby-screen.is-leaving .lobby-code-strip { animation: ui-crew-leave-top 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-leaving .lobby-backdrop { animation: ui-crew-backdrop-out 320ms ease-in both; }
+.lobby-screen.is-leaving .lobby-player--driver { animation: ui-crew-leave-left 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-leaving .lobby-player--gunner { animation: ui-crew-leave-right 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-leaving .lobby-actions,
+.lobby-screen.is-leaving .lobby-chat { animation: ui-crew-leave-bottom 520ms cubic-bezier(.65, 0, .35, 1) both; }
+.lobby-screen.is-leaving .lobby-vehicle-stage { animation: ui-crew-center-out 360ms ease-in both; }
+
+@keyframes ui-crew-backdrop-in { from { opacity: .22; } }
+@keyframes ui-crew-backdrop-out { to { opacity: 0; } }
+@keyframes ui-crew-enter-top { from { opacity: 0; transform: translate3d(0, -34vh, 0); } }
+@keyframes ui-crew-enter-left { from { opacity: 0; transform: translate3d(-72vw, 0, 0); } }
+@keyframes ui-crew-enter-right { from { opacity: 0; transform: translate3d(72vw, 0, 0); } }
+@keyframes ui-crew-enter-bottom { from { opacity: 0; transform: translate3d(0, 42vh, 0); } }
+@keyframes ui-crew-center-in { from { opacity: 0; transform: scale(.94); } }
+@keyframes ui-crew-leave-top { to { opacity: 0; transform: translate3d(0, -34vh, 0); } }
+@keyframes ui-crew-leave-left { to { opacity: 0; transform: translate3d(-72vw, 0, 0); } }
+@keyframes ui-crew-leave-right { to { opacity: 0; transform: translate3d(72vw, 0, 0); } }
+@keyframes ui-crew-leave-bottom { to { opacity: 0; transform: translate3d(0, 42vh, 0); } }
+@keyframes ui-crew-center-out { to { opacity: 0; transform: scale(.94); } }

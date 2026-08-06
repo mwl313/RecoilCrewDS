@@ -19,6 +19,7 @@ test('multiplayer clients accept selectUpgrade protocol safely', async ({ browse
   await driver.goto('/?test=1');
   await driver.click('#screen-boot');
   await expect(driver.locator('#screen-main')).toBeVisible();
+  await driver.click('#screen-main [data-act="multiplayer"]');
   await driver.click('#screen-main [data-act="create"]');
   await driver.waitForFunction(() => {
     const w = window as unknown as { __recoil: { code(): string } };
@@ -29,6 +30,7 @@ test('multiplayer clients accept selectUpgrade protocol safely', async ({ browse
   await gunner.goto('/?test=1');
   await gunner.click('#screen-boot');
   await expect(gunner.locator('#screen-main')).toBeVisible();
+  await gunner.click('#screen-main [data-act="multiplayer"]');
   await gunner.click('#screen-main [data-act="join"]');
   await gunner.fill('#join-code', code);
   await gunner.click('#join-go');

@@ -49,8 +49,15 @@ export class PresentationWorld {
     container.appendChild(this.renderer.domElement);
 
     const env = definition.environment ?? {};
-    this.scene.background =
-      typeof env.background === 'number' ? new THREE.Color(env.background) : new THREE.Color(env.background ?? '#0b1216');
+    if (env.transparentBackground) {
+      // The canvas can then move presentation objects without dragging a
+      // viewport-sized color block across the stationary CSS backdrop.
+      this.scene.background = null;
+      this.renderer.setClearColor(0x000000, 0);
+    } else {
+      this.scene.background =
+        typeof env.background === 'number' ? new THREE.Color(env.background) : new THREE.Color(env.background ?? '#0b1216');
+    }
     if (env.fog) this.scene.fog = new THREE.Fog(new THREE.Color(env.fog.color), env.fog.near, env.fog.far);
     for (const light of env.lights ?? []) this.addLight(light);
 

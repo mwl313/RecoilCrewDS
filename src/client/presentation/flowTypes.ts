@@ -14,7 +14,9 @@ export interface AppFlowHandlers {
   onSaveSettings(nickname: string): void;
   onRandomizeNickname(): void;
   onCancelSettings(): void;
-  onLobbySeat(seat: CrewSeat | null): void;
+  onLobbySeat(seat: CrewSeat): void;
+  onLobbyRequestRoleSwap(): void;
+  onLobbyResolveRoleSwap(requestId: number, accept: boolean): void;
   onLobbyReadyToggle(): void;
   onLobbyChatSend(text: string): void;
   onCopyRoomCode(code: string): void;

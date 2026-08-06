@@ -13,7 +13,19 @@ export interface JoinLobbyMessage {
 
 export interface LobbySelectSeatMessage {
   t: 'lobbySelectSeat';
-  seat: 'driver' | 'gunner' | null;
+  seat: 'driver' | 'gunner';
+  lobbyRevision: number;
+}
+
+export interface LobbyRequestRoleSwapMessage {
+  t: 'lobbyRequestRoleSwap';
+  lobbyRevision: number;
+}
+
+export interface LobbyResolveRoleSwapMessage {
+  t: 'lobbyResolveRoleSwap';
+  requestId: number;
+  accept: boolean;
   lobbyRevision: number;
 }
 

@@ -80,6 +80,7 @@
 
 .ui-compact-action:hover { color: var(--ui-ink-0); border-color: var(--ui-amber); background: var(--ui-amber); }
 .ui-compact-action.selected { color: var(--ui-ink-0); border-color: var(--role); background: var(--role); }
+.ui-compact-action:disabled { cursor: default; opacity: 1; }
 
 .ui-text-action {
   padding: 7px 0;
@@ -224,7 +225,7 @@
   border-radius: 0;
   background:
     linear-gradient(135deg, rgba(255,255,255,.035), transparent 34%),
-    rgba(9, 12, 13, 0.96);
+    #090c0d;
   clip-path: var(--ui-cut-lg);
   box-shadow: 0 34px 90px rgba(0, 0, 0, 0.68);
   backdrop-filter: none;
@@ -288,6 +289,7 @@
 }
 
 .ui-overlay-actions--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ui-overlay-actions--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .ui-overlay-actions .ui-action { min-width: 0; padding-inline: 36px 24px; font-size: 16px; }
 .ui-overlay-actions .ui-action::before { left: 12px; }
 
@@ -328,3 +330,36 @@
 .ui-role-note { margin: 14px 0 0; color: var(--ui-muted); font-size: 12px; line-height: 1.5; }
 .ui-howto-foot { margin: 0; text-align: center; font-weight: 800; letter-spacing: .12em; }
 .ui-overlay-close { align-self: flex-end; width: min(300px, 100%); }
+
+/* Overlay lifecycle: every card uses the same bottom summon and dismissal.
+   The root handles the scrim while the panel carries the physical motion. */
+.ui-overlay-screen.scene-enter {
+  opacity: 1;
+  animation: none;
+}
+
+.ui-overlay-screen.scene-enter .ui-overlay-panel {
+  animation: ui-overlay-summon 460ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.ui-overlay-screen.scene-exit {
+  opacity: 1;
+  pointer-events: none;
+  animation: none;
+}
+
+.ui-overlay-screen.scene-exit .ui-overlay-panel {
+  animation: ui-overlay-dismiss 380ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+@keyframes ui-overlay-summon {
+  from {
+    transform: translate(-50%, calc(-50% + 78vh));
+  }
+}
+
+@keyframes ui-overlay-dismiss {
+  to {
+    transform: translate(-50%, calc(-50% + 78vh));
+  }
+}

@@ -17,12 +17,12 @@
         "type": "vertical",
         "class": "boot-inner",
         "children": [
-          { "id": "boot-kicker", "type": "text", "class": "ui-kicker", "text": "SHARED TANK FIELD UNIT // 07" },
+          { "id": "boot-kicker", "type": "text", "class": "ui-kicker ui-exit-zoom-up", "text": "SHARED TANK FIELD UNIT // 07" },
           { "id": "boot-logo", "type": "container", "class": "ui-wordmark", "children": [
-            { "id": "boot-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
-            { "id": "boot-title-crew", "type": "text", "class": "ui-wordmark-crew", "text": "CREW" }
+            { "id": "boot-title", "type": "text", "class": "ui-exit-to-right", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
+            { "id": "boot-title-crew", "type": "text", "class": "ui-wordmark-crew ui-exit-to-left", "text": "CREW" }
           ] },
-          { "id": "boot-hint", "type": "text", "class": "boot-hint", "text": "CLICK TO ENTER" }
+          { "id": "boot-hint", "type": "text", "class": "boot-hint ui-exit-to-bottom", "text": "CLICK TO ENTER" }
         ]
       }
     ]

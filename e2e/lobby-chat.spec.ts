@@ -12,12 +12,14 @@ test('lobby chat exchanges messages, renders as text, rate-limits, and survives 
   const b = await ctx.newPage();
   await boot(a);
   await boot(b);
+  await a.click('#screen-main [data-act="multiplayer"]');
   await a.click('#screen-main [data-act="create"]');
   await a.waitForFunction(() => {
     const w = window as unknown as { __recoil: { code(): string; lobby: { state(): unknown } } };
     return w.__recoil.code().length === 6 && w.__recoil.lobby.state() !== null;
   });
   const code = await a.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
+  await b.click('#screen-main [data-act="multiplayer"]');
   await b.click('#screen-main [data-act="join"]');
   await b.fill('#join-code', code);
   await b.click('#join-go');

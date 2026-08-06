@@ -11,12 +11,14 @@ async function createAndJoin(driver: import('@playwright/test').Page, gunner: im
     const w = window as unknown as { __recoil: { joinWithName: (c: string, n: string) => void; settings: { nickname: () => string } } };
     return w.__recoil.settings.nickname();
   });
+  await driver.click('#screen-main [data-act="multiplayer"]');
   await driver.click('#screen-main [data-act="create"]');
   await driver.waitForFunction(() => {
     const w = window as unknown as { __recoil: { code(): string; lobby: { state(): unknown } } };
     return w.__recoil.code().length === 6 && w.__recoil.lobby.state() !== null;
   });
   const code = await driver.evaluate(() => (window as unknown as { __recoil: { code(): string } }).__recoil.code());
+  await gunner.click('#screen-main [data-act="multiplayer"]');
   await gunner.click('#screen-main [data-act="join"]');
   await gunner.fill('#join-code', code);
   await gunner.click('#join-go');
@@ -57,14 +59,16 @@ test('both players see names, YOU only on their own card, and seats/ready start 
   await expect(driver.locator('[data-you="true"]')).toHaveCount(1);
   await expect(gunner.locator('[data-you="true"]')).toHaveCount(1);
 
-  // Seat conflict: both request Driver; the second is rejected (seat stays Gunner).
-  await gunner.click('#seat-driver');
+  // The Gunner requests the occupied Driver role and the Driver explicitly accepts.
+  await gunner.click('#request-role-swap');
+  await expect(driver.locator('#accept-role-swap')).toBeVisible();
+  await driver.click('#accept-role-swap');
   await gunner.waitForTimeout(200);
-  const gunnerState = await gunner.evaluate(() => {
+  const swapped = await gunner.evaluate(() => {
     const w = window as unknown as {
       __recoil: {
         lobby: {
-          state(): { players: Array<{ playerId: string; seat: string | null }> };
+          state(): { players: Array<{ playerId: string; seat: string }> };
           playerId(): string;
         };
       };
@@ -72,7 +76,9 @@ test('both players see names, YOU only on their own card, and seats/ready start 
     const s = w.__recoil.lobby.state();
     return s.players.find((p) => p.playerId === w.__recoil.lobby.playerId())?.seat;
   });
-  expect(gunnerState).toBe('gunner');
+  expect(swapped).toBe('driver');
+  expect(await gunner.evaluate(() => (window as unknown as { __recoil: { role(): string } }).__recoil.role())).toBe('driver');
+  expect(await driver.evaluate(() => (window as unknown as { __recoil: { role(): string } }).__recoil.role())).toBe('gunner');
 
   await driver.click('#lobby-ready');
   await gunner.click('#lobby-ready');

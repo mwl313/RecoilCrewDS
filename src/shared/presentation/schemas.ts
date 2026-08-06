@@ -61,6 +61,8 @@ export const SCENE_RESERVED_COMPONENT_TYPES = [
 
 export const ACTION_IDS = [
   'app.enter',
+  'app.openMultiplayer',
+  'app.closeMultiplayer',
   'app.createCrew',
   'app.openJoin',
   'app.joinCrew',
@@ -387,6 +389,7 @@ const lightSchema = z
 export const environmentSchema = z
   .object({
     background: z.union([z.string(), z.number()]).optional(),
+    transparentBackground: z.boolean().optional(),
     fog: z
       .object({
         color: z.union([z.string(), z.number()]),

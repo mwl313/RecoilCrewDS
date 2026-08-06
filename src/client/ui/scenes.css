@@ -61,14 +61,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: min(500px, calc(100vw - 48px));
-  min-height: 112px;
-  margin: 30px auto 0;
-  padding: 24px 54px;
+  width: min(360px, calc(100vw - 48px));
+  min-height: 76px;
+  margin: 24px auto 0;
+  padding: 18px 34px;
   color: var(--ui-ink-0);
   background: var(--ui-amber);
   clip-path: var(--ui-cut-sm);
-  font: italic 850 38px/1 var(--ui-display);
+  font: italic 850 28px/1 var(--ui-display);
   letter-spacing: 0.12em;
   animation: ui-hint-pulse 1.5s ease-in-out infinite;
 }
@@ -79,17 +79,33 @@
   50% { background: var(--ui-amber-hot); transform: translateY(-2px); }
 }
 
-.menu-screen {
+.ui-screen.menu-screen {
+  background: transparent;
+}
+
+.menu-screen::before { display: none; }
+
+.ui-menu-backdrop {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
   background:
     linear-gradient(90deg, rgba(7, 9, 10, 0.99) 0 38%, rgba(7, 9, 10, 0.56) 57%, rgba(7, 9, 10, 0.12)),
     radial-gradient(circle at 73% 48%, #4f5150 0, #202729 31%, #0d1113 70%);
 }
 
-.menu-screen::before {
+.ui-menu-backdrop::before {
+  position: absolute;
+  inset: 0;
+  content: '';
   opacity: 0.44;
   background-image:
     linear-gradient(rgba(255, 173, 34, 0.085) 1px, transparent 1px),
     linear-gradient(90deg, rgba(241, 238, 227, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(700px) rotateX(58deg) scale(1.4) translateY(21%);
   animation: ui-menu-grid-treadmill 2.2s linear infinite;
 }
 
@@ -138,6 +154,48 @@
 .ui-menu-rail .ui-action--04::before { content: '04'; }
 .ui-menu-rail .ui-action--05::before { content: '05'; }
 
+/* Menu archetype: shared scene chrome with replaceable command pages. Only
+   the page moves; the wordmark, tank, grid, topbar, and caption stay mounted. */
+.ui-menu-stack {
+  position: relative;
+  width: 100%;
+}
+
+/* The boot and menu safe frames occupy the same geometry. The menu root must
+   not fade or shift as it replaces boot, otherwise the shared frame visibly
+   disappears and redraws. Authored child choreography handles the handoff. */
+.menu-screen.scene-enter { animation: none; }
+
+.ui-menu-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.ui-menu-stack.is-swapping { pointer-events: none; }
+
+.ui-menu-page.is-leaving {
+  position: relative;
+  animation: ui-menu-page-depart 520ms cubic-bezier(.65, 0, .35, 1) both;
+  will-change: transform;
+}
+
+.ui-menu-page.is-entering {
+  position: relative;
+  animation: ui-menu-page-arrive 520ms cubic-bezier(.65, 0, .35, 1) both;
+  will-change: transform;
+}
+
+@keyframes ui-menu-page-depart {
+  to { transform: translate3d(-72vw, 0, 0); }
+}
+
+@keyframes ui-menu-page-arrive {
+  /* One full rail width plus the menu's left inset: completely outside the
+     viewport, without wasting most of the entrance in invisible travel. */
+  from { transform: translate3d(calc(-100% - 64px), 0, 0); }
+}
+
 .playing-as {
   margin-top: 12px;
   padding: 8px 0 8px 12px;
@@ -149,14 +207,14 @@
   letter-spacing: 0.11em;
 }
 
-#main-system {
+.ui-shared-status {
   gap: 11px;
   color: var(--ui-paper);
   font-size: 14px;
   font-weight: 800;
 }
 
-#main-system::before {
+.ui-shared-status::before {
   width: 9px;
   height: 9px;
   animation: ui-status-breathe 2.8s ease-in-out infinite;

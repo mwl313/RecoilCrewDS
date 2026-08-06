@@ -37,6 +37,12 @@ export class SceneFlowPresenter {
   private presentationFactory: PresentationWorldFactory | null = null;
   private assetUrlResolver: ((id: string) => string | null) | null = null;
   private activeWorld: { start(): void; dispose(): void } | null = null;
+  private titleExitPending = false;
+  private choreographyToken = 0;
+  private menuPage: 'main' | 'multiplayer' = 'main';
+  private menuSwapPending = false;
+  private menuSwapToken = 0;
+  private menuSwapCleanup: (() => void) | null = null;
 
   constructor(
     private readonly screensContainer: HTMLElement,
@@ -56,6 +62,62 @@ export class SceneFlowPresenter {
 
   get sceneId(): string {
     return this.currentSceneId;
+  }
+
+  /** Select a command page without animating or rebuilding the menu scene. */
+  showMainMenuPage(page: 'main' | 'multiplayer'): void {
+    if (this.currentState !== 'main') return;
+    const runtime = this.runtimes.get('scene.mainMenu');
+    if (runtime) this.setMenuPageImmediate(runtime, page);
+  }
+
+  /** Split the active multiplayer menu outward before an external crew view takes over. */
+  transitionMainToCrew(onComplete: () => void): void {
+    const runtime = this.runtimes.get('scene.mainMenu');
+    const root = runtime?.element;
+    const sentinel = runtime?.getNode('main-panel')?.element;
+    if (this.currentState !== 'main' || !root || !sentinel || this.prefersReducedMotion()) {
+      this.hideAllScenes();
+      onComplete();
+      return;
+    }
+
+    const token = ++this.choreographyToken;
+    root.setAttribute('aria-busy', 'true');
+    root.classList.remove('ui-choreography--menu-exit');
+    void root.offsetWidth;
+    root.classList.add('ui-choreography--menu-exit');
+
+    let fallback = 0;
+    const finish = (): void => {
+      if (token !== this.choreographyToken) return;
+      window.clearTimeout(fallback);
+      sentinel.removeEventListener('animationend', onAnimationEnd);
+      root.removeAttribute('aria-busy');
+      root.classList.remove('ui-choreography--menu-exit');
+      this.hideAllScenes();
+      onComplete();
+    };
+    const onAnimationEnd = (event: AnimationEvent): void => {
+      if (event.target !== sentinel) return;
+      if (event.animationName && event.animationName !== 'ui-scene-leave-left') return;
+      finish();
+    };
+    sentinel.addEventListener('animationend', onAnimationEnd);
+    fallback = window.setTimeout(finish, 600);
+  }
+
+  /** Restore the persistent menu directly to Multiplayer after a crew dismissal. */
+  showMainMenuFromCrew(page: 'main' | 'multiplayer' = 'multiplayer'): void {
+    const runtime = this.ensureRuntimeFor('scene.mainMenu');
+    const root = runtime.element;
+    this.currentState = 'main';
+    this.currentSceneId = 'scene.mainMenu';
+    this.setMenuPageImmediate(runtime, page);
+    root?.classList.remove('hidden', 'scene-enter', 'scene-exit', 'ui-choreography--menu-exit');
+    if (this.hudElement) this.hudElement.classList.add('hidden');
+    this.syncPresentationWorld('main');
+    this.playDirectionalEntrance(runtime);
   }
 
   bind(handlers: AppFlowHandlers): void {
@@ -128,12 +190,16 @@ export class SceneFlowPresenter {
     // Replay enter/leave per transition (scenes are cached, not rebuilt).
     previous?.leave();
     runtime.enter();
+    if (stateId === 'main') this.resetMenuPage(runtime);
     if (this.hudElement) this.hudElement.classList.toggle('hidden', stateId !== 'game');
     this.syncPresentationWorld(stateId);
+    if (previousState === 'boot' && stateId === 'main') {
+      this.playDirectionalEntrance(runtime);
+    }
   }
 
   private isMenuOverlayState(stateId: FlowStateId): boolean {
-    return stateId === 'settings' || stateId === 'howto';
+    return stateId === 'settings' || stateId === 'howto' || stateId === 'join';
   }
 
   private syncPresentationWorld(stateId: FlowStateId): void {
@@ -152,6 +218,163 @@ export class SceneFlowPresenter {
   private disposePresentationWorld(): void {
     this.activeWorld?.dispose();
     this.activeWorld = null;
+  }
+
+  /**
+   * Run the authored split-title exit before handing control to the app flow.
+   * The CSS role classes make the choreography reusable without coupling the
+   * presenter to individual title elements.
+   */
+  private playTitleExit(onComplete: () => void): void {
+    if (this.titleExitPending) return;
+    const runtime = this.runtimes.get('scene.boot');
+    const root = runtime?.element;
+    const sentinel = runtime?.getNode('boot-hint')?.element;
+    if (this.currentState !== 'boot' || !root || !sentinel || this.prefersReducedMotion()) {
+      onComplete();
+      return;
+    }
+
+    this.titleExitPending = true;
+    const token = ++this.choreographyToken;
+    root.setAttribute('aria-busy', 'true');
+    root.classList.remove('ui-choreography--title-exit');
+    void root.offsetWidth;
+    root.classList.add('ui-choreography--title-exit');
+
+    let fallback = 0;
+    const finish = (): void => {
+      if (!this.titleExitPending || token !== this.choreographyToken) return;
+      this.titleExitPending = false;
+      window.clearTimeout(fallback);
+      sentinel.removeEventListener('animationend', onAnimationEnd);
+      root.removeAttribute('aria-busy');
+      onComplete();
+      // Keep the filled exit pose until the boot scene has completed its
+      // short scene-level fade; otherwise its children visibly snap back.
+      window.setTimeout(() => root.classList.remove('ui-choreography--title-exit'), 220);
+    };
+    const onAnimationEnd = (event: AnimationEvent): void => {
+      if (event.target !== sentinel) return;
+      if (event.animationName && event.animationName !== 'ui-title-control-drop') return;
+      finish();
+    };
+    sentinel.addEventListener('animationend', onAnimationEnd);
+    fallback = window.setTimeout(finish, 600);
+  }
+
+  /** Replay the reusable left/right arrival contract on a newly shown scene. */
+  private playDirectionalEntrance(runtime: SceneRuntime): void {
+    const root = runtime.element;
+    if (!root || this.prefersReducedMotion()) return;
+    const token = ++this.choreographyToken;
+    root.classList.remove('ui-choreography--split-enter');
+    void root.offsetWidth;
+    root.classList.add('ui-choreography--split-enter');
+    window.setTimeout(() => {
+      if (token === this.choreographyToken) root.classList.remove('ui-choreography--split-enter');
+    }, 680);
+  }
+
+  private prefersReducedMotion(): boolean {
+    return typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /**
+   * Swap only the command page inside the persistent menu archetype. The
+   * environment, title, instrumentation, and presentation world never leave.
+   */
+  private swapMenuPage(target: 'main' | 'multiplayer'): void {
+    if (this.currentState !== 'main' || this.menuSwapPending || target === this.menuPage) return;
+    const runtime = this.runtimes.get('scene.mainMenu');
+    const stack = runtime?.getNode('main-menu-stack')?.element;
+    const outgoingId = this.menuPage === 'main' ? 'main-menu-page' : 'multiplayer-menu-page';
+    const incomingId = target === 'main' ? 'main-menu-page' : 'multiplayer-menu-page';
+    const outgoing = runtime?.getNode(outgoingId)?.element;
+    const incoming = runtime?.getNode(incomingId)?.element;
+    if (!stack || !outgoing || !incoming) return;
+
+    if (this.prefersReducedMotion()) {
+      outgoing.classList.add('hidden');
+      incoming.classList.remove('hidden');
+      this.menuPage = target;
+      return;
+    }
+
+    this.menuSwapPending = true;
+    const token = ++this.menuSwapToken;
+    incoming.classList.remove('is-leaving', 'is-entering');
+    incoming.classList.add('hidden');
+    outgoing.classList.remove('is-leaving', 'is-entering');
+    void stack.offsetWidth;
+    stack.classList.add('is-swapping');
+    outgoing.classList.add('is-leaving');
+
+    let phaseFallback = 0;
+    const cleanup = (): void => {
+      window.clearTimeout(phaseFallback);
+      outgoing.removeEventListener('animationend', onOutgoingEnd);
+      incoming.removeEventListener('animationend', onIncomingEnd);
+    };
+    const finish = (): void => {
+      if (!this.menuSwapPending || token !== this.menuSwapToken) return;
+      cleanup();
+      this.menuSwapCleanup = null;
+      this.menuSwapPending = false;
+      outgoing.classList.remove('is-leaving');
+      outgoing.classList.add('hidden');
+      incoming.classList.remove('is-entering');
+      stack.classList.remove('is-swapping');
+      this.menuPage = target;
+    };
+
+    const beginIncoming = (): void => {
+      if (!this.menuSwapPending || token !== this.menuSwapToken) return;
+      window.clearTimeout(phaseFallback);
+      outgoing.removeEventListener('animationend', onOutgoingEnd);
+      outgoing.classList.remove('is-leaving');
+      outgoing.classList.add('hidden');
+      incoming.classList.remove('hidden');
+      void incoming.offsetWidth;
+      incoming.classList.add('is-entering');
+      incoming.addEventListener('animationend', onIncomingEnd);
+      phaseFallback = window.setTimeout(finish, 560);
+    };
+    const onOutgoingEnd = (event: AnimationEvent): void => {
+      if (event.target !== outgoing) return;
+      if (event.animationName && event.animationName !== 'ui-menu-page-depart') return;
+      beginIncoming();
+    };
+    const onIncomingEnd = (event: AnimationEvent): void => {
+      if (event.target !== incoming) return;
+      if (event.animationName && event.animationName !== 'ui-menu-page-arrive') return;
+      finish();
+    };
+    outgoing.addEventListener('animationend', onOutgoingEnd);
+    phaseFallback = window.setTimeout(beginIncoming, 560);
+    this.menuSwapCleanup = cleanup;
+  }
+
+  private resetMenuPage(runtime: SceneRuntime): void {
+    this.setMenuPageImmediate(runtime, 'main');
+  }
+
+  private setMenuPageImmediate(runtime: SceneRuntime, target: 'main' | 'multiplayer'): void {
+    const main = runtime.getNode('main-menu-page')?.element;
+    const multiplayer = runtime.getNode('multiplayer-menu-page')?.element;
+    const stack = runtime.getNode('main-menu-stack')?.element;
+    if (!main || !multiplayer || !stack) return;
+    this.menuSwapCleanup?.();
+    this.menuSwapCleanup = null;
+    this.menuSwapToken++;
+    this.menuSwapPending = false;
+    this.menuPage = target;
+    stack.classList.remove('is-swapping');
+    main.classList.remove('is-leaving', 'is-entering');
+    multiplayer.classList.remove('is-leaving', 'is-entering');
+    main.classList.toggle('hidden', target !== 'main');
+    multiplayer.classList.toggle('hidden', target !== 'multiplayer');
   }
 
   private services(): SceneRuntimeServices {
@@ -330,7 +553,18 @@ export class SceneFlowPresenter {
       this.uiSound?.();
       fn();
     };
-    this.actions.register('app.enter', () => ui(() => h().onBoot?.()));
+    this.actions.register('app.enter', () => {
+      this.uiSound?.();
+      this.playTitleExit(() => h().onBoot?.());
+    });
+    this.actions.register('app.openMultiplayer', () => {
+      this.uiSound?.();
+      this.swapMenuPage('multiplayer');
+    });
+    this.actions.register('app.closeMultiplayer', () => {
+      this.uiSound?.();
+      this.swapMenuPage('main');
+    });
     this.actions.register('app.createCrew', () => ui(() => h().onCreate?.()));
     this.actions.register('app.openJoin', () => ui(() => h().onJoin?.('')));
     this.actions.register('app.joinCrew', (_p, runtime) => {
