@@ -5,7 +5,7 @@ Branch: `monster-system` (unmerged; never merge into `main`).
 ## Starting/final SHA
 
 - Phase A start: `1f62372` (reviewed implementation-report head).
-- Final head: `f0f48eb` (`monster-core-loop: connect presentation preload and encounter HUD`).
+- Final head: `git rev-parse HEAD` (latest commit in this branch).
 
 ## Commits by phase
 
@@ -97,8 +97,14 @@ Six identities × elite/boss roles (12 definitions), centralized in
 - Normalization cache: target heights 1.02/1.53/1.70 m, tier scales 1/3/5,
   normalized projectile sockets; no per-spawn bounds scan.
 - Selected-asset preload: exactly the run's near/far/aggregate assets; SP
-  awaits before starting; MP preloads on `start` and on first production
-  snapshot (reconnect). No startup preload of all optional monsters.
+  awaits before starting. No startup preload of all optional monsters.
+- Multiplayer asset-ready handshake (protocol 9): when both lobby players
+  are ready in a production mode, the server reserves the match id,
+  broadcasts the authoritative `runConfig`, and enters a `loading` phase.
+  Clients preload the selected assets and reply `assetReady`; the countdown
+  starts only after both clients are ready or a 15-second timeout. Demo
+  rooms keep the immediate countdown and never send `runConfig`. Rematches
+  re-run the gate for the new match id.
 - HUD: `TIME UNTIL NEW WAVE` (sim-time countdown to 60/120/180), `BOSS
   INCOMING`, monster level, wave warnings, one elite bar (two stacked when
   configured), one boss bar, no fodder overhead bars; bars clear on death/
@@ -106,16 +112,22 @@ Six identities × elite/boss roles (12 definitions), centralized in
 
 ## Known limitations
 
-- Multiplayer preload starts at `start` (after the server countdown has
-  already begun); a full asset-ready handshake gating the countdown is the
-  remaining follow-up if load time matters.
 - Reconnecting clients receive only subsequent cue changes; an attack in
   progress may not show its cue until the next change.
 - A wave that outlives the next countdown threshold defers that wave until
   the active wave clears; the HUD countdown keeps running.
-- Interactive browser qualification and a real two-client run were not
-  executed in this environment (no browser harness); see the qualification
-  report for what was and was not verified.
+- A final human visual pass over the captured qualification screenshots is
+  the only remaining manual item.
+
+## Test-only qualification hooks
+
+The `?test=1` client surface and the qualification server
+(`ALLOW_TEST_DAMAGE=1`, set only in the e2e web-server environment) expose
+`__recoil.monster.damage/healTank/resultsState`, `__recoil.testDamage`,
+`__recoil.testHealTank`, and server `testDamageEnemyByDef`/`testHealTank`
+messages. They are gated to test servers and never enabled in production
+deployments; they let the automated SP and two-client runs complete
+elite/boss kills deterministically.
 
 ## Demo unchanged
 

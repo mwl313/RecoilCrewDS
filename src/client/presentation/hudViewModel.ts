@@ -278,7 +278,13 @@ export class HudProjector {
             ? 'WAVE 2 INCOMING'
             : 'BOSS INCOMING'
         : '';
-    const elites = monsterView?.encounters.filter((e) => e.kind === 'elite') ?? [];
+    const eliteRows = monsterView?.encounters.filter((e) => e.kind === 'elite') ?? [];
+    const aliveElites = eliteRows.filter((e) => e.alive);
+    // Default one-elite matches promote the single active elite to the
+    // primary bar; two-elite matches keep slot order so each bar stays
+    // bound to its own encounter and hides independently on death.
+    const elites =
+      aliveElites.length <= 1 ? (aliveElites[0] ? [aliveElites[0]] : eliteRows) : eliteRows;
     const boss = monsterView?.encounters.find((e) => e.kind === 'boss');
     return {
       role: opts.role,

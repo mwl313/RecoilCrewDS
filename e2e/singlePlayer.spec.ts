@@ -7,7 +7,9 @@ test('single player runs a full local round with combined controls and local res
     if (m.type() === 'error') errors.push(m.text());
   });
 
-  await page.goto('/?test=1');
+  // Demo fixture: the permanent single-player score-attack flow (production
+  // main-stage SP is qualified separately in monster-coreloop specs).
+  await page.goto('/?test=1&mode=demo');
   await page.click('#screen-boot');
   await page.click('#screen-main [data-act="single"]');
   await page.waitForFunction(() => {

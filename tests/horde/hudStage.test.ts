@@ -359,4 +359,34 @@ describe('stage HUD projection (M11)', () => {
     const quiet = projector.project(state({ time: 40 }), base);
     expect(quiet.stage.monster.waveWarning).toBe('');
   });
+
+  it('promotes the single active elite to the primary bar after an earlier encounter dies', () => {
+    const projector = new HudProjector();
+    const vm = projector.project(state({ time: 130 }), {
+      role: 'driver',
+      peerConnected: false,
+      ping: 0,
+      fps: 60,
+      pointerLocked: true,
+      session: { kind: 'singlePlayer', showRoleIdentity: false, showPeerStatus: false },
+      objective: null,
+      stage: {
+        phase: 'wave2',
+        farmingTimeRemaining: 50,
+        waveId: 2,
+        leaderHp: 500,
+        leaderMaxHp: 500,
+        monster: monsterStage({
+          encounters: [
+            { slotId: 'selected.wave1.elite0', enemyId: 'enemy.eliteA', label: 'Dead Elite', hp: 0, maxHp: 1000, alive: false, kind: 'elite' },
+            { slotId: 'selected.wave2.elite0', enemyId: 'enemy.eliteB', label: 'Wave 2 Elite', hp: 250, maxHp: 500, alive: true, kind: 'elite' },
+            { slotId: 'selected.boss', enemyId: 'enemy.boss', label: 'Boss', hp: 0, maxHp: 1, alive: false, kind: 'boss' },
+          ],
+        }),
+      },
+    });
+    expect(vm.stage.monster.elite1.visible).toBe(true);
+    expect(vm.stage.monster.elite1.label).toBe('Wave 2 Elite');
+    expect(vm.stage.monster.elite2.visible).toBe(false);
+  });
 });

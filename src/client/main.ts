@@ -23,9 +23,14 @@ import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
 import type { HordeStageView } from '../shared/net/protocol';
+import type { RunConfigMessage } from '../shared/net/protocol';
 import { createPlayerSettingsStore } from './settings/playerSettingsStore';
 import { PlayerSettingsController } from './settings/playerSettingsController';
 import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
+import {
+  resolveSelectedMonsterRun,
+  resolveSelectedPreloadAssetIds,
+} from '../shared/monsters/monsterPreload';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -72,6 +77,8 @@ let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
 let lastPreloadedMatchId = '';
+let latestRunConfig: RunConfigMessage | null = null;
+let activeSinglePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 let localPlayerId = '';
 let lobbyState: ClientLobbyState | null = null;
 let lobbyChat: LobbyChatMessage[] = [];
@@ -267,6 +274,27 @@ net.onMessage = (msg) => {
       hud.showScreen('countdown');
       hud.showCountdown(Number(msg.n));
       break;
+    case 'runConfig': {
+      const config = msg as unknown as RunConfigMessage;
+      latestRunConfig = config;
+      // The server waits for assetReady before starting the countdown.
+      // Preload exactly the selected run; a null run (Demo) is ready
+      // immediately. Errors never stall a crew — the server also has an
+      // explicit readiness timeout.
+      void (async () => {
+        try {
+          if (config.run) {
+            const loaded = assets ?? (await assetsPromise);
+            await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, config.run));
+          }
+        } catch (error) {
+          console.warn('[runConfig] asset preload failed; proceeding anyway', error);
+        } finally {
+          net.send({ t: 'assetReady', matchId: config.matchId });
+        }
+      })();
+      break;
+    }
     case 'start':
       if (msg.arena) {
         void startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined);
@@ -505,8 +533,11 @@ async function startSinglePlayer(): Promise<void> {
   arenaSession = session.metadata ? session : null;
   singlePlayerMatchIndex++;
   const matchId = 'single-' + Date.now();
+  const spModeId =
+    params.get('mode') === 'demo' ? 'mode.singlePlayerScoreAttack' : SINGLE_PLAYER_SESSION.rulesModeId;
+  activeSinglePlayerModeId = spModeId;
   game = await createGame(session.world);
-  await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, SINGLE_PLAYER_SESSION.rulesModeId);
+  await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, spModeId);
   lastPreloadedMatchId = matchId;
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
@@ -514,7 +545,7 @@ async function startSinglePlayer(): Promise<void> {
     input.releaseLock();
     flow = 'results';
   };
-  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId);
+  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   game.suppressAutoInput = TEST_MODE;
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
@@ -684,7 +715,55 @@ if (TEST_MODE) {
         game?.singlePlayerMatch?.runtime.systems.progression.openChest(id, Date.now()),
       skipRelic: () => game?.skipRelicPresentation(),
     },
+    monster: {
+      run: () => {
+        if (latestRunConfig?.run) return latestRunConfig.run;
+        const m = game?.singlePlayerMatch;
+        if (!m) return null;
+        return resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, m.state.matchId, activeSinglePlayerModeId);
+      },
+      enemies: () =>
+        game?.singlePlayerMatch?.state.enemies.map((e) => ({
+          id: e.id,
+          defId: e.defId ?? '',
+          hp: e.hp,
+          maxHp: e.maxHp,
+          alive: e.alive,
+        })) ?? [],
+      damage: (id: number, amount: number) => {
+        const runtime = game?.singlePlayerMatch?.runtime;
+        const enemy = runtime?.state.enemies.find((e) => e.id === id);
+        if (!runtime || !enemy) return -1;
+        runtime.damageEnemy(enemy, amount, 'test');
+        return enemy.hp;
+      },
+      stageView: () => game?.getSinglePlayerStageView() ?? null,
+      phase: () => game?.singlePlayerMatch?.runtime.systems.stage.state.phase ?? null,
+      healTank: () => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return;
+        m.state.tank.integrity = m.runtime.cfg.tank.maxIntegrity;
+        m.state.tank.deadT = 0;
+      },
+      resultsState: () => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return null;
+        return {
+          results: m.results,
+          shown: (game as unknown as { singlePlayerResultsShown: boolean }).singlePlayerResultsShown,
+        };
+      },
+    },
+    stageView: () => latestStageView ?? null,
+    testDamage: (defId: string, amount: number) => {
+      net.send({ t: 'testDamageEnemyByDef', defId, amount });
+    },
+    testHealTank: () => {
+      net.send({ t: 'testHealTank' });
+    },
     arena: () => arenaSession?.metadata ?? null,
+    run: () => latestRunConfig?.run ?? null,
+    runConfig: () => latestRunConfig,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],
     groundHeightAt: (x: number, z: number) => arenaSession?.world.groundHeightAt(x, z) ?? 0,
     sceneStats: () => {

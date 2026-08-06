@@ -1,9 +1,8 @@
 # Monster Core-Loop Integration — Qualification Report
 
 Branch: `monster-system`. All results below were actually run in this
-workspace on `f0f48eb`. Browser/interactive and real two-client runs were
-**not** executed here; they remain the outstanding manual qualification
-items at the end of this report.
+workspace (see the live browser qualification section for the production
+SP and two-client runs; only a human visual pass over screenshots remains).
 
 ## Automated selection matrix
 
@@ -90,14 +89,47 @@ not qualify player input, aiming, or browser rendering.
 - `npx vitest run tests/coreloop06 tests/horde tests/progression08 tests/netcode` — PASS
 - `npm run test:horde:benchmark` — PASS
 - `npm run test:animation:benchmark` — PASS
+- `npx playwright test e2e/monster-coreloop-singleplayer.spec.ts` — PASS
+- `npx playwright test e2e/monster-coreloop-multiplayer.spec.ts` — PASS
+- `npx playwright test e2e/singlePlayer.spec.ts e2e/progression-disabled-demo.spec.ts e2e/monsterpack10-rendering.spec.ts` — PASS
 
-## Outstanding manual qualification (not run)
+## Live browser qualification (production servers, Google Chrome)
 
-- Interactive Single Player full run with real input (farming, elite waves,
-  boss, rematch).
-- Real two-client multiplayer run (same selected run, preload readiness,
-  action/telegraph/projectile agreement, encounter-bar agreement, boss
-  result agreement, rematch).
+`e2e/monster-coreloop-singleplayer.spec.ts` (3.0 min, PASS):
+
+- Production SP boots, awaits selected-asset preload, and shows
+  `TIME UNTIL NEW WAVE` / `LV 1`.
+- Wave 1 and wave 2 elite encounter bars appear with labels/HP; the single
+  active elite is promoted to the primary bar after the earlier encounter
+  dies (projector fix).
+- `BOSS INCOMING` at ~180 s, boss bar visible, boss death → victory screen
+  (grade D / "Boss Slayer" at 0 score), and `PLAY AGAIN` starts a fresh
+  match with a cleared HUD.
+
+`e2e/monster-coreloop-multiplayer.spec.ts` (3.2 min, PASS):
+
+- Both clients receive the identical authoritative `runConfig` before the
+  countdown; the room waits for `assetReady` from both (verified live on
+  port 8096).
+- Both clients report the same selected run (phases, elites, boss).
+- Wave 1 elite encounter bars agree (same label and `HP / MAX`).
+- Boss intro and boss encounter bars agree across clients; boss death →
+  results on both; a rematch vote re-runs the preload gate and both clients
+  enter a fresh match with cleared encounter bars.
+
+Screenshots for both runs are saved under
+`docs/monster-system/qualification-screenshots/` (10 PNGs). Pixel checks
+confirm non-blank, varied rendered frames; a human visual pass over the
+screenshots is the final remaining item.
+
+Demo regression specs still pass on the 8099 demo server (single-player
+round, progression-disabled multiplayer, monsterpack rendering benchmark).
+
+## Remaining manual items
+
+- Human visual review of the captured screenshots (scale, sockets, HUD
+  bars, boss presentation) — screenshots are ready in
+  `docs/monster-system/qualification-screenshots/`.
 - Visual inspection of normalized scale, sockets, encounter bars, and
   performance in the browser.
 

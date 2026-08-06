@@ -6,6 +6,7 @@
  */
 import type { DriverInput, GunnerInput, ModifierId, Role } from '../types';
 import type { HordeSnapshotBlock } from './horde/hordeProtocol';
+import type { SelectedMonsterRun } from '../monsters/monsterRunSelection';
 
 export interface HordeStageView {
   phase: string;
@@ -39,10 +40,24 @@ export interface HordeMonsterStageView {
 }
 
 /**
+ * Server -> client: the authoritative selected run for the upcoming match.
+ * Clients preload exactly these assets and reply with assetReady before the
+ * countdown starts. `run` is null for Demo modes (no preload gate).
+ */
+export interface RunConfigMessage extends ProtocolEnvelope {
+  t: 'runConfig';
+  matchId: string;
+  modeId: string;
+  run: SelectedMonsterRun | null;
+}
+
+/**
  * Progression08: selectUpgrade client message added (bumped deliberately;
  * snapshots already carry the full progression state for reconnect).
+ * Protocol 9: runConfig/assetReady preload handshake for the production
+ * monster loop.
  */
-export const PROTOCOL_VERSION = 8;
+export const PROTOCOL_VERSION = 9;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -143,6 +158,11 @@ export interface LeaveMessage extends ProtocolEnvelope {
   t: 'leave';
 }
 
+export interface AssetReadyMessage extends ProtocolEnvelope {
+  t: 'assetReady';
+  matchId: string;
+}
+
 export type ClientMessage =
   | CreateMessage
   | JoinMessage
@@ -155,6 +175,7 @@ export type ClientMessage =
   | DriverInputMessage
   | GunnerInputMessage
   | GunnerActionMessage
+  | AssetReadyMessage
   | RematchMessage
   | SelectUpgradeMessage
   | SkipRelicPresentationMessage
@@ -224,6 +245,7 @@ export type ServerMessage =
   | GunnerActionResultMessage
   | TankImpulseMessage
   | TimingBlockMessage
+  | RunConfigMessage
   | (ProtocolEnvelope & Record<string, unknown>);
 
 /** Client message kind → guard for the server dispatcher. */

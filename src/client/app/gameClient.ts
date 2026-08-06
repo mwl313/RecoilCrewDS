@@ -80,6 +80,7 @@ export class GameClient {
   private progressionOverlay: ProgressionOverlay | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private latestSectors: AggregateSectorRecord[] = [];
+  private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
@@ -242,9 +243,10 @@ export class GameClient {
   }
 
   /** Single Player: one local ContentPack-driven match with combined controls. */
-  startSinglePlayer(pack: ContentPack, world: ArenaWorld, matchId?: string): void {
+  startSinglePlayer(pack: ContentPack, world: ArenaWorld, matchId?: string, modeId?: string): void {
     this.contentPack = pack;
     this.session = SINGLE_PLAYER_SESSION;
+    this.singlePlayerModeId = modeId ?? SINGLE_PLAYER_SESSION.rulesModeId;
     this.cameras.setSinglePlayerMode(true);
     const resolvedMatchId = matchId ?? 'single-' + Date.now();
     this.singlePlayerMatch = new Match(
@@ -252,7 +254,7 @@ export class GameClient {
       'none',
       pack,
       world,
-      SINGLE_PLAYER_SESSION.rulesModeId,
+      this.singlePlayerModeId,
     );
     const turret = this.singlePlayerMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
@@ -293,7 +295,7 @@ export class GameClient {
         'none',
         this.contentPack,
         session.world,
-        SINGLE_PLAYER_SESSION.rulesModeId,
+        this.singlePlayerModeId,
       );
       this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
       this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
@@ -521,6 +523,14 @@ export class GameClient {
 
   private stepSinglePlayer(dt: number): void {
     const m = this.singlePlayerMatch!;
+    // The match can enter results between frames (deferred event drain,
+    // direct damage paths). Notify exactly once before the running-only
+    // guard so the results screen always appears.
+    if (m.state.phase === 'results' && !this.singlePlayerResultsShown) {
+      this.singlePlayerResultsShown = true;
+      this.onSinglePlayerResults?.(m.results!);
+      return;
+    }
     if (m.state.phase !== 'running' || !this.inputEnabled) return;
     const turret = this.prediction.getTurretSpaces();
     m.setGunnerInput({

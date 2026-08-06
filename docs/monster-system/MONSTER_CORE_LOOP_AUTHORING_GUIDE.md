@@ -86,5 +86,8 @@ There are no fodder overhead bars.
   selected run's assets. New enemies must have presentation profiles with
   `nearModelAssetId` (and optionally `farModelAssetId` /
   `aggregateModelAssetId`) or they are rejected at preload.
+- Preload gate: production rooms wait for client `assetReady` before the
+  countdown (protocol 9); the server selects `GAME_MODE` at startup
+  (`mode.mainStage` default, `mode.demoScoreAttack` for fixtures).
 - The config laboratory is out of scope; these content files are designed
   to remain compatible with a future one.

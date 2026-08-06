@@ -99,13 +99,36 @@ Delivered:
   `MONSTER_CORE_LOOP_QUALIFICATION_REPORT.md`,
   `MONSTER_CORE_LOOP_AUTHORING_GUIDE.md`.
 
-Outstanding (requires the running game/browser, not run here):
+Follow-up commits since the Phase E report:
 
-- Interactive Single Player full run with real input.
-- Real two-client multiplayer run (selected-run agreement, preload
-  readiness, action/telegraph/projectile agreement, encounter bars,
-  rematch).
-- Visual inspection of normalized scale/sockets/encounter bars.
+- Protocol 9 asset-ready handshake: production rooms enter a `loading`
+  phase after both players ready, broadcast `runConfig`, and start the
+  countdown only after both clients reply `assetReady` (or a 15 s timeout).
+  Demo rooms keep the immediate countdown. Rematches re-run the gate.
+- `GAME_MODE` env on the server (`mode.mainStage` default;
+  `mode.demoScoreAttack` for the 8099 fixture/e2e server).
+- Test-only qualification hooks (client `__recoil.*` and server
+  `testDamageEnemyByDef`/`testHealTank`, gated by `ALLOW_TEST_DAMAGE=1`)
+  so the e2e can complete elite/boss kills.
+- Fixes found by e2e: SP results screen now appears when the match ends
+  between frames; the single active elite is promoted to the primary HUD
+  bar after an earlier encounter dies; `startMatch` failures return the
+  crew to the lobby instead of crashing the server.
+
+Live browser qualification (all PASS):
+
+- `e2e/monster-coreloop-singleplayer.spec.ts` — full SP run: farming,
+  wave 1/2 elites, boss intro, boss victory, clean rematch (3.0 min).
+- `e2e/monster-coreloop-multiplayer.spec.ts` — two clients: identical
+  runConfig, asset-ready preload gate, wave/boss/HP agreement, boss-death
+  results on both, rematch through the preload gate (3.2 min).
+- Demo regressions on 8099: `singlePlayer`, `progression-disabled-demo`,
+  `monsterpack10-rendering` — PASS.
+
+Remaining:
+
+- Human visual review of `docs/monster-system/qualification-screenshots/`
+  (10 PNGs captured and pixel-checked; not eyeballed in this session).
 
 ## Known limitations / tuning notes
 
