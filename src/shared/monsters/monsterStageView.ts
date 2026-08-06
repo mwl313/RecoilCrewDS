@@ -55,7 +55,9 @@ function monsterBlockFor(
   const curve =
     match.rules.enemyLevelCurves.get('enemyLevelCurve.mainStage') ?? MAIN_STAGE_CURVE;
   const level =
-    phase === 'FARMING' ? monsterLevelAtTime(match.state.time, curve) : curve.bossPhaseLevel;
+    phase === 'FARMING'
+      ? monsterLevelAtTime(match.systems.stage.state.activeFarmingElapsed, curve)
+      : curve.bossPhaseLevel;
   return { phase, level, encounters: encountersFor(match) };
 }
 

@@ -19,6 +19,7 @@ import {
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
 import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
+import { resolveMonsterEngagementGeometry } from '../monsters/engagementGeometry';
 import { updateEnemySemantics } from '../monsters/monsterSemantics';
 import { mulberry32, type Rng } from '../mapgen/prng';
 import { hash32 } from '../mapgen/seed';
@@ -209,7 +210,12 @@ export class EnemySystem {
       bossIntroSeconds: 4,
       bossPhaseLevel: curve.bossPhaseLevel,
     };
-    const level = monsterLevelForPhase(this.ctx.state.time, phaseConfig, (t) =>
+    // One authoritative active-farming clock: elite-wave time pauses
+    // `stage.activeFarmingElapsed`, so spawn-locked HP/damage/XP never
+    // advance while a wave is held. The boss phase locks to the authored
+    // boss level (activeFarmingElapsed reaches 180 at boss start).
+    const activeFarmingTime = this.ctx.stage.state.activeFarmingElapsed;
+    const level = monsterLevelForPhase(activeFarmingTime, phaseConfig, (t) =>
       monsterLevelAtTime(t, curve),
     );
     const singlePlayerMultiplier = this.ctx.sessionKind === 'singlePlayer' ? 2 : 1;
@@ -236,18 +242,24 @@ export class EnemySystem {
       const dx = s.tank.x - e.x;
       const dz = s.tank.z - e.z;
       const d = Math.hypot(dx, dz) || 1;
+      const monsterDims = resolveMonsterDimensions(def.id, def.sizeClass, def.tier);
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius: monsterDims.collisionRadius,
+        tankRadius: this.ctx.rules.config.arena.tankRadius,
+        authoredAttackReach: def.attack.range,
+      });
       meleeCandidates.push({
         id: e.id,
         x: e.x,
         z: e.z,
-        collisionDiameter: isMonster(def)
-          ? resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius * 2
-          : enemyRadius(def) * 2,
+        collisionDiameter: monsterDims.collisionRadius * 2,
         threat: enemyThreat(def),
         alive: e.alive,
-        attackRange: def.attack.range,
+        attackRange: geometry.effectiveAttackDistance,
         distanceToTank: d,
-        angleToTank: Math.atan2(dx, dz),
+        // Reservation angles are tank->enemy bearings so a reserved enemy
+        // physically approaches its own side of the attack ring.
+        angleToTank: Math.atan2(e.x - s.tank.x, e.z - s.tank.z),
         lastDamageAt: 0,
       });
     }

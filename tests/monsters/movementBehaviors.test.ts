@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContentPackFromFilesystem } from '../../src/shared/content/contentLoader';
 import { Match } from '../../src/shared/sim/match';
 import { createStaticArenaWorld } from '../../src/shared/sim/arenaWorld';
+import { resolveMonsterDimensionsForDefId } from '../../src/shared/monsters/monsterNormalization';
 
 const pack = loadContentPackFromFilesystem('content');
 const DT = 1 / 30;
@@ -72,10 +73,14 @@ describe('monster movement and behavior ordering (bug-fix phase 3)', () => {
     const id = spawnAt(m, 'enemy.quaternius.ninja', 8);
     const def = pack.getEnemy('enemy.quaternius.ninja');
     const attackRange = def.type === 'monster' && def.attack.type === 'melee' ? def.attack.range : 2;
+    const effective =
+      resolveMonsterDimensionsForDefId('enemy.quaternius.ninja').collisionRadius +
+      1.35 +
+      attackRange;
     let reached = false;
     for (let i = 0; i < 240 && !reached; i++) {
       m.step(DT);
-      reached = m.runtime.systems.enemies.meleeReservedFor(id) && dist(m, id) <= attackRange * 1.05;
+      reached = m.runtime.systems.enemies.meleeReservedFor(id) && dist(m, id) <= effective * 1.05;
     }
     expect(reached).toBe(true);
   });

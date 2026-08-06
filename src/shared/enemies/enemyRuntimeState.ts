@@ -21,6 +21,9 @@ export class EnemyRuntimeState {
   phaseOffset = 0;
   /** Monster system: melee reservation ownership (authoritative). */
   meleeReserved = false;
+  /** Monster system: density/separation vector (blended after engagement). */
+  densityX = 0;
+  densityZ = 0;
   /** Monster system: persistent authoritative attack cycle. */
   attackRuntime?: EnemyAttackRuntime;
   attackSequence = 0;

@@ -342,7 +342,8 @@ describe('monster stage timeline', () => {
 
   it('stage view carries the monster block with level, phase, and encounters', () => {
     const prod = MatchRuntime.fromContentPack(pack, 'prod-view', 'none', 'mode.mainStage');
-    prod.state.time = 45;
+    // The HUD level reads the authoritative active-farming clock.
+    prod.systems.stage.state.activeFarmingElapsed = 45;
     const view = stageViewForMatch(prod);
     expect(view.monster?.phase).toBe('FARMING');
     expect(view.monster?.level).toBe(4);

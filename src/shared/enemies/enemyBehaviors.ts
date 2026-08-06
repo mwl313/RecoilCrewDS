@@ -9,7 +9,14 @@ import {
   advanceAttackCycle,
   startAttackCycle,
 } from '../monsters/monsterAttack';
-import { resolveProjectileSocketY } from '../monsters/monsterNormalization';
+import {
+  resolveMonsterDimensions,
+  resolveProjectileSocketY,
+} from '../monsters/monsterNormalization';
+import {
+  reservationTarget,
+  resolveMonsterEngagementGeometry,
+} from '../monsters/engagementGeometry';
 import {
   DEFAULT_MELEE_MOVEMENT_PROFILE,
   RANGED_HOLD_PROFILE,
@@ -64,6 +71,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const def = ctx.enemies.defFor(e);
       const distance = behaviorParam(def, 'movement.densitySteering', 'distance', 2.4);
       const strength = behaviorParam(def, 'movement.densitySteering', 'strength', 0.8);
+      runtime.densityX = 0;
+      runtime.densityZ = 0;
       const nearby = ctx.enemySpatial.queryCircle(e.x, e.z, distance, densityScratch);
       for (const o of nearby) {
         if (o === e || !o.alive || o.type !== e.type) continue;
@@ -71,8 +80,14 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const oz = e.z - o.z;
         const od = Math.hypot(ox, oz);
         if (od < distance && od > 0.01) {
-          runtime.dirX += (ox / od) * strength;
-          runtime.dirZ += (oz / od) * strength;
+          const pushX = (ox / od) * strength;
+          const pushZ = (oz / od) * strength;
+          runtime.densityX += pushX;
+          runtime.densityZ += pushZ;
+          // Legacy consumers still read dirX/dirZ directly; monsters blend
+          // the dedicated density vector after engagement selection.
+          runtime.dirX += pushX;
+          runtime.dirZ += pushZ;
         }
       }
     },
@@ -519,31 +534,58 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const d = runtime.distToTank || Math.hypot(dx, dz) || 1;
       const toX = dx / d;
       const toZ = dz / d;
-      const stopRadius = attack.range * profile.attackStopTolerance;
-      const stagingOuter = attack.range * profile.stagingRadiusMultiplier;
-      const stagingInner = attack.range * profile.stagingInnerMultiplier;
+      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
       const tankRadius = ctx.rules.config.arena.tankRadius;
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius,
+        tankRadius,
+        authoredAttackReach: attack.range,
+        movement: profile,
+      });
+      const stopRadius = geometry.stopRadius;
+      const stagingOuter = geometry.stagingOuterRadius;
+      const stagingInner = geometry.stagingInnerRadius;
+      const densityX = runtime.densityX;
+      const densityZ = runtime.densityZ;
 
       if (runtime.meleeReserved) {
-        if (d <= stopRadius) {
+        // Reserved enemies physically approach their assigned angular slot
+        // on the reservation ring, not the tank center.
+        const reservation = ctx.enemies.meleeReservations.reservation(e.id);
+        const target = reservation
+          ? reservationTarget(reservation.angle, s.tank.x, s.tank.z, geometry.reservationRadius)
+          : { x: s.tank.x, z: s.tank.z };
+        const tdx = target.x - e.x;
+        const tdz = target.z - e.z;
+        const td = Math.hypot(tdx, tdz) || 1;
+        if (td <= stopRadius) {
           // ATTACK_HOLD: stop, face the tank, let attack.meleeCue fire.
           runtime.dirX = 0;
           runtime.dirZ = 0;
           runtime.speed = 0;
           return;
         }
-        // RESERVED_APPROACH: direct pursuit, slower near the attack point.
-        runtime.dirX = toX;
-        runtime.dirZ = toZ;
-        const approachScale = Math.max(0.3, Math.min(1, (d - stopRadius) / Math.max(0.5, attack.range)));
+        // RESERVED_APPROACH: pursue the assigned point, density blended in.
+        runtime.dirX = tdx / td + densityX;
+        runtime.dirZ = tdz / td + densityZ;
+        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+        runtime.dirX /= ml;
+        runtime.dirZ /= ml;
+        const approachScale = Math.max(
+          0.3,
+          Math.min(1, (td - stopRadius) / Math.max(0.5, geometry.effectiveAttackDistance)),
+        );
         runtime.speed *= approachScale;
         return;
       }
 
       if (d > stagingOuter) {
-        // CHASE: direct pursuit (density steering was applied above).
-        runtime.dirX = toX;
-        runtime.dirZ = toZ;
+        // CHASE: direct pursuit blended with density/separation steering.
+        runtime.dirX = toX + densityX;
+        runtime.dirZ = toZ + densityZ;
+        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+        runtime.dirX /= ml;
+        runtime.dirZ /= ml;
         return;
       }
 
@@ -552,10 +594,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const side = e.id % 2 === 0 ? 1 : -1;
       const tx = -toZ * side;
       const tz = toX * side;
-      runtime.dirX = tx;
-      runtime.dirZ = tz;
+      runtime.dirX = tx + densityX;
+      runtime.dirZ = tz + densityZ;
       runtime.speed *= profile.tangentialSpeedMultiplier;
-      const minRing = Math.max(stagingInner, ctx.enemies.radiusFor(e) + tankRadius + 0.2);
+      const minRing = Math.max(stagingInner, geometry.enemyRadius + geometry.tankRadius + 0.2);
       // Controlled inward drift inside the staging band probes for an open
       // attack arc; the reservation gate requires proximity to attack range.
       // Outside the outer ring is handled by CHASE; below minRing pushes out.
@@ -563,10 +605,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (radial !== 0) {
         runtime.dirX += toX * radial * profile.radialCorrectionStrength;
         runtime.dirZ += toZ * radial * profile.radialCorrectionStrength;
-        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
-        runtime.dirX /= ml;
-        runtime.dirZ /= ml;
       }
+      const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+      runtime.dirX /= ml;
+      runtime.dirZ /= ml;
     },
   });
 
@@ -579,7 +621,12 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (attack.type !== 'melee') return;
       if (!runtime.meleeReserved) return;
       const s = ctx.state;
-      if (runtime.distToTank > attack.range) {
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+        tankRadius: ctx.rules.config.arena.tankRadius,
+        authoredAttackReach: attack.range,
+      });
+      if (runtime.distToTank > geometry.effectiveAttackDistance) {
         runtime.speed *= 0.6;
         return;
       }
@@ -672,9 +719,21 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (patterns.length === 0) return;
       const pattern = patterns[runtime.attackSequence % patterns.length];
       if (pattern.type === 'ranged' && runtime.distToTank > pattern.range) return;
-      if (pattern.type === 'melee' && runtime.distToTank > pattern.range) {
-        runtime.speed *= 0.6;
-        return;
+      if (pattern.type === 'melee') {
+        const geometry = resolveMonsterEngagementGeometry({
+          enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+          tankRadius: ctx.rules.config.arena.tankRadius,
+          authoredAttackReach: pattern.range,
+        });
+        if (runtime.distToTank > geometry.effectiveAttackDistance) {
+          runtime.speed *= 0.6;
+          return;
+        }
+        // Melee hold: stop moving at the resolved attack distance so the
+        // boss body never overlaps the tank while the pattern is melee.
+        runtime.dirX = 0;
+        runtime.dirZ = 0;
+        runtime.speed = 0;
       }
       let atk = runtime.attackRuntime;
       if (!atk || !atk.active || atk.patternId !== pattern.id) {

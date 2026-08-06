@@ -4,6 +4,8 @@ import { Match } from '../../src/shared/sim/match';
 import { selectArenaSession } from '../../src/shared/mapgen/arenaSession';
 import { resolveMapBundle } from '../../src/shared/mapgen/profiles';
 import { phaseFarmingProgress, type StageRuntimeState } from '../../src/shared/stage/stageTypes';
+import { stageViewForMatch } from '../../src/shared/monsters/monsterStageView';
+import { MAIN_STAGE_CURVE, monsterLevelAtTime } from '../../src/shared/monsters/monsterDifficulty';
 
 const pack = loadContentPackFromFilesystem('content');
 const DT = 1 / 30;
@@ -60,6 +62,49 @@ describe('timer pause, phase pacing, and boss intro (bug-fix phase 4)', () => {
     step(m, 1);
     expect(stageState(m).farmingTimeRemaining).toBeLessThan(120);
     expect(stageState(m).farmingTimeRemaining).toBeGreaterThan(118.5);
+  });
+
+  it('a 90-second elite wave never advances the monster level and post-wave spawns use the frozen level', { timeout: 30_000 }, () => {
+    const m = makeMatch();
+    step(m, 61);
+    const levelAtWaveStart = stageViewForMatch(m.runtime).monster!.level;
+    expect(levelAtWaveStart).toBe(monsterLevelAtTime(61, MAIN_STAGE_CURVE));
+    // Hold the elite alive for 90 seconds of wave time.
+    step(m, 90);
+    expect(stageViewForMatch(m.runtime).monster!.level).toBe(levelAtWaveStart);
+    killWaveLeader(m);
+    step(m, 0.5);
+    // A newly spawned monster locks the same level the HUD reports.
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const e = m.runtime.systems.enemies.spawnEnemyDef(def, m.state.tank.x + 25, m.state.tank.z)!;
+    expect(e.monster?.spawnLevel).toBe(levelAtWaveStart);
+    expect(stageViewForMatch(m.runtime).monster!.level).toBe(levelAtWaveStart);
+  });
+
+  it('HUD monster level equals the authoritative spawn-lock level in farming', { timeout: 30_000 }, () => {
+    const m = makeMatch();
+    step(m, 20);
+    const view = stageViewForMatch(m.runtime);
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const e = m.runtime.systems.enemies.spawnEnemyDef(def, m.state.tank.x + 25, m.state.tank.z)!;
+    expect(e.monster?.spawnLevel).toBe(view.monster!.level);
+    expect(view.monster!.level).toBe(
+      monsterLevelAtTime(m.runtime.systems.stage.state.activeFarmingElapsed, MAIN_STAGE_CURVE),
+    );
+  });
+
+  it('boss phase stays locked to the authored boss level for HUD and spawns', { timeout: 30_000 }, () => {
+    const m = makeMatch();
+    step(m, 61);
+    killWaveLeader(m);
+    step(m, 61);
+    killWaveLeader(m);
+    stepUntilBossWave(m);
+    step(m, 5);
+    expect(stageViewForMatch(m.runtime).monster!.level).toBe(MAIN_STAGE_CURVE.bossPhaseLevel);
+    const bossDef = pack.getEnemy('enemy.quaternius.ninja-high-detail.boss');
+    const e = m.runtime.systems.enemies.spawnEnemyDef(bossDef, m.state.tank.x + 30, m.state.tank.z)!;
+    expect(e.monster?.spawnLevel).toBe(MAIN_STAGE_CURVE.bossPhaseLevel);
   });
 
   it('freezes the farming clock at 60 during a long wave 2', { timeout: 30_000 }, () => {

@@ -66,3 +66,70 @@ npm run test:demo                    PASS (golden unchanged)
 Phase 2 (difficulty clock + engagement geometry), Phase 3 (airborne
 replication + protocol gate), Phase 4 (transforms/ownership/atomic packs),
 and Phase 5 (qualification) remain.
+
+---
+
+## Phase 2 — Active-farming clock and engagement geometry
+
+### Commits
+
+```text
+<pending>  monster-fix2: align farming difficulty and engagement geometry
+```
+
+### Active-farming clock
+
+One authoritative value now drives every farming/elite-wave difficulty input:
+
+```text
+activeFarmingTime = stage.activeFarmingElapsed
+```
+
+`EnemySystem.resolveMonsterSpawnLock` (spawn-locked HP, damage, XP/reward
+level inputs) and the HUD monster block in `monsterStageView` read it.
+`StageDirector` already pauses `activeFarmingElapsed` during elite waves, so
+held waves freeze both the countdown and the monster level; the boss phase
+locks to the authored boss level.
+
+### Engagement geometry
+
+New `src/shared/monsters/engagementGeometry.ts`:
+
+```ts
+effectiveMeleeDistance = enemyCollisionRadius + tankCollisionRadius + authoredAttackReach
+```
+
+Used for reservation eligibility, reserved target points, approach stop,
+attack acceptance, release, and boss melee patterns. Reservation angles are
+now tank→enemy bearings and reserved enemies physically approach their
+assigned ring point. Density/separation is blended after engagement vector
+selection (never overwritten), with dedicated `runtime.densityX/Z`.
+
+Staging band note: the staging multipliers remain reach-relative (the
+previously qualified un-reserved ring); all attack-facing values use the
+effective distance. Boss definitions moved `attack.bossCue` before
+`movement.integrate` so the melee hold can stop the boss at the resolved
+distance without body overlap.
+
+### Tests added/updated
+
+```text
+tests/monsters/engagementGeometry.test.ts   (4 tests)
+tests/horde/timerPacing.test.ts             (90s wave freeze, HUD/spawn-lock, boss lock)
+tests/monsters/movementBehaviors.test.ts    (effective-distance attack position)
+tests/monsterStage.test.ts                  (HUD level reads active-farming clock)
+```
+
+### Gates run
+
+```text
+npx tsc --noEmit                     PASS
+npm test                             PASS (145 files / 1057 tests)
+npm run test:demo                    PASS (golden unchanged)
+npm run generate:content-pack        PASS (boss behavior order regenerated)
+```
+
+### Handoff notes
+
+Phase 3 (airborne replication + protocol gate), Phase 4 (transforms/
+ownership/atomic packs), and Phase 5 (qualification) remain.
