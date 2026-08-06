@@ -37,6 +37,14 @@ export interface MeleeReservation {
   threat: number;
 }
 
+export const DEFAULT_MELEE_ENGAGEMENT_PROFILE: MeleeEngagementProfileData = {
+  spacingMultiplier: 1.25,
+  minimumSlots: 3,
+  maximumSlots: 6,
+  reservationGraceSeconds: 0.35,
+  releaseDistanceMultiplier: 1.35,
+};
+
 function normalizeAngle(a: number): number {
   return ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 }

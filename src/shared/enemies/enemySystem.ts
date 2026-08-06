@@ -5,7 +5,12 @@ import type { EnemyState, EnemyType } from '../types';
 import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
-import { enemyHp, enemyRadius, enemyThreat } from './monsterCompat';
+import { enemyHp, enemyRadius, enemyThreat, isMonster } from './monsterCompat';
+import {
+  DEFAULT_MELEE_ENGAGEMENT_PROFILE,
+  MeleeReservationManager,
+  type MeleeCandidate,
+} from '../monsters/meleeReservations';
 import {
   MAIN_STAGE_CURVE,
   MAIN_STAGE_XP_REWARDS,
@@ -35,10 +40,21 @@ export class EnemySystem {
   readonly behaviors: EnemyBehaviorRegistry;
   /** Legacy-compatible shared dodge credit flag (one per match, as before). */
   sharedDodgeAwarded = false;
+  /** Production: deterministic melee engagement reservations (match-scoped). */
+  readonly meleeReservations: MeleeReservationManager;
   private readonly runtimes = new Map<number, EnemyRuntimeState>();
 
   constructor(private readonly ctx: SystemContext) {
     this.behaviors = createBuiltinEnemyBehaviors();
+    const profile =
+      this.ctx.rules.meleeEngagementProfiles.get('meleeEngagement.default') ??
+      DEFAULT_MELEE_ENGAGEMENT_PROFILE;
+    this.meleeReservations = new MeleeReservationManager(profile);
+  }
+
+  /** Reservation ownership for a living melee monster (public for tests/HUD). */
+  meleeReservedFor(enemyId: number): boolean {
+    return this.meleeReservations.hasReservation(enemyId);
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
@@ -192,6 +208,28 @@ export class EnemySystem {
   update(dt: number): void {
     const s = this.ctx.state;
     this.ctx.enemySpatial.rebuild(s.enemies);
+    const meleeCandidates: MeleeCandidate[] = [];
+    for (const e of s.enemies) {
+      if (!e.alive) continue;
+      const def = this.defFor(e);
+      if (!isMonster(def) || def.attack.type !== 'melee') continue;
+      const dx = s.tank.x - e.x;
+      const dz = s.tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      meleeCandidates.push({
+        id: e.id,
+        x: e.x,
+        z: e.z,
+        collisionDiameter: enemyRadius(def) * 2,
+        threat: enemyThreat(def),
+        alive: e.alive,
+        attackRange: def.attack.range,
+        distanceToTank: d,
+        angleToTank: Math.atan2(dx, dz),
+        lastDamageAt: 0,
+      });
+    }
+    this.meleeReservations.update(s.tank.x, s.tank.z, meleeCandidates, s.time);
     const policy = this.lodPolicy();
     for (const e of s.enemies) {
       if (!e.alive) {
@@ -212,6 +250,7 @@ export class EnemySystem {
       }
       const tier = this.tierFor(e, runtime);
       runtime.tier = tier;
+      runtime.meleeReserved = this.meleeReservations.hasReservation(e.id);
       if (policy) {
         const freq = tierFrequency(policy, tier);
         if (s.time < runtime.nextUpdateAt) {

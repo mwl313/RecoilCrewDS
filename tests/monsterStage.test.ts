@@ -152,4 +152,41 @@ describe('monster stage timeline', () => {
     expect(demo.state.tank.deadT).toBe(0);
     expect(demo.state.tank.integrity).toBeGreaterThan(0);
   });
+
+  it('melee reservations are match-scoped, deterministic, and feed runtime ownership', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-melee', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const tx = prod.state.tank.x;
+    const tz = prod.state.tank.z;
+    const spawned: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const enemy = prod.systems.enemies.spawnEnemyDef(def, tx + Math.cos(angle) * 1.5, tz + Math.sin(angle) * 1.5);
+      if (enemy) spawned.push(enemy.id);
+    }
+    for (let i = 0; i < 240 && prod.state.phase === 'countdown'; i++) prod.step(1 / 60);
+    prod.step(1 / 60);
+    const manager = prod.systems.enemies.meleeReservations;
+    expect(manager.size).toBeGreaterThanOrEqual(1);
+    expect(manager.size).toBeLessThanOrEqual(6);
+    const owners = spawned.filter((id) => prod.systems.enemies.meleeReservedFor(id));
+    expect(owners.length).toBe(manager.size);
+    for (const id of spawned) {
+      expect(prod.systems.enemies.meleeReservedFor(id)).toBe(manager.hasReservation(id));
+    }
+    const again = MatchRuntime.fromContentPack(pack, 'prod-melee', 'none', 'mode.mainStage');
+    const againDef = pack.getEnemy('enemy.quaternius.ninja');
+    const atx = again.state.tank.x;
+    const atz = again.state.tank.z;
+    const againIds: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const enemy = again.systems.enemies.spawnEnemyDef(againDef, atx + Math.cos(angle) * 1.5, atz + Math.sin(angle) * 1.5);
+      if (enemy) againIds.push(enemy.id);
+    }
+    for (let i = 0; i < 240 && again.state.phase === 'countdown'; i++) again.step(1 / 60);
+    again.step(1 / 60);
+    const againOwners = againIds.filter((id) => again.systems.enemies.meleeReservedFor(id)).sort();
+    expect(owners.sort()).toEqual(againOwners);
+  });
 });
