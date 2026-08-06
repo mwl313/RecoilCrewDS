@@ -133,3 +133,67 @@ npm run generate:content-pack        PASS (boss behavior order regenerated)
 
 Phase 3 (airborne replication + protocol gate), Phase 4 (transforms/
 ownership/atomic packs), and Phase 5 (qualification) remain.
+
+---
+
+## Phase 3 — Airborne replication and protocol gate
+
+### Commits
+
+```text
+<pending>  monster-fix2: replicate airborne monsters and gate protocol
+```
+
+### Airborne replication
+
+Horde materialize and near/mid delta records now carry:
+
+```text
+quantized Y        (0.025 m)
+quantized vertical velocity (0.0625 m/s)
+airborne flag      (HORDE_FLAG_AIRBORNE)
+impulse start tick (30 Hz)
+```
+
+Far deltas intentionally stay terrain-projected (spec permits). The client
+materializes and updates at the authoritative Y, never re-grounding an
+airborne enemy; landing clears the airborne flag and returns to the
+replicated Y. Airborne death keeps the last replicated Y.
+
+### Protocol compatibility gate
+
+`PROTOCOL_VERSION` bumped 9 → 10. Handshake validates:
+
+```text
+protocol version
+content-pack hash
+enemy-definition-order hash (new ENEMY_DEFINITION_ORDER_HASH in generated index)
+```
+
+Server includes the hashes in runConfig/start/rejoin and rejects mismatched
+`assetReady` before the countdown. The client refuses runConfig/start/
+reconnect on mismatch. Unknown enemy definition indices now throw instead
+of silently reconstructing a Scrap Bug/monster.
+
+### Tests added/updated
+
+```text
+tests/horde/hordeReplication.test.ts   (airborne materialize/delta/landing/death,
+                                        far projection, unknown-index rejection)
+tests/netcode/protocol.test.ts         (old-version + hash mismatch rejection)
+tests/roomProductionPreload.test.ts    (assetReady hash rejection)
+protocol-version assertions            (lobby/progression/combat suites -> 10)
+```
+
+### Gates run
+
+```text
+npx tsc --noEmit                     PASS
+npm test                             PASS (145 files / 1066 tests)
+npm run test:demo                    PASS (golden unchanged)
+```
+
+### Handoff notes
+
+Phase 4 (transforms/ownership/atomic packs) and Phase 5 (qualification)
+remain.

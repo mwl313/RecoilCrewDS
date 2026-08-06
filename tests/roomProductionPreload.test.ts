@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { RoomManager, type SocketLike } from '../src/server/room';
 import { loadContentPackFromFilesystem } from '../src/shared/content/contentLoader';
+import { ENEMY_DEFINITION_ORDER_HASH } from '../src/generated/enemyDefinitionIndex.generated';
 
 class FakeSocket implements SocketLike {
   sent: Record<string, unknown>[] = [];
@@ -72,9 +73,19 @@ describe('production asset-ready preload gate', () => {
     stepSeconds(manager, 1);
     expect(driver.last('countdown')).toBeUndefined();
 
-    manager.handle(driver, { t: 'assetReady', matchId });
+    manager.handle(driver, {
+      t: 'assetReady',
+      matchId,
+      contentHash: pack.hash,
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+    });
     expect(driver.last('countdown')).toBeUndefined();
-    manager.handle(gunner, { t: 'assetReady', matchId });
+    manager.handle(gunner, {
+      t: 'assetReady',
+      matchId,
+      contentHash: pack.hash,
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+    });
     expect(driver.last('countdown')).toBeDefined();
     expect(gunner.last('countdown')).toBeDefined();
 
@@ -88,10 +99,33 @@ describe('production asset-ready preload gate', () => {
     const { manager, advance } = makeManager('mode.mainStage');
     const { driver, gunner } = createCrew(manager, 'mode.mainStage');
     const matchId = driver.last('runConfig')!.matchId as string;
-    manager.handle(driver, { t: 'assetReady', matchId });
+    manager.handle(driver, {
+      t: 'assetReady',
+      matchId,
+      contentHash: pack.hash,
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+    });
     advance(16_000);
     stepSeconds(manager, 16);
     expect(gunner.last('countdown')).toBeDefined();
+  });
+
+  it('rejects assetReady with mismatched content/definition hashes before match start', () => {
+    const { manager, advance } = makeManager('mode.mainStage');
+    const { driver } = createCrew(manager, 'mode.mainStage');
+    const matchId = driver.last('runConfig')!.matchId as string;
+    manager.handle(driver, {
+      t: 'assetReady',
+      matchId,
+      contentHash: 'wrong-content',
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+    });
+    const error = driver.last('error') as Record<string, unknown> | undefined;
+    expect(error?.code).toBe('compatibility');
+    expect(driver.closed).toBe(true);
+    advance(2_000);
+    stepSeconds(manager, 2);
+    expect(driver.last('countdown')).toBeUndefined();
   });
 
   it('demo rooms keep the immediate countdown and never send runConfig', () => {

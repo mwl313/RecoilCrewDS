@@ -225,7 +225,9 @@ describe('HordeReplicationClient (client, M9)', () => {
     };
     const list = client.apply(b1, 0);
     expect(list.length).toBe(2);
-    expect(list.find((e) => e.id === 1)!.y).toBe(2.5);
+    // Protocol 10: materialize replicates authoritative Y (enemy y was 0),
+    // never the client terrain projection.
+    expect(list.find((e) => e.id === 1)!.y).toBe(0);
 
     const b2: HordeSnapshotBlock = {
       seq: 2,
@@ -244,7 +246,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     const updated = after[0];
     expect(updated.x).toBeCloseTo(12, 5);
     expect(updated.yaw).toBeCloseTo(0.5, 2);
-    expect(updated.y).toBe(2.5);
+    expect(updated.y).toBe(0);
   });
 
   it('restores presentationProfileId from the materialize profile index', () => {
@@ -305,6 +307,201 @@ describe('HordeReplicationClient (client, M9)', () => {
     }, 0);
     client.reset();
     expect(client.enemies.size).toBe(0);
+  });
+
+  it('materializes an airborne enemy at its authoritative Y with velocity and impulse tick', () => {
+    const client = new HordeReplicationClient(() => 3);
+    const a = enemy(11, 10, 10, 0, 10);
+    a.y = 12.34;
+    a.impulseVy = 3.2;
+    a.impulseGrounded = false;
+    a.lastImpulseT = 2.5;
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(a)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    const e = client.enemies.get(11)!;
+    expect(e.y).toBeCloseTo(12.35, 3);
+    expect(e.impulseGrounded).toBe(false);
+    expect(e.impulseVy).toBeCloseTo(3.1875, 3);
+    expect(e.lastImpulseT).toBeCloseTo(2.5, 3);
+  });
+
+  it('preserves the airborne arc through near deltas and lands cleanly', () => {
+    const client = new HordeReplicationClient(() => 0);
+    const a = enemy(12, 0, 0, 0, 10);
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(a)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    const airborne = { ...a, y: 8, impulseVy: 1.5, impulseGrounded: false, lastImpulseT: 3 };
+    client.apply(
+      {
+        seq: 2,
+        materialize: [],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [encodeDelta(airborne)],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0.05,
+    );
+    const e = client.enemies.get(12)!;
+    expect(e.y).toBeCloseTo(8, 3);
+    expect(e.impulseGrounded).toBe(false);
+    expect(e.impulseVy).toBeCloseTo(1.5, 3);
+    // Landing delta: airborne flag cleared, Y at ground.
+    const landed = { ...a, y: 0.4, impulseVy: 0, impulseGrounded: true, lastImpulseT: 3.5 };
+    client.apply(
+      {
+        seq: 3,
+        materialize: [],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [encodeDelta(landed)],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0.1,
+    );
+    expect(e.y).toBeCloseTo(0.4, 3);
+    expect(e.impulseGrounded).toBe(true);
+    expect(e.impulseVy).toBe(0);
+  });
+
+  it('keeps airborne death visually consistent (no re-grounding)', () => {
+    const client = new HordeReplicationClient(() => 0);
+    const a = enemy(13, 0, 0, 0, 10);
+    a.y = 9.2;
+    a.impulseVy = 2;
+    a.impulseGrounded = false;
+    a.lastImpulseT = 4;
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(a)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    client.apply(
+      {
+        seq: 2,
+        materialize: [],
+        cues: [],
+        despawn: [],
+        death: [13],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0.05,
+    );
+    const e = client.enemies.get(13)!;
+    expect(e.alive).toBe(false);
+    expect(e.y).toBeCloseTo(9.2, 3);
+  });
+
+  it('far deltas remain terrain-projected', () => {
+    const client = new HordeReplicationClient(() => 7.5);
+    const a = enemy(14, 0, 0, 0, 10);
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(a)],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      0,
+    );
+    const far = { ...a, y: 99, impulseGrounded: false };
+    client.apply(
+      {
+        seq: 2,
+        materialize: [],
+        cues: [],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [encodeDelta(far, false)],
+        sectors: [],
+        wave: null,
+      },
+      0.05,
+    );
+    const e = client.enemies.get(14)!;
+    expect(e.y).toBe(7.5);
+    expect(e.impulseGrounded).toBe(true);
+  });
+
+  it('rejects unknown enemy definition indices instead of falling back', () => {
+    const client = new HordeReplicationClient(() => 0);
+    for (const badIndex of [0, 999]) {
+      const rec = encodeMaterialize(enemy(15, 0, 0, 0, 10));
+      rec[1] = badIndex;
+      expect(() =>
+        client.apply(
+          {
+            seq: 1,
+            materialize: [rec],
+            cues: [],
+            despawn: [],
+            death: [],
+            near: [],
+            mid: [],
+            far: [],
+            sectors: [],
+            wave: null,
+          },
+          0,
+        ),
+      ).toThrow(/unknown enemy definition index/);
+    }
   });
 });
 

@@ -24,7 +24,10 @@ export interface HordeWaveState {
 
 export interface HordeSnapshotBlock {
   seq: number;
-  /** [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags, profileIndex] for newly seen enemies. */
+  /**
+   * Materialize: [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags,
+   * profileIndex, yq, vyq, impulseTick] for newly seen enemies.
+   */
   materialize: number[][];
   /** Semantic presentation cues: [id, sequence, actionIndex, startTick, durationTicks]. */
   cues: number[][];
@@ -32,11 +35,11 @@ export interface HordeSnapshotBlock {
   despawn: number[];
   /** Enemy ids that died since the last snapshot. */
   death: number[];
-  /** Tier 0 deltas: [id, xq, zq, yawq, hpq, flags]. */
+  /** Tier 0 deltas: [id, xq, zq, yawq, hpq, flags, yq, vyq, impulseTick]. */
   near: number[][];
-  /** Tier 1 deltas. */
+  /** Tier 1 deltas: [id, xq, zq, yawq, hpq, flags, yq, vyq, impulseTick]. */
   mid: number[][];
-  /** Tier 2/3 deltas (coalesced, change-driven). */
+  /** Tier 2/3 deltas (coalesced, change-driven, terrain-projected): [id, xq, zq, yawq, hpq, flags]. */
   far: number[][];
   /**
    * Aggregate far sectors: [sectorId, defIndex, count, xq, zq, flowDxq,
@@ -49,6 +52,8 @@ export interface HordeSnapshotBlock {
 export const HORDE_FLAG_ALIVE = 1;
 export const HORDE_FLAG_TELEGRAPH = 2;
 export const HORDE_FLAG_FLASH = 4;
+/** Vertical state is replicated: impulseGrounded === false while set. */
+export const HORDE_FLAG_AIRBORNE = 8;
 
 export function quantizeXZ(v: number): number {
   return Math.round(v * 10);
@@ -66,6 +71,35 @@ export function dequantizeYaw(v: number): number {
   return v / 1000;
 }
 
+/** Vertical position, 0.025 m precision. */
+export function quantizeY(v: number): number {
+  return Math.round((Number.isFinite(v) ? v : 0) * 40);
+}
+
+export function dequantizeY(v: number): number {
+  return v / 40;
+}
+
+/** Vertical velocity, 0.0625 m/s precision. */
+export function quantizeVy(v: number): number {
+  return Math.round((Number.isFinite(v) ? v : 0) * 16);
+}
+
+export function dequantizeVy(v: number): number {
+  return v / 16;
+}
+
+/** Impulse start tick (30 Hz sim), 0 = no recent impulse. */
+export function quantizeImpulseTick(lastImpulseT: number | undefined): number {
+  return lastImpulseT === undefined || lastImpulseT <= 0
+    ? 0
+    : Math.max(0, Math.round(lastImpulseT * 30));
+}
+
+export function dequantizeImpulseTick(tick: number): number | undefined {
+  return tick > 0 ? tick / 30 : undefined;
+}
+
 export function quantizeHp(v: number): number {
   return Math.round(Math.max(0, v) * 4);
 }
@@ -78,6 +112,7 @@ export function flagsFor(e: EnemyState): number {
   let flags = e.alive ? HORDE_FLAG_ALIVE : 0;
   if (e.telegraph > 0) flags |= HORDE_FLAG_TELEGRAPH;
   if (e.flash > 0) flags |= HORDE_FLAG_FLASH;
+  if (e.impulseGrounded === false) flags |= HORDE_FLAG_AIRBORNE;
   return flags;
 }
 
@@ -92,6 +127,9 @@ export function encodeMaterialize(e: EnemyState): number[] {
     quantizeHp(e.maxHp),
     flagsFor(e),
     presentationProfileIndex(e),
+    quantizeY(e.y),
+    quantizeVy(e.impulseVy ?? 0),
+    quantizeImpulseTick(e.lastImpulseT),
   ];
 }
 
@@ -140,8 +178,8 @@ export function semanticActionIdForIndex(index: number): string | undefined {
   return SEMANTIC_ACTION_ORDER[index - 1];
 }
 
-export function encodeDelta(e: EnemyState): number[] {
-  return [
+export function encodeDelta(e: EnemyState, withVertical = true): number[] {
+  const base = [
     e.id,
     quantizeXZ(e.x),
     quantizeXZ(e.z),
@@ -149,22 +187,13 @@ export function encodeDelta(e: EnemyState): number[] {
     quantizeHp(e.hp),
     flagsFor(e),
   ];
-}
-
-/**
- * Small stable type codec: enemy type names are few and stable, so we map
- * them to a 1..N index in materialize records to keep bytes low.
- */
-const TYPE_ORDER = ['scrapBug', 'rammer', 'gunTower', 'lootTruck', 'testHound'] as const;
-type EnemyTypeName = (typeof TYPE_ORDER)[number];
-
-export function materializeTypeIndex(type: string): number {
-  const i = TYPE_ORDER.indexOf(type as EnemyTypeName);
-  return i < 0 ? 0 : i + 1;
-}
-
-export function materializeTypeName(index: number): string {
-  return TYPE_ORDER[Math.max(0, index - 1)] ?? 'scrapBug';
+  if (!withVertical) return base;
+  base.push(
+    quantizeY(e.y),
+    quantizeVy(e.impulseVy ?? 0),
+    quantizeImpulseTick(e.lastImpulseT),
+  );
+  return base;
 }
 
 const CLASS_ORDER: PopulationClass[] = ['ambient', 'wave', 'boss', 'special'];

@@ -5,6 +5,7 @@
  * this index instead of the legacy five-entry type codec, so an exact
  * `defId` (never a Scrap Bug fallback) survives multiplayer.
  */
+import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,9 @@ const index: Record<string, number> = {};
 order.forEach((id, i) => {
   index[id] = i + 1;
 });
+const definitionOrderHash = createHash('sha256')
+  .update(JSON.stringify(order), 'utf8')
+  .digest('hex');
 
 const legacyTypeByDefId: Record<string, string> = {
   'enemy.scrapBug': 'scrapBug',
@@ -36,6 +40,8 @@ const body = `/**
  * Source: validated content pack enemy definitions, sorted by id.
  */
 export const ENEMY_DEFINITION_ORDER: readonly string[] = ${JSON.stringify(order)};
+/** Deterministic hash of the sorted definition order (protocol gate). */
+export const ENEMY_DEFINITION_ORDER_HASH = '${definitionOrderHash}';
 export const ENEMY_DEFINITION_INDEX: Readonly<Record<string, number>> = ${JSON.stringify(index, null, 2)};
 export const LEGACY_ENEMY_TYPE_BY_DEF_ID: Readonly<Record<string, string>> = ${JSON.stringify(legacyTypeByDefId, null, 2)};
 `;

@@ -8,9 +8,14 @@ import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '.
 import { SNAPSHOT_INTERVAL, NET_TUNING } from '../shared/net/tuning';
 import { HordeReplicationTracker } from '../shared/net/horde/hordeReplication';
 import type { HordeWaveState } from '../shared/net/horde/hordeProtocol';
-import type { GunnerActionType } from '../shared/net/protocol';
+import {
+  checkProtocolCompatibility,
+  PROTOCOL_VERSION,
+  type GunnerActionType,
+} from '../shared/net/protocol';
 import type { TankImpulseWire } from '../shared/effects/tankImpulseSystem';
 import { opLogTail } from '../shared/sim/opLog';
+import { ENEMY_DEFINITION_ORDER_HASH } from '../generated/enemyDefinitionIndex.generated';
 import type {
   ClientLobbyState,
   CrewSeat,
@@ -441,6 +446,12 @@ export class RoomManager {
         hostPlayerId: room.hostPlayerId,
         phase: room.phase,
         arena: room.arenaSession?.metadata ?? null,
+        ...((room.phase === 'running' || room.phase === 'results') && room.content
+          ? {
+              content: room.content,
+              definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+            }
+          : {}),
         lobby,
         chat: room.chat,
       });
@@ -575,6 +586,31 @@ export class RoomManager {
     if (t === 'assetReady') {
       if (room.phase !== 'loading' || !client.role) return;
       if (raw.matchId !== room.pendingMatchId) return;
+      if (this.contentMeta) {
+        const compat = checkProtocolCompatibility({
+          // The WebSocket transport enforces the protocol version before
+          // dispatch; the room-level gate validates the content hashes.
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash:
+            typeof raw.contentHash === 'string' ? raw.contentHash : undefined,
+          clientDefinitionOrderHash:
+            typeof raw.definitionOrderHash === 'string' ? raw.definitionOrderHash : undefined,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: this.contentMeta.hash,
+          serverDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+        });
+        if (!compat.ok) {
+          const reason = compat.reason ?? 'incompatible client';
+          this.sendWithSocket(socket, {
+            t: 'error',
+            code: 'compatibility',
+            message: reason,
+          });
+          socket.close(1008, reason);
+          this.cancelCountdown(room, 'compatibility');
+          return;
+        }
+      }
       room.assetReady[client.role] = true;
       if (room.assetReady.driver && room.assetReady.gunner) this.beginCountdown(room);
       return;
@@ -778,6 +814,8 @@ export class RoomManager {
       t: 'start',
       matchId: room.match.state.matchId,
       modifier: room.rematchModifier,
+      protocolVersion: PROTOCOL_VERSION,
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
     };
     if (room.content) startMsg.content = room.content;
     if (room.arenaSession) startMsg.arena = room.arenaSession.metadata;
@@ -944,7 +982,18 @@ export class RoomManager {
     room.pendingMatchId = matchId;
     room.assetReady = { driver: false, gunner: false };
     room.lastCountdownShown = 3;
-    this.broadcast(room, { t: 'runConfig', matchId, modeId, run });
+    this.broadcast(room, {
+      t: 'runConfig',
+      matchId,
+      modeId,
+      run,
+      ...(this.contentMeta
+        ? {
+            contentHash: this.contentMeta.hash,
+            definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          }
+        : {}),
+    });
     room.lobbyRevision++;
     this.broadcastLobby(room);
   }

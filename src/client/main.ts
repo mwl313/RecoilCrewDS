@@ -24,6 +24,11 @@ import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
 import type { HordeStageView } from '../shared/net/protocol';
 import type { RunConfigMessage } from '../shared/net/protocol';
+import {
+  checkProtocolCompatibility,
+  PROTOCOL_VERSION,
+} from '../shared/net/protocol';
+import { ENEMY_DEFINITION_ORDER_HASH } from '../generated/enemyDefinitionIndex.generated';
 import { createPlayerSettingsStore } from './settings/playerSettingsStore';
 import { PlayerSettingsController } from './settings/playerSettingsController';
 import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
@@ -244,7 +249,19 @@ net.onMessage = (msg) => {
       const phase = msg.phase as string;
       if ((phase === 'running' || phase === 'results') && msg.arena) {
         // Mid-round reconnect (same page refresh or rejoin).
-        if (!mapGateFailed) void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
+        const compat = checkProtocolCompatibility({
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash: CLIENT_CONTENT_PACK.hash,
+          clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: (msg.content as { hash?: string } | undefined)?.hash,
+          serverDefinitionOrderHash: msg.definitionOrderHash as string | undefined,
+        });
+        if (!compat.ok) {
+          showProtocolError(compat.reason ?? 'incompatible build');
+        } else if (!mapGateFailed) {
+          void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
+        }
         break;
       }
       localPlayerId = msg.playerId as string;
@@ -277,6 +294,18 @@ net.onMessage = (msg) => {
     case 'runConfig': {
       const config = msg as unknown as RunConfigMessage;
       latestRunConfig = config;
+      const compat = checkProtocolCompatibility({
+        clientProtocol: PROTOCOL_VERSION,
+        clientContentHash: CLIENT_CONTENT_PACK.hash,
+        clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+        serverProtocol: PROTOCOL_VERSION,
+        serverContentHash: config.contentHash,
+        serverDefinitionOrderHash: config.definitionOrderHash,
+      });
+      if (!compat.ok) {
+        showProtocolError(compat.reason ?? 'incompatible build');
+        return;
+      }
       // The server waits for assetReady before starting the countdown.
       // Preload exactly the selected run; a null run (Demo) is ready
       // immediately. Errors never stall a crew — the server also has an
@@ -290,12 +319,31 @@ net.onMessage = (msg) => {
         } catch (error) {
           console.warn('[runConfig] asset preload failed; proceeding anyway', error);
         } finally {
-          net.send({ t: 'assetReady', matchId: config.matchId });
+          net.send({
+            t: 'assetReady',
+            matchId: config.matchId,
+            contentHash: CLIENT_CONTENT_PACK.hash,
+            definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          });
         }
       })();
       break;
     }
     case 'start':
+      {
+        const compat = checkProtocolCompatibility({
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash: CLIENT_CONTENT_PACK.hash,
+          clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: (msg.content as { hash?: string } | undefined)?.hash,
+          serverDefinitionOrderHash: msg.definitionOrderHash as string | undefined,
+        });
+        if (!compat.ok) {
+          showProtocolError(compat.reason ?? 'incompatible build');
+          break;
+        }
+      }
       if (msg.arena) {
         void startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined);
       } else {
@@ -478,6 +526,17 @@ async function startOnlineWithArena(r: Role, meta: ArenaMetadata, matchId?: stri
   }
   arenaSession = session;
   await startOnline(r, session.world, matchId);
+}
+
+/** Hard protocol/content compatibility failure: never start the match. */
+function showProtocolError(reason: string): void {
+  hud.showError(`Incompatible build: ${reason}. Reload to update.`);
+  input.setEnabled(false);
+  game?.setInputEnabled(false);
+  input.releaseLock();
+  flow = 'error';
+  arenaSession = null;
+  mapGateFailed = true;
 }
 
 async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void> {

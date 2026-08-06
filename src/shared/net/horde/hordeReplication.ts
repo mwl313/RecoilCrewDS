@@ -3,12 +3,16 @@ import type { EnemyState, EnemyType } from '../../types';
 import {
   dequantizeHp,
   dequantizeXZ,
+  dequantizeImpulseTick,
+  dequantizeVy,
+  dequantizeY,
   dequantizeYaw,
   decodeSector,
   encodeDelta,
   encodeMaterialize,
   flagsFor,
   HORDE_FLAG_ALIVE,
+  HORDE_FLAG_AIRBORNE,
   HORDE_FLAG_FLASH,
   HORDE_FLAG_TELEGRAPH,
   enemyDefinitionIdForIndex,
@@ -17,7 +21,10 @@ import {
   semanticActionIndex,
   typeForDefinitionId,
   quantizeHp,
+  quantizeImpulseTick,
+  quantizeVy,
   quantizeXZ,
+  quantizeY,
   quantizeYaw,
   type HordeSnapshotBlock,
   type HordeWaveState,
@@ -31,6 +38,9 @@ interface LastRecord {
   yawq: number;
   hpq: number;
   flags: number;
+  yq: number;
+  vyq: number;
+  impulseTick: number;
   alive: boolean;
   nextAt: number;
 }
@@ -113,6 +123,9 @@ export class HordeReplicationTracker {
         yawq: quantizeYaw(e.yaw),
         hpq: quantizeHp(e.hp),
         flags,
+        yq: quantizeY(e.y),
+        vyq: quantizeVy(e.impulseVy ?? 0),
+        impulseTick: quantizeImpulseTick(e.lastImpulseT),
         alive: true,
         nextAt: 0,
       };
@@ -122,18 +135,26 @@ export class HordeReplicationTracker {
         queue++;
         continue;
       }
-      const changed = prev.xq !== rec.xq || prev.zq !== rec.zq || prev.yawq !== rec.yawq || prev.hpq !== rec.hpq || prev.flags !== rec.flags;
+      const changed =
+        prev.xq !== rec.xq ||
+        prev.zq !== rec.zq ||
+        prev.yawq !== rec.yawq ||
+        prev.hpq !== rec.hpq ||
+        prev.flags !== rec.flags ||
+        prev.yq !== rec.yq ||
+        prev.vyq !== rec.vyq ||
+        prev.impulseTick !== rec.impulseTick;
       const due = time >= prev.nextAt;
       if (tier === 0 && (due || changed) && this.frame % nearEvery === 0) {
-        block.near.push(encodeDelta(e));
+        block.near.push(encodeDelta(e, true));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.nearHz });
         queue++;
       } else if (tier === 1 && (due || changed) && this.frame % midEvery === 0) {
-        block.mid.push(encodeDelta(e));
+        block.mid.push(encodeDelta(e, true));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.midHz });
         queue++;
       } else if (tier >= 2 && changed && this.frame % farEvery === 0) {
-        block.far.push(encodeDelta(e));
+        block.far.push(encodeDelta(e, false));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.farHz });
         queue++;
       } else {
@@ -195,17 +216,20 @@ export class HordeReplicationClient {
 
   apply(block: HordeSnapshotBlock, time: number): EnemyState[] {
     for (const rec of block.materialize) {
-      const [id, defIndex, xq, zq, yawq, hpq, maxHpq, , profileIndex] = rec;
+      const [id, defIndex, xq, zq, yawq, hpq, maxHpq, flags, profileIndex, yq = 0, vyq = 0, impulseTick = 0] = rec;
       const x = dequantizeXZ(xq);
       const z = dequantizeXZ(zq);
-      const defId = enemyDefinitionIdForIndex(defIndex) ?? '';
+      const defId = enemyDefinitionIdForIndex(defIndex);
+      if (!defId) {
+        throw new Error(`rejected materialize with unknown enemy definition index ${defIndex}`);
+      }
       const type = typeForDefinitionId(defId) as EnemyType;
       const enemy: EnemyState = {
         id,
         type,
         defId,
         x,
-        y: this.groundY(x, z),
+        y: dequantizeY(yq),
         z,
         yaw: dequantizeYaw(yawq),
         hp: dequantizeHp(hpq),
@@ -215,14 +239,20 @@ export class HordeReplicationClient {
         aimYaw: 0,
         speed: 0,
         alive: true,
-        telegraph: 0,
-        flash: 0,
+        telegraph: (flags & HORDE_FLAG_TELEGRAPH) !== 0 ? 0.5 : 0,
+        flash: (flags & HORDE_FLAG_FLASH) !== 0 ? 0.12 : 0,
         spawnT: time,
         hitCd: 0,
+        impulseVy: dequantizeVy(vyq),
+        impulseGrounded: (flags & HORDE_FLAG_AIRBORNE) === 0,
+        lastImpulseT: dequantizeImpulseTick(impulseTick),
         ...(presentationProfileIdForIndex(profileIndex)
           ? { presentationProfileId: presentationProfileIdForIndex(profileIndex) }
           : {}),
       };
+      if (enemy.impulseGrounded && enemy.lastImpulseT === undefined) {
+        enemy.impulseVy = 0;
+      }
       this.enemies.set(id, enemy);
     }
     this.sectors.clear();
@@ -260,12 +290,24 @@ export class HordeReplicationClient {
         if (!e) continue;
         e.x = dequantizeXZ(xq);
         e.z = dequantizeXZ(zq);
-        e.y = this.groundY(e.x, e.z);
         e.yaw = dequantizeYaw(yawq);
         e.hp = dequantizeHp(hpq);
         e.alive = (flags & HORDE_FLAG_ALIVE) !== 0;
         e.telegraph = (flags & HORDE_FLAG_TELEGRAPH) !== 0 ? 0.5 : 0;
         e.flash = (flags & HORDE_FLAG_FLASH) !== 0 ? 0.12 : 0;
+        if (rec.length >= 9) {
+          const [, , , , , , yq, vyq, impulseTick] = rec;
+          e.y = dequantizeY(yq);
+          e.impulseVy = dequantizeVy(vyq);
+          e.impulseGrounded = (flags & HORDE_FLAG_AIRBORNE) === 0;
+          e.lastImpulseT = dequantizeImpulseTick(impulseTick);
+        } else {
+          // Far deltas remain terrain-projected by design.
+          e.y = this.groundY(e.x, e.z);
+          e.impulseGrounded = true;
+          e.impulseVy = 0;
+          e.lastImpulseT = undefined;
+        }
       }
     }
     return [...this.enemies.values()];
