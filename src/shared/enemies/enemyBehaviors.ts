@@ -9,6 +9,7 @@ import {
   advanceAttackCycle,
   startAttackCycle,
 } from '../monsters/monsterAttack';
+import { resolveProjectileSocketY } from '../monsters/monsterNormalization';
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -559,7 +560,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
         ctx.projectiles.spawn(
           e.x,
-          e.y + 1.2,
+          e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier),
           e.z,
           dx / d,
           0,
@@ -612,7 +613,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         runtime.attackRuntime = atk;
         if (pattern.type === 'ranged') {
           e.telegraph = pattern.telegraphTime;
-          pushEvent(ctx, 'rammerTelegraph', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });
+          pushEvent(ctx, 'rammerTelegraph', e.x, e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier), e.z, { id: e.id, kind: 'boss' });
         }
       }
       const res = advanceAttackCycle(atk, s.time, () => {
@@ -632,7 +633,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const d = Math.hypot(dx, dz) || 1;
         ctx.projectiles.spawn(
           e.x,
-          e.y + 2,
+          e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier),
           e.z,
           dx / d,
           0,

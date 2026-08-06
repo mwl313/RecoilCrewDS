@@ -25,6 +25,8 @@ export const TIER_SCALES: Record<'fodder' | 'specialist' | 'elite' | 'boss', num
   boss: 5,
 };
 
+import { MONSTER_DIMENSIONS } from '../../generated/monsterDimensions.generated';
+
 export interface NormalizedEnemyDimensions {
   targetHeight: number;
   normalizedWidth: number;
@@ -65,4 +67,46 @@ export function normalizedEnemyDimensions(
     engagementRadius: collisionRadius * 2,
     shadowRadius: Math.max(collisionRadius * 1.5, normalizedHeight * 0.35),
   };
+}
+
+export function slugFromEnemyId(enemyId: string): string {
+  return enemyId
+    .replace('enemy.quaternius.', '')
+    .replace(/\.(boss|elite)$/, '');
+}
+
+const dimensionCache = new Map<string, NormalizedEnemyDimensions>();
+
+/**
+ * Resolve normalized gameplay dimensions from the generated source cache.
+ * Never scans GLB bounds at runtime; results are cached per enemy id.
+ */
+export function resolveMonsterDimensions(
+  enemyId: string,
+  sizeClass: 'small' | 'medium' | 'large',
+  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  optionalVariantScale = 1,
+): NormalizedEnemyDimensions {
+  const key = `${enemyId}|${sizeClass}|${tier}`;
+  const cached = dimensionCache.get(key);
+  if (cached) return cached;
+  const source = MONSTER_DIMENSIONS[slugFromEnemyId(enemyId)];
+  if (!source) throw new Error(`no source dimensions for '${enemyId}'`);
+  const dims = normalizedEnemyDimensions(
+    { width: source.width, height: source.height, depth: source.depth },
+    sizeClass,
+    tier,
+    optionalVariantScale,
+  );
+  dimensionCache.set(key, dims);
+  return dims;
+}
+
+/** Provisional normalized projectile socket height (centralized tuning point). */
+export function resolveProjectileSocketY(
+  enemyId: string,
+  sizeClass: 'small' | 'medium' | 'large',
+  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+): number {
+  return resolveMonsterDimensions(enemyId, sizeClass, tier).normalizedHeight * 0.7;
 }

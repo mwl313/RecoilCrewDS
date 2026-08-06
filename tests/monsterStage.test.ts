@@ -13,6 +13,12 @@ import {
 } from '../src/shared/monsters/monsterStage';
 import { monsterLevelAtTime } from '../src/shared/monsters/monsterDifficulty';
 import { MatchRuntime } from '../src/shared/sim/matchRuntime';
+import { MONSTER_DIMENSIONS } from '../src/generated/monsterDimensions.generated';
+import {
+  resolveMonsterDimensions,
+  resolveProjectileSocketY,
+  slugFromEnemyId,
+} from '../src/shared/monsters/monsterNormalization';
 
 const pack = loadContentPackFromFilesystem('content');
 const roster = pack.getEnemyGameplayRoster('enemyGameplayRoster.quaternius.mainStage');
@@ -259,5 +265,25 @@ describe('monster stage timeline', () => {
     const eb = b.systems.enemies.spawnEnemyDef(def)!;
     expect(ea.x).toBe(eb.x);
     expect(ea.z).toBe(eb.z);
+  });
+
+  it('normalization cache is finite, per-family, cached, and socket heights are plausible', () => {
+    expect(Object.keys(MONSTER_DIMENSIONS)).toHaveLength(45);
+    for (const dims of Object.values(MONSTER_DIMENSIONS)) {
+      expect(Number.isFinite(dims.width)).toBe(true);
+      expect(Number.isFinite(dims.height)).toBe(true);
+      expect(Number.isFinite(dims.depth)).toBe(true);
+      expect(dims.height).toBeGreaterThan(0);
+    }
+    const small = resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder');
+    expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
+    const elite = resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'elite');
+    expect(elite.collisionRadius).toBeCloseTo(small.collisionRadius * 3, 6);
+    expect(resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder')).toBe(small);
+    expect(slugFromEnemyId('enemy.quaternius.alien-high-detail.boss')).toBe('alien-high-detail');
+    const socketY = resolveProjectileSocketY('enemy.quaternius.wizard', 'medium', 'fodder');
+    const dims = resolveMonsterDimensions('enemy.quaternius.wizard', 'medium', 'fodder');
+    expect(socketY).toBeGreaterThan(0);
+    expect(socketY).toBeLessThan(dims.normalizedHeight);
   });
 });

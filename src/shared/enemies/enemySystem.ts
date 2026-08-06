@@ -18,6 +18,7 @@ import {
   resolveMonsterSpawnLock,
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
+import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
 import { mulberry32, type Rng } from '../mapgen/prng';
 import { hash32 } from '../mapgen/seed';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
@@ -226,7 +227,9 @@ export class EnemySystem {
         id: e.id,
         x: e.x,
         z: e.z,
-        collisionDiameter: enemyRadius(def) * 2,
+        collisionDiameter: isMonster(def)
+          ? resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius * 2
+          : enemyRadius(def) * 2,
         threat: enemyThreat(def),
         alive: e.alive,
         attackRange: def.attack.range,
