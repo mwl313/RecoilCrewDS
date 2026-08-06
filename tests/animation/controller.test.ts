@@ -31,8 +31,8 @@ const PROFILE: EnemyAnimationProfileDefinition = {
     idle: { loop: 'repeat' },
     walk: { loop: 'repeat' },
     run: { loop: 'repeat' },
-    attackPrimary: { loop: 'once', clampWhenFinished: true },
-    stagger: { loop: 'once', clampWhenFinished: true },
+    attackPrimary: { loop: 'once', clampWhenFinished: true, interruptPriority: 2 },
+    stagger: { loop: 'once', clampWhenFinished: true, interruptPriority: 3 },
     death: { loop: 'once', clampWhenFinished: true, interruptPriority: 100 },
   },
   rootMotion: false,
@@ -121,6 +121,8 @@ describe('enemy animation controller (animation07 M6)', () => {
     c.update({ alive: true, state: 'stagger', stateT: 0, speed: 0, telegraph: 0, flash: 0, airborne: false }, 0.01);
     expect(c.instance.currentRole).toBe('stagger');
     expect(c.instance.currentAction).not.toBe(walk);
+    c.update({ alive: true, state: 'stagger', stateT: 0, speed: 0, telegraph: 0, flash: 0, airborne: false }, 0.1);
+    expect(walk?.getEffectiveWeight()).toBeLessThan(0.01);
     c.dispose();
   });
 });

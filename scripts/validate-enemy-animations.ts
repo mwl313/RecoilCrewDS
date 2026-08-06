@@ -10,9 +10,10 @@
  * Usage: npm run validate:enemy-animations
  */
 import * as THREE from 'three';
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildEnemyAnimationContent } from './generate-enemy-animation-content';
 import { assetCatalogDefinitionSchema } from '../src/shared/presentation/schemas';
 import { REQUIRED_ASSET_IDS } from '../src/shared/assetRegistry';
@@ -31,6 +32,17 @@ interface ValidationIssue {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_ASSETS = path.join(ROOT, 'public', 'assets');
 
+function resolvePublicAssetFile(file: string): string {
+  const normalized = file.replace(/\\/g, '/').replace(/^\/+/, '');
+  const relative = normalized.startsWith('assets/') ? normalized.slice('assets/'.length) : normalized;
+  const resolved = path.resolve(PUBLIC_ASSETS, relative);
+  const withinAssets = path.relative(PUBLIC_ASSETS, resolved);
+  if (withinAssets.startsWith('..') || path.isAbsolute(withinAssets)) {
+    throw new Error(`asset path escapes public/assets: '${file}'`);
+  }
+  return resolved;
+}
+
 function loadCatalog(): { files: Map<string, string> } {
   const files = new Map<string, string>();
   const dir = path.join(ROOT, 'content', 'assets');
@@ -39,7 +51,7 @@ function loadCatalog(): { files: Map<string, string> } {
     const parsed = assetCatalogDefinitionSchema.safeParse(raw);
     if (!parsed.success) continue;
     for (const p of parsed.data.project) {
-      if (p.kind === 'model' && p.file) files.set(p.id, path.join(PUBLIC_ASSETS, p.file));
+      if (p.kind === 'model' && p.file) files.set(p.id, resolvePublicAssetFile(p.file));
     }
   }
   const manifestFile = path.join(PUBLIC_ASSETS, 'manifest.json');
@@ -48,7 +60,7 @@ function loadCatalog(): { files: Map<string, string> } {
       assets?: Array<{ id?: string; file?: string }>;
     };
     for (const entry of manifest.assets ?? []) {
-      if (entry.id && entry.file) files.set(entry.id, path.join(PUBLIC_ASSETS, entry.file));
+      if (entry.id && entry.file) files.set(entry.id, resolvePublicAssetFile(entry.file));
     }
   }
   return { files };
@@ -58,7 +70,10 @@ async function loadGlb(file: string): Promise<{ scene: THREE.Object3D; animation
   const mod = await import('three/addons/loaders/GLTFLoader.js');
   const loader = new mod.GLTFLoader();
   try {
-    const gltf = await loader.loadAsync(file);
+    const bytes = readFileSync(file);
+    const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+    const resourcePath = pathToFileURL(path.dirname(file) + path.sep).href;
+    const gltf = await loader.parseAsync(data, resourcePath);
     return { scene: gltf.scene, animations: gltf.animations ?? [] };
   } catch {
     return null;
@@ -111,7 +126,7 @@ function rootMotionWarning(clip: THREE.AnimationClip): number | null {
   let found = false;
   for (const track of clip.tracks) {
     if (!(track instanceof THREE.VectorKeyframeTrack)) continue;
-    if (!track.name.endsWith('.position')) continue;
+    if (!/^(HordeReadyRoot|HordeReadyContent|RootNode|CharacterArmature|Root)\.position$/.test(track.name)) continue;
     found = true;
     const values = track.values;
     const start = values.slice(0, 3);
@@ -123,6 +138,50 @@ function rootMotionWarning(clip: THREE.AnimationClip): number | null {
     }
   }
   return found ? maxDisplacement : null;
+}
+
+function neutralPoseContractIssues(
+  root: THREE.Object3D,
+  clip: THREE.AnimationClip,
+): string[] {
+  const posed = cloneSkeleton(root);
+  const mixer = new THREE.AnimationMixer(posed);
+  const action = mixer.clipAction(clip);
+  action.setLoop(THREE.LoopOnce, 1);
+  action.clampWhenFinished = true;
+  action.play();
+  mixer.setTime(Math.max(0, clip.duration - 0.001));
+  posed.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(posed, true);
+  if (box.isEmpty()) return ['neutral pose has empty bounds'];
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const anchor = posed.getObjectByName('socketshadow') ?? posed.getObjectByName('socket.shadow');
+  const anchorPosition = new THREE.Vector3();
+  if (anchor) anchor.getWorldPosition(anchorPosition);
+
+  const issues: string[] = [];
+  const groundUnderflow = anchorPosition.y - box.min.y;
+  const maximumGroundUnderflow = Math.max(0.08, size.y * 0.15);
+  if (groundUnderflow > maximumGroundUnderflow) {
+    issues.push(
+      `neutral pose extends ${groundUnderflow.toFixed(2)} m below its ground socket ` +
+      `(limit ${maximumGroundUnderflow.toFixed(2)} m)`,
+    );
+  }
+
+  const horizontalOffset = Math.hypot(center.x - anchorPosition.x, center.z - anchorPosition.z);
+  const maximumHorizontalOffset = Math.max(0.25, Math.max(size.x, size.z) * 0.35);
+  if (horizontalOffset > maximumHorizontalOffset) {
+    issues.push(
+      `neutral pose center is ${horizontalOffset.toFixed(2)} m from its ground socket ` +
+      `(limit ${maximumHorizontalOffset.toFixed(2)} m)`,
+    );
+  }
+  mixer.stopAllAction();
+  mixer.uncacheRoot(posed);
+  return issues;
 }
 
 async function validateModels(
@@ -184,6 +243,7 @@ async function validateGlbFile(
     if ((o as THREE.SkinnedMesh).isSkinnedMesh) skinned = true;
   });
   const isFar = profile.farModelAssetId === assetId;
+  const isAggregate = profile.aggregateModelAssetId === assetId;
   if (isFar && skinned) {
     issues.push({ severity: 'warning', assetId, message: 'far model contains a SkinnedMesh; far tier should be rigid' });
   }
@@ -214,7 +274,7 @@ async function validateGlbFile(
     message: `${path.basename(file)}: ${countMeshes(gltf.scene)} meshes, ${bones} bones, ${materials} materials, ${names.length} clips${skinned ? ', skinned' : ', rigid'}`,
   });
 
-  if (profile.animationProfileId && !isFar) {
+  if (profile.animationProfileId && !isFar && !isAggregate) {
     const { bundle } = buildEnemyAnimationContent();
     const anim = bundle.animationProfiles[profile.animationProfileId];
     if (anim) {
@@ -229,6 +289,12 @@ async function validateGlbFile(
             assetId,
             message: `${required ? 'required' : 'optional'} semantic role '${role}' (clip '${anim.clips[role]}') does not resolve in ${path.basename(file)}`,
           });
+        }
+      }
+      const idle = anim.clips.idle ? clips.get(anim.clips.idle) : undefined;
+      if (idle) {
+        for (const message of neutralPoseContractIssues(gltf.scene, idle)) {
+          issues.push({ severity: 'error', assetId, message });
         }
       }
       for (const clip of gltf.animations) {
