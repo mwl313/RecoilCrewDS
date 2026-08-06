@@ -25,13 +25,21 @@
 - Camera follow target, smoothed pivot, and collision boom are independent.
 - Phase A tuning and evidence are documented in `DASH_AND_CAMERA_TUNING_REPORT.md`.
 
+### Phase B
+
+- Monster source colors remain untouched; a shared PBR interpretation policy constrains metalness, roughness, AO and color-space assignment.
+- Production lighting now uses stronger neutral fill and fog starts beyond the provisional far-LOD boundary.
+- Mid semantic selection is reduced-rate while skeletal mixers advance every render frame.
+- Far representation is mixer-free but visibly animated for locomotion, attack, airborne and death states.
+- LOD swaps preserve semantic role, normalized phase, death lock, cue sequence, position and yaw.
+- Generic far instancing preserves multi-material assets and source child transforms.
+- Audit and visual evidence are documented in `MONSTER_PRESENTATION_AUDIT.md`.
+
 ## Next work
 
-1. Audit actual in-game monster materials, textures, lighting, fog, and LOD transitions in representative gameplay.
-2. Preserve exact imported textures and avoid blanket material flattening; make targeted presentation fixes with near/far visual evidence.
-3. Extend the existing enemy benchmark to capture CPU, render, animation, and replication budgets at defined populations.
-4. Build the urban environment as a separate prototype/profile using the preserved source ZIPs; do not replace the current map.
-5. Run the complete final command matrix and update this handoff with commit SHAs and measured results.
+1. Extend the existing enemy benchmark to capture CPU, render, animation, and replication budgets at defined populations.
+2. Build the urban environment as a separate prototype/profile using the preserved source ZIPs; do not replace the current map.
+3. Run the complete final command matrix and update this handoff with commit SHAs and measured results.
 
 ## Known observations
 

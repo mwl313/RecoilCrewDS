@@ -13,6 +13,13 @@ import { animationTelemetry } from './animationTelemetry';
 import { disposeAnimationInstance } from './animationCleanup';
 import { actionCueElapsedFraction } from '../../shared/animation/enemyActionCue';
 
+export interface EnemyAnimationContinuity {
+  role: EnemyAnimationRole | null;
+  normalizedTime: number;
+  dead: boolean;
+  lastCueSequence: number;
+}
+
 /** Deterministic per-enemy phase seed (id + match seed). */
 export function animationPhaseSeed(enemyId: number, matchSeed = 0): number {
   let h = (Math.imul(enemyId + 1, 2654435761) ^ Math.imul(matchSeed + 1, 2246822519)) >>> 0;
@@ -91,28 +98,30 @@ export class EnemyAnimationController {
 
   /** Update presentation from authoritative state (called on the render frame). */
   update(state: EnemyAnimationPresentationState, dt: number): void {
+    this.syncState(state);
+    this.advance(dt);
+  }
+
+  /** Resolve semantic state without advancing the skeleton. */
+  syncState(state: EnemyAnimationPresentationState): void {
     const anim = this.instance;
     if (anim.dead) {
-      this.updateMixer(dt);
       return;
     }
     const resolution = resolveEnemyAnimationState(this.profile, state);
     if (!resolution.role) {
-      this.updateMixer(dt);
       return;
     }
 
     if (resolution.role === 'death') {
       this.playRole(resolution.role, { force: true, duration: this.profile.transitions.deathCrossFadeSeconds });
       anim.dead = true;
-      this.updateMixer(dt);
       return;
     }
 
     const current = anim.currentRole;
     if (current && current === resolution.role && anim.currentAction?.isRunning()) {
       this.applyLocomotion(resolution.role, state.speed);
-      this.updateMixer(dt);
       return;
     }
 
@@ -137,7 +146,33 @@ export class EnemyAnimationController {
       }
     }
     this.applyLocomotion(resolution.role, state.speed);
+  }
+
+  /** Advance the active mixer at display-frame frequency. */
+  advance(dt: number): void {
     this.updateMixer(dt);
+  }
+
+  captureContinuity(): EnemyAnimationContinuity {
+    const action = this.instance.currentAction;
+    const duration = action?.getClip().duration ?? 0;
+    return {
+      role: this.instance.currentRole,
+      normalizedTime: duration > 0 ? THREE.MathUtils.euclideanModulo(action!.time / duration, 1) : this.instance.phaseSeed,
+      dead: this.instance.dead,
+      lastCueSequence: this.lastCueSequence,
+    };
+  }
+
+  restoreContinuity(value: EnemyAnimationContinuity | null | undefined): void {
+    if (!value?.role) return;
+    this.instance.dead = false;
+    this.playRole(value.role, { force: true, duration: 0 });
+    const action = this.instance.currentAction;
+    if (action) action.time = THREE.MathUtils.clamp(value.normalizedTime, 0, 1) * action.getClip().duration;
+    this.instance.dead = value.dead;
+    this.lastCueSequence = value.lastCueSequence;
+    this.updateMixer(0);
   }
 
   private playRole(

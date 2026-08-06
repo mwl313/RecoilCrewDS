@@ -31,6 +31,21 @@ Implemented:
 
 Detailed tuning and measured traces are in [DASH_AND_CAMERA_TUNING_REPORT.md](DASH_AND_CAMERA_TUNING_REPORT.md).
 
+## Phase B — complete
+
+Implemented:
+
+- Reusable three-way unlit/neutral-PBR/game-lighting monster comparison route.
+- Source-faithful low-poly material policy with bounded metallic, roughness and AO interpretation.
+- Stronger neutral fill, softer key/fill balance, and fog beyond the meaningful combat/LOD read range.
+- Per-mesh material and hierarchy-transform preservation in generic far instancing.
+- Render-frame far walk/attack/airborne/death motion with no mixers.
+- Reduced-rate mid semantic evaluation separated from render-frame skeletal mixer advancement.
+- Semantic role, normalized phase, death lock and cue continuity across model LOD swaps.
+- Data-driven common bands centered on near 0–40 m, mid 40–90 m, and far 90 m+ with hysteresis.
+
+Findings, exact lighting/material values, evidence, and acceptance coverage are in [MONSTER_PRESENTATION_AUDIT.md](MONSTER_PRESENTATION_AUDIT.md).
+
 ## Qualification notes
 
 - The full suite initially reported one legitimate test update needed for the new authoritative dash gate (`roadkill.test.ts` now supplies `dashState = 'burst'`).
@@ -39,7 +54,6 @@ Detailed tuning and measured traces are in [DASH_AND_CAMERA_TUNING_REPORT.md](DA
 
 ## Remaining phases
 
-- Phase B: monster color/material/LOD presentation audit and improvements.
 - Phase C: repeatable enemy-capacity benchmark, budgets, and recommendations.
 - Phase D: current-map cohesion pass plus separate urban-apocalypse prototype and comparison.
 - Final: complete required command matrix, browser evidence, reports, focused commits, and branch handoff.

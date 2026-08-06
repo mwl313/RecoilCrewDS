@@ -38,7 +38,7 @@ export class RenderWorld {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.18;
     this.renderer.domElement.id = 'game-canvas';
     container.appendChild(this.renderer.domElement);
     this.setupScene();
@@ -50,11 +50,13 @@ export class RenderWorld {
   }
 
   private setupScene(): void {
-    this.scene.background = new THREE.Color(0x3d4c56);
-    this.scene.fog = new THREE.Fog(0x3d4c56, 100, 150);
-    const hemi = new THREE.HemisphereLight(0xffe9c8, 0x3b3f45, 0.85);
+    this.scene.background = new THREE.Color(0x53636b);
+    // Keep the whole combat/LOD read range clear; haze begins beyond the
+    // provisional 90 m mid tier and rolls in gradually.
+    this.scene.fog = new THREE.Fog(0x53636b, 115, 190);
+    const hemi = new THREE.HemisphereLight(0xfff5e8, 0x87918d, 1.45);
     this.scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xffd9a0, 1.9);
+    const sun = new THREE.DirectionalLight(0xffddad, 1.35);
     sun.position.set(26, 34, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -65,7 +67,7 @@ export class RenderWorld {
     sun.shadow.camera.far = 120;
     sun.shadow.bias = -0.0006;
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0x7fb4c4, 0.5);
+    const fill = new THREE.DirectionalLight(0xa7d3dc, 0.85);
     fill.position.set(-20, 16, -24);
     this.scene.add(fill);
     const stars = new THREE.Points(

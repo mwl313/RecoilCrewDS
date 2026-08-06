@@ -6,6 +6,9 @@ import {
 } from '../../src/client/enemies/instancedEnemyRenderer';
 import { InstanceSlotPool } from '../../src/client/enemies/instanceSlotPool';
 import type { EnemyState } from '../../src/shared/types';
+import * as THREE from 'three';
+import { createAssetInstancedHost } from '../../src/client/enemies/assetInstancedHost';
+import type { AssetService } from '../../src/client/assets';
 
 function enemy(id: number, x = 0, z = 0, alive = true) {
   return {
@@ -126,5 +129,41 @@ describe('InstancedEnemyRenderer (M6)', () => {
     expect(renderer.upsert(enemy(3), 0)).toBe(true);
     expect(renderer.upsert(enemy(4), 0)).toBe(false);
     expect(host.count).toBe(3);
+  });
+});
+
+describe('generic asset instancing fidelity', () => {
+  it('preserves each mesh material and hierarchy-local transform', () => {
+    const prototype = new THREE.Group();
+    const red = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const blue = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+    const a = new THREE.Mesh(new THREE.BoxGeometry(), red);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(), blue);
+    a.position.x = 1;
+    b.position.y = 2;
+    prototype.add(a, b);
+    const assets = { model: () => prototype.clone(true) } as unknown as AssetService;
+    const scene = new THREE.Scene();
+    const host = createAssetInstancedHost(scene, assets, 'test.multi', 4);
+    host.setTransform(0, {
+      x: 10, y: 0, z: 0, yaw: 0, scale: 1, flash: 0, deathT: 0,
+      motionPhase: 0, speed: 0, airborne: false, attacking: false,
+      variant: 0, visible: true, tier: 3,
+    });
+    host.setColor(0, 1, 1, 1);
+    host.setCount(1);
+    host.needsUpdate();
+    const batches = scene.children as THREE.InstancedMesh[];
+    expect(batches).toHaveLength(2);
+    expect((batches[0].material as THREE.MeshStandardMaterial).color.getHex()).toBe(0xff0000);
+    expect((batches[1].material as THREE.MeshStandardMaterial).color.getHex()).toBe(0x0000ff);
+    const matrix = new THREE.Matrix4();
+    const position = new THREE.Vector3();
+    batches[0].getMatrixAt(0, matrix);
+    position.setFromMatrixPosition(matrix);
+    expect(position.x).toBeCloseTo(11);
+    batches[1].getMatrixAt(0, matrix);
+    position.setFromMatrixPosition(matrix);
+    expect(position.y).toBeCloseTo(2);
   });
 });

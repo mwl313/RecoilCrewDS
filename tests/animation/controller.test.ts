@@ -125,4 +125,27 @@ describe('enemy animation controller (animation07 M6)', () => {
     expect(walk?.getEffectiveWeight()).toBeLessThan(0.01);
     c.dispose();
   });
+
+  it('separates reduced-rate semantic sync from render-rate mixer advance', () => {
+    const c = makeController();
+    c.syncState({ alive: true, state: 'hunt', stateT: 0, speed: 3, telegraph: 0, flash: 0, airborne: false });
+    const action = c.instance.currentAction!;
+    const start = action.time;
+    for (let i = 0; i < 6; i++) c.advance(1 / 60);
+    expect(action.time).toBeGreaterThan(start);
+    expect(c.instance.currentRole).toBe('walk');
+    c.dispose();
+  });
+
+  it('captures and restores semantic role and normalized phase', () => {
+    const source = makeController();
+    source.update({ alive: true, state: 'hunt', stateT: 0, speed: 3, telegraph: 0, flash: 0, airborne: false }, 0.37);
+    const continuity = source.captureContinuity();
+    const target = makeController();
+    target.restoreContinuity(continuity);
+    expect(target.instance.currentRole).toBe('walk');
+    expect(target.captureContinuity().normalizedTime).toBeCloseTo(continuity.normalizedTime, 5);
+    source.dispose();
+    target.dispose();
+  });
 });

@@ -66,3 +66,25 @@ aside input[type='range'] {
 #info .bad {
   color: #ff5a4a;
 }
+
+.material-labels {
+  position: absolute;
+  inset: 18px 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  pointer-events: none;
+  color: #f6f0df;
+  font: 700 12px/1.2 ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-shadow: 0 2px 4px #000;
+}
+
+.material-debug aside p,
+.material-debug aside li {
+  color: #b8cbd0;
+}
+
+.material-debug code {
+  color: #ffca75;
+}

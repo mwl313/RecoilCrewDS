@@ -26,6 +26,8 @@ import {
   type ResolvedMonsterDimensions,
 } from '../../shared/monsters/monsterNormalization';
 import { applyMonsterScaleAndOffset } from './monsterTransform';
+import { DistantEnemyMotion } from '../animation/distantEnemyMotion';
+import { prepareMonsterMaterials } from '../materials/monsterMaterialPolicy';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
@@ -44,8 +46,11 @@ export class EntityViewFactory {
     const cloneMaterials = profile.materialPolicy?.cloneForHitFlash ?? true;
     const instance = this.assets.createModelInstance(profile.nearModelAssetId, { cloneMaterials });
     const model = instance.root;
+    prepareMonsterMaterials(model);
     const group = new THREE.Group();
-    group.add(model);
+    const motionRoot = new THREE.Group();
+    motionRoot.add(model);
+    group.add(motionRoot);
     // Test/telemetry diagnostics: exact identity on the rendered rig.
     group.userData.enemyId = e.id;
     group.userData.defId = e.defId ?? '';
@@ -104,6 +109,7 @@ export class EntityViewFactory {
     }
     return {
       group,
+      motionRoot,
       model,
       dimensions: monsterDims,
       presentationProfileId: resolution.profileId,
@@ -117,6 +123,8 @@ export class EntityViewFactory {
       head,
       deadT: 0,
       phaseSeed: animationPhaseSeed(e.id),
+      animationContinuity: null,
+      farMotion: null,
     };
   }
 
@@ -138,14 +146,22 @@ export class EntityViewFactory {
       return;
     }
 
-    // Remove the old model (and its animation/materials) from the group.
+    // Capture semantic action/phase before changing representation.
     if (rig.animation) {
+      rig.animationContinuity = rig.animation.captureContinuity();
       rig.animation.dispose();
       rig.animation = null;
       animationTelemetry.liveSkinnedRoots = Math.max(0, animationTelemetry.liveSkinnedRoots - 1);
     }
     disposeOwnedMaterials(rig.model);
-    rig.group.remove(rig.model);
+    if (rig.farMotion) {
+      rig.animationContinuity = rig.farMotion.captureContinuity();
+      rig.farMotion = null;
+    }
+    rig.motionRoot.remove(rig.model);
+    rig.motionRoot.position.set(0, 0, 0);
+    rig.motionRoot.rotation.set(0, 0, 0);
+    rig.motionRoot.scale.setScalar(1);
 
     const profile = resolution.profile;
     const farId = profile.farModelAssetId;
@@ -153,8 +169,9 @@ export class EntityViewFactory {
     const cloneMaterials = profile.materialPolicy?.cloneForHitFlash ?? true;
     const instance = this.assets.createModelInstance(assetId, { cloneMaterials });
     const model = instance.root;
+    prepareMonsterMaterials(model);
     rig.model = model;
-    rig.group.add(model);
+    rig.motionRoot.add(model);
     if (rig.dimensions) {
       applyMonsterScaleAndOffset(model, profile.transform, rig.dimensions);
     }
@@ -172,9 +189,13 @@ export class EntityViewFactory {
         instance,
         rig.phaseSeed,
       );
+      rig.animation.restoreContinuity(rig.animationContinuity);
       animationTelemetry.liveSkinnedRoots++;
     }
-    if (wantFar) animationTelemetry.liveRigidFarRoots++;
+    if (wantFar) {
+      rig.farMotion = new DistantEnemyMotion(rig.phaseSeed, rig.animationContinuity);
+      animationTelemetry.liveRigidFarRoots++;
+    }
     if (rig.modelVariant === 'near' && !wantFar) {
       // Promotion back to near: the far rigid root is gone already.
       animationTelemetry.liveRigidFarRoots = Math.max(0, animationTelemetry.liveRigidFarRoots - 1);

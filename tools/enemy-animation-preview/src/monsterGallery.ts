@@ -13,6 +13,7 @@ import { InstancedEnemyRenderer } from '@app/client/enemies/instancedEnemyRender
 import { createAssetInstancedHost } from '@app/client/enemies/assetInstancedHost';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '@app/client/enemies/aggregateSectorRenderer';
 import { CLIENT_CONTENT_PACK } from '@app/generated/contentPack.generated';
+import type { EnemyState } from '@app/shared/types';
 
 /**
  * Monster Pack 10 integration gallery.
@@ -82,6 +83,7 @@ export async function startMonsterGallery(container: HTMLElement): Promise<void>
   let copies: EnemyAnimationController[] = [];
   let copyModels: THREE.Object3D[] = [];
   let farRenderer: InstancedEnemyRenderer | null = null;
+  let farEnemies: EnemyState[] = [];
   let aggregateRenderer: AggregateSectorRenderer | null = null;
   let frameMs: number[] = [];
   let lastFrameAt = performance.now();
@@ -127,6 +129,7 @@ export async function startMonsterGallery(container: HTMLElement): Promise<void>
     copyModels = [];
     farRenderer?.reset();
     farRenderer = null;
+    farEnemies = [];
     aggregateRenderer?.reset();
     aggregateRenderer = null;
     resetAnimationTelemetry();
@@ -177,14 +180,20 @@ export async function startMonsterGallery(container: HTMLElement): Promise<void>
         const radius = 6 + (i % 8);
         const e = {
           id: i + 1,
+          type: 'scrapBug',
           x: Math.cos(angle) * radius,
           y: 0,
           z: Math.sin(angle) * radius,
           yaw: -angle,
           flash: 0,
           alive: true,
-        } as never;
-        farRenderer.upsert(e as never, 0);
+          speed: state.moveSpeed || 3,
+          state: 'hunt',
+          stateT: 0,
+          telegraph: 0,
+        } as EnemyState;
+        farEnemies.push(e);
+        farRenderer.upsert(e, 0);
       }
     }
     if (state.aggregateStress && profile.aggregateModelAssetId) {
@@ -216,9 +225,8 @@ export async function startMonsterGallery(container: HTMLElement): Promise<void>
   }
 
   function updateAnimations(dt: number): void {
-    if (!hero) return;
     const attacking = state.attackCue;
-    hero.update(
+    if (hero) hero.update(
       {
         alive: !state.death,
         state: attacking ? 'telegraph' : state.moveSpeed > 0.1 ? 'hunt' : 'idle',
@@ -234,11 +242,22 @@ export async function startMonsterGallery(container: HTMLElement): Promise<void>
       },
       dt,
     );
+    if (farRenderer) {
+      for (const enemy of farEnemies) {
+        enemy.speed = state.moveSpeed || 3;
+        enemy.telegraph = attacking ? 0.5 : 0;
+        enemy.state = attacking ? 'telegraph' : 'hunt';
+        enemy.alive = !state.death;
+        farRenderer.upsert(enemy, dt);
+      }
+    }
   }
 
   function renderDiagnostics(): void {
     const lines: string[] = [];
-    const profile = currentHeroProfile() ?? currentCommonProfile();
+    const profile = state.variant === 'commonNear' || state.variant === 'commonFar' || state.variant === 'aggregate'
+      ? currentCommonProfile()
+      : currentHeroProfile();
     lines.push(`monster: ${state.slug} variant: ${state.variant} filter: ${state.filter}`);
     lines.push(`profile: ${profile?.id ?? 'none'}`);
     lines.push(`near: ${profile?.nearModelAssetId ?? '-'}${profile?.farModelAssetId ? `\nfar: ${profile.farModelAssetId}` : ''}${profile?.aggregateModelAssetId ? `\naggregate: ${profile.aggregateModelAssetId}` : ''}`);

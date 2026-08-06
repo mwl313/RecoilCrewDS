@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { AssetService } from '../assets';
 import type { EnemyState } from '../../shared/types';
 import { InstanceSlotPool } from './instanceSlotPool';
+import { prepareMonsterMaterial } from '../materials/monsterMaterialPolicy';
 
 /**
  * Core Loop 06 M6: instanced fodder presentation. Ordinary enemies share a
@@ -17,6 +18,10 @@ export interface InstancedFodderState {
   scale: number;
   flash: number;
   deathT: number;
+  motionPhase: number;
+  speed: number;
+  airborne: boolean;
+  attacking: boolean;
   variant: number;
   visible: boolean;
   tier: 0 | 1 | 2 | 3;
@@ -63,6 +68,10 @@ export class InstancedEnemyRenderer {
         scale: 1,
         flash: 0,
         deathT: 0,
+        motionPhase: ((id * 2654435761) >>> 0) / 4294967296,
+        speed: 0,
+        airborne: false,
+        attacking: false,
         variant: (id * 2654435761) >>> 24,
         visible: true,
         tier: 0,
@@ -74,22 +83,25 @@ export class InstancedEnemyRenderer {
     state.z = e.z;
     state.yaw = e.yaw;
     state.flash = e.flash > 0 ? 1 : 0;
+    state.speed = Math.abs(e.speed ?? 0);
+    state.airborne = e.impulseGrounded === false;
+    state.attacking = Boolean(e.actionCue) || e.telegraph > 0 || ['telegraph', 'charge', 'fire', 'lock'].includes(e.state);
     if (e.alive) {
       state.deathT = 0;
       state.visible = true;
+      const cadence = THREE.MathUtils.clamp(state.speed * 0.22, 0.65, 2.4);
+      state.motionPhase = THREE.MathUtils.euclideanModulo(state.motionPhase + Math.max(0, Math.min(dt, 0.1)) * cadence, 1);
     } else {
       state.deathT += dt;
       state.visible = state.deathT <= 1.2;
     }
     if (state.visible) {
       this.host.setTransform(slot, state);
-      const tint = FODDER_TINTS[state.variant % FODDER_TINTS.length];
-      const f = state.flash;
       this.host.setColor(
         slot,
-        tint.r + (1 - tint.r) * f,
-        tint.g + (1 - tint.g) * f,
-        tint.b + (1 - tint.b) * f,
+        1,
+        1,
+        1,
       );
     }
     this.host.setCount(this.pool.activeCount);
@@ -132,13 +144,6 @@ export class InstancedEnemyRenderer {
   }
 }
 
-const FODDER_TINTS = [
-  { r: 1, g: 0.92, b: 0.82 },
-  { r: 0.92, g: 1, b: 0.86 },
-  { r: 0.95, g: 0.85, b: 1 },
-  { r: 1, g: 0.86, b: 0.86 },
-] as const;
-
 /** THREE host: one InstancedMesh per source mesh in the archetype model. */
 export function createScrapBugInstancedHost(
   scene: THREE.Scene,
@@ -151,10 +156,17 @@ export function createScrapBugInstancedHost(
     const mesh = o as THREE.Mesh;
     if (mesh.isMesh) meshes.push(mesh);
   });
+  prototype.updateMatrixWorld(true);
+  const localMatrices = meshes.map((mesh) => mesh.matrixWorld.clone());
   const batches: THREE.InstancedMesh[] = meshes.map((mesh) => {
-    const material = (mesh.material as THREE.MeshStandardMaterial).clone();
-    material.emissive = new THREE.Color(0x000000);
-    const instanced = new THREE.InstancedMesh(mesh.geometry, material, capacity);
+    const sourceMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const materials = sourceMaterials.map((source) => {
+      const material = source.clone() as THREE.Material & { emissive?: THREE.Color };
+      prepareMonsterMaterial(material);
+      if (material.emissive) material.emissive = new THREE.Color(0x000000);
+      return material;
+    });
+    const instanced = new THREE.InstancedMesh(mesh.geometry, Array.isArray(mesh.material) ? materials : materials[0], capacity);
     instanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     instanced.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
     instanced.frustumCulled = false;
@@ -165,22 +177,28 @@ export function createScrapBugInstancedHost(
     return instanced;
   });
   const dummy = new THREE.Object3D();
+  const composed = new THREE.Matrix4();
   const color = new THREE.Color();
 
   return {
     setTransform(slot, state) {
+      const wave = Math.sin(state.motionPhase * Math.PI * 2);
       if (state.deathT > 0) {
         const k = Math.max(0, 1 - state.deathT);
         dummy.position.set(state.x, state.y - state.deathT * 0.9, state.z);
         dummy.rotation.set(0, state.yaw, 0);
         dummy.scale.setScalar(state.scale * k);
       } else {
-        dummy.position.set(state.x, state.y, state.z);
-        dummy.rotation.set(0, state.yaw, 0);
-        dummy.scale.setScalar(state.scale);
+        const bob = state.airborne ? 0 : Math.max(0, wave) * 0.07;
+        dummy.position.set(state.x, state.y + bob, state.z);
+        dummy.rotation.set(state.attacking ? -0.13 * Math.max(0, wave) : state.airborne ? -0.1 : 0, state.yaw, wave * 0.045);
+        dummy.scale.setScalar(state.scale * (state.attacking ? 1 + Math.max(0, wave) * 0.035 : 1));
       }
       dummy.updateMatrix();
-      for (const batch of batches) batch.setMatrixAt(slot, dummy.matrix);
+      for (let index = 0; index < batches.length; index++) {
+        composed.multiplyMatrices(dummy.matrix, localMatrices[index]);
+        batches[index].setMatrixAt(slot, composed);
+      }
     },
     setColor(slot, r, g, b) {
       color.setRGB(r, g, b);

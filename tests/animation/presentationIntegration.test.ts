@@ -137,9 +137,9 @@ describe('enemy presentation integration (animation07 M7/M10)', () => {
     expect(rig.modelVariant).toBe('far');
     expect(rig.animation).toBeNull();
     expect(rig.model).not.toBe(nearModel);
-    expect(rig.group.children).toContain(rig.model);
-    expect(rig.group.children).not.toContain(nearModel);
-    expect(rig.group.children.filter((c) => c !== rig.telegraph).length).toBe(1);
+    expect(rig.motionRoot.children).toContain(rig.model);
+    expect(rig.motionRoot.children).not.toContain(nearModel);
+    expect(rig.group.children).toEqual([rig.motionRoot]);
     // No mixer for far tier.
     expect(animationTelemetry.liveMixers).toBe(0);
     expect(animationTelemetry.liveRigidFarRoots).toBe(1);
@@ -151,6 +151,30 @@ describe('enemy presentation integration (animation07 M7/M10)', () => {
     expect(animationTelemetry.liveMixers).toBe(1);
     expect(animationTelemetry.liveRigidFarRoots).toBe(0);
     registry.removeEnemy(5);
+  });
+
+  it('preserves phase, semantic action, position and yaw through near/far swaps', async () => {
+    const assets = await loadAssets(true);
+    const factory = new EntityViewFactory(assets);
+    const scene = new THREE.Scene();
+    const registry = new EntityViewRegistry(scene, factory);
+    const rig = registry.createEnemy(enemyState({ id: 15, presentationProfileId: 'enemyPresentation.witch.common' }));
+    rig.group.position.set(8, 2.5, -6);
+    rig.group.rotation.y = 1.1;
+    rig.animation!.update(
+      { alive: true, state: 'hunt', stateT: 0, speed: 3, telegraph: 0, flash: 0, airborne: false },
+      0.31,
+    );
+    const before = rig.animation!.captureContinuity();
+    factory.applyPresentationTier(rig, 'far');
+    expect(rig.group.position.toArray()).toEqual([8, 2.5, -6]);
+    expect(rig.group.rotation.y).toBeCloseTo(1.1);
+    expect(rig.farMotion!.captureContinuity().normalizedTime).toBeCloseTo(before.normalizedTime, 5);
+    factory.applyPresentationTier(rig, 'mid');
+    expect(rig.animation!.instance.currentRole).toBe(before.role);
+    expect(rig.animation!.captureContinuity().normalizedTime).toBeCloseTo(before.normalizedTime, 5);
+    expect(rig.group.position.y).toBe(2.5);
+    registry.removeEnemy(15);
   });
 
   it('farRecords exposes the instanced-renderer seam without mixers', async () => {

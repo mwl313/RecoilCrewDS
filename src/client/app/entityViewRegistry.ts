@@ -14,9 +14,13 @@ import type {
 } from '../../shared/animation/animationProfileTypes';
 import type { EnemyPresentationResolution } from '../animation/enemyPresentationResolver';
 import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNormalization';
+import type { EnemyAnimationContinuity } from '../animation/enemyAnimationController';
+import type { DistantEnemyMotion } from '../animation/distantEnemyMotion';
 
 export interface EnemyRig {
   group: THREE.Group;
+  /** Stable visual envelope retained while the model variant changes. */
+  motionRoot: THREE.Group;
   model: THREE.Object3D;
   /** Animation07: resolved content profile id and metadata. */
   presentationProfileId: string;
@@ -25,6 +29,8 @@ export interface EnemyRig {
   currentLod: EnemyAnimationLodTier;
   modelVariant: 'near' | 'far' | 'aggregate';
   phaseSeed: number;
+  animationContinuity: EnemyAnimationContinuity | null;
+  farMotion: DistantEnemyMotion | null;
   head?: THREE.Object3D;
   materials: THREE.MeshStandardMaterial[];
   telegraph: THREE.Group;

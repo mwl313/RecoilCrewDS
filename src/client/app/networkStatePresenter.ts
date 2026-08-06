@@ -24,6 +24,8 @@ import { AnimationLodManager, type AnimationLodCandidate } from '../animation/an
 import type { AnimationLodPolicyDefinition, EnemyAnimationLodTier } from '../../shared/animation/animationProfileTypes';
 import { EntityViewFactory } from './entityViewFactory';
 import { BASE_CONFIG } from '../../shared/config';
+import { applyDistantEnemyPose } from '../animation/distantEnemyMotion';
+import type { EnemyAnimationPresentationState } from '../animation/enemyAnimationStateResolver';
 
 const scratchViewDirection = new THREE.Vector3();
 
@@ -274,23 +276,34 @@ export class NetworkStatePresenter {
         if (rig.head) rig.head.rotation.y = e.aimYaw - e.yaw;
         rig.deadT = e.alive ? 0 : rig.deadT + dt;
         if (!e.alive && rig.deadT > 1.2) rig.group.visible = false;
+        const animationState: EnemyAnimationPresentationState = {
+          alive: e.alive,
+          state: e.state,
+          stateT: e.stateT,
+          speed: e.speed,
+          telegraph: e.telegraph,
+          flash: e.flash,
+          airborne: e.impulseGrounded === false,
+          cue: e.actionCue ?? null,
+          currentTick: Math.round(deps.time() * 30),
+        };
         if (rig.animation) {
           const policy = rig.presentationResolution.lodPolicy;
-          const mixerDt = this.animationDelta(rig, tier, e.id, dt, policy.midUpdateHz);
-          rig.animation.update(
-            {
-              alive: e.alive,
-              state: e.state,
-              stateT: e.stateT,
-              speed: e.speed,
-              telegraph: e.telegraph,
-              flash: e.flash,
-              airborne: e.impulseGrounded === false,
-              cue: e.actionCue ?? null,
-              currentTick: Math.round(deps.time() * 30),
-            },
-            mixerDt,
+          // Mid tier resolves semantic state at a reduced rate, while its
+          // mixer still advances every render frame. This avoids 12 Hz pose
+          // stepping without paying full state-selection cost.
+          if (tier !== 'mid' || this.animationStateDue(e.id, dt, policy.midUpdateHz)) {
+            rig.animation.syncState(animationState);
+          }
+          if (tier !== 'mid') this.midAccumulators.delete(e.id);
+          rig.animation.advance(dt);
+        } else if (rig.farMotion) {
+          const pose = rig.farMotion.update(
+            rig.presentationResolution.animationProfile,
+            animationState,
+            dt,
           );
+          applyDistantEnemyPose(rig.motionRoot, pose);
         }
         const flash = e.flash > 0 ? 1.4 : 0;
         for (const mat of rig.materials) {
@@ -454,26 +467,24 @@ export class NetworkStatePresenter {
     this.midAccumulators.clear();
   }
 
-  /** Reduced-rate mid updates use actual accumulated elapsed time. */
-  private animationDelta(
-    rig: { currentLod: EnemyAnimationLodTier },
-    tier: EnemyAnimationLodTier,
+  /** Reduced-rate mid semantic evaluation; mixer interpolation stays 60 Hz. */
+  private animationStateDue(
     enemyId: number,
     dt: number,
     midUpdateHz: number,
-  ): number {
-    if (tier !== 'mid' || rig.currentLod !== 'mid') {
-      this.midAccumulators.delete(enemyId);
-      return dt;
+  ): boolean {
+    if (!this.midAccumulators.has(enemyId)) {
+      this.midAccumulators.set(enemyId, 0);
+      return true;
     }
     const acc = (this.midAccumulators.get(enemyId) ?? 0) + dt;
     const interval = 1 / Math.max(1, midUpdateHz);
     if (acc < interval) {
       this.midAccumulators.set(enemyId, acc);
-      return 0;
+      return false;
     }
-    this.midAccumulators.set(enemyId, 0);
-    return acc;
+    this.midAccumulators.set(enemyId, acc % interval);
+    return true;
   }
 }
 

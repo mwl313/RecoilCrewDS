@@ -5,6 +5,7 @@ import { EntityViewFactory } from '../../src/client/app/entityViewFactory';
 import { EntityViewRegistry } from '../../src/client/app/entityViewRegistry';
 import { animationTelemetry, resetAnimationTelemetry } from '../../src/client/animation/animationTelemetry';
 import type { EnemyState } from '../../src/shared/types';
+import { auditMonsterMaterials, prepareMonsterMaterials } from '../../src/client/materials/monsterMaterialPolicy';
 
 function enemy(overrides: Partial<EnemyState> = {}): EnemyState {
   return {
@@ -80,5 +81,32 @@ describe('material ownership and hit flash isolation (animation07 M11)', () => {
     registry.removeEnemy(2);
     expect(disposeSpy).toHaveBeenCalled();
     expect(animationTelemetry.ownedMaterialClones).toBe(0);
+  });
+});
+
+describe('low-poly monster material policy', () => {
+  it('preserves source color/shading while constraining dark PBR inputs', () => {
+    const map = new THREE.Texture();
+    map.colorSpace = THREE.NoColorSpace;
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x38c878,
+      map,
+      metalness: 0.9,
+      roughness: 0.2,
+      vertexColors: true,
+      flatShading: true,
+    });
+    material.aoMapIntensity = 1;
+    const color = material.color.getHex();
+    const root = new THREE.Mesh(new THREE.BoxGeometry(), material);
+    prepareMonsterMaterials(root);
+    const audit = auditMonsterMaterials(root);
+    expect(material.color.getHex()).toBe(color);
+    expect(material.vertexColors).toBe(true);
+    expect(material.flatShading).toBe(true);
+    expect(material.map!.colorSpace).toBe(THREE.SRGBColorSpace);
+    expect(audit.maxMetalness).toBeLessThanOrEqual(0.08);
+    expect(audit.minRoughness).toBeGreaterThanOrEqual(0.68);
+    expect(audit.maxAoIntensity).toBeLessThanOrEqual(0.5);
   });
 });
