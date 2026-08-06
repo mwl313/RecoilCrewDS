@@ -58,13 +58,25 @@ Implemented:
 
 Measured results, hardware limitations, lower-tier release gates and raw evidence are in [ENEMY_CAPACITY_BENCHMARK.md](ENEMY_CAPACITY_BENCHMARK.md).
 
+## Phase D — complete
+
+Implemented and evaluated:
+
+- Retained the current production map and its Phase B cohesion improvements as the default.
+- Added isolated `urban200Prototype` and `urban400Prototype` map profiles selected only through explicit development query parameters.
+- Built connected, authored street graphs with semantically correct road pieces, wide pursuit lanes, open intersections, sparse Quaternius buildings, and instanced road/prop presentation.
+- Added elevation-aware authoritative building walls, flat driveable rooftops, broad roof ramps, spawn exclusion, and shared tank/enemy/projectile/camera surface queries.
+- Added test-only rolling frame/render submission and visible-scene resource diagnostics for a fair same-build comparison.
+- Human-reviewed current, 200 m, and 400 m driver/aerial/rooftop evidence.
+
+On Chrome 151 / RTX 4060 Ti / 1280×720, both current and Urban 200 measured an 8.8 ms p95 frame interval after warm-up. Urban render submission measured 1.7 ms p95 versus 1.4 ms current, with an estimated 95 versus 203 visible-scene draws, 162,517 versus 46,528 visible triangles, and 32 versus 23 textures. The recommendation is **hybridize with urban elements later** while the production default remains unchanged. Full comparison, limitations, provenance, and evidence are in [URBAN_PROTOTYPE_EVALUATION.md](URBAN_PROTOTYPE_EVALUATION.md).
+
 ## Qualification notes
 
 - The full suite initially reported one legitimate test update needed for the new authoritative dash gate (`roadkill.test.ts` now supplies `dashState = 'burst'`).
 - A monster importer dry-run assertion assumed ignored staging existed while the implementation explicitly returns an empty plan when it does not; the assertion now validates both documented states without writing staging.
 - A cannon charge test failed once in the first fully parallel run and passed immediately in isolation. The complete rerun then passed all 148 files / 1,126 tests, so no production change was made for the transient failure.
 
-## Remaining phases
+## Remaining work
 
-- Phase D: current-map cohesion pass plus separate urban-apocalypse prototype and comparison.
-- Final: complete required command matrix, browser evidence, reports, focused commits, and branch handoff.
+- Final: complete the required command matrix, record any unavailable renamed equivalents, close documentation, and hand off the unmerged branch.

@@ -660,6 +660,11 @@ async function startSinglePlayer(): Promise<void> {
   if (TEST_MODE && params.get('urbanView') === 'overview' && session.arena?.urbanLayout) {
     game.setUrbanOverview(session.arena.widthMeters);
   }
+  if (TEST_MODE && params.has('qualityMetrics')) {
+    window.setInterval(() => {
+      if (game) document.body.dataset.qualityMetrics = JSON.stringify(game.qualityDiagnostics());
+    }, 250);
+  }
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
   inGame = true;

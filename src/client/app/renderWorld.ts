@@ -22,6 +22,9 @@ export class RenderWorld {
   bloom: UnrealBloomPass | null = null;
   /** Number of world renders performed (PIP-removal render spy). */
   renderCount = 0;
+  private readonly renderSubmitMs: number[] = [];
+  private readonly frameIntervalMs: number[] = [];
+  private lastRenderAt = 0;
   private renderPass: RenderPass | null = null;
 
   constructor(
@@ -108,11 +111,56 @@ export class RenderWorld {
 
   render(camera: THREE.PerspectiveCamera): void {
     this.renderCount++;
+    const startedAt = performance.now();
+    if (this.lastRenderAt > 0) pushBounded(this.frameIntervalMs, startedAt - this.lastRenderAt);
+    this.lastRenderAt = startedAt;
     if (this.composer) {
       this.composer.render();
     } else {
       this.renderer.render(this.scene, camera);
     }
+    pushBounded(this.renderSubmitMs, performance.now() - startedAt);
+  }
+
+  /** Test/quality diagnostics without changing normal rendering behavior. */
+  qualityDiagnostics(): {
+    frameIntervalP50Ms: number;
+    frameIntervalP95Ms: number;
+    frameIntervalP99Ms: number;
+    renderSubmitP50Ms: number;
+    renderSubmitP95Ms: number;
+    estimatedSceneDrawCalls: number;
+    estimatedSceneTriangles: number;
+    geometries: number;
+    textures: number;
+  } {
+    let estimatedSceneDrawCalls = 0;
+    let estimatedSceneTriangles = 0;
+    this.scene.traverseVisible((object) => {
+      const mesh = object as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const geometry = mesh.geometry as THREE.BufferGeometry;
+      const indexCount = geometry.index?.count ?? geometry.getAttribute('position')?.count ?? 0;
+      const materialCalls = Array.isArray(mesh.material)
+        ? Math.max(1, geometry.groups.length || mesh.material.length)
+        : 1;
+      const instances = (mesh as THREE.InstancedMesh).isInstancedMesh
+        ? Math.max(0, (mesh as THREE.InstancedMesh).count)
+        : 1;
+      estimatedSceneDrawCalls += materialCalls;
+      estimatedSceneTriangles += Math.floor(indexCount / 3) * instances;
+    });
+    return {
+      frameIntervalP50Ms: samplePercentile(this.frameIntervalMs, 0.5),
+      frameIntervalP95Ms: samplePercentile(this.frameIntervalMs, 0.95),
+      frameIntervalP99Ms: samplePercentile(this.frameIntervalMs, 0.99),
+      renderSubmitP50Ms: samplePercentile(this.renderSubmitMs, 0.5),
+      renderSubmitP95Ms: samplePercentile(this.renderSubmitMs, 0.95),
+      estimatedSceneDrawCalls,
+      estimatedSceneTriangles,
+      geometries: this.renderer.info.memory.geometries,
+      textures: this.renderer.info.memory.textures,
+    };
   }
 
   setPixelRatio(ratio: number): void {
@@ -146,4 +194,15 @@ export class RenderWorld {
       this.container.removeChild(this.renderer.domElement);
     }
   }
+}
+
+function pushBounded(values: number[], value: number, maximum = 240): void {
+  values.push(value);
+  if (values.length > maximum) values.shift();
+}
+
+function samplePercentile(values: readonly number[], q: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return Number(sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))].toFixed(3));
 }

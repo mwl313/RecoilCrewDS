@@ -44,10 +44,20 @@
 - Per-instance skeleton GPU resources are now disposed, and every benchmark scenario returns renderer textures to zero after cleanup.
 - Hardware caveat and lower-class release gates are documented in `ENEMY_CAPACITY_BENCHMARK.md`.
 
+### Phase D
+
+- The production map remains the default; urban profiles are opt-in development/test routes only.
+- The 200 m candidate and 400 m scale test use connected authored roads, sparse source-faithful buildings, instanced roads/props, broad roof ramps, and elevation-aware authoritative collision.
+- Current and Urban 200 both measured 8.8 ms p95 frame interval on the available Chrome 151 / RTX 4060 Ti / 1280×720 setup after warm-up.
+- Urban 200 traded higher triangle/texture cost for a lower visible-scene draw estimate and clearer dash lanes, spawn avenues, combat ranges, and multiplayer landmarks.
+- Human-reviewed driver, aerial, rooftop, and fair-comparison evidence is committed under `docs/quality/evidence/`.
+- Recommendation: **hybridize with urban elements later**; do not replace the production map in this milestone.
+
 ## Next work
 
-1. Build the urban environment as a separate prototype/profile using the preserved source ZIPs; do not replace the current map.
-2. Run the complete final command matrix and update this handoff with commit SHAs and measured results.
+1. Run the complete final command matrix and record exact results or renamed equivalents.
+2. Close the reports with the ending implementation SHA and final qualification commit.
+3. Hand off `quality-improvement` without merging it into `main`.
 
 ## Known observations
 

@@ -100,6 +100,10 @@ export class GameClient {
     }
   }
 
+  qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> {
+    return this.world.qualityDiagnostics();
+  }
+
   private constructor(deps: {
     container: HTMLElement;
     assets: AssetService;
