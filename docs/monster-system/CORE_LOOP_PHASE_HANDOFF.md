@@ -78,19 +78,34 @@ Commit: `monster-core-loop: connect presentation preload and encounter HUD`
 PASS (135 files / 988 tests) · `npm run build` PASS · `test:demo` PASS
 (golden unchanged).
 
-## Phase E — Qualification (NEXT)
+## Phase E — Qualification: AUTOMATED PORTION COMPLETE
 
-- Full Single Player run (Phase 1 → Wave 1 → Phase 2 → Wave 2 → Phase 3 →
-  Boss intro → Boss active → Victory) plus tank-destruction defeat.
-- Two-client multiplayer run (same selected run, preload readiness,
-  action/telegraph/projectile agreement, encounter-bar agreement, rematch).
-- Selection matrix (fixed seeds, no consecutive repeats, Phase 1 repeat in
-  Phase 3, elite uniqueness, boss exclusion, one/two-elite configs).
-- All six featured identities validated as elite and boss (12 role checks).
-- Performance/telemetry and rematch cleanup.
+Commit: `monster-core-loop: qualify production loop and document tuning`
+(next commit in this branch).
+
+Delivered:
+
+- Selection matrix tests (fixed seeds, no consecutive repeats, Phase 1
+  repeat in Phase 3, elite uniqueness, boss exclusion, one/two-elite
+  configs, SP/MP same-run).
+- Cross-role validation: all six identities × elite/boss (12 checks).
+- Headless full SP qualification (`npm run qualify:monster-coreloop`):
+  victory at 190.2 s with waves at 60/120/180, Lv1–13 boundary checks,
+  boss TTK 10.1 s at synthetic 220 DPS, award-once XP totals.
+- Performance: horde benchmark (500 enemies ~0.98 ms/tick p50) and
+  animation benchmark (100 mixers ~0.023 ms; rematch cleanup leaves 0
+  live mixers).
 - Reports: `MONSTER_CORE_LOOP_IMPLEMENTATION_REPORT.md`,
   `MONSTER_CORE_LOOP_QUALIFICATION_REPORT.md`,
   `MONSTER_CORE_LOOP_AUTHORING_GUIDE.md`.
+
+Outstanding (requires the running game/browser, not run here):
+
+- Interactive Single Player full run with real input.
+- Real two-client multiplayer run (selected-run agreement, preload
+  readiness, action/telegraph/projectile agreement, encounter bars,
+  rematch).
+- Visual inspection of normalized scale/sockets/encounter bars.
 
 ## Known limitations / tuning notes
 
