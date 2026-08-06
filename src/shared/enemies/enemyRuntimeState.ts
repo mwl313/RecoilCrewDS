@@ -1,4 +1,5 @@
 import type { EnemyAttackRuntime } from '../monsters/monsterAttack';
+import type { EnemySemanticAction } from '../monsters/monsterSemantics';
 
 /** Per-enemy scratch state shared by composed behaviors within a frame. */
 export class EnemyRuntimeState {
@@ -23,4 +24,8 @@ export class EnemyRuntimeState {
   /** Monster system: persistent authoritative attack cycle. */
   attackRuntime?: EnemyAttackRuntime;
   attackSequence = 0;
+  /** Authoritative semantic presentation state (Idle/Walk/Attack/Death). */
+  semanticAction: EnemySemanticAction = 'Idle';
+  semanticSequence = 0;
+  deathLocked = false;
 }

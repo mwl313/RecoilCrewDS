@@ -19,6 +19,10 @@ import {
   resolveProjectileSocketY,
   slugFromEnemyId,
 } from '../src/shared/monsters/monsterNormalization';
+import {
+  createEnemySemanticScratch,
+  updateEnemySemantics,
+} from '../src/shared/monsters/monsterSemantics';
 
 const pack = loadContentPackFromFilesystem('content');
 const roster = pack.getEnemyGameplayRoster('enemyGameplayRoster.quaternius.mainStage');
@@ -285,5 +289,32 @@ describe('monster stage timeline', () => {
     const dims = resolveMonsterDimensions('enemy.quaternius.wizard', 'medium', 'fodder');
     expect(socketY).toBeGreaterThan(0);
     expect(socketY).toBeLessThan(dims.normalizedHeight);
+  });
+
+  it('semantic actions transition with stable sequences and death locks', () => {
+    const state = createEnemySemanticScratch();
+    const walk1 = updateEnemySemantics(state, { alive: true, moving: true, attacking: false });
+    expect(walk1).toEqual({ action: 'Walk', sequence: 1 });
+    const walk2 = updateEnemySemantics(state, { alive: true, moving: true, attacking: false });
+    expect(walk2.sequence).toBe(1);
+    const attack = updateEnemySemantics(state, { alive: true, moving: true, attacking: true });
+    expect(attack.action).toBe('Attack');
+    expect(attack.sequence).toBe(2);
+    const attack2 = updateEnemySemantics(state, { alive: true, moving: false, attacking: true });
+    expect(attack2).toEqual({ action: 'Attack', sequence: 2 });
+    const death = updateEnemySemantics(state, { alive: false, moving: false, attacking: false });
+    expect(death).toEqual({ action: 'Death', sequence: 3 });
+    const locked = updateEnemySemantics(state, { alive: true, moving: true, attacking: false });
+    expect(locked).toEqual({ action: 'Death', sequence: 3 });
+  });
+
+  it('production enemy runtime exposes Death semantics after death', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-sem', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const foe = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x + 5, prod.state.tank.z);
+    if (!foe) throw new Error('spawn failed');
+    prod.systems.damage.applyEnemy(foe, 99999, 'test');
+    for (let i = 0; i < 3; i++) prod.step(1 / 60);
+    expect(prod.systems.enemies.semanticFor(foe.id).action).toBe('Death');
   });
 });

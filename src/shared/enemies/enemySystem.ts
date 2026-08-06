@@ -19,6 +19,7 @@ import {
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
 import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
+import { updateEnemySemantics } from '../monsters/monsterSemantics';
 import { mulberry32, type Rng } from '../mapgen/prng';
 import { hash32 } from '../mapgen/seed';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
@@ -60,6 +61,14 @@ export class EnemySystem {
   /** Reservation ownership for a living melee monster (public for tests/HUD). */
   meleeReservedFor(enemyId: number): boolean {
     return this.meleeReservations.hasReservation(enemyId);
+  }
+
+  /** Authoritative semantic action + stable sequence (presentation/HUD). */
+  semanticFor(enemyId: number): { action: string; sequence: number } {
+    const runtime = this.runtimes.get(enemyId);
+    return runtime
+      ? { action: runtime.semanticAction, sequence: runtime.semanticSequence }
+      : { action: 'Idle', sequence: 0 };
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
@@ -241,6 +250,18 @@ export class EnemySystem {
     this.meleeReservations.update(s.tank.x, s.tank.z, meleeCandidates, s.time);
     const policy = this.lodPolicy();
     for (const e of s.enemies) {
+      let runtime = this.runtimes.get(e.id);
+      if (!runtime) {
+        runtime = new EnemyRuntimeState();
+        runtime.lastUpdateT = s.time;
+        runtime.phaseOffset = (e.id % 16) / 16;
+        this.runtimes.set(e.id, runtime);
+      }
+      updateEnemySemantics(runtime, {
+        alive: e.alive,
+        moving: runtime.speed > 0.2 && runtime.distToTank > 0.5,
+        attacking: runtime.attackRuntime?.active === true,
+      });
       if (!e.alive) {
         e.stateT += dt;
         continue;
@@ -250,13 +271,6 @@ export class EnemySystem {
       e.telegraph = Math.max(0, e.telegraph - dt);
       e.hitCd = Math.max(0, (e.hitCd ?? 0) - dt);
       const def = this.defFor(e);
-      let runtime = this.runtimes.get(e.id);
-      if (!runtime) {
-        runtime = new EnemyRuntimeState();
-        runtime.lastUpdateT = s.time;
-        runtime.phaseOffset = (e.id % 16) / 16;
-        this.runtimes.set(e.id, runtime);
-      }
       const tier = this.tierFor(e, runtime);
       runtime.tier = tier;
       runtime.meleeReserved = this.meleeReservations.hasReservation(e.id);
