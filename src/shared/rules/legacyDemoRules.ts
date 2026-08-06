@@ -4,6 +4,7 @@ import type { DropTableDefinition } from '../content/schemas/dropTable';
 import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { EnemyLevelCurveDefinition } from '../content/schemas/enemyLevelCurve';
 import type { EnemyXpRewardsDefinition } from '../content/schemas/enemyXpRewards';
+import type { EnemyGameplayRosterDefinition } from '../content/schemas/enemyGameplayRoster';
 import type { MeleeEngagementProfileDefinition } from '../content/schemas/meleeEngagementProfile';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
 import type { ModeDefinition } from '../content/schemas/mode';
@@ -36,6 +37,7 @@ export interface DemoRulesBundle {
   projectiles: Record<string, ProjectileDefinition>;
   enemyLevelCurves: Record<string, EnemyLevelCurveDefinition>;
   enemyXpRewards: Record<string, EnemyXpRewardsDefinition>;
+  enemyGameplayRosters: Record<string, EnemyGameplayRosterDefinition>;
   meleeEngagementProfiles: Record<string, MeleeEngagementProfileDefinition>;
   dropTables: Record<string, DropTableDefinition>;
   pickups: Record<string, PickupDefinition>;
@@ -452,6 +454,7 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     projectiles: {},
     enemyLevelCurves: {},
     enemyXpRewards: {},
+    enemyGameplayRosters: {},
     meleeEngagementProfiles: {},
     dropTables,
     pickups,

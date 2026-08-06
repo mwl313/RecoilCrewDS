@@ -110,6 +110,7 @@ export function createSystemContext(
   simTick = 0,
   hordeDirector: ResolvedHordeDirector | null = null,
   sessionKind: 'singlePlayer' | 'multiplayer' = 'multiplayer',
+  monsterSlots: Record<string, string> | null = null,
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -148,7 +149,7 @@ export function createSystemContext(
   ctx.hordeSectors = new HordeSectorAggregator(ctx);
   ctx.sessionKind = sessionKind;
   ctx.xpShards = new XpShardSystem(ctx);
-  ctx.monsterSlots = null;
+  ctx.monsterSlots = monsterSlots;
   ctx.progression = new ProgressionSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);

@@ -4,6 +4,7 @@ import type { DropTableDefinition } from '../content/schemas/dropTable';
 import type { EnemyDefinition } from '../content/schemas/enemy';
 import type { EnemyLevelCurveDefinition } from '../content/schemas/enemyLevelCurve';
 import type { EnemyXpRewardsDefinition } from '../content/schemas/enemyXpRewards';
+import type { EnemyGameplayRosterDefinition } from '../content/schemas/enemyGameplayRoster';
 import type { MeleeEngagementProfileDefinition } from '../content/schemas/meleeEngagementProfile';
 import type { ProjectileDefinition } from '../content/schemas/projectile';
 import type { LoadoutDefinition } from '../content/schemas/loadout';
@@ -85,6 +86,7 @@ export class MatchRules {
   readonly projectiles: ReadonlyMap<string, ProjectileDefinition>;
   readonly enemyLevelCurves: ReadonlyMap<string, EnemyLevelCurveDefinition>;
   readonly enemyXpRewards: ReadonlyMap<string, EnemyXpRewardsDefinition>;
+  readonly enemyGameplayRosters: ReadonlyMap<string, EnemyGameplayRosterDefinition>;
   readonly meleeEngagementProfiles: ReadonlyMap<string, MeleeEngagementProfileDefinition>;
   readonly dropTables: ReadonlyMap<string, DropTableDefinition>;
   readonly pickups: ReadonlyMap<string, PickupDefinition>;
@@ -156,6 +158,7 @@ export class MatchRules {
     this.projectiles = deepFreeze(new Map(Object.entries(options.bundle.projectiles)));
     this.enemyLevelCurves = deepFreeze(new Map(Object.entries(options.bundle.enemyLevelCurves)));
     this.enemyXpRewards = deepFreeze(new Map(Object.entries(options.bundle.enemyXpRewards)));
+    this.enemyGameplayRosters = deepFreeze(new Map(Object.entries(options.bundle.enemyGameplayRosters)));
     this.meleeEngagementProfiles = deepFreeze(new Map(Object.entries(options.bundle.meleeEngagementProfiles)));
     this.dropTables = deepFreeze(new Map(Object.entries(options.bundle.dropTables)));
     this.pickups = deepFreeze(new Map(Object.entries(options.bundle.pickups)));
@@ -246,6 +249,7 @@ export class MatchRules {
         projectiles: packProjectiles(pack),
         enemyLevelCurves: packEnemyLevelCurves(pack),
         enemyXpRewards: packEnemyXpRewards(pack),
+        enemyGameplayRosters: packEnemyGameplayRosters(pack),
         meleeEngagementProfiles: packMeleeEngagementProfiles(pack),
         dropTables: packDropTables(pack),
         pickups: packPickups(pack),
@@ -517,6 +521,12 @@ function packEnemyLevelCurves(pack: ContentPack): Record<string, EnemyLevelCurve
 function packEnemyXpRewards(pack: ContentPack): Record<string, EnemyXpRewardsDefinition> {
   const out: Record<string, EnemyXpRewardsDefinition> = {};
   for (const id of pack.ids('enemyXpRewards')) out[id] = pack.getEnemyXpRewards(id);
+  return out;
+}
+
+function packEnemyGameplayRosters(pack: ContentPack): Record<string, EnemyGameplayRosterDefinition> {
+  const out: Record<string, EnemyGameplayRosterDefinition> = {};
+  for (const id of pack.ids('enemyGameplayRosters')) out[id] = pack.getEnemyGameplayRoster(id);
   return out;
 }
 
