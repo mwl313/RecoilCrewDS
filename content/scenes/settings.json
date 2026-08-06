@@ -6,21 +6,33 @@
   "root": {
     "id": "screen-settings",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-overlay-screen settings-overlay",
     "children": [
+      { "id": "settings-scrim", "type": "container", "class": "ui-overlay-scrim" },
       {
         "id": "settings-panel",
         "type": "panel",
-        "class": "panel",
+        "class": "ui-overlay-panel ui-settings-panel",
+        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
         "children": [
+          { "id": "settings-kicker", "type": "text", "class": "ui-kicker", "text": "FIELD CONFIG // LOCAL" },
           { "id": "settings-title", "type": "text", "props": { "tag": "h2" }, "text": "PLAYER SETTINGS" },
-          { "id": "settings-nickname-label", "type": "text", "text": "PLAYER NICKNAME" },
-          { "id": "nickname-input", "type": "input", "props": { "mode": "text", "maxlength": 20, "placeholder": "TurboToad07", "spellcheck": false }, "bindings": [{ "target": "value", "source": "nicknameDraft", "fallback": "" }] },
-          { "id": "settings-error", "type": "text", "class": "settings-error", "bindings": [{ "target": "text", "source": "settingsError", "fallback": "" }] },
-          { "id": "settings-hint", "type": "text", "class": "settings-hint", "text": "This nickname appears in the lobby. It is a local preference, not an account." },
-          { "id": "settings-randomize", "type": "button", "class": "btn", "text": "RANDOMIZE", "actions": [{ "event": "click", "action": "app.randomizeNickname" }] },
-          { "id": "settings-save", "type": "button", "class": "btn primary", "text": "SAVE", "actions": [{ "event": "click", "action": "app.saveSettings" }] },
-          { "id": "settings-cancel", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "CANCEL", "actions": [{ "event": "click", "action": "app.cancelSettings" }] }
+          { "id": "settings-rule", "type": "container", "class": "ui-overlay-rule" },
+          { "id": "settings-nickname-label", "type": "text", "class": "ui-field-label", "text": "CURRENT NICKNAME" },
+          { "id": "nickname-input", "type": "input", "class": "ui-nickname-input", "props": { "mode": "text", "maxlength": 20, "placeholder": "TurboToad07", "spellcheck": false }, "bindings": [{ "target": "value", "source": "nicknameDraft", "fallback": "" }] },
+          { "id": "settings-error", "type": "text", "class": "ui-form-error settings-error", "bindings": [{ "target": "text", "source": "settingsError", "fallback": "" }] },
+          { "id": "settings-hint", "type": "text", "class": "ui-overlay-copy settings-hint", "text": "Shown to your crew in the lobby. Stored on this device only — no account required." },
+          {
+            "id": "settings-actions",
+            "type": "grid",
+            "class": "ui-overlay-actions ui-overlay-actions--three",
+            "layout": { "kind": "grid", "columns": 3 },
+            "children": [
+              { "id": "settings-randomize", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "RANDOMIZE", "actions": [{ "event": "click", "action": "app.randomizeNickname" }] },
+              { "id": "settings-save", "type": "button", "class": "ui-action", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "SAVE", "actions": [{ "event": "click", "action": "app.saveSettings" }] },
+              { "id": "settings-cancel", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "CANCEL", "actions": [{ "event": "click", "action": "app.cancelSettings" }] }
+            ]
+          }
         ]
       }
     ]

@@ -23,6 +23,9 @@ import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/t
 import { AnimationLodManager, type AnimationLodCandidate } from '../animation/animationLodSelector';
 import type { AnimationLodPolicyDefinition, EnemyAnimationLodTier } from '../../shared/animation/animationProfileTypes';
 import { EntityViewFactory } from './entityViewFactory';
+import { BASE_CONFIG } from '../../shared/config';
+
+const scratchViewDirection = new THREE.Vector3();
 
 export interface InputSource {
   key(name: string): boolean;
@@ -41,6 +44,7 @@ export interface PresenterDeps {
   prediction: PredictionController;
   colliders: () => Collider[];
   cameraQuery: () => CameraCollisionQuery | null;
+  groundHeightAt: (x: number, z: number) => number;
   input: InputSource;
   audio: AudioManager;
   onTankRig?: (block: TankRigRulesBlock) => void;
@@ -365,12 +369,28 @@ export class NetworkStatePresenter {
       const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
       const chassisYaw = deps.session().kind === 'singlePlayer' ? frame.tank.yaw : yaw;
       const limits = deps.prediction.turretPitchLimits();
-      const solved = solveTurretAim(
+      const targetSolved = solveTurretAim(
         { x: pos.x, y: pos.y, z: pos.z, yaw },
         this.tankRig.rigDefinition,
         { x: aim.x, y: aim.y, z: aim.z },
         { minPitch: limits.minPitch, maxPitch: limits.maxPitch },
       );
+      // Close third-person ground hits become geometrically ambiguous near
+      // vertical aim because the shoulder camera is offset from the turret.
+      // Blend toward the camera's actual direction near the poles so both
+      // online Gunner and Single Player can reach true up/down articulation.
+      const viewDirection = deps.cameras.activeCam.camera.getWorldDirection(scratchViewDirection);
+      const viewFlat = Math.hypot(viewDirection.x, viewDirection.z);
+      const viewWorldYaw = viewFlat > 1e-6
+        ? Math.atan2(viewDirection.x, viewDirection.z)
+        : deps.cameras.activeCam.yaw;
+      const viewYawLocal = wrapAngle(viewWorldYaw - yaw);
+      const viewPitch = clamp(Math.atan2(viewDirection.y, viewFlat), limits.minPitch, limits.maxPitch);
+      const verticalBlend = clamp((Math.abs(viewDirection.y) - 0.94) / 0.055, 0, 1);
+      const solved = {
+        desiredYawLocal: wrapAngle(targetSolved.desiredYawLocal + angleDiff(targetSolved.desiredYawLocal, viewYawLocal) * verticalBlend),
+        desiredPitch: lerp(targetSolved.desiredPitch, viewPitch, verticalBlend),
+      };
       const worldYaw = wrapAngle(yaw + solved.desiredYawLocal);
       deps.prediction.updateTurretTarget(worldYaw, solved.desiredPitch, chassisYaw, dt);
       const predictedTurret = deps.prediction.getTurretSpaces();
@@ -386,6 +406,12 @@ export class NetworkStatePresenter {
           turretPitch: predictedTurret.predictedPitch,
           rig: this.tankRig.rigDefinition,
           cameraQuery: deps.cameraQuery(),
+          groundHeightAt: deps.groundHeightAt,
+          projectile: {
+            speed: deps.prediction.movementRules()?.weapon?.cannonSpeed ?? BASE_CONFIG.weapons.cannonSpeed,
+            gravity: deps.prediction.movementRules()?.weapon?.cannonGravity ?? BASE_CONFIG.weapons.cannonGravity,
+            life: deps.prediction.movementRules()?.weapon?.cannonLife ?? BASE_CONFIG.weapons.cannonLife,
+          },
           desiredPoint: { x: aim.x, y: aim.y, z: aim.z },
         }),
       );

@@ -151,7 +151,7 @@ describe('weapon input fields (wire contract)', () => {
     });
     manager.tick(1 / 30);
     const input = room.match!.getGunnerInput();
-    expect(input.aimPitch).toBe(1.5); // clamped to [-1.5, 1.5]
+    expect(input.aimPitch).toBeCloseTo(Math.PI / 2, 12);
     expect(input.primary).toBe(true);
     expect(input.secondary).toBe(true);
   });

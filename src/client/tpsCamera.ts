@@ -121,10 +121,21 @@ export class TpsCameraController {
     return this.tuning.minPitch;
   }
 
+  get maxPitch(): number {
+    return this.tuning.maxPitch;
+  }
+
   /** Change the camera pitch floor (Single Player uses the wide gunner range). */
   setMinPitch(min: number): void {
     this.tuning.minPitch = min;
     if (this.pitch < min) this.pitch = min;
+  }
+
+  /** Change both pitch endpoints without resetting the player's current aim. */
+  setPitchLimits(min: number, max: number): void {
+    this.tuning.minPitch = Math.min(min, max);
+    this.tuning.maxPitch = Math.max(min, max);
+    this.pitch = clamp(this.pitch, this.tuning.minPitch, this.tuning.maxPitch);
   }
 
   setFollowPose(position: THREE.Vector3, chassisYaw: number): void {

@@ -33,6 +33,7 @@ export class ProgressionOverlay {
   private relicToastUntil = 0;
   private selectionVisible = false;
   private relicVisible = false;
+  private readonly debugEnabled = new URLSearchParams(globalThis.location?.search ?? '').has('progressionDebug');
 
   constructor(container: HTMLElement, private readonly cb: ProgressionOverlayCallbacks) {
     this.root = document.createElement('div');
@@ -56,7 +57,7 @@ export class ProgressionOverlay {
     this.debugHost = document.createElement('pre');
     this.debugHost.id = 'progression-debug-layer';
     this.debugHost.style.cssText =
-      'position:fixed;left:8px;bottom:8px;z-index:60;font:10px/1.4 ui-monospace,monospace;' +
+      `display:${this.debugEnabled ? 'block' : 'none'};position:fixed;left:8px;bottom:8px;z-index:60;font:10px/1.4 ui-monospace,monospace;` +
       'color:#7fd0dd;background:rgba(10,18,22,0.75);padding:6px 8px;border:1px solid #22333d;' +
       'white-space:pre;pointer-events:none;';
 
@@ -90,7 +91,7 @@ export class ProgressionOverlay {
   }
 
   updateDebug(text: string): void {
-    this.debugHost.textContent = text;
+    if (this.debugEnabled) this.debugHost.textContent = text;
   }
 
   // ------------------------------------------------------------ selection

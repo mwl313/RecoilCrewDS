@@ -6,6 +6,10 @@ import type { CameraCollisionSource } from '../tpsCamera';
 import type { CameraCollisionQuery } from '../cameraCollision';
 import type { MatchState, Role, TankState } from '../../shared/types';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
+import { VERTICAL_AIM_MAX_PITCH, VERTICAL_AIM_MIN_PITCH } from '../../shared/vehicle/tankRigTypes';
+
+const DRIVER_MIN_PITCH = (-35 * Math.PI) / 180;
+const DRIVER_MAX_PITCH = (55 * Math.PI) / 180;
 
 /** Driver/Gunner TPS rigs + camera impulses; TPS math stays in tpsCamera. */
 export class CameraManager {
@@ -29,10 +33,10 @@ export class CameraManager {
       shoulderHeight: 0.3,
       verticalArm: 0.55,
       speedFovBonus: 0,
-      // The Gunner must be able to aim near-vertical for cannon takeoffs.
-      // The turret remains the final authority (-1.45 rad); the camera just
-      // has to reach it. The Driver camera keeps the normal -35° floor.
-      minPitch: (-77 * Math.PI) / 180,
+      // Multiplayer Gunner and Single Player share the same full vertical
+      // range. Online Driver retains a narrower driving camera.
+      minPitch: VERTICAL_AIM_MIN_PITCH,
+      maxPitch: VERTICAL_AIM_MAX_PITCH,
     };
     this.driverCam = new TpsCameraController(driverTuning);
     this.gunnerCam = new TpsCameraController(gunnerTuning);
@@ -43,14 +47,12 @@ export class CameraManager {
     this.activeCam = role === 'driver' ? this.driverCam : this.gunnerCam;
   }
 
-  /**
-   * Single Player uses combined controls, so its camera gets the wide
-   * gunner pitch floor (near-vertical cannon takeoffs). Online Driver keeps
-   * the normal −35° floor.
-   */
+  /** Single Player uses the exact same pitch range as the online Gunner. */
   setSinglePlayerMode(singlePlayer: boolean): void {
-    const floor = singlePlayer ? (-77 * Math.PI) / 180 : (-35 * Math.PI) / 180;
-    this.driverCam.setMinPitch(floor);
+    this.driverCam.setPitchLimits(
+      singlePlayer ? VERTICAL_AIM_MIN_PITCH : DRIVER_MIN_PITCH,
+      singlePlayer ? VERTICAL_AIM_MAX_PITCH : DRIVER_MAX_PITCH,
+    );
   }
 
   resize(aspect: number): void {
@@ -119,8 +121,7 @@ export function tankSpeedRatio(t: TankState): number {
 }
 
 export function clampAimPitch(pitch: number): number {
-  // Resolved loadout pitch limits (content/legacy parity: -1.45..0.42).
-  return clamp(pitch, -1.45, 0.42);
+  return clamp(pitch, VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
 }
 
 export type { MatchState };

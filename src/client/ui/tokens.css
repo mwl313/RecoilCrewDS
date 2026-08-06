@@ -1,0 +1,46 @@
+:root {
+  --ui-ink-0: #07090a;
+  --ui-ink-1: #0d1113;
+  --ui-ink-2: #161c1f;
+  --ui-ink-3: #222a2d;
+  --ui-steel: #394347;
+  --ui-paper: #f1eee3;
+  --ui-muted: #929c9d;
+  --ui-amber: #ffad22;
+  --ui-amber-hot: #ffc04a;
+  --ui-driver: #24d2d7;
+  --ui-gunner: #ff5a2e;
+  --ui-danger: #f14232;
+  --ui-success: #79dc88;
+  --ui-line: rgba(240, 245, 239, 0.17);
+  --ui-line-strong: rgba(240, 245, 239, 0.3);
+  --ui-panel: rgba(7, 9, 10, 0.9);
+  --ui-panel-soft: rgba(13, 17, 19, 0.82);
+  --ui-safe-x: max(24px, env(safe-area-inset-left));
+  --ui-safe-y: max(20px, env(safe-area-inset-top));
+  --ui-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --ui-body: 'Barlow', 'Segoe UI', sans-serif;
+  --ui-cut-sm: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  --ui-cut-md: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  --ui-cut-lg: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  --ui-fast: 110ms;
+  --ui-normal: 180ms;
+  --ui-slow: 320ms;
+  --role: var(--ui-driver);
+  --role-soft: #a7f5f2;
+}
+
+.app-root[data-theme='driver'] {
+  --role: var(--ui-driver);
+  --role-soft: #a7f5f2;
+}
+
+.app-root[data-theme='gunner'] {
+  --role: var(--ui-gunner);
+  --role-soft: #ffc0ab;
+}
+
+.app-root[data-theme='singlePlayer'] {
+  --role: var(--ui-amber);
+  --role-soft: #ffe0a3;
+}

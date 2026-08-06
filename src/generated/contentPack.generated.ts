@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'd2a5ff384ab65698e46f914d1dd5fcb881af11ea3b9c760f8fded2b69df39a6a';
+export const CONTENT_PACK_SOURCE_HASH = '2637a4a58e97848bde2174691243ae14199ef6323b5c7b1e82150a9c5b81bb6e';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = 'aef1e2a240ea20206d0ce45173c5c2a0147ca907e691368e2e2bf1252080c0cc';
+export const CONTENT_PACK_HASH = '13e0aaa7281d109632afb500d0b5a3a24650fc93046c46e4039df3529d5aa73a';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -78,8 +78,8 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "tank.default", definition: {"id":"tank.default","label":"Default Tank","behaviors":[],"forwardSpeed":18,"reverseSpeed":8,"accel":14,"reverseAccel":10,"steerLow":1.5,"steerHigh":0.9,"normalGrip":2.1,"airControl":0.55,"airGripMultiplier":0.35,"groundYawDamping":3.2,"airYawDamping":2.2,"hardHorizontalSpeedCap":35,"maxVisualAirPitch":0.22,"maxVisualAirRoll":0.28,"visualAirLevelRate":4,"landingGripSeconds":0.12,"landingGripMultiplier":0.35,"gravity":13.5,"jumpHeight":3,"rampLaunchSpeed":6.5,"dashImpulse":13,"dashCooldown":0.8,"dashAirMultiplier":0.8,"dashMaxHorizontalSpeed":33,"dashPresentationSeconds":0.18,"contactDamage":0,"dashContactDamage":12,"dashDamageWindowSeconds":0.2,"dashContactKnockback":0.92,"dashContactPerTargetCooldown":0.25,"collisionRadius":1.35,"footprint":[{"offset":-1,"radius":0.9},{"offset":0,"radius":1.15},{"offset":1,"radius":0.9}],"maxSafeStep":0.45,"maxSubsteps":8,"reverseSteerMult":0.7,"maxIntegrity":100,"respawnTime":3,"shieldTime":2,"autoRightTime":1.2,"autoRightRoll":1.15,"recoilImpulse":10.5,"recoilSpin":1.7,"mgRecoilImpulse":0.15,"rig":{"chassisAssetId":"playerTank.chassis","turretAssetId":"playerTank.turret","barrelAssetId":"playerTank.barrel","turretPivot":[0,1.15,0],"barrelPivot":[0,0.62,0],"muzzleLocal":[0,0.75,2.9],"aimPivotLocal":[0,1.15,0],"cameraAnchorLocal":[0,1.35,0],"forwardAxis":[0,0,1]}} },
   ],
   "loadouts": [
-    { id: "loadout.default", definition: {"id":"loadout.default","label":"Default Crew Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.mainCannon","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-1.45}} },
-    { id: "loadout.truckHunter", definition: {"id":"loadout.truckHunter","label":"Truck Hunter Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.rapidCannon","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":0.42,"minPitch":-0.12}} },
+    { id: "loadout.default", definition: {"id":"loadout.default","label":"Default Crew Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.mainCannon","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":1.5707963267948966,"minPitch":-1.5707963267948966}} },
+    { id: "loadout.truckHunter", definition: {"id":"loadout.truckHunter","label":"Truck Hunter Loadout","behaviors":[],"primary":"weapon.machineGun","secondary":"weapon.rapidCannon","turret":{"responseMode":"instant","turnRate":60,"pitchFollowRate":40,"maxPitch":1.5707963267948966,"minPitch":-1.5707963267948966}} },
   ],
   "weapons": [
     { id: "weapon.machineGun", definition: {"id":"weapon.machineGun","label":"Machine Gun","behaviors":[],"behaviorId":"weapon.hitscan","fireMode":"auto","cooldownSeconds":0.09090909090909091,"statBlock":{"weapon.mgDamage":2,"weapon.mgRate":11,"weapon.mgRange":45,"weapon.mgSpread":0.018,"weapon.mgSpeed":220,"weapon.mgRecoilImpulse":0.15,"weapon.mgRecoilSpin":0.05,"weapon.recoilVerticalScale":1},"presentation":{"muzzleVfxId":"vfx.machineGunMuzzle","fireAudioId":"audio.machineGun"}} },

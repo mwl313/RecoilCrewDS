@@ -70,24 +70,29 @@ describe('TPS camera direction conventions', () => {
   });
 
   it('gunner tuning can aim near-vertical for cannon takeoffs', () => {
-    // Same values as CameraManager.gunnerTuning (min -77°), turret -83° is
-    // the final clamp — the camera must at least reach it.
     const gunner = new TpsCameraController({
       ...TUNING,
-      minPitch: (-77 * Math.PI) / 180,
+      minPitch: -Math.PI / 2,
+      maxPitch: Math.PI / 2,
     });
     gunner.applyMouseDelta(0, 100000);
-    expect(gunner.pitch).toBeLessThan((-60 * Math.PI) / 180);
-    expect(gunner.pitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
+    expect(gunner.pitch).toBeCloseTo(-Math.PI / 2, 6);
+    gunner.applyMouseDelta(0, -100000);
+    expect(gunner.pitch).toBeCloseTo(Math.PI / 2, 6);
   });
 
-  it('single player widens the driver camera floor; multiplayer restores it', () => {
+  it('single player and multiplayer Gunner share the full vertical aim range', () => {
     const cm = new CameraManager();
+    expect(cm.gunnerCam.minPitch).toBeCloseTo(-Math.PI / 2, 6);
+    expect(cm.gunnerCam.maxPitch).toBeCloseTo(Math.PI / 2, 6);
     expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
+    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
     cm.setSinglePlayerMode(true);
-    expect(cm.driverCam.minPitch).toBeCloseTo((-77 * Math.PI) / 180, 6);
+    expect(cm.driverCam.minPitch).toBeCloseTo(cm.gunnerCam.minPitch, 6);
+    expect(cm.driverCam.maxPitch).toBeCloseTo(cm.gunnerCam.maxPitch, 6);
     cm.setSinglePlayerMode(false);
     expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
+    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
   });
 });
 

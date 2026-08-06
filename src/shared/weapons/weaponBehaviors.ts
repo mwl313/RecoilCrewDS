@@ -3,7 +3,7 @@ import type { WeaponDefinition } from './weaponDefinition';
 import { weaponStat } from './weaponDefinition';
 import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
 import type { WeaponRuntimeState } from './weaponRuntimeState';
-import { computeWeaponMountWorldPose } from '../vehicle/tankRigGeometry';
+import { computeWeaponMountWorldPose, resolveTerrainSafeMuzzle } from '../vehicle/tankRigGeometry';
 import { resolveCannonShotProfile } from './cannonShotProfile';
 
 /**
@@ -13,10 +13,11 @@ import { resolveCannonShotProfile } from './cannonShotProfile';
  */
 export function muzzleWorld(ctx: SystemContext): { x: number; y: number; z: number; dx: number; dy: number; dz: number } {
   const mount = computeWeaponMountWorldPose(ctx.state.tank, ctx.state.turret, ctx.rules.tank.rig);
+  const origin = resolveTerrainSafeMuzzle(mount, (x, z) => ctx.world.groundHeightAt(x, z));
   return {
-    x: mount.muzzle.x,
-    y: mount.muzzle.y,
-    z: mount.muzzle.z,
+    x: origin.x,
+    y: origin.y,
+    z: origin.z,
     dx: mount.direction.x,
     dy: mount.direction.y,
     dz: mount.direction.z,

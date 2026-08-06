@@ -73,8 +73,11 @@ describe('arcade movement values are content-driven', () => {
     expect(block.tank.airYawDamping).toBe(2.2);
     expect(block.tank.hardHorizontalSpeedCap).toBe(35.0);
     expect(block.tank.landingGripSeconds).toBe(0.12);
-    expect(block.turret.minPitch).toBe(-1.45);
-    expect(block.turret.maxPitch).toBe(0.42);
+    expect(block.turret.minPitch).toBeCloseTo(-Math.PI / 2, 12);
+    expect(block.turret.maxPitch).toBeCloseTo(Math.PI / 2, 12);
+    expect(block.weapon?.cannonSpeed).toBe(BASE_CONFIG.weapons.cannonSpeed);
+    expect(block.weapon?.cannonGravity).toBe(BASE_CONFIG.weapons.cannonGravity);
+    expect(block.weapon?.cannonLife).toBe(BASE_CONFIG.weapons.cannonLife);
   });
 });
 

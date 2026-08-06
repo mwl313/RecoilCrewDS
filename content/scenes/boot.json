@@ -7,21 +7,22 @@
   "root": {
     "id": "screen-boot",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-screen boot-screen",
+    "appearance": { "tone": "neutral", "emphasis": "hero", "density": "cinematic", "shape": "plain" },
     "actions": [{ "event": "click", "action": "app.enter" }],
     "children": [
+      { "id": "boot-frame", "type": "container", "class": "ui-safe-frame" },
       {
         "id": "boot-inner",
         "type": "vertical",
         "class": "boot-inner",
         "children": [
-          { "id": "boot-logo", "type": "container", "class": "logo", "children": [
-            { "id": "boot-logo-bar", "type": "container", "class": "logo-bar" },
-            { "id": "boot-title", "type": "text", "class": "", "props": { "tag": "h1" }, "text": "RECOIL CREW" },
-            { "id": "boot-sub", "type": "text", "class": "logo-sub", "text": "ONE TANK · TWO BRAINS · ZERO BRAKES" }
+          { "id": "boot-kicker", "type": "text", "class": "ui-kicker", "text": "SHARED TANK FIELD UNIT // 07" },
+          { "id": "boot-logo", "type": "container", "class": "ui-wordmark", "children": [
+            { "id": "boot-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
+            { "id": "boot-title-crew", "type": "text", "class": "ui-wordmark-crew", "text": "CREW" }
           ] },
-          { "id": "boot-hint", "type": "text", "class": "boot-hint", "text": "CLICK TO ENTER" },
-          { "id": "boot-keys", "type": "text", "class": "boot-keys", "text": "WASD DRIVE · MOUSE AIM · RIGHT-CLICK CANNON" }
+          { "id": "boot-hint", "type": "text", "class": "boot-hint", "text": "CLICK TO ENTER" }
         ]
       }
     ]

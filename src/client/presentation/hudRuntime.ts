@@ -79,15 +79,7 @@ export class HudRuntime {
     this.runtime.element?.classList.toggle('hidden', !visible);
   }
 
-  /**
-   * Move the gameplay crosshair to the projected trajectory point (no DOM
-   * rebuild). The reticle host (.hud-center) carries a CSS transform, so it
-   * is the containing block for a fixed-position child; left/top pixels are
-   * therefore NOT viewport-relative. Instead we keep the CSS anchor
-   * (50% / 50% of that host, i.e. viewport center / 42% height) and apply a
-   * transform offset in viewport pixels. Visibility uses style.visibility so
-   * it never fights the HUD projection's `hidden` class.
-   */
+  /** Move the viewport-level gameplay reticle to the predicted shell point. */
   setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean): void {
     const crosshair = this.runtime.getNode('crosshair')?.element;
     if (!crosshair) return;
@@ -103,10 +95,10 @@ export class HudRuntime {
     // slightly outside; fully off-screen results stay hidden above.
     const cx = Math.max(8, Math.min(vw - 8, x));
     const cy = Math.max(8, Math.min(vh - 8, y));
-    const dx = cx - vw / 2;
-    const dy = cy - vh * 0.42;
     crosshair.style.visibility = 'visible';
-    crosshair.style.transform = `translate(-50%, -50%) translate(${Math.round(dx)}px, ${Math.round(dy)}px)`;
+    crosshair.style.left = `${Math.round(cx)}px`;
+    crosshair.style.top = `${Math.round(cy)}px`;
+    crosshair.style.transform = 'translate(-50%, -50%)';
   }
 
   dispose(): void {

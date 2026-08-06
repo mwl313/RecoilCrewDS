@@ -1,4 +1,11 @@
+import '@fontsource/barlow/latin-400.css';
+import '@fontsource/barlow/latin-600.css';
+import '@fontsource/barlow/latin-700.css';
+import '@fontsource/barlow-condensed/latin-700-italic.css';
+import '@fontsource/barlow-condensed/latin-800-italic.css';
+import '@fontsource/barlow-condensed/latin-900-italic.css';
 import './styles.css';
+import './ui/index.css';
 import { GameClient } from './app/gameClient';
 import { InputManager } from './input';
 import { Hud } from './hud';
@@ -686,7 +693,10 @@ function onFrame(g: GameClient, state: MatchState) {
       showPeerStatus: sessionKind === 'multiplayer',
     },
     localCharge: g.getLocalChargeView() ?? undefined,
-    rules: game?.getHudRules(),
+    rules: {
+      ...game?.getHudRules(),
+      progressionEnabled: hudProgressionEnabled(),
+    },
     objective,
     stage: sessionKind === 'singlePlayer' ? game?.getSinglePlayerStageView() : latestStageView ?? undefined,
   });
@@ -700,6 +710,17 @@ function onFrame(g: GameClient, state: MatchState) {
   if (sessionKind === 'multiplayer' && now - lastPingSent > 2500) {
     lastPingSent = now;
     net.send({ t: 'ping', ts: now });
+  }
+}
+
+function hudProgressionEnabled(): boolean {
+  const modeId = sessionKind === 'singlePlayer'
+    ? activeSinglePlayerModeId
+    : latestRunConfig?.modeId ?? 'mode.mainStage';
+  try {
+    return CLIENT_CONTENT_PACK.getMode(modeId).progression === true;
+  } catch {
+    return false;
   }
 }
 

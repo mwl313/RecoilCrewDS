@@ -1,0 +1,90 @@
+@media (max-width: 1100px) {
+  .ui-menu-rail { width: min(400px, 47vw); }
+  .ui-wordmark--menu h1,
+  .ui-wordmark--menu .ui-wordmark-crew { font-size: clamp(58px, 9vw, 94px); }
+  .lobby-v2.lobby-screen .lobby-player { width: 31%; }
+  .lobby-vehicle-stage { left: 32%; width: 36%; opacity: .58; }
+  .hud-encounters { width: min(62vw, 620px); }
+  .hud-survival-cluster { width: min(340px, 40vw); }
+}
+
+@media (max-width: 800px) {
+  :root { --ui-safe-x: max(14px, env(safe-area-inset-left)); --ui-safe-y: max(12px, env(safe-area-inset-top)); }
+  .ui-topbar { height: 54px; }
+  .ui-menu-rail { top: 12%; left: 6%; width: min(430px, 72vw); }
+  .menu-screen { background: linear-gradient(90deg, rgba(7,9,10,.98), rgba(7,9,10,.64)); }
+  #presentation-canvas { opacity: .5; transform: translateX(18%); }
+  .ui-hero-caption { opacity: .7; }
+  .ui-form-panel { padding: 28px 28px 24px; }
+  .ui-overlay-panel { padding: 28px; }
+  .ui-howto-grid { grid-template-columns: 1fr; }
+
+  .lobby-mission-strip { top: 66px; width: 92%; grid-template-columns: repeat(3, 1fr); }
+  .lobby-mission-strip > div { min-width: 0; padding-inline: 9px; }
+  .lobby-v2.lobby-screen .lobby-body { inset: 18% 5% 24%; }
+  .lobby-v2.lobby-screen .lobby-player { width: 44%; min-height: 240px; }
+  .lobby-vehicle-stage { display: none; }
+  .lobby-actions { grid-template-columns: minmax(0, 1fr) auto minmax(220px, 42%); bottom: 8%; }
+  .lobby-v2.lobby-screen .lobby-chat { width: min(420px, 56vw); }
+
+  .hud-topline { left: 14px; right: 14px; grid-template-columns: 1fr auto; }
+  .hud-score-cluster { display: none; }
+  .hud-wave-cluster { min-width: 220px; }
+  .hud-encounters { top: 15%; width: 74vw; }
+  .hud-bottomline { left: 14px; right: 14px; bottom: 14px; }
+  .hud-survival-cluster { width: min(310px, 48vw); }
+  .hud-ability { min-width: 96px; }
+}
+
+@media (max-width: 560px) {
+  .ui-system-state,
+  .ui-hero-caption { display: none; }
+  .ui-menu-rail { top: 12%; width: 88vw; }
+  .ui-wordmark--menu h1,
+  .ui-wordmark--menu .ui-wordmark-crew { font-size: clamp(62px, 18vw, 92px); }
+  .boot-screen .ui-wordmark {
+    --ui-boot-logo-size: clamp(82px, 26vw, 112px);
+    --ui-boot-center-correction: clamp(31px, 9.9vw, 43px);
+  }
+  .boot-inner { top: 42%; }
+  .boot-hint { min-height: 84px; margin-top: 24px; padding: 18px 28px; font-size: 28px; }
+  .ui-overlay-panel { width: calc(100vw - 28px); max-height: calc(100vh - 28px); padding: 24px 20px 22px; }
+  .ui-overlay-actions--three { grid-template-columns: 1fr; }
+  .ui-overlay-actions .ui-action { font-size: 18px; }
+  .ui-screen-footer { justify-content: center; font-size: 8px; }
+  .ui-form-panel { width: calc(100vw - 28px); }
+  .ui-code-box { grid-template-columns: 1fr; }
+
+  .lobby-header .ui-unit-mark { display: none; }
+  .lobby-v2.lobby-screen .lobby-header { justify-content: center; }
+  .lobby-mission-strip strong { font-size: 10px; }
+  .lobby-v2.lobby-screen .lobby-body { inset: 17% 5% 26%; }
+  .lobby-players { flex-direction: column; gap: 8px; }
+  .lobby-v2.lobby-screen .lobby-player { width: 100%; min-height: 180px; padding: 16px; }
+  .lobby-name { margin-top: 12px; }
+  .lobby-status { left: 16px; right: 16px; bottom: 14px; }
+  .lobby-player__duty { display: none; }
+  .lobby-v2.lobby-screen .lobby-seat-row { margin-top: 10px; }
+  .lobby-actions { left: 5%; right: 5%; bottom: 6%; display: block; }
+  .lobby-v2.lobby-screen .lobby-hint { margin-bottom: 8px; }
+  .lobby-actions .lobby-leave { position: absolute; top: -6px; right: 0; transform: translateY(-100%); }
+  .lobby-v2.lobby-screen .lobby-chat { left: 5%; width: 90%; }
+
+  .hud-role-chip { min-width: 92px; padding-left: 30px; font-size: 15px; }
+  .hud-wave-cluster { min-width: 185px; padding-inline: 13px; }
+  .hud-wave-time { font-size: 27px; }
+  .hud-encounters { width: 88vw; }
+  .hud-bottomline { flex-direction: column; align-items: stretch; gap: 7px; }
+  .hud-survival-cluster { width: 100%; }
+  .hud-role-actions { justify-content: flex-end; }
+  .hud-ability { min-height: 64px; }
+}
+
+@media (min-aspect-ratio: 20 / 9) {
+  .ui-menu-rail { left: 8%; }
+  .ui-hero-caption { right: 8%; }
+  .lobby-v2.lobby-screen .lobby-body,
+  .lobby-actions { left: 8%; right: 8%; }
+  .hud-topline,
+  .hud-bottomline { left: 5vw; right: 5vw; }
+}

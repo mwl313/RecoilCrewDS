@@ -81,6 +81,10 @@ interface BaseOptions {
 function base(node: UiNodeInput, services: UiComponentServices, options: BaseOptions = {}): UiComponentInstance {
   const element = el(options.tag ?? 'div', node.class ?? options.className ?? '');
   element.id = node.id;
+  if (node.appearance?.tone) element.dataset.uiTone = node.appearance.tone;
+  if (node.appearance?.emphasis) element.dataset.uiEmphasis = node.appearance.emphasis;
+  if (node.appearance?.density) element.dataset.uiDensity = node.appearance.density;
+  if (node.appearance?.shape) element.dataset.uiShape = node.appearance.shape;
   applyLayout(node, element);
   applyStyle(node, element);
   if (node.text !== undefined && !('tag' in options)) element.textContent = node.text;

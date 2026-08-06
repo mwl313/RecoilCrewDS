@@ -6,122 +6,84 @@
   "root": {
     "id": "hud",
     "type": "container",
-    "class": "hud hidden",
+    "class": "hud ui-hud hidden",
     "children": [
       {
         "id": "hud-top",
         "type": "horizontal",
-        "class": "hud-top",
+        "class": "hud-topline",
         "children": [
           {
             "id": "hud-left",
             "type": "horizontal",
-            "class": "hud-left",
+            "class": "hud-role-cluster",
             "children": [
-              { "id": "role-chip", "type": "roleChip", "text": "DRIVER", "bindings": [
+              { "id": "role-chip", "type": "roleChip", "class": "hud-role-chip", "text": "DRIVER", "bindings": [
                 { "target": "text", "source": "role", "transform": "roleLabel" },
                 { "target": "visible", "source": "session.showRoleIdentity" }
               ] },
-              { "id": "conn-dot", "type": "connectionIndicator", "bindings": [
+              { "id": "conn-dot", "type": "connectionIndicator", "class": "hud-connection-dot", "bindings": [
                 { "target": "class", "source": "connection.peerConnected", "transform": "booleanClass", "attribute": "off", "fallback": true },
                 { "target": "visible", "source": "session.showPeerStatus" }
               ] },
-              { "id": "ping", "type": "statText", "class": "ping", "text": "--ms", "bindings": [
+              { "id": "ping", "type": "statText", "class": "ping hud-ping", "text": "--ms", "bindings": [
                 { "target": "text", "source": "connection.pingMs", "format": "{0}ms", "fallback": "--ms" },
-                { "target": "visible", "source": "session.showPeerStatus" }
+                { "target": "visible", "source": "connection.degraded" }
               ] }
             ]
           },
           {
-            "id": "hud-timer",
-            "type": "container",
-            "class": "hud-timer",
+            "id": "hud-stage",
+            "type": "vertical",
+            "class": "hud-wave-cluster",
             "children": [
-              { "id": "timer", "type": "statText", "text": "90", "bindings": [
-                { "target": "text", "source": "match.timeRemaining", "transform": "integer" },
-                { "target": "class", "source": "match.timeUrgent", "transform": "booleanClass", "attribute": "urgent" }
+              { "id": "stage-wave-timer-label", "type": "text", "class": "hud-wave-kicker", "text": "", "bindings": [
+                { "target": "text", "source": "stage.monster.waveTimerLabel" }
+              ] },
+              { "id": "stage-wave-countdown", "type": "statText", "class": "hud-wave-time", "text": "", "bindings": [
+                { "target": "text", "source": "stage.monster.waveCountdownText" }
+              ] },
+              { "id": "stage-monster-level", "type": "statText", "class": "hud-monster-level", "text": "", "bindings": [
+                { "target": "text", "source": "stage.monster.level", "format": "MONSTER LV {0}", "fallback": "" }
+              ] },
+              { "id": "stage-wave-warning", "type": "text", "class": "hud-wave-warning", "text": "", "bindings": [
+                { "target": "text", "source": "stage.monster.waveWarning" },
+                { "target": "visible", "source": "stage.monster.waveWarningVisible" }
+              ] },
+              { "id": "stage-wave-label", "type": "text", "class": "hud-phase-label", "text": "", "bindings": [
+                { "target": "text", "source": "stage.waveLabel" },
+                { "target": "class", "source": "stage.waveActive", "transform": "booleanClass", "attribute": "wave" }
+              ] },
+              { "id": "stage-timer", "type": "statText", "class": "hud-farming-time", "text": "", "bindings": [
+                { "target": "text", "source": "stage.farmingLabel" }
+              ] },
+              { "id": "stage-leader-hp", "type": "progressBar", "class": "stage-leader-hp", "props": { "valueSource": "stage.leaderHpRatio", "maxSource": "stage.leaderHpMax" }, "bindings": [
+                { "target": "visible", "source": "stage.waveActive" }
               ] }
             ]
           },
           {
             "id": "hud-right",
             "type": "horizontal",
-            "class": "hud-right",
+            "class": "hud-score-cluster",
             "children": [
-              { "id": "score", "type": "statText", "class": "score", "text": "0", "bindings": [{ "target": "text", "source": "match.scoreText" }] },
+              { "id": "hud-timer", "type": "container", "class": "hud-run-clock", "children": [
+                { "id": "timer", "type": "statText", "text": "90", "bindings": [
+                  { "target": "text", "source": "match.timeRemaining", "transform": "integer" },
+                  { "target": "class", "source": "match.timeUrgent", "transform": "booleanClass", "attribute": "urgent" }
+                ] }
+              ] },
+              { "id": "score", "type": "statText", "class": "score", "text": "0", "bindings": [
+                { "target": "text", "source": "match.scoreText" }
+              ] },
               { "id": "combo", "type": "statText", "class": "combo", "text": "×1", "bindings": [
                 { "target": "text", "source": "match.combo", "format": "×{0}" },
                 { "target": "class", "source": "match.comboHot", "transform": "booleanClass", "attribute": "hot" }
+              ] },
+              { "id": "pause-btn", "type": "pauseButton", "class": "hud-pause", "text": "Ⅱ", "props": { "title": "Pause" }, "actions": [
+                { "event": "click", "action": "app.pause" }
               ] }
             ]
-          }
-        ]
-      },
-      {
-        "id": "hud-stage",
-        "type": "vertical",
-        "class": "hud-stage",
-        "children": [
-          {
-            "id": "stage-monster-level",
-            "type": "statText",
-            "class": "stage-monster-level",
-            "text": "",
-            "bindings": [
-              { "target": "text", "source": "stage.monster.level", "format": "LV {0}", "fallback": "" }
-            ]
-          },
-          {
-            "id": "stage-wave-timer-label",
-            "type": "text",
-            "class": "stage-wave-label",
-            "text": "",
-            "bindings": [
-              { "target": "text", "source": "stage.monster.waveTimerLabel" }
-            ]
-          },
-          {
-            "id": "stage-wave-countdown",
-            "type": "statText",
-            "class": "stage-timer",
-            "text": "",
-            "bindings": [
-              { "target": "text", "source": "stage.monster.waveCountdownText" }
-            ]
-          },
-          {
-            "id": "stage-wave-warning",
-            "type": "text",
-            "class": "stage-wave-label wave",
-            "text": "",
-            "bindings": [
-              { "target": "text", "source": "stage.monster.waveWarning" },
-              { "target": "visible", "source": "stage.monster.waveWarningVisible" }
-            ]
-          },
-          {
-            "id": "stage-wave-label",
-            "type": "text",
-            "class": "stage-wave-label",
-            "text": "",
-            "bindings": [
-              { "target": "text", "source": "stage.waveLabel" },
-              { "target": "class", "source": "stage.waveActive", "transform": "booleanClass", "attribute": "wave" }
-            ]
-          },
-          {
-            "id": "stage-timer",
-            "type": "statText",
-            "class": "stage-timer",
-            "text": "",
-            "bindings": [{ "target": "text", "source": "stage.farmingLabel" }]
-          },
-          {
-            "id": "stage-leader-hp",
-            "type": "progressBar",
-            "class": "stage-leader-hp",
-            "props": { "valueSource": "stage.leaderHpRatio", "maxSource": "stage.leaderHpMax" },
-            "bindings": [{ "target": "visible", "source": "stage.waveActive" }]
           }
         ]
       },
@@ -136,6 +98,7 @@
             "class": "encounter-bar elite",
             "bindings": [{ "target": "visible", "source": "stage.monster.elite1.visible" }],
             "children": [
+              { "id": "encounter-elite1-kicker", "type": "text", "class": "encounter-kicker", "text": "ELITE CONTACT" },
               { "id": "encounter-elite1-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite1.label" }] },
               { "id": "encounter-elite1-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite1.hpText" }] },
               { "id": "encounter-elite1-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.elite1.ratio", "maxSource": "stage.monster.elite1.ratioMax" } }
@@ -147,6 +110,7 @@
             "class": "encounter-bar elite",
             "bindings": [{ "target": "visible", "source": "stage.monster.elite2.visible" }],
             "children": [
+              { "id": "encounter-elite2-kicker", "type": "text", "class": "encounter-kicker", "text": "ELITE CONTACT" },
               { "id": "encounter-elite2-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite2.label" }] },
               { "id": "encounter-elite2-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite2.hpText" }] },
               { "id": "encounter-elite2-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.elite2.ratio", "maxSource": "stage.monster.elite2.ratioMax" } }
@@ -158,6 +122,7 @@
             "class": "encounter-bar boss",
             "bindings": [{ "target": "visible", "source": "stage.monster.boss.visible" }],
             "children": [
+              { "id": "encounter-boss-kicker", "type": "text", "class": "encounter-kicker", "text": "BOSS ENCOUNTER" },
               { "id": "encounter-boss-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.boss.label" }] },
               { "id": "encounter-boss-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.boss.hpText" }] },
               { "id": "encounter-boss-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.boss.ratio", "maxSource": "stage.monster.boss.ratioMax" } }
@@ -168,46 +133,118 @@
       {
         "id": "hud-bottom",
         "type": "horizontal",
-        "class": "hud-bottom",
+        "class": "hud-bottomline",
         "children": [
           {
             "id": "hud-bars",
             "type": "vertical",
-            "class": "hud-bars",
+            "class": "hud-survival-cluster",
             "children": [
               {
                 "id": "integrity-row",
-                "type": "horizontal",
-                "class": "bar-row",
+                "type": "vertical",
+                "class": "hud-meter-block",
                 "children": [
-                  { "id": "integrity-label", "type": "text", "class": "bar-label", "text": "INTEGRITY" },
-                  { "id": "integrity-wrap", "type": "container", "class": "bar", "children": [
+                  { "id": "integrity-meta", "type": "horizontal", "class": "hud-meter-meta", "children": [
+                    { "id": "integrity-label", "type": "text", "class": "bar-label", "text": "CHASSIS INTEGRITY" },
+                    { "id": "integrity-value", "type": "statText", "class": "hud-meter-value", "text": "100", "bindings": [{ "target": "text", "source": "tank.integrity", "transform": "integer" }] }
+                  ] },
+                  { "id": "integrity-wrap", "type": "container", "class": "hud-meter", "children": [
                     { "id": "integrity", "type": "progressBar", "class": "bar-fill integrity", "props": { "valueSource": "tank.integrity", "maxSource": "tank.integrityMax" }, "bindings": [{ "target": "class", "source": "tank.integrityLow", "transform": "booleanClass", "attribute": "low" }] }
+                  ] }
+                ]
+              },
+              {
+                "id": "progression-row",
+                "type": "vertical",
+                "class": "hud-progression",
+                "bindings": [{ "target": "visible", "source": "progression.visible" }],
+                "children": [
+                  { "id": "progression-meta", "type": "horizontal", "class": "hud-meter-meta", "children": [
+                    { "id": "progression-level", "type": "statText", "class": "bar-label", "text": "CREW LV 1", "bindings": [{ "target": "text", "source": "progression.level", "format": "CREW LV {0}" }] },
+                    { "id": "progression-xp", "type": "statText", "class": "hud-xp-value", "text": "0 / 1", "bindings": [{ "target": "text", "source": "progression.currentXp", "format": "{0} XP" }] }
+                  ] },
+                  { "id": "progression-wrap", "type": "container", "class": "hud-meter hud-meter--xp", "children": [
+                    { "id": "progression-fill", "type": "progressBar", "class": "bar-fill progression", "props": { "valueSource": "progression.ratio", "maxSource": "progression.ratioMax" }, "bindings": [{ "target": "class", "source": "progression.upgradePending", "transform": "booleanClass", "attribute": "pending" }] }
                   ] }
                 ]
               }
             ]
           },
           {
-            "id": "hud-speed",
-            "type": "vertical",
-            "class": "hud-speed",
+            "id": "hud-role-actions",
+            "type": "horizontal",
+            "class": "hud-role-actions",
             "children": [
               {
-                "id": "speed-num",
-                "type": "horizontal",
-                "class": "speed-num",
+                "id": "hud-speed",
+                "type": "vertical",
+                "class": "hud-ability hud-ability--driver hud-speed",
                 "children": [
-                  { "id": "speed", "type": "statText", "text": "0", "bindings": [{ "target": "text", "source": "tank.speed", "transform": "integer" }] },
-                  { "id": "speed-unit", "type": "text", "props": { "tag": "small" }, "text": "KM/H" }
+                  { "id": "speed-label", "type": "text", "class": "hud-key-label", "text": "VELOCITY" },
+                  { "id": "speed-num", "type": "horizontal", "class": "speed-num", "children": [
+                    { "id": "speed", "type": "statText", "text": "0", "bindings": [{ "target": "text", "source": "tank.speed", "transform": "integer" }] },
+                    { "id": "speed-unit", "type": "text", "props": { "tag": "small" }, "text": "KM/H" }
+                  ] },
+                  { "id": "grounded-ind", "type": "text", "class": "hud-ability-state", "text": "GROUND CONTACT", "bindings": [{ "target": "class", "source": "tank.grounded", "transform": "booleanClass", "attribute": "on" }] }
                 ]
               },
-              { "id": "dash-ind", "type": "text", "class": "dash-ind", "text": "DASH", "bindings": [
-                { "target": "class", "source": "tank.dashActive", "transform": "booleanClass", "attribute": "on" },
-                { "target": "class", "source": "tank.dashCooling", "transform": "booleanClass", "attribute": "cool" }
-              ] }
+              {
+                "id": "dash-ability",
+                "type": "vertical",
+                "class": "hud-ability hud-ability--driver",
+                "children": [
+                  { "id": "dash-key", "type": "text", "class": "hud-key-label", "text": "SHIFT" },
+                  { "id": "dash-ind", "type": "text", "class": "dash-ind", "text": "DASH", "bindings": [
+                    { "target": "class", "source": "tank.dashActive", "transform": "booleanClass", "attribute": "on" },
+                    { "target": "class", "source": "tank.dashCooling", "transform": "booleanClass", "attribute": "cool" }
+                  ] },
+                  { "id": "dash-state", "type": "text", "class": "hud-ability-state", "text": "READY", "bindings": [{ "target": "class", "source": "tank.dashReady", "transform": "booleanClass", "attribute": "on" }] }
+                ]
+              },
+              {
+                "id": "cannon-ability",
+                "type": "vertical",
+                "class": "hud-ability hud-ability--gunner",
+                "children": [
+                  { "id": "cannon-key", "type": "text", "class": "hud-key-label", "text": "RMB" },
+                  { "id": "cannon-label", "type": "text", "class": "hud-ability-name", "text": "CANNON" },
+                  { "id": "cannon-meter", "type": "container", "class": "hud-cooldown-meter", "children": [
+                    { "id": "cannon-fill", "type": "progressBar", "class": "hud-cooldown-fill", "props": { "valueSource": "gunner.cooldownRatio", "maxSource": "gunner.chargeMax" } }
+                  ] }
+                ]
+              },
+              {
+                "id": "charge-ability",
+                "type": "vertical",
+                "class": "hud-ability hud-ability--gunner",
+                "bindings": [{ "target": "visible", "source": "gunner.chargeUnlocked" }],
+                "children": [
+                  { "id": "charge-key", "type": "text", "class": "hud-key-label", "text": "HOLD RMB" },
+                  { "id": "charge-label", "type": "text", "class": "hud-ability-name", "text": "CHARGE" },
+                  { "id": "charge-meter", "type": "container", "class": "hud-cooldown-meter", "children": [
+                    { "id": "charge-fill", "type": "progressBar", "class": "hud-charge-fill", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax" } }
+                  ] }
+                ]
+              }
             ]
           }
+        ]
+      },
+      {
+        "id": "crosshair",
+        "type": "crosshair",
+        "class": "crosshair hidden",
+        "bindings": [{ "target": "visible", "source": "crosshairVisible" }],
+        "children": [
+          { "id": "ch-dot", "type": "container", "class": "ch-dot" },
+          { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "gunner.cooldownRatio" } },
+          { "id": "crosshair-charge", "type": "container", "class": "crosshair-charge", "bindings": [{ "target": "visible", "source": "gunner.chargeUnlocked" }], "children": [
+            { "id": "crosshair-charge-fill", "type": "progressBar", "class": "crosshair-charge-fill", "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax", "direction": "vertical" }, "bindings": [
+              { "target": "class", "source": "gunner.chargeHeld", "transform": "booleanClass", "attribute": "held" },
+              { "target": "class", "source": "gunner.chargeFull", "transform": "booleanClass", "attribute": "full" }
+            ] }
+          ] }
         ]
       },
       {
@@ -215,52 +252,17 @@
         "type": "container",
         "class": "hud-center",
         "children": [
-          {
-            "id": "crosshair",
-            "type": "crosshair",
-            "class": "crosshair hidden",
-            "bindings": [{ "target": "visible", "source": "crosshairVisible" }],
-            "children": [
-              { "id": "ch-dot", "type": "container", "class": "ch-dot" },
-              { "id": "ch-ring", "type": "arcMeter", "class": "ch-ring", "props": { "valueSource": "gunner.cooldownRatio" } },
-              {
-                "id": "crosshair-charge",
-                "type": "container",
-                "class": "crosshair-charge",
-                "bindings": [{ "target": "visible", "source": "gunner.chargeUnlocked" }],
-                "children": [
-                  {
-                    "id": "crosshair-charge-fill",
-                    "type": "progressBar",
-                    "class": "crosshair-charge-fill",
-                    "props": { "valueSource": "gunner.chargeRatio", "maxSource": "gunner.chargeMax", "direction": "vertical" },
-                    "bindings": [
-                      { "target": "class", "source": "gunner.chargeHeld", "transform": "booleanClass", "attribute": "held" },
-                      { "target": "class", "source": "gunner.chargeFull", "transform": "booleanClass", "attribute": "full" }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
           { "id": "prompt", "type": "text", "class": "prompt", "bindings": [{ "target": "text", "source": "prompt" }] },
           { "id": "prompt-sub", "type": "text", "class": "prompt-sub", "bindings": [{ "target": "text", "source": "promptSub" }] }
         ]
       },
-      {
-        "id": "objective-arrow",
-        "type": "text",
-        "class": "objective hidden",
-        "text": "▼",
-        "bindings": [
-          { "target": "visible", "source": "objective.visible" },
-          { "target": "style", "source": "objective.screenX", "attribute": "left", "format": "{0}px" },
-          { "target": "style", "source": "objective.screenY", "attribute": "top", "format": "{0}px" }
-        ]
-      },
+      { "id": "objective-arrow", "type": "text", "class": "objective hidden", "text": "▼", "bindings": [
+        { "target": "visible", "source": "objective.visible" },
+        { "target": "style", "source": "objective.screenX", "attribute": "left", "format": "{0}px" },
+        { "target": "style", "source": "objective.screenY", "attribute": "top", "format": "{0}px" }
+      ] },
       { "id": "fps", "type": "statText", "class": "fps", "text": "", "bindings": [{ "target": "text", "source": "connection.fps", "format": "{0} FPS", "fallback": "" }] },
-      { "id": "popups", "type": "popupLayer", "class": "popups" },
-      { "id": "pause-btn", "type": "pauseButton", "class": "pause-btn", "text": "☰", "props": { "title": "menu" }, "actions": [{ "event": "click", "action": "app.pause" }] }
+      { "id": "popups", "type": "popupLayer", "class": "popups" }
     ]
   },
   "previewStates": [
@@ -270,33 +272,16 @@
       "context": {
         "role": "driver",
         "session": { "kind": "multiplayer", "showRoleIdentity": true, "showPeerStatus": true },
-        "connection": { "peerConnected": true, "pingMs": 24, "fps": 60 },
-        "match": { "timeRemaining": 72, "timeUrgent": false, "score": 3200, "scoreText": "3,200", "combo": 3, "comboHot": true },
+        "connection": { "peerConnected": true, "pingMs": 24, "fps": 60, "degraded": false },
+        "match": { "timeRemaining": 72, "timeUrgent": false, "scoreText": "3,200", "combo": 3, "comboHot": true },
         "tank": { "integrity": 84, "integrityMax": 100, "integrityLow": false, "speed": 42, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
-        "gunner": { "cannonCooldown": 0, "cooldownRatio": 0, "chargeUnlocked": false, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false },
-        "prompt": "DRIVE · COLLECT SCRAP",
-        "promptSub": "WASD + SHIFT + SPACE",
+        "gunner": { "cooldownRatio": 0, "chargeUnlocked": false, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false, "chargeMax": 1 },
+        "progression": { "visible": true, "level": 8, "currentXp": 630, "xpForNextLevel": 1000, "ratio": 0.63, "ratioMax": 1, "pendingLevelUps": 0, "upgradePending": false },
+        "prompt": "DRIVE // COLLECT // SURVIVE",
+        "promptSub": "WASD · SHIFT · SPACE",
         "crosshairVisible": false,
-        "pointerLocked": true,
-        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
-        "stage": {
-          "phase": "farming1",
-          "farmingTimeRemaining": 72,
-          "waveId": null,
-          "leaderHp": 0,
-          "leaderMaxHp": 0,
-          "monster": {
-            "phase": "FARMING",
-            "level": 5,
-            "waveTimerLabel": "TIME UNTIL NEW WAVE",
-            "waveCountdownText": "00:48",
-            "waveWarning": "",
-            "waveWarningVisible": false,
-            "elite1": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
-            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
-            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
-          }
-        }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0 },
+        "stage": { "waveLabel": "", "waveActive": false, "farmingLabel": "", "leaderHpRatio": 0, "leaderHpMax": 1, "monster": { "level": 12, "waveTimerLabel": "TIME UNTIL NEW WAVE", "waveCountdownText": "00:42", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": false }, "elite2": { "visible": false }, "boss": { "visible": false } } }
       }
     },
     {
@@ -305,33 +290,16 @@
       "context": {
         "role": "gunner",
         "session": { "kind": "multiplayer", "showRoleIdentity": true, "showPeerStatus": true },
-        "connection": { "peerConnected": true, "pingMs": 31, "fps": 58 },
-        "match": { "timeRemaining": 5, "timeUrgent": true, "score": 5210, "scoreText": "5,210", "combo": 5, "comboHot": true },
-        "tank": { "integrity": 22, "integrityMax": 100, "integrityLow": true, "speed": 0, "grounded": true, "dashReady": false, "dashActive": false, "dashCooling": true },
-        "gunner": { "cannonCooldown": 1.0, "cooldownRatio": 0.625, "chargeUnlocked": true, "chargeHeld": true, "chargeRatio": 0.5, "chargeFull": false },
+        "connection": { "peerConnected": true, "pingMs": 31, "fps": 60, "degraded": false },
+        "match": { "timeRemaining": 54, "timeUrgent": false, "scoreText": "4,850", "combo": 2, "comboHot": false },
+        "tank": { "integrity": 61, "integrityMax": 100, "integrityLow": false, "speed": 35, "grounded": false, "dashReady": false, "dashActive": false, "dashCooling": true },
+        "gunner": { "cooldownRatio": 0.35, "chargeUnlocked": true, "chargeHeld": true, "chargeRatio": 0.68, "chargeFull": false, "chargeMax": 1 },
+        "progression": { "visible": true, "level": 8, "currentXp": 720, "xpForNextLevel": 1000, "ratio": 0.72, "ratioMax": 1, "pendingLevelUps": 0, "upgradePending": false },
         "prompt": "HOLD TO CHARGE",
-        "promptSub": "HOLD RIGHT MOUSE TO CHARGE",
+        "promptSub": "LMB MACHINE GUN · RMB CANNON",
         "crosshairVisible": true,
-        "pointerLocked": true,
-        "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
-        "stage": {
-          "phase": "wave1",
-          "farmingTimeRemaining": 120,
-          "waveId": 1,
-          "leaderHp": 40,
-          "leaderMaxHp": 100,
-          "monster": {
-            "phase": "FARMING",
-            "level": 9,
-            "waveTimerLabel": "TIME UNTIL NEW WAVE",
-            "waveCountdownText": "01:00",
-            "waveWarning": "WAVE 2 INCOMING",
-            "waveWarningVisible": true,
-            "elite1": { "visible": true, "label": "Alien Elite", "hp": 620, "maxHp": 1000, "hpText": "620 / 1000", "ratio": 0.62, "ratioMax": 1 },
-            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
-            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
-          }
-        }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0 },
+        "stage": { "waveLabel": "WAVE 2", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.7, "leaderHpMax": 1, "monster": { "level": 12, "waveTimerLabel": "WAVE ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": true, "label": "IRON MAW", "hpText": "8,420 / 12,000", "ratio": 0.7, "ratioMax": 1 }, "elite2": { "visible": false }, "boss": { "visible": false } } }
       }
     },
     {
@@ -340,33 +308,16 @@
       "context": {
         "role": "driver",
         "session": { "kind": "singlePlayer", "showRoleIdentity": false, "showPeerStatus": false },
-        "connection": { "peerConnected": false, "pingMs": 0, "fps": 60 },
-        "match": { "timeRemaining": 61, "timeUrgent": false, "score": 1940, "scoreText": "1,940", "combo": 2, "comboHot": false },
-        "tank": { "integrity": 71, "integrityMax": 100, "integrityLow": false, "speed": 33, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
-        "gunner": { "cannonCooldown": 0, "cooldownRatio": 0, "chargeUnlocked": true, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false },
+        "connection": { "peerConnected": false, "pingMs": 0, "fps": 60, "degraded": false },
+        "match": { "timeRemaining": 43, "timeUrgent": false, "scoreText": "8,410", "combo": 4, "comboHot": true },
+        "tank": { "integrity": 29, "integrityMax": 100, "integrityLow": true, "speed": 58, "grounded": true, "dashReady": true, "dashActive": false, "dashCooling": false },
+        "gunner": { "cooldownRatio": 0, "chargeUnlocked": true, "chargeHeld": false, "chargeRatio": 0, "chargeFull": false, "chargeMax": 1 },
+        "progression": { "visible": true, "level": 10, "currentXp": 910, "xpForNextLevel": 1000, "ratio": 0.91, "ratioMax": 1, "pendingLevelUps": 0, "upgradePending": false },
         "prompt": "DRIVE · AIM · FIRE",
         "promptSub": "WASD · SHIFT · SPACE · LMB · RMB",
         "crosshairVisible": true,
-        "pointerLocked": true,
-        "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
-        "stage": {
-          "phase": "farming1",
-          "farmingTimeRemaining": 61,
-          "waveId": null,
-          "leaderHp": 0,
-          "leaderMaxHp": 0,
-          "monster": {
-            "phase": "FARMING",
-            "level": 4,
-            "waveTimerLabel": "TIME UNTIL NEW WAVE",
-            "waveCountdownText": "01:00",
-            "waveWarning": "",
-            "waveWarningVisible": false,
-            "elite1": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
-            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
-            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
-          }
-        }
+        "objective": { "visible": false, "screenX": 0, "screenY": 0 },
+        "stage": { "waveLabel": "BOSS", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.46, "leaderHpMax": 1, "monster": { "level": 16, "waveTimerLabel": "BOSS ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": false }, "elite2": { "visible": false }, "boss": { "visible": true, "label": "THE SCRAP TYRANT", "hpText": "18,400 / 40,000", "ratio": 0.46, "ratioMax": 1 } } }
       }
     }
   ]

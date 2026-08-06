@@ -6,42 +6,50 @@
   "root": {
     "id": "screen-howto",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-overlay-screen howto-overlay",
     "children": [
+      { "id": "howto-scrim", "type": "container", "class": "ui-overlay-scrim" },
       {
         "id": "howto-panel",
         "type": "panel",
-        "class": "panel wide",
+        "class": "ui-overlay-panel ui-howto-panel",
+        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
         "children": [
+          { "id": "howto-kicker", "type": "text", "class": "ui-kicker", "text": "FIELD MANUAL // SHARED CHASSIS" },
           { "id": "howto-title", "type": "text", "props": { "tag": "h2" }, "text": "HOW TO PLAY" },
+          { "id": "howto-rule", "type": "container", "class": "ui-overlay-rule" },
           {
             "id": "howto-grid",
             "type": "grid",
-            "class": "howto-grid",
+            "class": "ui-howto-grid",
             "layout": { "kind": "grid", "columns": 2 },
             "children": [
               {
                 "id": "howto-driver",
                 "type": "container",
+                "class": "ui-role-card ui-role-card--driver",
                 "children": [
-                  { "id": "howto-driver-h", "type": "text", "props": { "tag": "h3" }, "class": "cyan", "text": "DRIVER" },
-                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "text": "WASD drive and steer · Shift dash\nSpace jump · R recenter camera\nSteer in the air to face your landing" },
-                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "text": "Collect scrap at speed. Ram Scrap Bugs. Dodge Rammers. Jump, dash, and ride cannon recoil to reach high ground." }
+                  { "id": "howto-driver-index", "type": "text", "class": "ui-role-index", "text": "01 // MOBILITY" },
+                  { "id": "howto-driver-h", "type": "text", "props": { "tag": "h3" }, "text": "DRIVER" },
+                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "class": "ui-control-copy", "text": "WASD  DRIVE + STEER\nSHIFT  DASH\nSPACE  JUMP\nR  RECENTER CAMERA" },
+                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "class": "ui-role-note", "text": "Steer in the air to face your landing. Carry speed through scrap, evade Rammers, and time movement around cannon recoil." }
                 ]
               },
               {
                 "id": "howto-gunner",
                 "type": "container",
+                "class": "ui-role-card ui-role-card--gunner",
                 "children": [
-                  { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "class": "orange", "text": "GUNNER" },
-                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "text": "Mouse aim · LMB machine gun\nRMB cannon · Hold RMB to charge (with relic)\nR recenter camera" },
-                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "text": "Aim downward and fire the cannon to launch the tank upward. MG fire gives a smaller continuous recoil. Kill everything, chain barrels, and coordinate shots for Crew Links." }
+                  { "id": "howto-gunner-index", "type": "text", "class": "ui-role-index", "text": "02 // FIRE CONTROL" },
+                  { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "text": "GUNNER" },
+                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "class": "ui-control-copy", "text": "MOUSE  AIM\nLMB  MACHINE GUN\nRMB  CANNON\nHOLD RMB  CHARGE" },
+                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "class": "ui-role-note", "text": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links." }
                 ]
               }
             ]
           },
-          { "id": "howto-foot", "type": "text", "class": "howto-foot", "props": { "tag": "p" }, "text": "Both roles share one tank. Jump, cannon recoil, and dash through the air — the tank always lands upright." },
-          { "id": "howto-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
+          { "id": "howto-foot", "type": "text", "class": "ui-overlay-copy ui-howto-foot", "props": { "tag": "p" }, "text": "ONE VEHICLE. TWO ROLES. EVERY SHOT CHANGES THE ROUTE." },
+          { "id": "howto-back", "type": "button", "class": "ui-action ui-overlay-close", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "BACK TO MENU", "actions": [{ "event": "click", "action": "app.back" }] }
         ]
       }
     ]

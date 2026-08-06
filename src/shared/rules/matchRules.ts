@@ -381,6 +381,9 @@ export class MatchRules {
       },
       weapon: {
         cannonCooldown: this.resolver.resolve('match.cannonCooldown'),
+        cannonSpeed: this.resolver.resolve('weapon.cannonSpeed'),
+        cannonGravity: this.resolver.resolve('weapon.cannonGravity'),
+        cannonLife: this.resolver.resolve('weapon.cannonLife'),
         chargeTapMaxSeconds: this.resolver.resolve('weapon.chargeTapMaxSeconds'),
         chargeFullSeconds: this.resolver.resolve('weapon.chargeFullSeconds'),
       },

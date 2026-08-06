@@ -19,6 +19,7 @@ export class PresentationWorld {
   /** Scene-owned objects (lights). Model clones stay owned by AssetService. */
   private readonly disposables: Array<THREE.Object3D | THREE.Material | THREE.BufferGeometry | THREE.Texture> = [];
   private readonly warnedReserved = new Set<string>();
+  private readonly pointerCleanups: Array<() => void> = [];
   private raf = 0;
   private lastT = 0;
   private readonly container: HTMLElement;
@@ -96,6 +97,14 @@ export class PresentationWorld {
     let rotateSpeed = 0;
     let floatAmplitude = 0;
     let floatSpeed = 0;
+    let dragRotation: {
+      dragging: boolean;
+      pointerId: number;
+      lastX: number;
+      offset: number;
+      regionStart: number;
+      sensitivity: number;
+    } | null = null;
     for (const component of entity.components) {
       const props = component.props ?? {};
       if (component.type === 'model') {
@@ -106,6 +115,15 @@ export class PresentationWorld {
       } else if (component.type === 'floatAnimation') {
         floatAmplitude = Number(props.amplitude ?? 0);
         floatSpeed = Number(props.speed ?? 1);
+      } else if (component.type === 'dragRotate') {
+        dragRotation = {
+          dragging: false,
+          pointerId: -1,
+          lastX: 0,
+          offset: 0,
+          regionStart: Math.min(0.9, Math.max(0.1, Number(props.regionStart ?? 0.5))),
+          sensitivity: Number(props.sensitivity ?? 0.008),
+        };
       } else if (component.type === 'camera') {
         // Scene camera entity: keep the definition camera (simple pass).
       } else if (component.type === 'lookAt') {
@@ -128,14 +146,16 @@ export class PresentationWorld {
       const target = new THREE.Vector3(...lookAtTarget);
       group.lookAt(target);
     }
-    if (rotateSpeed !== 0 || floatAmplitude !== 0) {
+    if (dragRotation) this.attachDragRotation(dragRotation);
+    if (rotateSpeed !== 0 || floatAmplitude !== 0 || dragRotation) {
       const baseY = group.position.y;
       const baseRot = group.rotation.y;
+      let automaticRotation = 0;
       this.animators.push({
         update: (dt) => {
-          if (rotateSpeed !== 0) group.rotation.y = baseRot + rotateSpeed * this.elapsed;
+          if (rotateSpeed !== 0 && !dragRotation?.dragging) automaticRotation += rotateSpeed * dt;
+          group.rotation.y = baseRot + automaticRotation + (dragRotation?.offset ?? 0);
           if (floatAmplitude !== 0) group.position.y = baseY + Math.sin(this.elapsed * floatSpeed) * floatAmplitude;
-          void dt;
         },
       });
     }
@@ -146,6 +166,69 @@ export class PresentationWorld {
   }
 
   private elapsed = 0;
+
+  private attachDragRotation(controller: {
+    dragging: boolean;
+    pointerId: number;
+    lastX: number;
+    offset: number;
+    regionStart: number;
+    sensitivity: number;
+  }): void {
+    const isInteractive = (target: EventTarget | null): boolean =>
+      target instanceof Element && Boolean(target.closest('button, input, textarea, select, a, [role="button"]'));
+    const isInDragRegion = (event: PointerEvent): boolean => {
+      const rect = this.container.getBoundingClientRect();
+      return event.clientX >= rect.left + rect.width * controller.regionStart;
+    };
+    const setReady = (ready: boolean): void => {
+      this.container.classList.toggle('tank-drag-ready', ready && !controller.dragging);
+    };
+    const finish = (event: PointerEvent): void => {
+      if (!controller.dragging || event.pointerId !== controller.pointerId) return;
+      controller.dragging = false;
+      controller.pointerId = -1;
+      this.container.classList.remove('tank-drag-active');
+      setReady(isInDragRegion(event));
+      if (this.container.hasPointerCapture?.(event.pointerId)) this.container.releasePointerCapture(event.pointerId);
+    };
+    const onPointerDown = (event: PointerEvent): void => {
+      if (event.button !== 0 || isInteractive(event.target) || !isInDragRegion(event)) return;
+      controller.dragging = true;
+      controller.pointerId = event.pointerId;
+      controller.lastX = event.clientX;
+      this.container.classList.remove('tank-drag-ready');
+      this.container.classList.add('tank-drag-active');
+      this.container.setPointerCapture?.(event.pointerId);
+      event.preventDefault();
+    };
+    const onPointerMove = (event: PointerEvent): void => {
+      if (controller.dragging && event.pointerId === controller.pointerId) {
+        controller.offset += (event.clientX - controller.lastX) * controller.sensitivity;
+        controller.lastX = event.clientX;
+        event.preventDefault();
+        return;
+      }
+      setReady(!isInteractive(event.target) && isInDragRegion(event));
+    };
+    const onPointerLeave = (): void => {
+      if (!controller.dragging) setReady(false);
+    };
+
+    this.container.addEventListener('pointerdown', onPointerDown);
+    this.container.addEventListener('pointermove', onPointerMove);
+    this.container.addEventListener('pointerup', finish);
+    this.container.addEventListener('pointercancel', finish);
+    this.container.addEventListener('pointerleave', onPointerLeave);
+    this.pointerCleanups.push(() => {
+      this.container.removeEventListener('pointerdown', onPointerDown);
+      this.container.removeEventListener('pointermove', onPointerMove);
+      this.container.removeEventListener('pointerup', finish);
+      this.container.removeEventListener('pointercancel', finish);
+      this.container.removeEventListener('pointerleave', onPointerLeave);
+      this.container.classList.remove('tank-drag-ready', 'tank-drag-active');
+    });
+  }
 
   private resolveModel(assetId: string): THREE.Object3D {
     // Project custom assets resolve through the catalog (file → registered
@@ -184,6 +267,7 @@ export class PresentationWorld {
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
+    for (const cleanup of this.pointerCleanups.splice(0)) cleanup();
     // Ownership rule (Refractor 02 audit P0-2): models are cloned from
     // AssetService cached prototypes, so their geometry/materials are shared
     // with gameplay and MUST NOT be disposed here. Only release the

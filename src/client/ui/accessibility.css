@@ -1,0 +1,39 @@
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .ui-screen.scene-enter,
+  .ui-screen.scene-exit { transform: none; }
+  .countdown-number { text-shadow: none; }
+}
+
+@media (forced-colors: active) {
+  .ui-safe-frame,
+  .ui-action,
+  .ui-form-panel,
+  .lobby-player,
+  .hud-ability,
+  .hud-survival-cluster { clip-path: none; border: 1px solid CanvasText; }
+  .ui-action[data-ui-tone='action'] { color: ButtonText; background: ButtonFace; }
+}
+
+@supports not (clip-path: polygon(0 0)) {
+  .ui-safe-frame,
+  .ui-action,
+  .ui-form-panel,
+  .ui-code-box,
+  .ui-code-input,
+  .ui-compact-action,
+  .lobby-player,
+  .lobby-chat,
+  .hud-role-chip,
+  .hud-wave-cluster,
+  .hud-survival-cluster,
+  .hud-ability { clip-path: none; }
+}

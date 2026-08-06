@@ -24,6 +24,7 @@ function project(
   desiredPoint: { x: number; y: number; z: number },
   cameraQuery: ReturnType<typeof buildCameraCollisionIndex> | null = null,
   out?: TrajectoryReticleResult,
+  projectile = { speed: 52, gravity: 5, life: 2.4 },
 ): TrajectoryReticleResult {
   return projectTrajectoryReticle({
     camera: cam,
@@ -34,6 +35,8 @@ function project(
     turretPitch: turret.pitch,
     rig: DEFAULT_TANK_RIG,
     cameraQuery,
+    groundHeightAt: () => 0,
+    projectile,
     desiredPoint,
     out,
   });
@@ -98,6 +101,8 @@ describe('trajectory reticle projection', () => {
       turretPitch: 0.3,
       rig: custom,
       cameraQuery: null,
+      groundHeightAt: () => 0,
+      projectile: { speed: 52, gravity: 5, life: 2.4 },
       desiredPoint: { x: 0, y: 6, z: 20 },
     });
     // The longer barrel shifts the pitched shot line; the reticle visibly
@@ -113,6 +118,42 @@ describe('trajectory reticle projection', () => {
     expect(r.blocked).toBe(true);
     expect(r.worldPoint.z).toBeGreaterThanOrEqual(7);
     expect(r.worldPoint.z).toBeLessThanOrEqual(9);
+  });
+
+  it('accounts for cannon gravity instead of projecting a straight ray', () => {
+    const cam = cameraAt([0, 2.5, -6], [0, 2, 45]);
+    const noGravity = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0.2 },
+      { x: 0, y: 10, z: 45 },
+      null,
+      undefined,
+      { speed: 52, gravity: 0, life: 2.4 },
+    );
+    const ballistic = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0.2 },
+      { x: 0, y: 10, z: 45 },
+    );
+    expect(ballistic.worldPoint.y).toBeLessThan(noGravity.worldPoint.y);
+    expect(ballistic.y).toBeGreaterThan(noGravity.y);
+  });
+
+  it('places a straight-down recoil shot at the ground beneath the tank', () => {
+    const cam = cameraAt([0, 7, -6], [0, 0, 0]);
+    const result = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: -Math.PI / 2 },
+      { x: 0, y: 0, z: 0 },
+    );
+    // Terrain is the intended impact surface for recoil shots, not a
+    // near-cover obstruction state.
+    expect(result.blocked).toBe(false);
+    expect(result.worldPoint.y).toBeCloseTo(0.05, 6);
+    expect(Math.hypot(result.worldPoint.x, result.worldPoint.z)).toBeLessThan(1.1);
   });
 
   it('never emits NaN and hides off-screen trajectories', () => {

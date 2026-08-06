@@ -1,5 +1,9 @@
 import type { TankRigDefinition } from '../content/schemas/tank';
 
+/** Full vertical cannon articulation shared by local and networked aiming. */
+export const VERTICAL_AIM_MIN_PITCH = -Math.PI / 2;
+export const VERTICAL_AIM_MAX_PITCH = Math.PI / 2;
+
 /**
  * Built-in fallback tank rig. Mirrors content/tanks/default.json exactly
  * (parity is tested); used by the legacy/client-safe rule path and by the

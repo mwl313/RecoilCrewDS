@@ -4,5 +4,5 @@
   "behaviors": [],
   "primary": "weapon.machineGun",
   "secondary": "weapon.rapidCannon",
-  "turret": { "responseMode": "instant", "turnRate": 60, "pitchFollowRate": 40, "maxPitch": 0.42, "minPitch": -0.12 }
+  "turret": { "responseMode": "instant", "turnRate": 60, "pitchFollowRate": 40, "maxPitch": 1.5707963267948966, "minPitch": -1.5707963267948966 }
 }

@@ -28,6 +28,7 @@ import { isCrewSeat, seatConflict, validateChatText } from '../shared/lobby/lobb
 import { validateNickname } from '../shared/lobby/nicknameValidation';
 import { generateDefaultNickname } from '../shared/lobby/nicknamePool';
 import { stageViewForMatch } from '../shared/monsters/monsterStageView';
+import { VERTICAL_AIM_MAX_PITCH, VERTICAL_AIM_MIN_PITCH } from '../shared/vehicle/tankRigTypes';
 import { resolveSelectedMonsterRun } from '../shared/monsters/monsterPreload';
 
 export interface SocketLike {
@@ -180,7 +181,9 @@ function sanitizeGunner(raw: unknown): GunnerInput | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
   const aimYaw = typeof r.aimYaw === 'number' && Number.isFinite(r.aimYaw) ? r.aimYaw : 0;
-  const aimPitch = typeof r.aimPitch === 'number' && Number.isFinite(r.aimPitch) ? Math.max(-1.5, Math.min(1.5, r.aimPitch)) : 0;
+  const aimPitch = typeof r.aimPitch === 'number' && Number.isFinite(r.aimPitch)
+    ? Math.max(VERTICAL_AIM_MIN_PITCH, Math.min(VERTICAL_AIM_MAX_PITCH, r.aimPitch))
+    : 0;
   const gunner: GunnerInput = {
     aimYaw,
     aimPitch,

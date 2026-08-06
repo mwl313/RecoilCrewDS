@@ -60,6 +60,8 @@
     "start": "npm run build && npm run server"
   },
   "dependencies": {
+    "@fontsource/barlow": "5.3.0",
+    "@fontsource/barlow-condensed": "5.3.0",
     "three": "^0.178.0",
     "ws": "^8.18.0",
     "zod": "^4.4.3"
