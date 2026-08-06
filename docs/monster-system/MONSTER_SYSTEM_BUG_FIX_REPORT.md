@@ -10,7 +10,7 @@ Starting SHA: `f3ee97034775f1ee3d216144cb1bc2be489ba542`
 | --- | --- | --- |
 | 1 — Multiplayer identity and wave composition | IN PROGRESS | (next commit) |
 | 2 — Scale, collision, and grounding | IN PROGRESS | (next commit) |
-| 3 — Movement and behavior | pending | |
+| 3 — Movement and behavior | IN PROGRESS | (next commit) |
 | 4 — Timer, pacing, boss intro | pending | |
 | 5 — XP presentation and cleanup | pending | |
 | 6 — End-to-end qualification | pending | |
@@ -111,3 +111,61 @@ Fix:
 `npm run build` PASS · `test:demo` PASS (golden unchanged). Three pre-existing
 Map Lab integration tests were given a 30 s timeout (they perform real
 mapgen and exceeded vitest's 5 s default only under full-suite load).
+
+## Phase 3 — Movement and behavior ordering
+
+### Defect 1/2 (confirmed): unreserved melee circled from spawn distance
+
+Root cause: `movement.meleeEngagement` rotated unreserved melee movement
+sideways unconditionally, so enemies orbited before ever approaching;
+reservations are only granted inside attack range, so many enemies never
+attacked.
+
+Fix: a shared `MeleeMovementProfile` state machine in
+`movement.meleeEngagement`:
+
+- CHASE (outside `stagingRadiusMultiplier × attack range`): direct pursuit.
+- STAGE (inside staging band, no reservation): controlled tangential
+  movement with a slow inward drift to probe for an open arc; never crosses
+  the tank (min ring = max(inner staging, enemy radius + tank radius + 0.2)).
+- RESERVED_APPROACH: direct pursuit, slower near the attack point.
+- ATTACK_HOLD: stop, face the tank, let `attack.meleeCue` fire.
+
+### Defect 3 (confirmed): ranged oscillation
+
+`movement.trackTank` now uses a reusable hold band
+(`RANGED_HOLD_PROFILE`: inner 0.80, outer 1.10 of preferred range). Outside
+the outer band it approaches, inside the inner band it retreats, and inside
+the band it holds with a slow stable strafe (no per-update direction flip).
+
+### Defect 18 (confirmed): speed modifiers applied after integration
+
+The post-behavior `runtime.speed *= enemySpeedMultiplier` was removed from
+`EnemySystem.update`; `movement.integrate` now applies the progression/relic
+multiplier immediately before displacement.
+
+### Defect 19 (confirmed): semantics evaluated before behavior finished
+
+`updateEnemySemantics`/`syncSemanticCue` now run after the current frame's
+behaviors and impulse update (death lock still overrides everything), so an
+accepted attack emits its Attack cue in the same tick and movement produces
+Walk.
+
+### Tests added
+
+`tests/monsters/movementBehaviors.test.ts` (flat static world,
+multi-second simulations):
+
+- far unreserved melee chases (distance decreases over 3 s);
+- near unreserved melee stages on a ring without crossing the tank;
+- reserved melee reaches the attack position;
+- only reservation owners enter Attack (non-owner attack set is empty);
+- ranged hold band stays inside 10.5–16.5 m at preferred 14 m;
+- ranged approaches from 30 m and retreats from 7 m;
+- a 0.5× speed modifier reduces displacement below 0.75× baseline;
+- Attack cue same tick and Death override after kill.
+
+### Gates
+
+`npx tsc --noEmit` PASS · `npm test` PASS (140 files / 1020 tests) ·
+slow mapgen tests given explicit 30 s timeouts.

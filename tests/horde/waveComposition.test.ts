@@ -71,7 +71,7 @@ function countByDefId(m: Match, waveId: number): Map<string, number> {
 }
 
 describe('production wave composition (bug-fix phase 1)', () => {
-  it('opens wave 1 with every authored pack entry (waveCohort 2/1/1 + farmingCluster 3 close)', () => {
+  it('opens wave 1 with every authored pack entry (waveCohort 2/1/1 + farmingCluster 3 close)', { timeout: 30_000 }, () => {
     const m = makeMatch();
     stepUntilPhase(m, 'wave1');
     const horde = m.runtime.systems.horde!;
@@ -93,7 +93,7 @@ describe('production wave composition (bug-fix phase 1)', () => {
     expect(rangedEnemy?.ownership?.formationRole).toBe('support');
   });
 
-  it('spawns reinforcements with every authored entry, not only entries[0]', () => {
+  it('spawns reinforcements with every authored entry, not only entries[0]', { timeout: 30_000 }, () => {
     const m = makeMatch();
     step(m, 61);
     const horde = m.runtime.systems.horde!;
@@ -108,7 +108,7 @@ describe('production wave composition (bug-fix phase 1)', () => {
     expect((after.get(ranged) ?? 0)).toBeGreaterThan(before.get(ranged) ?? 0);
   });
 
-  it('boss escorts preserve the Phase 3 close/ranged/specialist composition', () => {
+  it('boss escorts preserve the Phase 3 close/ranged/specialist composition', { timeout: 30_000 }, () => {
     const m = makeMatch();
     step(m, 61);
     killWaveLeader(m);

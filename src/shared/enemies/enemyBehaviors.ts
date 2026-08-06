@@ -10,6 +10,10 @@ import {
   startAttackCycle,
 } from '../monsters/monsterAttack';
 import { resolveProjectileSocketY } from '../monsters/monsterNormalization';
+import {
+  DEFAULT_MELEE_MOVEMENT_PROFILE,
+  RANGED_HOLD_PROFILE,
+} from '../monsters/movementProfiles';
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -161,9 +165,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       // Impulse-driven motion owns position while the enemy is airborne.
       if (ctx.enemyImpulses.isAirborne(e)) return;
       const r = ctx.enemies.radiusFor(e);
+      // Final speed ordering: authored speed → progression/relic modifier →
+      // integration. The modifier is applied here, immediately before
+      // displacement, so debuffs always change movement.
+      const speedMultiplier = ctx.progression?.enemySpeedMultiplier
+        ? ctx.progression.enemySpeedMultiplier(e)
+        : 1;
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
-      const nx = e.x + (runtime.dirX / ml) * runtime.speed * dt;
-      const nz = e.z + (runtime.dirZ / ml) * runtime.speed * dt;
+      const speed = runtime.speed * speedMultiplier;
+      const nx = e.x + (runtime.dirX / ml) * speed * dt;
+      const nz = e.z + (runtime.dirZ / ml) * speed * dt;
       if (ctx.world.queryTerrainTransition) {
         const tr = ctx.world.queryTerrainTransition(e.x, e.z, nx, nz);
         if (tr && !canTraverseGroundStep(tr)) {
@@ -472,9 +483,23 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       let dirX = dx / d;
       let dirZ = dz / d;
       // Ranged monsters hold a preferred ring instead of closing in.
-      if (preferred > 0 && d < preferred * 0.85) {
-        dirX = -dirX;
-        dirZ = -dirZ;
+      if (preferred > 0) {
+        const inner = preferred * RANGED_HOLD_PROFILE.innerRatio;
+        const outer = preferred * RANGED_HOLD_PROFILE.outerRatio;
+        if (d > outer) {
+          // Approach the preferred ring.
+        } else if (d < inner) {
+          dirX = -dirX;
+          dirZ = -dirZ;
+        } else {
+          // Hold band: slow stable strafe, never flip direction each update.
+          const side = e.id % 2 === 0 ? 1 : -1;
+          const tx = -dirZ * side;
+          const tz = dirX * side;
+          dirX = tx;
+          dirZ = tz;
+          runtime.speed *= 0.35;
+        }
       }
       runtime.dirX = dirX;
       runtime.dirZ = dirZ;
@@ -485,19 +510,63 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
     id: 'movement.meleeEngagement',
     update(ctx, e, runtime) {
       const def = ctx.enemies.defFor(e);
-      const range = isMonster(def) && def.attack.type === 'melee' ? def.attack.range : 2;
+      if (!isMonster(def) || def.attack.type !== 'melee') return;
+      const attack = def.attack;
+      const profile = DEFAULT_MELEE_MOVEMENT_PROFILE;
+      const s = ctx.state;
+      const dx = s.tank.x - e.x;
+      const dz = s.tank.z - e.z;
+      const d = runtime.distToTank || Math.hypot(dx, dz) || 1;
+      const toX = dx / d;
+      const toZ = dz / d;
+      const stopRadius = attack.range * profile.attackStopTolerance;
+      const stagingOuter = attack.range * profile.stagingRadiusMultiplier;
+      const stagingInner = attack.range * profile.stagingInnerMultiplier;
+      const tankRadius = ctx.rules.config.arena.tankRadius;
+
       if (runtime.meleeReserved) {
-        // Owner closes to the attack ring.
+        if (d <= stopRadius) {
+          // ATTACK_HOLD: stop, face the tank, let attack.meleeCue fire.
+          runtime.dirX = 0;
+          runtime.dirZ = 0;
+          runtime.speed = 0;
+          return;
+        }
+        // RESERVED_APPROACH: direct pursuit, slower near the attack point.
+        runtime.dirX = toX;
+        runtime.dirZ = toZ;
+        const approachScale = Math.max(0.3, Math.min(1, (d - stopRadius) / Math.max(0.5, attack.range)));
+        runtime.speed *= approachScale;
         return;
       }
-      // No reservation: circle and wait for a free arc; never deal damage.
+
+      if (d > stagingOuter) {
+        // CHASE: direct pursuit (density steering was applied above).
+        runtime.dirX = toX;
+        runtime.dirZ = toZ;
+        return;
+      }
+
+      // STAGE: keep a radial ring and search an open arc without crossing
+      // through the tank.
       const side = e.id % 2 === 0 ? 1 : -1;
-      const nx = -runtime.dirZ * side;
-      const nz = runtime.dirX * side;
-      const ml = Math.hypot(nx, nz) || 1;
-      runtime.dirX = nx / ml;
-      runtime.dirZ = nz / ml;
-      if (runtime.distToTank < range * 0.6) runtime.speed *= 0.45;
+      const tx = -toZ * side;
+      const tz = toX * side;
+      runtime.dirX = tx;
+      runtime.dirZ = tz;
+      runtime.speed *= profile.tangentialSpeedMultiplier;
+      const minRing = Math.max(stagingInner, ctx.enemies.radiusFor(e) + tankRadius + 0.2);
+      // Controlled inward drift inside the staging band probes for an open
+      // attack arc; the reservation gate requires proximity to attack range.
+      // Outside the outer ring is handled by CHASE; below minRing pushes out.
+      const radial = d < minRing ? -1 : d > stagingInner ? 0.6 : 0;
+      if (radial !== 0) {
+        runtime.dirX += toX * radial * profile.radialCorrectionStrength;
+        runtime.dirZ += toZ * radial * profile.radialCorrectionStrength;
+        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+        runtime.dirX /= ml;
+        runtime.dirZ /= ml;
+      }
     },
   });
 

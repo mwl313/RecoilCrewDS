@@ -261,13 +261,11 @@ export class EnemySystem {
         runtime.phaseOffset = (e.id % 16) / 16;
         this.runtimes.set(e.id, runtime);
       }
-      updateEnemySemantics(runtime, {
-        alive: e.alive,
-        moving: runtime.speed > 0.2 && runtime.distToTank > 0.5,
-        attacking: runtime.attackRuntime?.active === true,
-      });
-      if (e.monster) this.syncSemanticCue(e, runtime);
       if (!e.alive) {
+        // Death lock: semantic action is evaluated after behavior state,
+        // but death always overrides everything.
+        updateEnemySemantics(runtime, { alive: false, moving: false, attacking: false });
+        if (e.monster) this.syncSemanticCue(e, runtime);
         e.stateT += dt;
         continue;
       }
@@ -296,8 +294,15 @@ export class EnemySystem {
           this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
         }
       }
-      runtime.speed *= this.ctx.progression?.enemySpeedMultiplier?.(e) ?? 1;
       this.ctx.enemyImpulses.update(e, def, dt);
+      // Semantic action reflects the current frame's final movement,
+      // attack, and death state (bug-fix ordering).
+      updateEnemySemantics(runtime, {
+        alive: true,
+        moving: runtime.speed > 0.2 && runtime.distToTank > 0.5,
+        attacking: runtime.attackRuntime?.active === true,
+      });
+      if (e.monster) this.syncSemanticCue(e, runtime);
     }
     s.enemies = s.enemies.filter((e) => e.alive || e.stateT <= 2.5);
     const live = new Set<number>();
