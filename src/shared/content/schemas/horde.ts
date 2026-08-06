@@ -43,11 +43,21 @@ export const spawnPackAnchorRequirementsSchema = z
 
 export const spawnPackEntrySchema = z
   .object({
-    enemyId: z.string().regex(/^enemy\./),
+    enemyId: z.string().regex(/^enemy\./).optional(),
+    /** Production: symbolic selected-slot reference resolved at match setup. */
+    slotId: z.string().regex(/^selected\./).optional(),
     count: positiveNumber,
     formationRole: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((entry, ctx) => {
+    if ((entry.enemyId === undefined) === (entry.slotId === undefined)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'spawn pack entry must define exactly one of enemyId or slotId',
+      });
+    }
+  });
 
 export const spawnPackSchema = z
   .object({
@@ -79,14 +89,16 @@ export const stageSequenceSchema = z
     farmingCountdownSeconds: positiveNumber,
     triggers: z.array(stageTriggerSchema).min(1),
     bossAtRemainingSeconds: nonNegativeNumber,
-    pauseCountdownDuringWave: z.literal(true),
+    pauseCountdownDuringWave: z.boolean(),
   })
   .strict();
 
 export const waveSchema = z
   .object({
     ...commonDefinition,
-    leaderEnemyId: z.string().regex(/^enemy\./),
+    leaderEnemyId: z.string().regex(/^enemy\./).optional(),
+    /** Production: selected elite encounter resolved at match setup. */
+    leaderSlotId: z.string().regex(/^selected\./).optional(),
     openingPackIds: z.array(z.string().regex(/^pack\./)),
     reinforcementPackIds: z.array(z.string().regex(/^pack\./)),
     openingThreat: positiveNumber,
@@ -98,12 +110,21 @@ export const waveSchema = z
     rewardTableId: z.string().regex(/^reward\./),
     purgeWaveCohortOnLeaderDeath: z.literal(true),
   })
-  .strict();
+  .strict()
+  .superRefine((wave, ctx) => {
+    if ((wave.leaderEnemyId === undefined) === (wave.leaderSlotId === undefined)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'wave must define exactly one of leaderEnemyId or leaderSlotId',
+      });
+    }
+  });
 
 export const bossWaveSchema = z
   .object({
     ...commonDefinition,
-    leaderEnemyId: z.string().regex(/^enemy\./),
+    leaderEnemyId: z.string().regex(/^enemy\./).optional(),
+    leaderSlotId: z.string().regex(/^selected\./).optional(),
     openingPackIds: z.array(z.string().regex(/^pack\./)),
     reinforcementPackIds: z.array(z.string().regex(/^pack\./)),
     openingThreat: positiveNumber,
@@ -114,7 +135,9 @@ export const bossWaveSchema = z
     approachPolicyId: z.string().regex(/^horde\.navigationPolicy\./),
     rewardTableId: z.string().regex(/^reward\./),
     purgeWaveCohortOnLeaderDeath: z.literal(true),
-    bossEnemyId: z.string().regex(/^enemy\./),
+    bossEnemyId: z.string().regex(/^enemy\./).optional(),
+    /** Production: selected boss identity resolved at match setup. */
+    bossSlotId: z.string().regex(/^selected\./).optional(),
     hpThresholdEvents: z
       .array(
         z
@@ -128,7 +151,21 @@ export const bossWaveSchema = z
       .optional(),
     completion: z.literal('clearStage'),
   })
-  .strict();
+  .strict()
+  .superRefine((wave, ctx) => {
+    if ((wave.leaderEnemyId === undefined) === (wave.leaderSlotId === undefined)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'boss wave must define exactly one of leaderEnemyId or leaderSlotId',
+      });
+    }
+    if ((wave.bossEnemyId === undefined) === (wave.bossSlotId === undefined)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'boss wave must define exactly one of bossEnemyId or bossSlotId',
+      });
+    }
+  });
 
 export const spawnAnchorPolicySchema = z
   .object({

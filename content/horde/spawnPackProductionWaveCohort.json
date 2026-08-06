@@ -1,0 +1,15 @@
+{
+  "id": "pack.production.waveCohort",
+  "label": "Production Wave Cohort",
+  "tags": ["wave"],
+  "entries": [
+    { "slotId": "selected.phase.closeFodder", "count": 2, "formationRole": "line" },
+    { "slotId": "selected.phase.rangedFodder", "count": 1, "formationRole": "support" },
+    { "slotId": "selected.phase.specialist", "count": 1, "formationRole": "vanguard" }
+  ],
+  "threatCost": 8,
+  "entityCost": 4,
+  "formation": "column",
+  "spacing": 3,
+  "radius": 10
+}

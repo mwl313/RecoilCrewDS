@@ -1,16 +1,15 @@
 {
   "id": "horde.mainStage.production",
   "label": "Main Stage Production Horde Director",
-  "stageSequenceId": "horde.stageSequence.main",
+  "stageSequenceId": "horde.stageSequence.production",
   "farmingPhaseIds": ["horde.farming.phase1", "horde.farming.phase2", "horde.farming.phase3"],
-  "waveIds": ["wave.vanguard", "wave.encirclement"],
-  "bossWaveId": "horde.bossWave.main",
+  "waveIds": ["wave.production.wave1", "wave.production.wave2"],
+  "bossWaveId": "horde.bossWave.production",
   "packIds": [
-    "pack.wanderingCluster",
-    "pack.vanguardWall",
-    "pack.escortRing",
-    "pack.reinforcementColumn",
-    "pack.bossGuard"
+    "pack.production.farmingCluster",
+    "pack.production.mixedFarming",
+    "pack.production.waveCohort",
+    "pack.production.bossEscortCohort"
   ],
   "limitsId": "horde.populationLimits.main",
   "lodPolicyId": "horde.lodPolicy.main",

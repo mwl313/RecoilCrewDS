@@ -1,0 +1,11 @@
+{
+  "id": "horde.stageSequence.production",
+  "label": "Main Stage Production Sequence",
+  "farmingCountdownSeconds": 180,
+  "triggers": [
+    { "atRemainingSeconds": 120, "waveId": "wave.production.wave1" },
+    { "atRemainingSeconds": 60, "waveId": "wave.production.wave2" }
+  ],
+  "bossAtRemainingSeconds": 0,
+  "pauseCountdownDuringWave": false
+}

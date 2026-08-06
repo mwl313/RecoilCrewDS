@@ -6,6 +6,7 @@ import {
   createMonsterRunState,
   endMonsterStage,
   resolveSelectedSlots,
+  resolvePackSlotIds,
   DEFAULT_MONSTER_STAGE_CONFIG,
   type MonsterStageEvent,
 } from '../src/shared/monsters/monsterStage';
@@ -78,5 +79,26 @@ describe('monster stage timeline', () => {
     const director = pack.getHordeDirector('horde.mainStage.production');
     expect(director.enforceStage).toBe(true);
     expect(director.gameplayRosterId).toBe('enemyGameplayRoster.quaternius.mainStage');
+    expect(director.stageSequenceId).toBe('horde.stageSequence.production');
+    expect(director.waveIds).toEqual(['wave.production.wave1', 'wave.production.wave2']);
+    expect(director.bossWaveId).toBe('horde.bossWave.production');
+  });
+
+  it('production packs, waves, and boss wave resolve through selected slots', () => {
+    const slots = resolveSelectedSlots(roster, run);
+    const sequence = pack.getStageSequence('horde.stageSequence.production');
+    expect(sequence.pauseCountdownDuringWave).toBe(false);
+    for (const packId of pack.getHordeDirector('horde.mainStage.production').packIds) {
+      const def = pack.getSpawnPack(packId);
+      const resolved = resolvePackSlotIds(def.entries, slots);
+      expect(resolved.length).toBe(def.entries.length);
+      for (const id of resolved) expect(pack.has('enemies', id)).toBe(true);
+    }
+    const wave1 = pack.getWave('wave.production.wave1');
+    expect(slots[wave1.leaderSlotId!]).toBe(run.eliteWaves[0][0].enemyId);
+    const wave2 = pack.getWave('wave.production.wave2');
+    expect(slots[wave2.leaderSlotId!]).toBe(run.eliteWaves[1][0].enemyId);
+    const bossWave = pack.getBossWave('horde.bossWave.production');
+    expect(slots[bossWave.bossSlotId!]).toBe(run.boss.enemyId);
   });
 });

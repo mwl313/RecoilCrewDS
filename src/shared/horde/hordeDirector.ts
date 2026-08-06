@@ -143,7 +143,7 @@ export class HordeDirector {
       const packId = def.reinforcementPackIds[0];
       const pack = this.resolved.packs.get(packId);
       const entry = pack?.entries[0];
-      if (pack && entry && waves.spendReinforcement(runtime.waveId, pack.threatCost, entry.enemyId, entry.count)) {
+      if (pack && entry && waves.spendReinforcement(runtime.waveId, pack.threatCost, this.resolveEntry(entry), entry.count)) {
         this.lastSelectedPack = packId;
       }
     }
@@ -162,7 +162,7 @@ export class HordeDirector {
     if (!def) return;
     const runtime = this.ctx.waves.openWave({
       definitionId: def.id,
-      leaderEnemyId: def.leaderEnemyId,
+      leaderEnemyId: this.resolveLeader(def),
       openingThreat: def.openingThreat,
       reinforcementThreat: def.reinforcementThreat,
       reinforcementThreatPerSecond: def.reinforcementThreatPerSecond,
@@ -178,7 +178,7 @@ export class HordeDirector {
         const plan = this.ctx.spawnPlanner.plan(pack, isBoss ? 'boss' : 'wave');
         this.ctx.waves.spawnCohort(
           runtime.waveId,
-          pack.entries[0].enemyId,
+          this.resolveEntry(pack.entries[0]),
           totalCount,
           pack.threatCost,
           plan?.positions,
@@ -191,9 +191,9 @@ export class HordeDirector {
   }
 
   private waveIdToDefinitionId(waveId: number | undefined): string {
-    if (waveId === 1) return 'wave.vanguard';
-    if (waveId === 2) return 'wave.encirclement';
-    return 'wave.vanguard';
+    if (waveId === undefined) return this.resolved.waves.keys().next().value as string;
+    const trigger = this.resolved.stageSequence.triggers[waveId - 1];
+    return trigger?.waveId ?? (this.resolved.waves.keys().next().value as string);
   }
 
   private pickPack(tags: string[], fallbackTag: string): SpawnPackDefinition | undefined {
@@ -218,7 +218,7 @@ export class HordeDirector {
     let seed = pack.id.length + this.ctx.state.nextEnemyId;
     let positionIndex = 0;
     for (const entry of pack.entries) {
-      const def = this.ctx.enemies.defById(entry.enemyId);
+      const def = this.ctx.enemies.defById(this.resolveEntry(entry));
       if (!def) continue;
       for (let i = 0; i < entry.count; i++) {
         seed += 1;
@@ -233,6 +233,21 @@ export class HordeDirector {
         });
       }
     }
+  }
+
+  private slot(slotId: string | undefined): string {
+    if (!slotId) throw new Error('monster slot reference missing');
+    const resolved = this.ctx.monsterSlots?.[slotId];
+    if (!resolved) throw new Error(`unresolved monster slot '${slotId}'`);
+    return resolved;
+  }
+
+  private resolveEntry(entry: { enemyId?: string; slotId?: string }): string {
+    return entry.enemyId ?? this.slot(entry.slotId);
+  }
+
+  private resolveLeader(def: { leaderEnemyId?: string; leaderSlotId?: string }): string {
+    return def.leaderEnemyId ?? this.slot(def.leaderSlotId);
   }
 }
 

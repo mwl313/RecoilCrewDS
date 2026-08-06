@@ -118,6 +118,11 @@ export function resolveSelectedSlots(
   run: SelectedMonsterRun,
 ): Record<string, string> {
   const slots: Record<string, string> = {
+    // Generic current-phase slots (farming packs); the horde runtime updates
+    // these when the farming phase advances.
+    'selected.phase.closeFodder': run.phases[0].closeFodderEnemyId,
+    'selected.phase.rangedFodder': run.phases[0].rangedFodderEnemyId,
+    'selected.phase.specialist': run.phases[0].specialistEnemyId,
     'selected.phase1.closeFodder': run.phases[0].closeFodderEnemyId,
     'selected.phase1.rangedFodder': run.phases[0].rangedFodderEnemyId,
     'selected.phase1.specialist': run.phases[0].specialistEnemyId,
@@ -135,4 +140,17 @@ export function resolveSelectedSlots(
     });
   }
   return slots;
+}
+
+/** Resolve spawn-pack entries (enemyId or symbolic slotId) to concrete ids. */
+export function resolvePackSlotIds(
+  entries: ReadonlyArray<{ enemyId?: string; slotId?: string }>,
+  slots: Record<string, string>,
+): string[] {
+  return entries.map((entry) => {
+    if (entry.enemyId) return entry.enemyId;
+    const resolved = entry.slotId ? slots[entry.slotId] : undefined;
+    if (!resolved) throw new Error(`unresolved spawn slot '${entry.slotId}'`);
+    return resolved;
+  });
 }

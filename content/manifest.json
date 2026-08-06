@@ -172,8 +172,8 @@
         "spawn-directors/truckHunter.json",
         "spawn-directors/mainStage.json"      ],
       "stageSequences": [
-        "horde/stageSequence.json"
-      ],
+        "horde/stageSequence.json",
+        "horde/stageSequenceProduction.json"      ],
       "farmingPhases": [
         "horde/farmingPhase1.json",
         "horde/farmingPhase2.json",
@@ -190,15 +190,19 @@
         "horde/spawnPackVanguardWall.json",
         "horde/spawnPackEscortRing.json",
         "horde/spawnPackReinforcementColumn.json",
-        "horde/spawnPackBossGuard.json"
-      ],
+        "horde/spawnPackBossGuard.json",
+        "horde/spawnPackProductionFarmingCluster.json",
+        "horde/spawnPackProductionMixedFarming.json",
+        "horde/spawnPackProductionWaveCohort.json",
+        "horde/spawnPackProductionBossEscort.json"      ],
       "waves": [
         "horde/wave1.json",
-        "horde/wave2.json"
-      ],
+        "horde/wave2.json",
+        "horde/waveProduction1.json",
+        "horde/waveProduction2.json"      ],
       "bossWaves": [
-        "horde/bossWave.json"
-      ],
+        "horde/bossWave.json",
+        "horde/bossWaveProduction.json"      ],
       "spawnAnchorPolicies": [
         "horde/policyAnchor.json"
       ],

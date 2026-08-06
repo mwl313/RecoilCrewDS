@@ -82,6 +82,8 @@ export interface SystemContext {
   hordeSectors: HordeSectorAggregator;
   progression: ProgressionSystem;
   xpShards: XpShardSystem;
+  /** Production: selected-slot plan (selected.phase.* / selected.wave.* / selected.boss). */
+  monsterSlots: Record<string, string> | null;
   /** Progression08: selection execution policy picker. */
   sessionKind: 'singlePlayer' | 'multiplayer';
 }
@@ -146,6 +148,7 @@ export function createSystemContext(
   ctx.hordeSectors = new HordeSectorAggregator(ctx);
   ctx.sessionKind = sessionKind;
   ctx.xpShards = new XpShardSystem(ctx);
+  ctx.monsterSlots = null;
   ctx.progression = new ProgressionSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);

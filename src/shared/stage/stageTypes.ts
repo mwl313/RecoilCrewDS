@@ -29,7 +29,7 @@ export interface StageSequenceConfig {
   farmingCountdownSeconds: number;
   triggers: Array<{ atRemainingSeconds: number; waveId: string }>;
   bossAtRemainingSeconds: number;
-  pauseCountdownDuringWave: true;
+  pauseCountdownDuringWave: boolean;
 }
 
 export interface StageStepInput {

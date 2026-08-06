@@ -1,0 +1,15 @@
+{
+  "id": "pack.production.mixedFarming",
+  "label": "Production Mixed Farming Group",
+  "tags": ["farming"],
+  "entries": [
+    { "slotId": "selected.phase.closeFodder", "count": 2, "formationRole": "wanderer" },
+    { "slotId": "selected.phase.rangedFodder", "count": 1, "formationRole": "skirmisher" }
+  ],
+  "threatCost": 4,
+  "entityCost": 3,
+  "formation": "cluster",
+  "spacing": 2.6,
+  "radius": 8,
+  "cooldownSeconds": 2
+}
