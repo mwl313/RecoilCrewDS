@@ -104,7 +104,7 @@ if (fs.existsSync(CONTENT_DIR)) {
     // remains a content fixture for tests and previews.
     modeId: 'mode.mainStage',
   };
-  console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} mode=${contentPack.modeId}`);
+  console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} liveMode=${contentMeta.modeId}`);
 } else {
   console.warn(`[recoil-crew] content dir not found at ${CONTENT_DIR}; running without content metadata`);
 }
