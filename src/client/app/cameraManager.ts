@@ -18,6 +18,7 @@ export class CameraManager {
   activeCam: TpsCameraController;
   private shake = 0;
   private lastRenderYaw = 0;
+  private overviewSize = 0;
 
   constructor() {
     const driverTuning: Partial<TpsCameraTuning> = {
@@ -72,6 +73,14 @@ export class CameraManager {
     this.activeCam.requestRecenter(chassisYaw);
   }
 
+  /** Fixed high-angle QA view used to inspect complete authored map layouts. */
+  setOverview(sizeMeters: number): void {
+    this.overviewSize = Math.max(0, sizeMeters);
+    const camera = this.activeCam.camera;
+    camera.far = Math.max(220, this.overviewSize * 3);
+    camera.updateProjectionMatrix();
+  }
+
   getCameraState() {
     return {
       yaw: this.activeCam.yaw,
@@ -93,6 +102,12 @@ export class CameraManager {
     mouse: { dx: number; dy: number },
   ): void {
     this.lastRenderYaw = chassisYaw;
+    if (this.overviewSize > 0) {
+      const distance = this.overviewSize * 0.72;
+      this.activeCam.camera.position.set(distance, this.overviewSize * 0.92, distance);
+      this.activeCam.camera.lookAt(0, 0, 0);
+      return;
+    }
     this.activeCam.applyMouseDelta(mouse.dx, mouse.dy);
     this.activeCam.setFollowPose(pos, chassisYaw);
     const t0 = performance.now();

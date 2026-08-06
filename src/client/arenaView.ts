@@ -12,6 +12,7 @@ import {
 import { buildCameraCollisionIndex, type CameraCollisionQuery } from './cameraCollision';
 import { TerrainMaterialFactory } from './materials/terrainMaterialFactory';
 import type { TerrainMaterialProfileDef } from '../shared/mapgen/profiles';
+import type { UrbanVisualPlacement } from '../shared/mapgen/urbanLayout';
 
 export interface Collider {
   box: THREE.Box3;
@@ -109,18 +110,27 @@ export class ArenaView {
       this.buildLegacyGround(half);
     }
 
+    if (this.world.arena?.urbanLayout) {
+      this.buildUrbanPlacements(this.world.arena.urbanLayout.roads);
+      this.buildUrbanPlacements(this.world.arena.urbanLayout.decorations);
+    }
+
     // Ramps.
     for (const ramp of this.world.ramps) {
-      const model = this.assets.model('arena.ramp');
-      model.scale.set(ramp.w, ramp.rise, ramp.d);
-      model.position.set(ramp.x, ramp.baseY, ramp.z);
-      model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+      const model = ramp.assetId
+        ? this.buildUrbanRoadRamp(ramp)
+        : this.assets.model('arena.ramp');
+      if (!ramp.assetId) {
+        model.scale.set(ramp.w, ramp.rise, ramp.d);
+        model.position.set(ramp.x, ramp.baseY, ramp.z);
+        model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+      }
       model.traverse((o) => {
         o.castShadow = true;
         o.receiveShadow = true;
       });
       this.group.add(model);
-      this.disposables.push(model);
+      if (!ramp.assetId) this.disposables.push(model);
       this.colliders.push({
         box: new THREE.Box3(
           new THREE.Vector3(ramp.x - ramp.w / 2, 0, ramp.z - ramp.d / 2),
@@ -273,6 +283,60 @@ export class ArenaView {
     }
   }
 
+  /**
+   * Roads and street dressing are rigid source-pack models. Instancing keeps
+   * the 400 m connected street graph to a small, bounded number of draw calls.
+   * Source materials are reused unchanged: no tint or material override.
+   */
+  private buildUrbanPlacements(placements: readonly UrbanVisualPlacement[]) {
+    const byAsset = new Map<string, UrbanVisualPlacement[]>();
+    for (const placement of placements) {
+      const list = byAsset.get(placement.assetId) ?? [];
+      list.push(placement);
+      byAsset.set(placement.assetId, list);
+    }
+    const placementMatrix = new THREE.Matrix4();
+    const rotation = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    const up = new THREE.Vector3(0, 1, 0);
+    for (const [assetId, items] of byAsset) {
+      const prototype = this.assets.model(assetId);
+      prototype.updateMatrixWorld(true);
+      prototype.traverse((node) => {
+        const source = node as THREE.Mesh;
+        if (!source.isMesh || !(source.geometry instanceof THREE.BufferGeometry)) return;
+        const mesh = new THREE.InstancedMesh(source.geometry, source.material, items.length);
+        mesh.castShadow = source.castShadow;
+        mesh.receiveShadow = true;
+        items.forEach((item, index) => {
+          rotation.setFromAxisAngle(up, item.yaw);
+          scale.setScalar(item.scale);
+          placementMatrix.compose(new THREE.Vector3(item.x, item.y, item.z), rotation, scale);
+          mesh.setMatrixAt(index, placementMatrix.clone().multiply(source.matrixWorld));
+        });
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.frustumCulled = true;
+        this.group.add(mesh);
+      });
+    }
+  }
+
+  private buildUrbanRoadRamp(ramp: import('../shared/arena').RampDef): THREE.Object3D {
+    const group = new THREE.Group();
+    const road = this.assets.model(ramp.assetId!);
+    const slopeLength = Math.hypot(ramp.d, ramp.rise);
+    road.scale.set(ramp.w / 8, 1, slopeLength / 8);
+    road.rotation.x = -Math.atan2(ramp.rise, ramp.d);
+    road.traverse((o) => {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    group.add(road);
+    group.position.set(ramp.x, ramp.baseY + ramp.rise / 2 + 0.02, ramp.z);
+    group.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+    return group;
+  }
+
   private buildObstacle(o: Obstacle) {
     const { x, z, w, d, h } = o;
     let mesh: THREE.Object3D;
@@ -336,16 +400,31 @@ export class ArenaView {
         mesh = g;
         break;
       }
+      case 'urbanBuilding': {
+        if (!o.assetId || !o.modelScale) {
+          mesh = boxMesh(w, h, d, boxMat(0x5c5345), x, h / 2, z);
+          break;
+        }
+        mesh = this.assets.model(o.assetId);
+        mesh.scale.setScalar(o.modelScale);
+        mesh.rotation.y = o.yaw ?? 0;
+        mesh.position.set(x, 0.06, z);
+        mesh.traverse((node) => {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        });
+        break;
+      }
       default:
         mesh = boxMesh(w, h, d, boxMat(0x5c5345), x, h / 2, z);
     }
-    if (o.type !== 'towerBase' && o.type !== 'scrapPile') {
+    if (o.type !== 'towerBase' && o.type !== 'scrapPile' && o.type !== 'urbanBuilding') {
       mesh.position.x = x;
       mesh.position.z = z;
       mesh.position.y = h / 2;
     }
     this.group.add(mesh);
-    this.disposables.push(mesh);
+    if (o.type !== 'urbanBuilding') this.disposables.push(mesh);
     this.colliders.push({ box: new BoxAround(x, z, w, d, h), type: o.type });
   }
 

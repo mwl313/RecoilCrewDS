@@ -17,6 +17,7 @@ import { validateArena, type ValidationReport } from './validation';
 import { validatePhase2 } from './validation2';
 import type { MapGenerationBundle } from './profiles';
 import { resolveSlopeRules } from './profiles';
+import { createUrbanLayout } from './urbanLayout';
 
 export interface GenerateArenaOptions {
   roomCode: string;
@@ -195,6 +196,7 @@ export function buildArenaCandidate(options: BuildArenaCandidateOptions): Genera
     source: 'generated',
     terrainSeedChecksum,
     layout,
+    urbanLayout: map.urbanPrototypeId ? createUrbanLayout(map.urbanPrototypeId) : undefined,
   };
 }
 

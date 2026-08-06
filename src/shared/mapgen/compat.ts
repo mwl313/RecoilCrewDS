@@ -22,6 +22,7 @@ import { resolveSlopeRules } from './profiles';
 import { isCliffWallAt, isDriveableAt, isRequiredTraversalAt, terrainFlagsAt } from './terrainFlags';
 import { queryTerrainTransition, type TerrainTransition } from './terrainTraversal';
 import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
+import { urbanSurfaceHeightAt } from './urbanLayout';
 
 export interface ArenaProps {
   obstacles: Obstacle[];
@@ -40,12 +41,13 @@ export interface ArenaQueries {
   groundHeightAt(x: number, z: number): number;
   groundNormalAt(x: number, z: number): { nx: number; ny: number; nz: number };
   slopeAt(x: number, z: number): number;
-  obstacleAt(x: number, z: number): Obstacle | undefined;
+  obstacleAt(x: number, z: number, elevation?: number): Obstacle | undefined;
   resolveCircle(x: number, z: number, r: number): { x: number; z: number; hit: boolean };
   resolveCircleContacts(
     x: number,
     z: number,
     r: number,
+    elevation?: number,
   ): { x: number; z: number; contacts: ReturnType<typeof resolveCircleBox>[] };
   rampAt(x: number, z: number): RampDef | undefined;
   nearestSpawn(x: number, z: number): { x: number; z: number };
@@ -177,6 +179,20 @@ export function toArenaProps(arena: GeneratedArena): ArenaProps {
   };
   const toWorld = (x: number, z: number) => ({ x: x + ox, z: z + oz });
 
+  if (arena.urbanLayout) {
+    return {
+      obstacles: arena.urbanLayout.buildings.map((o) => ({ ...o })),
+      barrels: [],
+      ramps: arena.urbanLayout.roofRamps.map((r) => ({ ...r })),
+      spawnPoints: arena.urbanLayout.spawnPoints.map((p) => ({ ...p })),
+      bugSpawns: arena.urbanLayout.bugSpawns.map((p) => ({ ...p })),
+      towerSpots: [],
+      truckRoute: arena.urbanLayout.truckRoute.map((p) => ({ ...p })),
+      half: Math.min(arena.widthMeters, arena.depthMeters) / 2,
+      bounds,
+    };
+  }
+
   if (layout) {
     for (const o of layout.objects) {
       // Crates are authoritative colliders (they must not disappear between
@@ -261,9 +277,19 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
 
   return {
     groundHeightAt(x: number, z: number): number {
+      if (arena.urbanLayout) return urbanSurfaceHeightAt(arena.urbanLayout, x, z);
       return arena.heightfield.heightAt(toLocalX(x), toLocalZ(z));
     },
     groundNormalAt(x: number, z: number) {
+      if (arena.urbanLayout) {
+        const e = 0.25;
+        const hx = urbanSurfaceHeightAt(arena.urbanLayout, x + e, z) - urbanSurfaceHeightAt(arena.urbanLayout, x - e, z);
+        const hz = urbanSurfaceHeightAt(arena.urbanLayout, x, z + e) - urbanSurfaceHeightAt(arena.urbanLayout, x, z - e);
+        const nx = -hx / (2 * e);
+        const nz = -hz / (2 * e);
+        const mag = Math.hypot(nx, 1, nz);
+        return { nx: nx / mag, ny: 1 / mag, nz: nz / mag };
+      }
       return arena.heightfield.normalAt(toLocalX(x), toLocalZ(z));
     },
     slopeAt(x: number, z: number): number {
@@ -271,6 +297,18 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
     },
     queryTerrainTransition(fromX: number, fromZ: number, toX: number, toZ: number): TerrainTransition {
       const rules = resolveSlopeRules(arena.terrainProfile);
+      if (arena.urbanLayout) {
+        const fromHeight = urbanSurfaceHeightAt(arena.urbanLayout, fromX, fromZ);
+        const toHeight = urbanSurfaceHeightAt(arena.urbanLayout, toX, toZ);
+        const delta = toHeight - fromHeight;
+        return {
+          fromHeight,
+          toHeight,
+          delta,
+          crossesCliffWall: delta > rules.maxStepUp,
+          maxStepUp: rules.maxStepUp,
+        };
+      }
       return queryTerrainTransition(
         arena.heightfield,
         arena.terrainFlags,
@@ -293,8 +331,9 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
     isRequiredTraversalAt(x: number, z: number): boolean {
       return isRequiredTraversalAt(arena.terrainFlags, arena.heightfield, toLocalX(x), toLocalZ(z));
     },
-    obstacleAt(x: number, z: number): Obstacle | undefined {
+    obstacleAt(x: number, z: number, elevation?: number): Obstacle | undefined {
       for (const o of props.obstacles) {
+        if (o.roofDriveable && elevation !== undefined && elevation >= o.h - 1.25) continue;
         if (pointInBox(x, z, o.x, o.z, o.w, o.d)) return o;
       }
       return undefined;
@@ -303,11 +342,12 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
       const res = this.resolveCircleContacts(x, z, r);
       return { x: res.x, z: res.z, hit: res.contacts.length > 0 };
     },
-    resolveCircleContacts(x: number, z: number, r: number) {
+    resolveCircleContacts(x: number, z: number, r: number, elevation?: number) {
       let outX = x;
       let outZ = z;
       const contacts: ReturnType<typeof resolveCircleBox>[] = [];
       for (const o of props.obstacles) {
+        if (o.roofDriveable && elevation !== undefined && elevation >= o.h - 1.25) continue;
         const res = resolveCircleBox(outX, outZ, r, o.x, o.z, o.w, o.d, o.id);
         if (res.hit) {
           outX = res.x;

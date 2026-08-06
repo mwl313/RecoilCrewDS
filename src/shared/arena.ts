@@ -7,7 +7,13 @@ export interface Obstacle {
   w: number;
   d: number;
   h: number;
-  type: 'container' | 'barrier' | 'wall' | 'tires' | 'factory' | 'crusher' | 'towerBase' | 'scrapPile';
+  type: 'container' | 'barrier' | 'wall' | 'tires' | 'factory' | 'crusher' | 'towerBase' | 'scrapPile' | 'urbanBuilding';
+  /** Optional semantic model used by authored environments. */
+  assetId?: string;
+  yaw?: number;
+  modelScale?: number;
+  /** Allows the wall collider to stop ground actors but release actors on the roof. */
+  roofDriveable?: boolean;
 }
 
 export interface BarrelProp {
@@ -26,6 +32,8 @@ export interface RampDef {
   dirZ: number;
   rise: number;
   baseY: number;
+  assetId?: string;
+  urbanRoofBuildingId?: string;
 }
 
 export const ARENA = {

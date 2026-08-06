@@ -1,0 +1,15 @@
+{
+  "id": "map.urban400Prototype",
+  "label": "Urban City Prototype 400m",
+  "widthMeters": 400,
+  "depthMeters": 400,
+  "cellSize": 4,
+  "terrainProfileId": "terrainProfile.urbanFlat",
+  "terrainMaterialProfileId": "terrainMaterial.urbanConcrete",
+  "validationProfileId": "validationProfile.fallback",
+  "fallbackMapId": "map.fallbackLegacy",
+  "furnitureSetId": "furnitureSet.fallback",
+  "densityProfileId": "densityProfile.fallback",
+  "urbanPrototypeId": "urban400",
+  "isFallback": false
+}

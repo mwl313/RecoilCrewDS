@@ -1,0 +1,11 @@
+{
+  "id": "terrainMaterial.urbanConcrete",
+  "label": "Urban Concrete",
+  "kind": "proceduralFallback",
+  "tileSizeMeters": 8,
+  "baseColor": "#62696b",
+  "gridColor": "#545b5e",
+  "patchColor": "#707779",
+  "roughness": 0.96,
+  "metalness": 0.01
+}

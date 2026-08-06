@@ -67,6 +67,8 @@ describe('content pack loading (valid Demo pack)', () => {
       'map.fallbackLegacy',
       'map.megaBonkHighlands',
       'map.rocketJumpHighlands',
+      'map.urban200Prototype',
+      'map.urban400Prototype',
     ]);
     expect([...pack.ids('terrainProfiles')].sort()).toEqual([
       'terrainProfile.cliffArena',
@@ -75,6 +77,7 @@ describe('content pack loading (valid Demo pack)', () => {
       'terrainProfile.megaBonkHighlands',
       'terrainProfile.primary',
       'terrainProfile.rocketJumpHighlands',
+      'terrainProfile.urbanFlat',
     ]);
     expect([...pack.ids('validationProfiles')].sort()).toEqual([
       'validationProfile.cliffArena',

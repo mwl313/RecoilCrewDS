@@ -91,6 +91,15 @@ export class GameClient {
   onTrajectoryReticle: ((result: TrajectoryReticleResult) => void) | null = null;
   onSinglePlayerResults: ((results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string }) => void) | null = null;
 
+  setUrbanOverview(sizeMeters: number): void {
+    this.cameras.setOverview(sizeMeters);
+    const fog = this.world.scene.fog;
+    if (fog && 'far' in fog) {
+      fog.near = sizeMeters * 1.25;
+      fog.far = sizeMeters * 2.4;
+    }
+  }
+
   private constructor(deps: {
     container: HTMLElement;
     assets: AssetService;
