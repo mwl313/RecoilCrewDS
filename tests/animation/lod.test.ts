@@ -47,6 +47,14 @@ describe('animation LOD selection (animation07 M9)', () => {
     expect(selectAnimationLod(POLICY, candidate({ distance: 200, populationClass: 'elite' }))).toBe('hero');
   });
 
+  it('replicated ownership priority keeps elite/boss animation at hero tier', () => {
+    // Multiplayer wave leaders replicate populationClass 'wave' but carry
+    // priority 1/2; the presenter must still keep their mixers.
+    expect(selectAnimationLod(POLICY, candidate({ distance: 200, priority: 1 }))).toBe('hero');
+    expect(selectAnimationLod(POLICY, candidate({ distance: 200, priority: 2 }))).toBe('hero');
+    expect(selectAnimationLod(POLICY, candidate({ distance: 200, priority: 0 }))).toBe('far');
+  });
+
   it('uses hysteresis to prevent tier thrashing', () => {
     expect(selectAnimationLod(POLICY, candidate({ distance: 25, currentTier: 'near' }))).toBe('near');
     expect(selectAnimationLod(POLICY, candidate({ distance: 27, currentTier: 'near' }))).toBe('mid');

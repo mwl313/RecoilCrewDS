@@ -1,0 +1,15 @@
+{
+  "id": "wave.production.wave1",
+  "label": "Production Wave 1",
+  "leaderSlotId": "selected.wave1.elite0",
+  "openingPackIds": ["pack.production.waveCohort", "pack.production.farmingCluster"],
+  "reinforcementPackIds": ["pack.production.mixedFarming"],
+  "openingThreat": 12,
+  "reinforcementThreat": 24,
+  "reinforcementThreatPerSecond": 2,
+  "maximumActiveWaveThreat": 60,
+  "maximumActiveWaveEntities": 40,
+  "approachPolicyId": "horde.navigationPolicy.main",
+  "rewardTableId": "reward.main",
+  "purgeWaveCohortOnLeaderDeath": true
+}

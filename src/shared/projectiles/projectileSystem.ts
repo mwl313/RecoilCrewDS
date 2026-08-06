@@ -27,12 +27,14 @@ export class ProjectileSystem {
     kind: ShellState['kind'],
     life: number,
     weaponId?: string,
-    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; hitRadius?: number; tankHitRadius?: number },
+    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; hitRadius?: number; tankHitRadius?: number; team?: 'player' | 'enemy'; ownerEnemyId?: number },
   ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
       id: s.nextShellId++,
       kind,
+      team: payload?.team ?? 'player',
+      ownerEnemyId: payload?.ownerEnemyId,
       weaponId,
       x,
       y,
@@ -113,7 +115,7 @@ export class ProjectileSystem {
           }
         }
       }
-      if (!exploded) {
+      if (!exploded && sh.kind !== 'enemy') {
         const nearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, 4.7);
         for (const e of nearby) {
           if (!e.alive || e.type === 'gunTower') continue;

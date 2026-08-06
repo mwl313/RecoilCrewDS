@@ -1,0 +1,15 @@
+{
+  "id": "pack.production.bossEscortCohort",
+  "label": "Production Boss Escort Cohort",
+  "tags": ["boss", "escort"],
+  "entries": [
+    { "slotId": "selected.phase3.closeFodder", "count": 2, "formationRole": "line" },
+    { "slotId": "selected.phase3.rangedFodder", "count": 1, "formationRole": "support" },
+    { "slotId": "selected.phase3.specialist", "count": 1, "formationRole": "vanguard" }
+  ],
+  "threatCost": 8,
+  "entityCost": 4,
+  "formation": "ring",
+  "spacing": 3.2,
+  "radius": 12
+}

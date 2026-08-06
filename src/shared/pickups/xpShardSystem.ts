@@ -56,6 +56,7 @@ export class XpShardSystem {
       if (d < collectRadius) {
         shard.collected = true;
         this.ctx.progression?.addXp(shard.value, shard.x, shard.y, shard.z);
+        pushXpEvent(this.ctx, shard, shard.value);
         continue;
       }
       if (d < magnet) {
@@ -70,14 +71,18 @@ export class XpShardSystem {
         shard.y += (t.y + 0.7 - shard.y) * Math.min(1, dt * 3);
       }
     }
+    // Collected and expired shards never accumulate in authoritative state.
+    s.xpShards = s.xpShards.filter((shard) => !shard.collected);
   }
 
   private expire(dt: number): void {
-    for (const shard of this.ctx.state.xpShards) {
+    const s = this.ctx.state;
+    for (const shard of s.xpShards) {
       if (shard.collected) continue;
       shard.age += dt;
       if (shard.age > (this.ctx.rules.xpPickupContent?.life ?? 30)) shard.collected = true;
     }
+    s.xpShards = s.xpShards.filter((shard) => !shard.collected);
   }
 }
 

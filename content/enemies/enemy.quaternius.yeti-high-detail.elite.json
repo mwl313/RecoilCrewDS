@@ -1,0 +1,57 @@
+{
+  "id": "enemy.quaternius.yeti-high-detail.elite",
+  "label": "Yeti High Detail Elite",
+  "type": "monster",
+  "tier": "elite",
+  "sizeClass": "medium",
+  "tierScale": 3,
+  "presentationProfileId": "enemyPresentation.quaternius.yeti-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
+  "stats": {
+    "hp": 75,
+    "speed": 2.6,
+    "threat": 8
+  },
+  "rewardClass": "elite",
+  "levelScaling": {
+    "health": true,
+    "damage": true
+  },
+  "attack": {
+    "type": "ranged",
+    "damage": 15,
+    "rate": 0.5,
+    "range": 38,
+    "preferredRange": 16,
+    "projectileId": "projectile.enemyIceShot",
+    "telegraphTime": 1,
+    "shotCount": 1
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {
+        "preferredRange": 16
+      }
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    },
+    {
+      "id": "attack.projectileCue",
+      "parameters": {
+        "shotCount": 1
+      }
+    }
+  ],
+  "spawnTags": [
+    "elite",
+    "ranged",
+    "medium"
+  ]
+}

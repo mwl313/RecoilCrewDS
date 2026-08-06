@@ -23,6 +23,7 @@ export class ModelProvider {
   private readonly files = new Map<string, string>();
   private readonly assets = new Map<string, LoadedModelAsset>();
   private readonly loading = new Map<string, Promise<LoadedModelAsset>>();
+  private readonly fallbackIds = new Map<string, string>();
 
   constructor(
     private readonly fallbacks: FallbackAssetFactory,
@@ -36,6 +37,10 @@ export class ModelProvider {
     this.files.set(id, file);
     this.assets.delete(id);
     this.loading.delete(id);
+  }
+
+  registerFallback(id: string, fallbackId: string): void {
+    this.fallbackIds.set(id, fallbackId);
   }
 
   getFile(id: string): string | null {
@@ -87,7 +92,8 @@ export class ModelProvider {
 
   private async load(id: string): Promise<LoadedModelAsset> {
     const file = this.files.get(id);
-    if (!file) return Promise.resolve(buildLoadedModelAsset(id, this.fallbacks.model(id)));
+    const fallbackId = this.fallbackIds.get(id) ?? id;
+    if (!file) return Promise.resolve(buildLoadedModelAsset(id, this.fallbacks.model(fallbackId)));
     const loader = await this.gltfLoaderFactory();
     return new Promise((resolve) => {
       loader.load(
@@ -96,7 +102,7 @@ export class ModelProvider {
         undefined,
         () => {
           console.warn(`[assets] GLB failed for '${id}' (${file}); using procedural fallback`);
-          resolve(buildLoadedModelAsset(id, this.fallbacks.model(id)));
+          resolve(buildLoadedModelAsset(id, this.fallbacks.model(fallbackId)));
         },
       );
     });

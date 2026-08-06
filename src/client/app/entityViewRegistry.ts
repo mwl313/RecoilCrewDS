@@ -13,6 +13,7 @@ import type {
   FarEnemyPresentationRecord,
 } from '../../shared/animation/animationProfileTypes';
 import type { EnemyPresentationResolution } from '../animation/enemyPresentationResolver';
+import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNormalization';
 
 export interface EnemyRig {
   group: THREE.Group;
@@ -29,6 +30,8 @@ export interface EnemyRig {
   telegraph: THREE.Group;
   telegraphMat: THREE.MeshBasicMaterial;
   deadT: number;
+  /** Bug-fix: authoritative normalized scale/ground offset for monsters. */
+  dimensions?: ResolvedMonsterDimensions;
 }
 
 export interface PickupRig {

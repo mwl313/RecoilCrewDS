@@ -3,24 +3,39 @@ import type { EnemyState, EnemyType } from '../../types';
 import {
   dequantizeHp,
   dequantizeXZ,
+  dequantizeImpulseTick,
+  dequantizeVy,
+  dequantizeY,
   dequantizeYaw,
   decodeSector,
   encodeDelta,
   encodeMaterialize,
   flagsFor,
   HORDE_FLAG_ALIVE,
+  HORDE_FLAG_AIRBORNE,
   HORDE_FLAG_FLASH,
   HORDE_FLAG_TELEGRAPH,
-  materializeTypeName,
+  enemyDefinitionIdForIndex,
   presentationProfileIdForIndex,
+  OWNERSHIP_FLAG_BOSS,
+  OWNERSHIP_FLAG_ELITE,
+  OWNERSHIP_FLAG_LEADER,
+  OWNERSHIP_FLAG_PURGE,
+  semanticActionIdForIndex,
+  semanticActionIndex,
+  typeForDefinitionId,
   quantizeHp,
+  quantizeImpulseTick,
+  quantizeVy,
   quantizeXZ,
+  quantizeY,
   quantizeYaw,
   type HordeSnapshotBlock,
   type HordeWaveState,
 } from './hordeProtocol';
 import type { HordeSectorState } from '../../horde/hordeSectors';
 import { encodeSector } from './hordeProtocol';
+import { ENEMY_FORMATION_ROLE_ORDER } from '../../../generated/enemyDefinitionIndex.generated';
 
 interface LastRecord {
   xq: number;
@@ -28,6 +43,9 @@ interface LastRecord {
   yawq: number;
   hpq: number;
   flags: number;
+  yq: number;
+  vyq: number;
+  impulseTick: number;
   alive: boolean;
   nextAt: number;
 }
@@ -48,6 +66,7 @@ const SNAPSHOT_HZ = 20;
  */
 export class HordeReplicationTracker {
   private readonly last = new Map<number, LastRecord>();
+  private readonly lastCue = new Map<number, number>();
   private seq = 0;
   private frame = 0;
   private lastSectors = '';
@@ -71,6 +90,7 @@ export class HordeReplicationTracker {
     const block: HordeSnapshotBlock = {
       seq: ++this.seq,
       materialize: [],
+      cues: [],
       despawn: [],
       death: [],
       near: [],
@@ -91,9 +111,11 @@ export class HordeReplicationTracker {
 
     for (const e of enemies) {
       seen.add(e.id);
+      this.pushCue(block, e);
       if (!e.alive) {
         const prev = this.last.get(e.id);
         if (prev && prev.alive) block.death.push(e.id);
+        this.lastCue.delete(e.id);
         this.last.delete(e.id);
         continue;
       }
@@ -106,6 +128,9 @@ export class HordeReplicationTracker {
         yawq: quantizeYaw(e.yaw),
         hpq: quantizeHp(e.hp),
         flags,
+        yq: quantizeY(e.y),
+        vyq: quantizeVy(e.impulseVy ?? 0),
+        impulseTick: quantizeImpulseTick(e.lastImpulseT),
         alive: true,
         nextAt: 0,
       };
@@ -115,18 +140,26 @@ export class HordeReplicationTracker {
         queue++;
         continue;
       }
-      const changed = prev.xq !== rec.xq || prev.zq !== rec.zq || prev.yawq !== rec.yawq || prev.hpq !== rec.hpq || prev.flags !== rec.flags;
+      const changed =
+        prev.xq !== rec.xq ||
+        prev.zq !== rec.zq ||
+        prev.yawq !== rec.yawq ||
+        prev.hpq !== rec.hpq ||
+        prev.flags !== rec.flags ||
+        prev.yq !== rec.yq ||
+        prev.vyq !== rec.vyq ||
+        prev.impulseTick !== rec.impulseTick;
       const due = time >= prev.nextAt;
       if (tier === 0 && (due || changed) && this.frame % nearEvery === 0) {
-        block.near.push(encodeDelta(e));
+        block.near.push(encodeDelta(e, true));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.nearHz });
         queue++;
       } else if (tier === 1 && (due || changed) && this.frame % midEvery === 0) {
-        block.mid.push(encodeDelta(e));
+        block.mid.push(encodeDelta(e, true));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.midHz });
         queue++;
       } else if (tier >= 2 && changed && this.frame % farEvery === 0) {
-        block.far.push(encodeDelta(e));
+        block.far.push(encodeDelta(e, false));
         this.last.set(e.id, { ...rec, nextAt: time + 1 / this.policy.farHz });
         queue++;
       } else {
@@ -137,6 +170,7 @@ export class HordeReplicationTracker {
     for (const [id, prev] of [...this.last]) {
       if (!seen.has(id)) {
         if (prev.alive) block.despawn.push(id);
+        this.lastCue.delete(id);
         this.last.delete(id);
       }
     }
@@ -146,8 +180,26 @@ export class HordeReplicationTracker {
     return block;
   }
 
+  /** Emit a semantic presentation cue exactly once per sequence change. */
+  private pushCue(block: HordeSnapshotBlock, e: EnemyState): void {
+    const cue = e.actionCue;
+    if (!cue) return;
+    const actionIndex = semanticActionIndex(cue.actionId);
+    if (actionIndex === 0) return;
+    if (this.lastCue.get(e.id) === cue.sequence) return;
+    this.lastCue.set(e.id, cue.sequence);
+    block.cues.push([
+      e.id,
+      cue.sequence,
+      actionIndex,
+      Math.max(0, Math.round(cue.startedAtTick)),
+      Math.max(0, Math.round(cue.durationTicks)),
+    ]);
+  }
+
   reset(): void {
     this.last.clear();
+    this.lastCue.clear();
     this.seq = 0;
     this.frame = 0;
     this.stats = { enemyBytes: 0, serializeMs: 0, deltaQueue: 0 };
@@ -169,16 +221,38 @@ export class HordeReplicationClient {
 
   apply(block: HordeSnapshotBlock, time: number): EnemyState[] {
     for (const rec of block.materialize) {
-      const [id, typeIndex, xq, zq, yawq, hpq, maxHpq, , profileIndex] = rec;
+      const [
+        id,
+        defIndex,
+        xq,
+        zq,
+        yawq,
+        hpq,
+        maxHpq,
+        flags,
+        profileIndex,
+        yq = 0,
+        vyq = 0,
+        impulseTick = 0,
+        classIndex = 0,
+        waveId = 0,
+        leaderId = 0,
+        ownershipFlags = 0,
+        formationRoleIndex = 0,
+      ] = rec;
       const x = dequantizeXZ(xq);
       const z = dequantizeXZ(zq);
-      const type = materializeTypeName(typeIndex) as EnemyType;
+      const defId = enemyDefinitionIdForIndex(defIndex);
+      if (!defId) {
+        throw new Error(`rejected materialize with unknown enemy definition index ${defIndex}`);
+      }
+      const type = typeForDefinitionId(defId) as EnemyType;
       const enemy: EnemyState = {
         id,
         type,
-        defId: typeDefId(type),
+        defId,
         x,
-        y: this.groundY(x, z),
+        y: dequantizeY(yq),
         z,
         yaw: dequantizeYaw(yawq),
         hp: dequantizeHp(hpq),
@@ -188,20 +262,61 @@ export class HordeReplicationClient {
         aimYaw: 0,
         speed: 0,
         alive: true,
-        telegraph: 0,
-        flash: 0,
+        telegraph: (flags & HORDE_FLAG_TELEGRAPH) !== 0 ? 0.5 : 0,
+        flash: (flags & HORDE_FLAG_FLASH) !== 0 ? 0.12 : 0,
         spawnT: time,
         hitCd: 0,
+        impulseVy: dequantizeVy(vyq),
+        impulseGrounded: (flags & HORDE_FLAG_AIRBORNE) === 0,
+        lastImpulseT: dequantizeImpulseTick(impulseTick),
         ...(presentationProfileIdForIndex(profileIndex)
           ? { presentationProfileId: presentationProfileIdForIndex(profileIndex) }
           : {}),
       };
+      if (enemy.impulseGrounded && enemy.lastImpulseT === undefined) {
+        enemy.impulseVy = 0;
+      }
+      if (classIndex > 0) {
+        const classes = ['ambient', 'wave', 'boss', 'special'] as const;
+        enemy.ownership = {
+          populationClass: classes[Math.min(classes.length - 1, classIndex - 1)] ?? 'ambient',
+          waveId: waveId === 0 ? null : waveId,
+          leaderId: leaderId === 0 ? null : leaderId,
+          packInstanceId: 0,
+          spawnAnchorId: null,
+          purgeOnLeaderDeath: (ownershipFlags & OWNERSHIP_FLAG_PURGE) !== 0,
+          ...((ownershipFlags & OWNERSHIP_FLAG_LEADER) !== 0 ? { leaderId: enemy.id } : {}),
+          ...(formationRoleIndex > 0
+            ? {
+                formationRole:
+                  ENEMY_FORMATION_ROLE_ORDER[Math.max(0, formationRoleIndex - 1)],
+              }
+            : {}),
+          priority: (ownershipFlags & OWNERSHIP_FLAG_BOSS) !== 0
+            ? 2
+            : (ownershipFlags & OWNERSHIP_FLAG_ELITE) !== 0
+              ? 1
+              : 0,
+        };
+      }
       this.enemies.set(id, enemy);
     }
     this.sectors.clear();
     for (const rec of block.sectors) {
       const sector = decodeSector(rec);
       this.sectors.set(sector.sectorId, sector);
+    }
+    for (const rec of block.cues) {
+      const [id, sequence, actionIndex, startTick, durationTicks] = rec;
+      const enemy = this.enemies.get(id);
+      const actionId = semanticActionIdForIndex(actionIndex);
+      if (!enemy || !actionId) continue;
+      enemy.actionCue = {
+        sequence,
+        actionId,
+        startedAtTick: startTick,
+        durationTicks,
+      };
     }
     for (const id of block.death) {
       const e = this.enemies.get(id);
@@ -221,12 +336,24 @@ export class HordeReplicationClient {
         if (!e) continue;
         e.x = dequantizeXZ(xq);
         e.z = dequantizeXZ(zq);
-        e.y = this.groundY(e.x, e.z);
         e.yaw = dequantizeYaw(yawq);
         e.hp = dequantizeHp(hpq);
         e.alive = (flags & HORDE_FLAG_ALIVE) !== 0;
         e.telegraph = (flags & HORDE_FLAG_TELEGRAPH) !== 0 ? 0.5 : 0;
         e.flash = (flags & HORDE_FLAG_FLASH) !== 0 ? 0.12 : 0;
+        if (rec.length >= 9) {
+          const [, , , , , , yq, vyq, impulseTick] = rec;
+          e.y = dequantizeY(yq);
+          e.impulseVy = dequantizeVy(vyq);
+          e.impulseGrounded = (flags & HORDE_FLAG_AIRBORNE) === 0;
+          e.lastImpulseT = dequantizeImpulseTick(impulseTick);
+        } else {
+          // Far deltas remain terrain-projected by design.
+          e.y = this.groundY(e.x, e.z);
+          e.impulseGrounded = true;
+          e.impulseVy = 0;
+          e.lastImpulseT = undefined;
+        }
       }
     }
     return [...this.enemies.values()];
@@ -235,21 +362,6 @@ export class HordeReplicationClient {
   reset(): void {
     this.enemies.clear();
     this.sectors.clear();
-  }
-}
-
-function typeDefId(type: EnemyType): string {
-  switch (type) {
-    case 'scrapBug':
-      return 'enemy.scrapBug';
-    case 'rammer':
-      return 'enemy.rammer';
-    case 'gunTower':
-      return 'enemy.gunTower';
-    case 'lootTruck':
-      return 'enemy.lootTruck';
-    default:
-      return `enemy.${type}`;
   }
 }
 

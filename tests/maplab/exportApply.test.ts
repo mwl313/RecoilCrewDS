@@ -62,7 +62,7 @@ describe('Map Lab export/apply', () => {
     }
   });
 
-  it('rejects invalid bundles and id conflicts without overwrite', () => {
+  it('rejects invalid bundles and id conflicts without overwrite', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', bundle);

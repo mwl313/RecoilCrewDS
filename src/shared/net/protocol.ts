@@ -6,6 +6,7 @@
  */
 import type { DriverInput, GunnerInput, ModifierId, Role } from '../types';
 import type { HordeSnapshotBlock } from './horde/hordeProtocol';
+import type { SelectedMonsterRun } from '../monsters/monsterRunSelection';
 
 export interface HordeStageView {
   phase: string;
@@ -13,13 +14,59 @@ export interface HordeStageView {
   waveId: number | null;
   leaderHp: number;
   leaderMaxHp: number;
+  /** Production monster loop (present only for gameplay-roster modes). */
+  monster?: HordeMonsterStageView;
+}
+
+export type HordeMonsterPhase = 'FARMING' | 'BOSS_INTRO' | 'BOSS_ACTIVE' | 'RESULTS';
+
+export interface HordeEncounterView {
+  /** Slot id in the selected-run plan (selected.waveN.eliteI / selected.boss). */
+  slotId: string;
+  enemyId: string;
+  label: string;
+  hp: number;
+  maxHp: number;
+  alive: boolean;
+  kind: 'elite' | 'boss';
+}
+
+export interface HordeMonsterStageView {
+  phase: HordeMonsterPhase;
+  /** Current authoritative monster level (1-13). */
+  level: number;
+  /** Active elite/boss encounter rows for the HUD encounter bars. */
+  encounters: HordeEncounterView[];
+}
+
+/**
+ * Server -> client: the authoritative selected run for the upcoming match.
+ * Clients preload exactly these assets and reply with assetReady before the
+ * countdown starts. `run` is null for Demo modes (no preload gate).
+ */
+export interface RunConfigMessage extends ProtocolEnvelope {
+  t: 'runConfig';
+  matchId: string;
+  modeId: string;
+  run: SelectedMonsterRun | null;
+  /** Protocol-10 compatibility gate: authoritative content hash. */
+  contentHash?: string;
+  /** Protocol-10 compatibility gate: enemy-definition-order hash. */
+  definitionOrderHash?: string;
 }
 
 /**
  * Progression08: selectUpgrade client message added (bumped deliberately;
  * snapshots already carry the full progression state for reconnect).
+ * Protocol 9: runConfig/assetReady preload handshake for the production
+ * monster loop.
+ * Protocol 10 (monster-fix2): horde materialize/delta records gained
+ * quantized Y, vertical velocity, airborne flag, and impulse start tick;
+ * handshake now validates content-pack hash + enemy-definition-order hash.
+ * Protocol 11: selected runs carry boss escort count and reconnects reuse
+ * the server-selected run instead of reconstructing it client-side.
  */
-export const PROTOCOL_VERSION = 8;
+export const PROTOCOL_VERSION = 11;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -120,6 +167,14 @@ export interface LeaveMessage extends ProtocolEnvelope {
   t: 'leave';
 }
 
+export interface AssetReadyMessage extends ProtocolEnvelope {
+  t: 'assetReady';
+  matchId: string;
+  /** Client-reported compatibility hashes; server rejects mismatches. */
+  contentHash?: string;
+  definitionOrderHash?: string;
+}
+
 export type ClientMessage =
   | CreateMessage
   | JoinMessage
@@ -132,6 +187,7 @@ export type ClientMessage =
   | DriverInputMessage
   | GunnerInputMessage
   | GunnerActionMessage
+  | AssetReadyMessage
   | RematchMessage
   | SelectUpgradeMessage
   | SkipRelicPresentationMessage
@@ -201,6 +257,7 @@ export type ServerMessage =
   | GunnerActionResultMessage
   | TankImpulseMessage
   | TimingBlockMessage
+  | RunConfigMessage
   | (ProtocolEnvelope & Record<string, unknown>);
 
 /** Client message kind → guard for the server dispatcher. */
@@ -210,6 +267,46 @@ export function isClientMessage(raw: Record<string, unknown>): boolean {
 
 export function protocolOk(raw: Record<string, unknown>): boolean {
   return raw.protocol === PROTOCOL_VERSION;
+}
+
+export interface ProtocolCompatibility {
+  ok: boolean;
+  reason?: string;
+}
+
+/**
+ * Hard protocol compatibility gate. Protocol version is enforced by the
+ * transport; content-pack and enemy-definition-order hashes are enforced
+ * here before any match starts (and again on reconnect). A mismatch is a
+ * hard reject, never a permissive decode.
+ */
+export function checkProtocolCompatibility(opts: {
+  clientProtocol: number;
+  clientContentHash?: string;
+  clientDefinitionOrderHash?: string;
+  serverProtocol: number;
+  serverContentHash?: string;
+  serverDefinitionOrderHash?: string;
+}): ProtocolCompatibility {
+  if (opts.clientProtocol !== opts.serverProtocol) {
+    return {
+      ok: false,
+      reason: `protocol version mismatch (client ${opts.clientProtocol}, server ${opts.serverProtocol})`,
+    };
+  }
+  if (
+    opts.serverContentHash !== undefined &&
+    opts.clientContentHash !== opts.serverContentHash
+  ) {
+    return { ok: false, reason: 'content-pack hash mismatch' };
+  }
+  if (
+    opts.serverDefinitionOrderHash !== undefined &&
+    opts.clientDefinitionOrderHash !== opts.serverDefinitionOrderHash
+  ) {
+    return { ok: false, reason: 'enemy-definition-order hash mismatch' };
+  }
+  return { ok: true };
 }
 
 export type { Role };

@@ -24,6 +24,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readGlbSummary } from './monsterpack10/glbSummary';
+import { repairMonsterRuntimeAsset } from './monsterpack10/runtimeAssetRepairs';
 import { convertMonsterPack } from './monsterpack10/convert';
 import type {
   MonsterPackSourceManifests,
@@ -96,7 +97,12 @@ export interface ImportIssue {
 }
 
 export interface ImportPlan {
-  copies: Array<{ from: string; to: string; action: 'copy' | 'replace' | 'skip' }>;
+  copies: Array<{
+    variantId: string;
+    from: string;
+    to: string;
+    action: 'copy' | 'replace' | 'skip';
+  }>;
   staleRemovals: string[];
   generatedContentFiles: string[];
   generatedDocFiles: string[];
@@ -107,8 +113,12 @@ export interface ImportPlan {
   issues: ImportIssue[];
 }
 
+function sha256Buffer(buffer: Buffer): string {
+  return createHash('sha256').update(buffer).digest('hex');
+}
+
 function sha256File(file: string): string {
-  return createHash('sha256').update(readFileSync(file)).digest('hex');
+  return sha256Buffer(readFileSync(file));
 }
 
 function readJson<T>(file: string): T {
@@ -307,13 +317,14 @@ export function planImport(
     const from = path.join(sourceRoot, v.outputFile);
     const fileName = v.outputFile.split('/').pop()!;
     const to = path.join(DEST_ROOT, TIER_DIRS[v.variant], fileName);
+    const expectedRuntimeHash = sha256Buffer(repairMonsterRuntimeAsset(v.id, readFileSync(from)));
     expectedDest.push(path.resolve(to));
     if (!existsSync(to)) {
-      copies.push({ from, to, action: 'copy' });
-    } else if (sha256File(to) !== v.outputSha256.toLowerCase()) {
-      copies.push({ from, to, action: 'replace' });
+      copies.push({ variantId: v.id, from, to, action: 'copy' });
+    } else if (sha256File(to) !== expectedRuntimeHash) {
+      copies.push({ variantId: v.id, from, to, action: 'replace' });
     } else {
-      copies.push({ from, to, action: 'skip' });
+      copies.push({ variantId: v.id, from, to, action: 'skip' });
     }
   }
   const staleRemovals: string[] = [];
@@ -481,7 +492,7 @@ export async function runImport(options: ImportOptions = {}): Promise<ImportResu
   for (const copy of plan.copies) {
     if (copy.action === 'skip') continue;
     mkdirSync(path.dirname(copy.to), { recursive: true });
-    copyFileSync(copy.from, copy.to);
+    writeFileSync(copy.to, repairMonsterRuntimeAsset(copy.variantId, readFileSync(copy.from)));
     wrote.push(copy.to);
   }
   // 2. Remove stale managed GLBs.

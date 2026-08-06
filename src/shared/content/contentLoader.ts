@@ -16,6 +16,7 @@ import { dropTableSchema } from './schemas/dropTable';
 import { enemySchema } from './schemas/enemy';
 import { enemyLevelCurveSchema } from './schemas/enemyLevelCurve';
 import { enemyXpRewardsSchema } from './schemas/enemyXpRewards';
+import { enemyGameplayRosterSchema } from './schemas/enemyGameplayRoster';
 import { meleeEngagementProfileSchema } from './schemas/meleeEngagementProfile';
 import { furnitureSetSchema } from './schemas/furnitureSet';
 import { itemSchema, statusEffectSchema } from './schemas/item';
@@ -83,6 +84,7 @@ const CATEGORY_SCHEMAS: Record<ContentCategory, z.ZodType> = {
   enemies: enemySchema,
   enemyLevelCurves: enemyLevelCurveSchema,
   enemyXpRewards: enemyXpRewardsSchema,
+  enemyGameplayRosters: enemyGameplayRosterSchema,
   meleeEngagementProfiles: meleeEngagementProfileSchema,
   dropTables: dropTableSchema,
   pickups: pickupSchema,
@@ -274,6 +276,7 @@ function createEmptyRegistries(): CategoryRegistries {
     enemies: new DefinitionRegistry(),
     enemyLevelCurves: new DefinitionRegistry(),
     enemyXpRewards: new DefinitionRegistry(),
+    enemyGameplayRosters: new DefinitionRegistry(),
     meleeEngagementProfiles: new DefinitionRegistry(),
     dropTables: new DefinitionRegistry(),
     pickups: new DefinitionRegistry(),

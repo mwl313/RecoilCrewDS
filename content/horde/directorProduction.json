@@ -1,0 +1,21 @@
+{
+  "id": "horde.mainStage.production",
+  "label": "Main Stage Production Horde Director",
+  "stageSequenceId": "horde.stageSequence.production",
+  "farmingPhaseIds": ["horde.farming.phase1", "horde.farming.phase2", "horde.farming.phase3"],
+  "waveIds": ["wave.production.wave1", "wave.production.wave2"],
+  "bossWaveId": "horde.bossWave.production",
+  "packIds": [
+    "pack.production.farmingCluster",
+    "pack.production.mixedFarming",
+    "pack.production.waveCohort",
+    "pack.production.bossEscortCohort"
+  ],
+  "limitsId": "horde.populationLimits.main",
+  "lodPolicyId": "horde.lodPolicy.main",
+  "replicationPolicyId": "horde.replicationPolicy.main",
+  "navigationPolicyId": "horde.navigationPolicy.main",
+  "spawnAnchorPolicyId": "horde.anchorPolicy.main",
+  "enforceStage": true,
+  "gameplayRosterId": "enemyGameplayRoster.quaternius.mainStage"
+}

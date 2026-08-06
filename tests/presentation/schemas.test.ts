@@ -85,7 +85,7 @@ describe('presentation content pipeline', () => {
     const root = tempRoot();
     try {
       const hud = JSON.parse(readFileSync(path.join(root, 'hud', 'gameplay.json'), 'utf8'));
-      hud.root.children[2].children[0].children[0].children[1].children[0].props.valueSource = 'not.a.hud.path';
+      hud.root.children[3].children[0].children[0].children[1].children[0].props.valueSource = 'not.a.hud.path';
       writeFileSync(path.join(root, 'hud', 'gameplay.json'), JSON.stringify(hud));
       expect(() => loadPresentationContent(root)).toThrow(/invalid prop valueSource source/);
     } finally {

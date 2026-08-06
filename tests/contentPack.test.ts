@@ -50,10 +50,16 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(pack.hash).toMatch(/^[0-9a-f]{64}$/);
     expect([...pack.ids('modes')].sort()).toEqual([
       'mode.demoScoreAttack',
+      'mode.mainStage',
+      'mode.singlePlayerMainStage',
       'mode.singlePlayerScoreAttack',
       'mode.truckHunter',
     ]);
-    expect([...pack.ids('objectives')].sort()).toEqual(['objective.highScore', 'objective.truckEscort']);
+    expect([...pack.ids('objectives')].sort()).toEqual([
+      'objective.highScore',
+      'objective.mainStage',
+      'objective.truckEscort',
+    ]);
     expect([...pack.ids('maps')].sort()).toEqual([
       'map.arena400Primary',
       'map.cliffArena',
@@ -115,12 +121,17 @@ describe('content pack loading (valid Demo pack)', () => {
     expect(enemyIds).toContain('enemy.scrapBug');
     expect(enemyIds).toContain('enemy.scrapBugHorde');
     expect(enemyIds).toContain('enemy.testHound');
-    expect(enemyIds.filter((id) => id.startsWith('enemy.quaternius.'))).toHaveLength(45);
+    expect(enemyIds.filter((id) => id.startsWith('enemy.quaternius.'))).toHaveLength(51);
     expect(pack.ids('items')).toEqual(['item.overdriveCannon', 'item.relicCannonCharge']);
     expect(pack.ids('statusEffects')).toEqual([]);
-    expect([...pack.ids('spawnDirectors')].sort()).toEqual(['spawn.director.demoScoreAttack', 'spawn.director.truckHunter']);
+    expect([...pack.ids('spawnDirectors')].sort()).toEqual([
+      'spawn.director.demoScoreAttack',
+      'spawn.director.mainStage',
+      'spawn.director.truckHunter',
+    ]);
     expect(pack.ids('scoring')).toEqual(['scoring.demoScoreAttack']);
-    expect(pack.ids('results')).toEqual(['results.demoScoreAttack']);
+    expect([...pack.ids('results')].sort()).toEqual(['results.demoScoreAttack', 'results.mainStage']);
+    expect(pack.ids('hordeDirectors')).toEqual(['horde.mainStage', 'horde.mainStage.production']);
     expect(pack.ids('difficulties')).toHaveLength(7);
     expect(pack.ids('presentation')).toEqual(['presentation.demoScoreAttack']);
   });

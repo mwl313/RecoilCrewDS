@@ -51,11 +51,11 @@
       "parameters": {}
     },
     {
-      "id": "movement.integrate",
+      "id": "attack.bossCue",
       "parameters": {}
     },
     {
-      "id": "attack.bossCue",
+      "id": "movement.integrate",
       "parameters": {}
     }
   ],

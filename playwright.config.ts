@@ -29,7 +29,14 @@ export default defineConfig({
       url: 'http://localhost:8099/?test=1',
       reuseExistingServer: true,
       timeout: 20_000,
-      env: { PORT: '8099' },
+      env: { PORT: '8099', GAME_MODE: 'mode.demoScoreAttack' },
+    },
+    {
+      command: 'node dist-server/index.js',
+      url: 'http://localhost:8096/?test=1',
+      reuseExistingServer: true,
+      timeout: 20_000,
+      env: { PORT: '8096', GAME_MODE: 'mode.mainStage', ALLOW_TEST_DAMAGE: '1' },
     },
     {
       command: 'npm run build:maplab && npx vite preview --config tools/maplab/vite.config.ts --port 8098',

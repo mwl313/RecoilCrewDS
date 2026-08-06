@@ -7,12 +7,13 @@
       "modes": [
         "modes/demoScoreAttack.json",
         "modes/truckHunter.json",
-        "modes/singlePlayerScoreAttack.json"
-      ],
+        "modes/singlePlayerScoreAttack.json",
+        "modes/mainStage.json",
+        "modes/singlePlayerMainStage.json"      ],
       "objectives": [
         "objectives/highScore.json",
-        "objectives/truckEscort.json"
-      ],
+        "objectives/truckEscort.json",
+        "objectives/mainStage.json"      ],
       "maps": [
         "maps/arena_400_primary.json",
         "maps/fallback_legacy.json",
@@ -131,13 +132,21 @@
         "enemies/enemy.quaternius.tribal.json",
         "enemies/enemy.quaternius.wizard.json",
         "enemies/enemy.quaternius.yeti-high-detail.json",
-        "enemies/enemy.quaternius.yeti.json"
-      ],
+        "enemies/enemy.quaternius.yeti.json",
+        "enemies/enemy.quaternius.alien-high-detail.boss.json",
+        "enemies/enemy.quaternius.cactoro-high-detail.boss.json",
+        "enemies/enemy.quaternius.fish-high-detail.boss.json",
+        "enemies/enemy.quaternius.ninja-high-detail.boss.json",
+        "enemies/enemy.quaternius.demon-high-detail.elite.json",
+        "enemies/enemy.quaternius.yeti-high-detail.elite.json"      ],
       "enemyLevelCurves": [
         "enemy-level-curves/main_stage.json"
       ],
       "enemyXpRewards": [
         "enemy-xp-rewards/main_stage.json"
+      ],
+      "enemyGameplayRosters": [
+        "enemy-gameplay-rosters/quaternius.mainStage.json"
       ],
       "meleeEngagementProfiles": [
         "melee-engagement-profiles/default.json"
@@ -160,19 +169,19 @@
       "statusEffects": [],
       "spawnDirectors": [
         "spawn-directors/demoScoreAttack.json",
-        "spawn-directors/truckHunter.json"
-      ],
+        "spawn-directors/truckHunter.json",
+        "spawn-directors/mainStage.json"      ],
       "stageSequences": [
-        "horde/stageSequence.json"
-      ],
+        "horde/stageSequence.json",
+        "horde/stageSequenceProduction.json"      ],
       "farmingPhases": [
         "horde/farmingPhase1.json",
         "horde/farmingPhase2.json",
         "horde/farmingPhase3.json"
       ],
       "hordeDirectors": [
-        "horde/director.json"
-      ],
+        "horde/director.json",
+        "horde/directorProduction.json"      ],
       "populationLimits": [
         "horde/populationLimits.json"
       ],
@@ -181,15 +190,19 @@
         "horde/spawnPackVanguardWall.json",
         "horde/spawnPackEscortRing.json",
         "horde/spawnPackReinforcementColumn.json",
-        "horde/spawnPackBossGuard.json"
-      ],
+        "horde/spawnPackBossGuard.json",
+        "horde/spawnPackProductionFarmingCluster.json",
+        "horde/spawnPackProductionMixedFarming.json",
+        "horde/spawnPackProductionWaveCohort.json",
+        "horde/spawnPackProductionBossEscort.json"      ],
       "waves": [
         "horde/wave1.json",
-        "horde/wave2.json"
-      ],
+        "horde/wave2.json",
+        "horde/waveProduction1.json",
+        "horde/waveProduction2.json"      ],
       "bossWaves": [
-        "horde/bossWave.json"
-      ],
+        "horde/bossWave.json",
+        "horde/bossWaveProduction.json"      ],
       "spawnAnchorPolicies": [
         "horde/policyAnchor.json"
       ],
@@ -209,8 +222,8 @@
         "scoring/demoScoreAttack.json"
       ],
       "results": [
-        "results/demoScoreAttack.json"
-      ],
+        "results/demoScoreAttack.json",
+        "results/mainStage.json"      ],
       "difficulties": [
         "difficulties/standard.json",
         "difficulties/doubleBarrel.json",

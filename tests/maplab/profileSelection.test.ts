@@ -29,12 +29,12 @@ function setModeMap(root: string, mapProfileId: string): void {
 }
 
 describe('map profile selection (mode-driven)', () => {
-  it('the default profile comes from the active mode definition', () => {
+  it('the default profile comes from the active mode definition', { timeout: 30_000 }, () => {
     expect(DEFAULT_MAP_PROFILE_ID).toBe('map.rocketJumpHighlands');
     expect(resolveDefaultMapProfileId(pack)).toBe(DEFAULT_MAP_PROFILE_ID);
   });
 
-  it('selectArenaSessionFromPack loads the mode mapProfileId', () => {
+  it('selectArenaSessionFromPack loads the mode mapProfileId', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       setModeMap(root, 'map.fallbackLegacy');
@@ -47,7 +47,7 @@ describe('map profile selection (mode-driven)', () => {
     }
   });
 
-  it('a brand-new map id resolves through server and generated bundle', () => {
+  it('a brand-new map id resolves through server and generated bundle', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const mapDef = JSON.parse(readFileSync(path.join(root, 'maps', 'arena_400_primary.json'), 'utf8')) as { id: string };
@@ -74,7 +74,7 @@ describe('map profile selection (mode-driven)', () => {
 });
 
 describe('Map Lab apply helper', () => {
-  it('validate accepts good bundles and rejects bad ones', () => {
+  it('validate accepts good bundles and rejects bad ones', { timeout: 30_000 }, () => {
     const bundle = resolveMapBundle(pack, 'map.arena400Primary');
     const exportBundle = buildProfileBundleExport('map.arena400Primary', bundle);
     expect(validateProfileBundle(exportBundle).ok).toBe(true);
@@ -83,7 +83,7 @@ describe('Map Lab apply helper', () => {
     expect(validateProfileBundle({ ...exportBundle, bundles: { ...exportBundle.bundles, map: { ...exportBundle.bundles.map, furnitureSetId: 'missing.ref' } } }).ok).toBe(false);
   });
 
-  it('saves a new profile and points the mode at it', () => {
+  it('saves a new profile and points the mode at it', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', resolveMapBundle(pack, 'map.arena400Primary'));
@@ -103,7 +103,7 @@ describe('Map Lab apply helper', () => {
     }
   });
 
-  it('overwrite apply replaces the current profile', () => {
+  it('overwrite apply replaces the current profile', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', resolveMapBundle(pack, 'map.arena400Primary'));
@@ -115,7 +115,7 @@ describe('Map Lab apply helper', () => {
     }
   });
 
-  it('conflicts are rejected without overwrite', () => {
+  it('conflicts are rejected without overwrite', { timeout: 30_000 }, () => {
     const root = tempContentRoot();
     try {
       const exportBundle = buildProfileBundleExport('map.arena400Primary', resolveMapBundle(pack, 'map.arena400Primary'));

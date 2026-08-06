@@ -96,13 +96,18 @@ let contentMeta: ContentMetadata | null = null;
 let contentPack: ContentPack | null = null;
 if (fs.existsSync(CONTENT_DIR)) {
   contentPack = loadContentPackFromFilesystem(CONTENT_DIR);
+  // Live multiplayer uses the production main-stage loop by default; the
+  // Demo mode remains a content fixture (set GAME_MODE=demo for fixtures
+  // and the e2e regression server).
+  const rawGameMode = process.env.GAME_MODE ?? 'mode.mainStage';
+  const liveModeId = rawGameMode.startsWith('mode.') ? rawGameMode : `mode.${rawGameMode}`;
   contentMeta = {
     packId: contentPack.id,
     version: contentPack.version,
     hash: contentPack.hash,
-    modeId: contentPack.modeId,
+    modeId: liveModeId,
   };
-  console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} mode=${contentPack.modeId}`);
+  console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} liveMode=${contentMeta.modeId}`);
 } else {
   console.warn(`[recoil-crew] content dir not found at ${CONTENT_DIR}; running without content metadata`);
 }

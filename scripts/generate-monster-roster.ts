@@ -29,6 +29,10 @@ interface MonsterRow {
   preferredRange?: number;
   projectileId?: string;
   telegraphTime?: number;
+  /** Cross-role suffix: '.boss' or '.elite' (featured identity roles). */
+  roleSuffix?: string;
+  /** Provisional cross-role boss pattern key. */
+  bossPatternKey?: 'alien' | 'cactoro' | 'fish' | 'ninja';
 }
 
 // 15 families with common-near/far/aggregate presentation.
@@ -112,6 +116,50 @@ const BOSSES: MonsterRow[] = [
   },
 ];
 
+const CROSS_BOSS_PATTERNS: Record<string, unknown> = {
+  alien: {
+    type: 'mixed',
+    selection: { mode: 'orderedCycle' },
+    patterns: [
+      { id: 'punch', type: 'melee', damage: 28, rate: 0.9, range: 4 },
+      { id: 'spit', type: 'ranged', damage: 20, rate: 0.45, range: 40, projectileId: 'projectile.enemySpitShot', telegraphTime: 1.0 },
+    ],
+  },
+  cactoro: {
+    type: 'mixed',
+    selection: { mode: 'orderedCycle' },
+    patterns: [
+      { id: 'slam', type: 'melee', damage: 26, rate: 0.8, range: 4 },
+      { id: 'needle', type: 'ranged', damage: 24, rate: 0.4, range: 40, projectileId: 'projectile.enemySpitShot', telegraphTime: 1.1 },
+    ],
+  },
+  fish: {
+    type: 'mixed',
+    selection: { mode: 'orderedCycle' },
+    patterns: [
+      { id: 'bite', type: 'melee', damage: 30, rate: 0.9, range: 4 },
+      { id: 'bubble', type: 'ranged', damage: 18, rate: 0.5, range: 38, projectileId: 'projectile.enemyBoneShot', telegraphTime: 0.9 },
+    ],
+  },
+  ninja: {
+    type: 'mixed',
+    selection: { mode: 'orderedCycle' },
+    patterns: [
+      { id: 'slash', type: 'melee', damage: 26, rate: 1.0, range: 4 },
+      { id: 'shuriken', type: 'ranged', damage: 18, rate: 0.5, range: 36, projectileId: 'projectile.enemyBoneShot', telegraphTime: 0.9 },
+    ],
+  },
+};
+
+const CROSS_ROLES: MonsterRow[] = [
+  { slug: 'alien-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 220, speed: 3.4, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, bossPatternKey: 'alien' },
+  { slug: 'cactoro-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 240, speed: 2.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.8, range: 4, bossPatternKey: 'cactoro' },
+  { slug: 'fish-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 210, speed: 3.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, bossPatternKey: 'fish' },
+  { slug: 'ninja-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 200, speed: 4.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 1.0, range: 4, bossPatternKey: 'ninja' },
+  { slug: 'demon-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 65, speed: 3.2, threat: 8, rewardClass: 'elite', attack: 'melee', contactDps: 11, rate: 1.9, range: 2.5 },
+  { slug: 'yeti-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 75, speed: 2.6, threat: 8, rewardClass: 'elite', attack: 'ranged', damage: 15, rate: 0.5, range: 38, preferredRange: 16, projectileId: 'projectile.enemyIceShot', telegraphTime: 1.0 },
+];
+
 const PROJECTILES: Array<{ id: string; label: string; speed: number; life: number; hitRadius: number; tankHitRadius: number }> = [
   { id: 'projectile.enemyWizardShot', label: 'Wizard Shot', speed: 9, life: 6, hitRadius: 0.6, tankHitRadius: 1.2 },
   { id: 'projectile.enemyBoneShot', label: 'Bone Shot', speed: 7, life: 5, hitRadius: 0.5, tankHitRadius: 1.1 },
@@ -188,6 +236,9 @@ function attackFor(row: MonsterRow): unknown {
       ],
     };
   }
+  if (row.bossPatternKey) {
+    return CROSS_BOSS_PATTERNS[row.bossPatternKey];
+  }
   return {
     type: 'mixed',
     selection: { mode: 'orderedCycle' },
@@ -200,11 +251,18 @@ function attackFor(row: MonsterRow): unknown {
 
 function definitionFor(row: MonsterRow): Record<string, unknown> {
   const common = COMMON_SLUGS.has(row.slug);
-  const variant = common ? 'common' : 'hero';
+  const variant = common && !row.roleSuffix ? 'common' : 'hero';
   const attack = attackFor(row) as { type: string };
+  const suffix = row.roleSuffix ? `.${row.roleSuffix}` : '';
+  const roleLabel =
+    row.roleSuffix === 'boss' || (row.tier === 'boss' && !row.roleSuffix)
+      ? ' Boss'
+      : row.roleSuffix === 'elite' || (row.tier === 'elite' && !row.roleSuffix)
+        ? ' Elite'
+        : '';
   return {
-    id: `enemy.quaternius.${row.slug}`,
-    label: `${labelFor(row.slug)}${row.tier === 'boss' ? ' Boss' : row.tier === 'elite' ? ' Elite' : ''}`,
+    id: `enemy.quaternius.${row.slug}${suffix}`,
+    label: `${labelFor(row.slug)}${roleLabel}`,
     type: 'monster',
     tier: row.tier,
     sizeClass: row.sizeClass,
@@ -220,7 +278,7 @@ function definitionFor(row: MonsterRow): Record<string, unknown> {
   };
 }
 
-const allRows = [...ORDINARY, ...ELITES, ...BOSSES];
+const allRows = [...ORDINARY, ...ELITES, ...BOSSES, ...CROSS_ROLES];
 const slugs = new Set(allRows.map((r) => r.slug));
 const catalog = JSON.parse(fs.readFileSync('docs/monsterpack10/source-manifests/monster_catalog.json', 'utf8')) as {
   models: Array<{ slug: string }>;
@@ -234,7 +292,7 @@ const enemyDir = 'content/enemies';
 fs.mkdirSync(enemyDir, { recursive: true });
 for (const row of allRows) {
   fs.writeFileSync(
-    path.join(enemyDir, `enemy.quaternius.${row.slug}.json`),
+    path.join(enemyDir, `enemy.quaternius.${row.slug}${row.roleSuffix ? `.${row.roleSuffix}` : ''}.json`),
     JSON.stringify(definitionFor(row), null, 2) + '\n',
   );
 }

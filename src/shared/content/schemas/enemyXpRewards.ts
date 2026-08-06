@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { commonDefinition, nonNegativeInt } from './common';
+import { commonDefinition, nonNegativeInt, positiveInt } from './common';
 
 const rewardClassSchema = z.object({
   base: nonNegativeInt,
@@ -14,6 +14,13 @@ export const enemyXpRewardsSchema = z.object({
     wave: rewardClassSchema,
     elite: rewardClassSchema,
     boss: rewardClassSchema,
+  }),
+  /** Deterministic visual shard bundle counts per reward class [min, max]. */
+  visualShardCounts: z.object({
+    ambient: z.tuple([positiveInt, positiveInt]).refine(([a, b]) => b >= a),
+    wave: z.tuple([positiveInt, positiveInt]).refine(([a, b]) => b >= a),
+    elite: z.tuple([positiveInt, positiveInt]).refine(([a, b]) => b >= a),
+    boss: z.tuple([positiveInt, positiveInt]).refine(([a, b]) => b >= a),
   }),
 });
 

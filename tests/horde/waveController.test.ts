@@ -103,6 +103,68 @@ describe('WaveController ownership and lifecycle', () => {
     expect(c.spendReinforcement(runtime.waveId, 6, 'enemy.scrapBug', 2)).toBe(false);
   });
 
+  it('keeps a two-elite wave active until every selected leader dies', () => {
+    const { m, runtime } = makeWave({
+      leaderEnemyIds: ['enemy.rammer', 'enemy.gunTower'],
+    });
+    expect(runtime.leaderIds).toHaveLength(2);
+    const [firstId, secondId] = runtime.leaderIds;
+    const first = m.state.enemies.find((e) => e.id === firstId)!;
+    const second = m.state.enemies.find((e) => e.id === secondId)!;
+    m.damageEnemy(first, 999, 'cannon');
+    expect(runtime.state).toBe('active');
+    expect(second.alive).toBe(true);
+    m.damageEnemy(second, 999, 'cannon');
+    expect(runtime.state).toBe('complete');
+  });
+
+  it('reinforcement packs spawn every authored entry atomically', () => {
+    const { m, c, runtime } = makeWave();
+    const entries = [
+      { enemyId: 'enemy.scrapBug', count: 2, formationRole: 'line' },
+      { enemyId: 'enemy.rammer', count: 3, formationRole: 'support' },
+    ];
+    expect(c.spendReinforcementPack(runtime.waveId, 6, entries)).toBe(true);
+    const waveEnemies = m.state.enemies.filter((e) => e.ownership?.waveId === runtime.waveId);
+    const cohort = waveEnemies.filter((e) => e.id !== runtime.leaderId);
+    expect(cohort.filter((e) => e.defId === 'enemy.scrapBug').length).toBe(2);
+    expect(cohort.filter((e) => e.defId === 'enemy.rammer').length).toBe(3);
+    expect(cohort.every((e) => e.ownership?.purgeOnLeaderDeath === true)).toBe(true);
+    const packInstanceIds = new Set(cohort.map((e) => e.ownership?.packInstanceId));
+    expect(packInstanceIds.size).toBe(1);
+    expect(cohort.find((e) => e.defId === 'enemy.scrapBug')?.ownership?.formationRole).toBe('line');
+    expect(cohort.find((e) => e.defId === 'enemy.rammer')?.ownership?.formationRole).toBe('support');
+  });
+
+  it('reinforcement packs are all-or-none under entity-cap pressure', () => {
+    const { m, c, runtime } = makeWave();
+    // Legacy match: horde is null, so the cap fallback is 200. Fill it so
+    // only the first entry of a two-entry pack would fit under the old
+    // sequential algorithm.
+    runtime.activeWaveEntities = 199;
+    const before = m.state.enemies.length;
+    const beforeReserve = runtime.reinforcementThreatRemaining;
+    const partial = [
+      { enemyId: 'enemy.scrapBug', count: 1, formationRole: 'line' },
+      { enemyId: 'enemy.rammer', count: 1, formationRole: 'support' },
+    ];
+    expect(c.spendReinforcementPack(runtime.waveId, 2, partial)).toBe(false);
+    expect(m.state.enemies.length).toBe(before);
+    expect(runtime.reinforcementThreatRemaining).toBe(beforeReserve);
+  });
+
+  it('reinforcement packs reject unknown definitions before spawning anything', () => {
+    const { m, c, runtime } = makeWave();
+    const before = m.state.enemies.length;
+    expect(
+      c.spendReinforcementPack(runtime.waveId, 2, [
+        { enemyId: 'enemy.scrapBug', count: 1 },
+        { enemyId: 'enemy.doesNotExist', count: 1 },
+      ]),
+    ).toBe(false);
+    expect(m.state.enemies.length).toBe(before);
+  });
+
   it('multiple wave IDs are ownership-isolated', () => {
     const { m, c, runtime } = makeWave();
     c.spawnCohort(runtime.waveId, 'enemy.scrapBug', 4, 4);

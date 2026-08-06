@@ -159,6 +159,40 @@ export class ReferenceValidator {
     for (const rewards of this.registries.enemyXpRewards.all()) {
       this.checkCommon(issues, rewards, this.fileOf(rewards.id, this.registries.enemyXpRewards));
     }
+    for (const roster of this.registries.enemyGameplayRosters.all()) {
+      const file = this.fileOf(roster.id, this.registries.enemyGameplayRosters);
+      this.checkCommon(issues, roster, file);
+      for (const candidate of roster.ordinaryCandidates) {
+        const def = this.registries.enemies.get(candidate.enemyId);
+        if (!def) {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — unknown enemy reference`);
+          continue;
+        }
+        if (def.type !== 'monster') {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — must be a generalized monster`);
+          continue;
+        }
+        const okSlot =
+          candidate.slot === 'closeFodder'
+            ? def.tier === 'fodder' && def.attack.type === 'melee'
+            : candidate.slot === 'rangedFodder'
+              ? def.tier === 'fodder' && def.attack.type === 'ranged'
+              : def.tier === 'specialist';
+        if (!okSlot) {
+          issues.push(`${file}: ordinaryCandidates.${candidate.enemyId} — tier/attack does not match slot '${candidate.slot}'`);
+        }
+      }
+      for (const identity of roster.featuredIdentities) {
+        const elite = this.registries.enemies.get(identity.eliteEnemyId);
+        if (!elite || elite.type !== 'monster' || elite.tier !== 'elite') {
+          issues.push(`${file}: featuredIdentities.${identity.identityId}.eliteEnemyId — must reference an elite monster`);
+        }
+        const boss = this.registries.enemies.get(identity.bossEnemyId);
+        if (!boss || boss.type !== 'monster' || boss.tier !== 'boss') {
+          issues.push(`${file}: featuredIdentities.${identity.identityId}.bossEnemyId — must reference a boss monster`);
+        }
+      }
+    }
     for (const profile of this.registries.meleeEngagementProfiles.all()) {
       this.checkCommon(issues, profile, this.fileOf(profile.id, this.registries.meleeEngagementProfiles));
       if (profile.maximumSlots < profile.minimumSlots) {
@@ -189,9 +223,15 @@ export class ReferenceValidator {
       this.ref(issues, director.navigationPolicyId, this.registries.hordeNavigationPolicies, file, 'navigationPolicyId');
       this.ref(issues, director.spawnAnchorPolicyId, this.registries.spawnAnchorPolicies, file, 'spawnAnchorPolicyId');
       this.ref(issues, director.bossWaveId, this.registries.bossWaves, file, 'bossWaveId');
+      if (director.gameplayRosterId) {
+        this.ref(issues, director.gameplayRosterId, this.registries.enemyGameplayRosters, file, 'gameplayRosterId');
+      }
       director.farmingPhaseIds.forEach((id, i) => this.ref(issues, id, this.registries.farmingPhases, file, `farmingPhaseIds[${i}]`));
       director.waveIds.forEach((id, i) => this.ref(issues, id, this.registries.waves, file, `waveIds[${i}]`));
       director.packIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `packIds[${i}]`));
+      if (director.gameplayRosterId) {
+        this.ref(issues, director.gameplayRosterId, this.registries.enemyGameplayRosters, file, 'gameplayRosterId');
+      }
     }
     for (const phase of this.registries.farmingPhases.all()) {
       this.checkCommon(issues, phase, this.fileOf(phase.id, this.registries.farmingPhases));
@@ -199,12 +239,18 @@ export class ReferenceValidator {
     for (const pack of this.registries.spawnPacks.all()) {
       const file = this.fileOf(pack.id, this.registries.spawnPacks);
       this.checkCommon(issues, pack, file);
-      pack.entries.forEach((entry, i) => this.ref(issues, entry.enemyId, this.registries.enemies, file, `entries[${i}].enemyId`));
+      pack.entries.forEach((entry, i) => {
+        if (entry.enemyId) {
+          this.ref(issues, entry.enemyId, this.registries.enemies, file, `entries[${i}].enemyId`);
+        }
+      });
     }
     for (const wave of this.registries.waves.all()) {
       const file = this.fileOf(wave.id, this.registries.waves);
       this.checkCommon(issues, wave, file);
-      this.ref(issues, wave.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
+      if (wave.leaderEnemyId) {
+        this.ref(issues, wave.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
+      }
       this.ref(issues, wave.approachPolicyId, this.registries.hordeNavigationPolicies, file, 'approachPolicyId');
       this.ref(issues, wave.rewardTableId, this.registries.rewardTables, file, 'rewardTableId');
       wave.openingPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `openingPackIds[${i}]`));
@@ -213,8 +259,12 @@ export class ReferenceValidator {
     for (const boss of this.registries.bossWaves.all()) {
       const file = this.fileOf(boss.id, this.registries.bossWaves);
       this.checkCommon(issues, boss, file);
-      this.ref(issues, boss.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
-      this.ref(issues, boss.bossEnemyId, this.registries.enemies, file, 'bossEnemyId');
+      if (boss.leaderEnemyId) {
+        this.ref(issues, boss.leaderEnemyId, this.registries.enemies, file, 'leaderEnemyId');
+      }
+      if (boss.bossEnemyId) {
+        this.ref(issues, boss.bossEnemyId, this.registries.enemies, file, 'bossEnemyId');
+      }
       this.ref(issues, boss.approachPolicyId, this.registries.hordeNavigationPolicies, file, 'approachPolicyId');
       this.ref(issues, boss.rewardTableId, this.registries.rewardTables, file, 'rewardTableId');
       boss.openingPackIds.forEach((id, i) => this.ref(issues, id, this.registries.spawnPacks, file, `openingPackIds[${i}]`));

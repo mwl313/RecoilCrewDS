@@ -50,6 +50,16 @@ export function resolveEnemyAnimationState(
   if (!state.alive) return { role: 'death', reason: 'death' };
 
   if (state.cue) {
+    const semantic = state.cue.actionId;
+    if (semantic === 'enemy.semantic.idle') return { role: 'idle', reason: 'semantic idle' };
+    if (semantic === 'enemy.semantic.walk') {
+      const role = Math.abs(state.speed) > profile.locomotion.walkSpeedMax ? 'run' : 'walk';
+      return { role, reason: `semantic ${role}` };
+    }
+    if (semantic === 'enemy.semantic.attack') {
+      return { role: 'attackPrimary', reason: 'semantic attack' };
+    }
+    if (semantic === 'enemy.semantic.death') return { role: 'death', reason: 'semantic death' };
     const elapsed = actionCueElapsedFraction(state.cue, state.currentTick ?? 0);
     if (elapsed < 1) {
       const mapped = profile.stateMap?.[state.cue.actionId];

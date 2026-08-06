@@ -9,6 +9,18 @@ import {
   advanceAttackCycle,
   startAttackCycle,
 } from '../monsters/monsterAttack';
+import {
+  resolveMonsterDimensions,
+  resolveProjectileSocketOffset,
+} from '../monsters/monsterNormalization';
+import {
+  reservationTarget,
+  resolveMonsterEngagementGeometry,
+} from '../monsters/engagementGeometry';
+import {
+  DEFAULT_MELEE_MOVEMENT_PROFILE,
+  RANGED_HOLD_PROFILE,
+} from '../monsters/movementProfiles';
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -59,6 +71,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const def = ctx.enemies.defFor(e);
       const distance = behaviorParam(def, 'movement.densitySteering', 'distance', 2.4);
       const strength = behaviorParam(def, 'movement.densitySteering', 'strength', 0.8);
+      runtime.densityX = 0;
+      runtime.densityZ = 0;
       const nearby = ctx.enemySpatial.queryCircle(e.x, e.z, distance, densityScratch);
       for (const o of nearby) {
         if (o === e || !o.alive || o.type !== e.type) continue;
@@ -66,8 +80,14 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const oz = e.z - o.z;
         const od = Math.hypot(ox, oz);
         if (od < distance && od > 0.01) {
-          runtime.dirX += (ox / od) * strength;
-          runtime.dirZ += (oz / od) * strength;
+          const pushX = (ox / od) * strength;
+          const pushZ = (oz / od) * strength;
+          runtime.densityX += pushX;
+          runtime.densityZ += pushZ;
+          // Legacy consumers still read dirX/dirZ directly; monsters blend
+          // the dedicated density vector after engagement selection.
+          runtime.dirX += pushX;
+          runtime.dirZ += pushZ;
         }
       }
     },
@@ -160,9 +180,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       // Impulse-driven motion owns position while the enemy is airborne.
       if (ctx.enemyImpulses.isAirborne(e)) return;
       const r = ctx.enemies.radiusFor(e);
+      // Final speed ordering: authored speed → progression/relic modifier →
+      // integration. The modifier is applied here, immediately before
+      // displacement, so debuffs always change movement.
+      const speedMultiplier = ctx.progression?.enemySpeedMultiplier
+        ? ctx.progression.enemySpeedMultiplier(e)
+        : 1;
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
-      const nx = e.x + (runtime.dirX / ml) * runtime.speed * dt;
-      const nz = e.z + (runtime.dirZ / ml) * runtime.speed * dt;
+      const speed = runtime.speed * speedMultiplier;
+      const nx = e.x + (runtime.dirX / ml) * speed * dt;
+      const nz = e.z + (runtime.dirZ / ml) * speed * dt;
       if (ctx.world.queryTerrainTransition) {
         const tr = ctx.world.queryTerrainTransition(e.x, e.z, nx, nz);
         if (tr && !canTraverseGroundStep(tr)) {
@@ -471,9 +498,23 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       let dirX = dx / d;
       let dirZ = dz / d;
       // Ranged monsters hold a preferred ring instead of closing in.
-      if (preferred > 0 && d < preferred * 0.85) {
-        dirX = -dirX;
-        dirZ = -dirZ;
+      if (preferred > 0) {
+        const inner = preferred * RANGED_HOLD_PROFILE.innerRatio;
+        const outer = preferred * RANGED_HOLD_PROFILE.outerRatio;
+        if (d > outer) {
+          // Approach the preferred ring.
+        } else if (d < inner) {
+          dirX = -dirX;
+          dirZ = -dirZ;
+        } else {
+          // Hold band: slow stable strafe, never flip direction each update.
+          const side = e.id % 2 === 0 ? 1 : -1;
+          const tx = -dirZ * side;
+          const tz = dirX * side;
+          dirX = tx;
+          dirZ = tz;
+          runtime.speed *= 0.35;
+        }
       }
       runtime.dirX = dirX;
       runtime.dirZ = dirZ;
@@ -484,19 +525,90 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
     id: 'movement.meleeEngagement',
     update(ctx, e, runtime) {
       const def = ctx.enemies.defFor(e);
-      const range = isMonster(def) && def.attack.type === 'melee' ? def.attack.range : 2;
+      if (!isMonster(def) || def.attack.type !== 'melee') return;
+      const attack = def.attack;
+      const profile = DEFAULT_MELEE_MOVEMENT_PROFILE;
+      const s = ctx.state;
+      const dx = s.tank.x - e.x;
+      const dz = s.tank.z - e.z;
+      const d = runtime.distToTank || Math.hypot(dx, dz) || 1;
+      const toX = dx / d;
+      const toZ = dz / d;
+      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
+      const tankRadius = ctx.rules.config.arena.tankRadius;
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius,
+        tankRadius,
+        authoredAttackReach: attack.range,
+        movement: profile,
+      });
+      const stopRadius = geometry.stopRadius;
+      const stagingOuter = geometry.stagingOuterRadius;
+      const stagingInner = geometry.stagingInnerRadius;
+      const densityX = runtime.densityX;
+      const densityZ = runtime.densityZ;
+
       if (runtime.meleeReserved) {
-        // Owner closes to the attack ring.
+        // Reserved enemies physically approach their assigned angular slot
+        // on the reservation ring, not the tank center.
+        const reservation = ctx.enemies.meleeReservations.reservation(e.id);
+        const target = reservation
+          ? reservationTarget(reservation.angle, s.tank.x, s.tank.z, geometry.reservationRadius)
+          : { x: s.tank.x, z: s.tank.z };
+        const tdx = target.x - e.x;
+        const tdz = target.z - e.z;
+        const td = Math.hypot(tdx, tdz) || 1;
+        if (td <= stopRadius) {
+          // ATTACK_HOLD: stop, face the tank, let attack.meleeCue fire.
+          runtime.dirX = 0;
+          runtime.dirZ = 0;
+          runtime.speed = 0;
+          return;
+        }
+        // RESERVED_APPROACH: pursue the assigned point, density blended in.
+        runtime.dirX = tdx / td + densityX;
+        runtime.dirZ = tdz / td + densityZ;
+        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+        runtime.dirX /= ml;
+        runtime.dirZ /= ml;
+        const approachScale = Math.max(
+          0.3,
+          Math.min(1, (td - stopRadius) / Math.max(0.5, geometry.effectiveAttackDistance)),
+        );
+        runtime.speed *= approachScale;
         return;
       }
-      // No reservation: circle and wait for a free arc; never deal damage.
+
+      if (d > stagingOuter) {
+        // CHASE: direct pursuit blended with density/separation steering.
+        runtime.dirX = toX + densityX;
+        runtime.dirZ = toZ + densityZ;
+        const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+        runtime.dirX /= ml;
+        runtime.dirZ /= ml;
+        return;
+      }
+
+      // STAGE: keep a radial ring and search an open arc without crossing
+      // through the tank.
       const side = e.id % 2 === 0 ? 1 : -1;
-      const nx = -runtime.dirZ * side;
-      const nz = runtime.dirX * side;
-      const ml = Math.hypot(nx, nz) || 1;
-      runtime.dirX = nx / ml;
-      runtime.dirZ = nz / ml;
-      if (runtime.distToTank < range * 0.6) runtime.speed *= 0.45;
+      const tx = -toZ * side;
+      const tz = toX * side;
+      runtime.dirX = tx + densityX;
+      runtime.dirZ = tz + densityZ;
+      runtime.speed *= profile.tangentialSpeedMultiplier;
+      const minRing = Math.max(stagingInner, geometry.enemyRadius + geometry.tankRadius + 0.2);
+      // Controlled inward drift inside the staging band probes for an open
+      // attack arc; the reservation gate requires proximity to attack range.
+      // Outside the outer ring is handled by CHASE; below minRing pushes out.
+      const radial = d < minRing ? -1 : d > stagingInner ? 0.6 : 0;
+      if (radial !== 0) {
+        runtime.dirX += toX * radial * profile.radialCorrectionStrength;
+        runtime.dirZ += toZ * radial * profile.radialCorrectionStrength;
+      }
+      const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
+      runtime.dirX /= ml;
+      runtime.dirZ /= ml;
     },
   });
 
@@ -509,7 +621,12 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (attack.type !== 'melee') return;
       if (!runtime.meleeReserved) return;
       const s = ctx.state;
-      if (runtime.distToTank > attack.range) {
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+        tankRadius: ctx.rules.config.arena.tankRadius,
+        authoredAttackReach: attack.range,
+      });
+      if (runtime.distToTank > geometry.effectiveAttackDistance) {
         runtime.speed *= 0.6;
         return;
       }
@@ -546,18 +663,22 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (!atk || !atk.active) {
         atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
         runtime.attackRuntime = atk;
+        e.telegraph = attack.telegraphTime;
+        pushEvent(ctx, 'rammerTelegraph', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
       }
       const res = advanceAttackCycle(atk, s.time, () => {
+        e.telegraph = 0;
         const projectile = ctx.rules.projectiles.get(attack.projectileId);
         if (!projectile) return;
         const dx = s.tank.x - e.x;
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
         const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
         ctx.projectiles.spawn(
-          e.x,
-          e.y + 1.2,
-          e.z,
+          socket.x,
+          socket.y,
+          socket.z,
           dx / d,
           0,
           dz / d,
@@ -574,6 +695,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             knockbackRadiusMultiplier: 1,
             knockbackFalloffExponent: 1,
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+            team: 'enemy',
+            ownerEnemyId: e.id,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
@@ -597,16 +720,34 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (patterns.length === 0) return;
       const pattern = patterns[runtime.attackSequence % patterns.length];
       if (pattern.type === 'ranged' && runtime.distToTank > pattern.range) return;
-      if (pattern.type === 'melee' && runtime.distToTank > pattern.range) {
-        runtime.speed *= 0.6;
-        return;
+      if (pattern.type === 'melee') {
+        const geometry = resolveMonsterEngagementGeometry({
+          enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+          tankRadius: ctx.rules.config.arena.tankRadius,
+          authoredAttackReach: pattern.range,
+        });
+        if (runtime.distToTank > geometry.effectiveAttackDistance) {
+          runtime.speed *= 0.6;
+          return;
+        }
+        // Melee hold: stop moving at the resolved attack distance so the
+        // boss body never overlaps the tank while the pattern is melee.
+        runtime.dirX = 0;
+        runtime.dirZ = 0;
+        runtime.speed = 0;
       }
       let atk = runtime.attackRuntime;
       if (!atk || !atk.active || atk.patternId !== pattern.id) {
         atk = startAttackCycle(s.time, pattern.rate, pattern.attackCueNormalized, runtime.attackSequence, pattern.id);
         runtime.attackRuntime = atk;
+        if (pattern.type === 'ranged') {
+          e.telegraph = pattern.telegraphTime;
+          const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+          pushEvent(ctx, 'rammerTelegraph', socket.x, socket.y, socket.z, { id: e.id, kind: 'boss' });
+        }
       }
       const res = advanceAttackCycle(atk, s.time, () => {
+        e.telegraph = 0;
         // Boss damage is fixed (never level-scaled).
         if (pattern.type === 'melee') {
           if (s.tank.deadT <= 0) {
@@ -620,10 +761,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const dx = s.tank.x - e.x;
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
         ctx.projectiles.spawn(
-          e.x,
-          e.y + 2,
-          e.z,
+          socket.x,
+          socket.y,
+          socket.z,
           dx / d,
           0,
           dz / d,
@@ -640,6 +782,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             knockbackRadiusMultiplier: 1,
             knockbackFalloffExponent: 1,
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+            team: 'enemy',
+            ownerEnemyId: e.id,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });
@@ -652,4 +796,20 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
   });
 
   return registry;
+}
+
+function projectileSocketWorld(
+  x: number,
+  y: number,
+  z: number,
+  yaw: number,
+  socket: readonly [number, number, number],
+): { x: number; y: number; z: number } {
+  const sin = Math.sin(yaw);
+  const cos = Math.cos(yaw);
+  return {
+    x: x + socket[0] * cos + socket[2] * sin,
+    y: y + socket[1],
+    z: z - socket[0] * sin + socket[2] * cos,
+  };
 }

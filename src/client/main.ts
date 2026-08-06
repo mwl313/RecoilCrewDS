@@ -10,6 +10,7 @@ import { DebugOverlay } from './app/debugOverlay';
 import { PresentationWorld } from './presentation/presentationWorld';
 import { CLIENT_CONTENT_PACK } from '../generated/contentPack.generated';
 import type { GameSessionKind } from '../shared/session/gameSessionKind';
+import { SINGLE_PLAYER_SESSION } from '../shared/session/gameSessionKind';
 import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
 import {
   reconstructArenaSession,
@@ -22,9 +23,20 @@ import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
 import type { HordeStageView } from '../shared/net/protocol';
+import type { RunConfigMessage } from '../shared/net/protocol';
+import {
+  checkProtocolCompatibility,
+  PROTOCOL_VERSION,
+} from '../shared/net/protocol';
+import { ENEMY_DEFINITION_ORDER_HASH } from '../generated/enemyDefinitionIndex.generated';
 import { createPlayerSettingsStore } from './settings/playerSettingsStore';
 import { PlayerSettingsController } from './settings/playerSettingsController';
 import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
+import {
+  resolveSelectedMonsterRun,
+  resolveSelectedPreloadAssetIds,
+} from '../shared/monsters/monsterPreload';
+import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNormalization';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -70,6 +82,9 @@ let singlePlayerMatchIndex = 0;
 let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
+let lastPreloadedMatchId = '';
+let latestRunConfig: RunConfigMessage | null = null;
+let activeSinglePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 let localPlayerId = '';
 let lobbyState: ClientLobbyState | null = null;
 let lobbyChat: LobbyChatMessage[] = [];
@@ -235,7 +250,39 @@ net.onMessage = (msg) => {
       const phase = msg.phase as string;
       if ((phase === 'running' || phase === 'results') && msg.arena) {
         // Mid-round reconnect (same page refresh or rejoin).
-        if (!mapGateFailed) void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
+        const compat = checkProtocolCompatibility({
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash: CLIENT_CONTENT_PACK.hash,
+          clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: (msg.content as { hash?: string } | undefined)?.hash,
+          serverDefinitionOrderHash: msg.definitionOrderHash as string | undefined,
+        });
+        if (!compat.ok) {
+          showProtocolError(compat.reason ?? 'incompatible build');
+        } else if (!mapGateFailed) {
+          const reconnectMatchId = msg.matchId as string | undefined;
+          if (reconnectMatchId) {
+            latestRunConfig = {
+              protocol: PROTOCOL_VERSION,
+              t: 'runConfig',
+              matchId: reconnectMatchId,
+              modeId: (msg.modeId as string | undefined) ?? 'mode.mainStage',
+              run: (msg.run as RunConfigMessage['run']) ?? null,
+              contentHash: (msg.content as { hash?: string } | undefined)?.hash,
+              definitionOrderHash: msg.definitionOrderHash as string | undefined,
+            };
+          }
+          const reconnectConfig = latestRunConfig?.matchId === reconnectMatchId ? latestRunConfig : null;
+          void (async () => {
+            if (reconnectConfig?.run) {
+              const loaded = assets ?? (await assetsPromise);
+              await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, reconnectConfig.run));
+              lastPreloadedMatchId = reconnectMatchId ?? '';
+            }
+            await resumeOnline(msg.arena as ArenaMetadata, phase === 'results', reconnectMatchId);
+          })();
+        }
         break;
       }
       localPlayerId = msg.playerId as string;
@@ -265,11 +312,64 @@ net.onMessage = (msg) => {
       hud.showScreen('countdown');
       hud.showCountdown(Number(msg.n));
       break;
+    case 'runConfig': {
+      const config = msg as unknown as RunConfigMessage;
+      latestRunConfig = config;
+      const compat = checkProtocolCompatibility({
+        clientProtocol: PROTOCOL_VERSION,
+        clientContentHash: CLIENT_CONTENT_PACK.hash,
+        clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+        serverProtocol: PROTOCOL_VERSION,
+        serverContentHash: config.contentHash,
+        serverDefinitionOrderHash: config.definitionOrderHash,
+      });
+      if (!compat.ok) {
+        showProtocolError(compat.reason ?? 'incompatible build');
+        return;
+      }
+      // The server waits for assetReady before starting the countdown.
+      // Preload exactly the selected run; a null run (Demo) is ready
+      // immediately. Errors never stall a crew — the server also has an
+      // explicit readiness timeout.
+      void (async () => {
+        try {
+          if (config.run) {
+            const loaded = assets ?? (await assetsPromise);
+            await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, config.run));
+          }
+        } catch (error) {
+          console.warn('[runConfig] asset preload failed; proceeding anyway', error);
+        } finally {
+          lastPreloadedMatchId = config.matchId;
+          net.send({
+            t: 'assetReady',
+            matchId: config.matchId,
+            contentHash: CLIENT_CONTENT_PACK.hash,
+            definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          });
+        }
+      })();
+      break;
+    }
     case 'start':
+      {
+        const compat = checkProtocolCompatibility({
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash: CLIENT_CONTENT_PACK.hash,
+          clientDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: (msg.content as { hash?: string } | undefined)?.hash,
+          serverDefinitionOrderHash: msg.definitionOrderHash as string | undefined,
+        });
+        if (!compat.ok) {
+          showProtocolError(compat.reason ?? 'incompatible build');
+          break;
+        }
+      }
       if (msg.arena) {
-        void startOnlineWithArena(role, msg.arena as ArenaMetadata);
+        void startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined);
       } else {
-        void startOnline(role, null);
+        void startOnline(role, null, msg.matchId as string | undefined);
       }
       hud.hideCountdown();
       break;
@@ -277,13 +377,14 @@ net.onMessage = (msg) => {
       const meta = msg.arena as ArenaMetadata | undefined;
       if (meta && !mapGateFailed) {
         if (!arenaSession) {
-          void resumeOnline(meta, false);
+          void resumeOnline(meta, false, (msg.state as MatchState | undefined)?.matchId);
         } else if (meta.arenaChecksum !== arenaSession.metadata.arenaChecksum) {
           showMapError('checksum');
         }
       }
       const horde = msg.horde as HordeSnapshotBlock | undefined;
       latestStageView = msg.stage as HordeStageView | undefined;
+      const snapshotState = msg.state as MatchState | undefined;
       let sectors: Array<{
         sectorId: number;
         x: number;
@@ -430,17 +531,28 @@ function showMapError(reason: string): void {
   mapGateFailed = true;
 }
 
-async function startOnlineWithArena(r: Role, meta: ArenaMetadata): Promise<void> {
+async function startOnlineWithArena(r: Role, meta: ArenaMetadata, matchId?: string): Promise<void> {
   const session = buildSessionFromMetadata(meta);
   if ('error' in session) {
     showMapError(session.error);
     return;
   }
   arenaSession = session;
-  await startOnline(r, session.world);
+  await startOnline(r, session.world, matchId);
 }
 
-async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void> {
+/** Hard protocol/content compatibility failure: never start the match. */
+function showProtocolError(reason: string): void {
+  hud.showError(`Incompatible build: ${reason}. Reload to update.`);
+  input.setEnabled(false);
+  game?.setInputEnabled(false);
+  input.releaseLock();
+  flow = 'error';
+  arenaSession = null;
+  mapGateFailed = true;
+}
+
+async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: string): Promise<void> {
   if (arenaSession && arenaSession.metadata.arenaChecksum === meta.arenaChecksum) {
     // Same active map: resume the existing game.
     if (game) {
@@ -462,13 +574,18 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void
   if (game) {
     game.applyArenaSession(session);
   }
-  await startOnline(role, session.world);
+  await startOnline(role, session.world, matchId);
   if (results) flow = 'results';
 }
 
-async function startOnline(r: Role, world: ArenaWorld | null): Promise<void> {
+async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string): Promise<void> {
   sessionKind = 'multiplayer';
   if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
+  if (matchId && matchId !== lastPreloadedMatchId) {
+    const config = latestRunConfig?.matchId === matchId ? latestRunConfig : null;
+    await game.preloadMonsterRun(CLIENT_CONTENT_PACK, config?.run ?? null);
+    lastPreloadedMatchId = matchId;
+  }
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
   game.startOnline(r);
@@ -488,14 +605,21 @@ async function startSinglePlayer(): Promise<void> {
   const session = buildSinglePlayerSession();
   arenaSession = session.metadata ? session : null;
   singlePlayerMatchIndex++;
+  const matchId = 'single-' + Date.now();
+  const spModeId =
+    params.get('mode') === 'demo' ? 'mode.singlePlayerScoreAttack' : SINGLE_PLAYER_SESSION.rulesModeId;
+  activeSinglePlayerModeId = spModeId;
   game = await createGame(session.world);
+  const selectedRun = resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, matchId, spModeId);
+  await game.preloadMonsterRun(CLIENT_CONTENT_PACK, selectedRun);
+  lastPreloadedMatchId = matchId;
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
     hud.showSinglePlayerResults(results as never);
     input.releaseLock();
     flow = 'results';
   };
-  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world);
+  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   game.suppressAutoInput = TEST_MODE;
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
@@ -665,7 +789,144 @@ if (TEST_MODE) {
         game?.singlePlayerMatch?.runtime.systems.progression.openChest(id, Date.now()),
       skipRelic: () => game?.skipRelicPresentation(),
     },
+    monster: {
+      run: () => {
+        if (latestRunConfig?.run) return latestRunConfig.run;
+        const m = game?.singlePlayerMatch;
+        if (!m) return null;
+        return m.runtime.systems.monsterRun;
+      },
+      enemies: () =>
+        game?.singlePlayerMatch?.state.enemies.map((e) => ({
+          id: e.id,
+          defId: e.defId ?? '',
+          hp: e.hp,
+          maxHp: e.maxHp,
+          alive: e.alive,
+        })) ?? [],
+      damage: (id: number, amount: number) => {
+        const runtime = game?.singlePlayerMatch?.runtime;
+        const enemy = runtime?.state.enemies.find((e) => e.id === id);
+        if (!runtime || !enemy) return -1;
+        runtime.damageEnemy(enemy, amount, 'test');
+        return enemy.hp;
+      },
+      stageView: () => game?.getSinglePlayerStageView() ?? null,
+      phase: () => game?.singlePlayerMatch?.runtime.systems.stage.state.phase ?? null,
+      healTank: () => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return;
+        m.state.tank.integrity = m.runtime.cfg.tank.maxIntegrity;
+        m.state.tank.deadT = 0;
+      },
+      resultsState: () => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return null;
+        return {
+          results: m.results,
+          shown: (game as unknown as { singlePlayerResultsShown: boolean }).singlePlayerResultsShown,
+        };
+      },
+    },
+    stageView: () => latestStageView ?? null,
+    testDamage: (defId: string, amount: number) => {
+      net.send({ t: 'testDamageEnemyByDef', defId, amount });
+    },
+    testHealTank: () => {
+      net.send({ t: 'testHealTank' });
+    },
+    testImpulse: (defId: string, horizontal: number, vertical: number) => {
+      net.send({ t: 'testImpulseEnemyByDef', defId, horizontal, vertical });
+    },
+    xp: {
+      spawn: (count: number) => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return 0;
+        const t = m.state.tank;
+        for (let i = 0; i < count; i++) {
+          m.runtime.systems.xpShards.spawn(
+            1,
+            t.x + Math.sin(i * 0.7) * 6,
+            t.z + Math.cos(i * 0.7) * 6,
+          );
+        }
+        return m.state.xpShards.length;
+      },
+      stats: () => {
+        const renderer = (game as unknown as {
+          xpShards: {
+            liveCount: number;
+            popCount: number;
+            overflow: number;
+            capacity: number;
+            mesh: { count: number };
+            overflowIndicator: { visible: boolean };
+          };
+        })?.xpShards;
+        if (!renderer) return null;
+        return {
+          liveCount: renderer.liveCount,
+          popCount: renderer.popCount,
+          overflow: renderer.overflow,
+          capacity: renderer.capacity,
+          drawCount: renderer.mesh.count,
+          overflowVisible: renderer.overflowIndicator.visible,
+        };
+      },
+    },
+    monsterSpawn: (defId: string, x: number, z: number) => {
+      const m = game?.singlePlayerMatch;
+      if (!m) return -1;
+      const def = m.runtime.rules.enemies.get(defId);
+      if (!def) return -1;
+      const e = m.runtime.systems.enemies.spawnEnemyDef(def, x, z);
+      return e?.id ?? -1;
+    },
+    monsterImpulse: (id: number, horizontal: number, vertical: number) => {
+      const m = game?.singlePlayerMatch;
+      if (!m) return false;
+      const e = m.state.enemies.find((x) => x.id === id);
+      if (!e) return false;
+      const def = m.runtime.systems.enemies.defFor(e);
+      const dx = m.state.tank.x - e.x;
+      const dz = m.state.tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      m.runtime.systems.enemyImpulses.apply(e, def, dx / d, dz / d, horizontal, vertical, 'cannon');
+      return true;
+    },
+    enemyById: (id: number) => {
+      const m = game?.singlePlayerMatch;
+      const e = m?.state.enemies.find((x) => x.id === id);
+      if (!e) return null;
+      return { id: e.id, defId: e.defId ?? '', x: e.x, y: e.y, z: e.z, alive: e.alive };
+    },
+    enemyRenderY: (id: number) => {
+      const registry = (game as unknown as {
+        registry: { enemyRigs: Map<number, { group: { position: { y: number } } }> };
+      })?.registry;
+      return registry?.enemyRigs.get(id)?.group.position.y ?? null;
+    },
+    enemyReplicated: (defId: string) => {
+      const s = latestState;
+      if (!s) return null;
+      const e = s.enemies.find((x) => x.defId === defId && x.alive);
+      return e ? { id: e.id, y: e.y, defId: e.defId ?? '', alive: e.alive } : null;
+    },
+    monsterDims: (defId: string) => {
+      try {
+        const d = resolveMonsterDimensionsForDefId(defId);
+        return { collisionRadius: d.collisionRadius, finalHeight: d.finalHeight };
+      } catch {
+        return null;
+      }
+    },
+    monsterSemantic: (id: number) => {
+      const m = game?.singlePlayerMatch;
+      return m ? m.runtime.systems.enemies.semanticFor(id).action : null;
+    },
     arena: () => arenaSession?.metadata ?? null,
+    run: () => latestRunConfig?.run ?? null,
+    runConfig: () => latestRunConfig,
     obstacles: () => arenaSession?.world.obstacles.map((o) => ({ x: o.x, z: o.z, w: o.w, d: o.d })) ?? [],
     groundHeightAt: (x: number, z: number) => arenaSession?.world.groundHeightAt(x, z) ?? 0,
     sceneStats: () => {

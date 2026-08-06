@@ -1,4 +1,5 @@
 import type { MatchRules } from '../../rules/matchRules';
+import type { SelectedMonsterRun } from '../../monsters/monsterRunSelection';
 import type { ArenaWorld } from '../arenaWorld';
 import { createStaticArenaWorld } from '../arenaWorld';
 import { GameplayEventBus } from '../../core/gameplayEventBus';
@@ -82,6 +83,10 @@ export interface SystemContext {
   hordeSectors: HordeSectorAggregator;
   progression: ProgressionSystem;
   xpShards: XpShardSystem;
+  /** Production: selected-slot plan (selected.phase.* / selected.wave.* / selected.boss). */
+  monsterSlots: Record<string, string> | null;
+  /** Production: the authoritative selected run (phase rosters/elites/boss). */
+  monsterRun: SelectedMonsterRun | null;
   /** Progression08: selection execution policy picker. */
   sessionKind: 'singlePlayer' | 'multiplayer';
 }
@@ -108,6 +113,8 @@ export function createSystemContext(
   simTick = 0,
   hordeDirector: ResolvedHordeDirector | null = null,
   sessionKind: 'singlePlayer' | 'multiplayer' = 'multiplayer',
+  monsterSlots: Record<string, string> | null = null,
+  monsterRun: SelectedMonsterRun | null = null,
 ): SystemContext {
   const ctx = {} as SystemContext;
   ctx.state = state;
@@ -133,7 +140,15 @@ export function createSystemContext(
   ctx.statusEffects = new StatusEffectSystem(ctx);
   ctx.capabilities = new CapabilitySystem(state);
   ctx.contact = new TankContactCombat(ctx);
-  ctx.stage = new StageDirector(hordeDirector ? hordeDirector.stageSequence : DEFAULT_STAGE_SEQUENCE, eventBus);
+  ctx.stage = new StageDirector(
+    hordeDirector
+      ? {
+          ...hordeDirector.stageSequence,
+          bossIntroSeconds: hordeDirector.stageSequence.bossIntroSeconds ?? 4,
+        }
+      : DEFAULT_STAGE_SEQUENCE,
+    eventBus,
+  );
   ctx.waves = new WaveController(ctx, (waveId) => ctx.stage.notifyLeaderKilled());
   ctx.horde = hordeDirector ? new HordeDirector(ctx, hordeDirector) : null;
   ctx.spawnPlanner = new SpawnPlanner(
@@ -146,6 +161,8 @@ export function createSystemContext(
   ctx.hordeSectors = new HordeSectorAggregator(ctx);
   ctx.sessionKind = sessionKind;
   ctx.xpShards = new XpShardSystem(ctx);
+  ctx.monsterSlots = monsterSlots;
+  ctx.monsterRun = monsterRun;
   ctx.progression = new ProgressionSystem(ctx);
   ctx.round = new RoundSystem(ctx);
   ctx.objective = new ObjectiveSystem(ctx);

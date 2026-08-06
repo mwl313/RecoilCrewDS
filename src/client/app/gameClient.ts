@@ -29,6 +29,12 @@ import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector'
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
+import { XpShardRenderer } from '../pickups/xpShardRenderer';
+import { stageViewForMatch } from '../../shared/monsters/monsterStageView';
+import {
+  resolveSelectedPreloadAssetIds,
+} from '../../shared/monsters/monsterPreload';
+import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -74,7 +80,9 @@ export class GameClient {
   suppressAutoInput = false;
   private progressionOverlay: ProgressionOverlay | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
+  private readonly xpShards: XpShardRenderer;
   private latestSectors: AggregateSectorRecord[] = [];
+  private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
   onPauseRequest: (() => void) | null = null;
@@ -120,7 +128,10 @@ export class GameClient {
         });
         return resolution.profile.aggregateModelAssetId ? resolution.profile : null;
       },
+      512,
+      (x, z) => this.arenaWorld.groundHeightAt(x, z),
     );
+    this.xpShards = new XpShardRenderer(deps.world.scene);
   }
 
   /** Awaits assets, then builds the full client (called after load()). */
@@ -237,16 +248,18 @@ export class GameClient {
   }
 
   /** Single Player: one local ContentPack-driven match with combined controls. */
-  startSinglePlayer(pack: ContentPack, world: ArenaWorld): void {
+  startSinglePlayer(pack: ContentPack, world: ArenaWorld, matchId?: string, modeId?: string): void {
     this.contentPack = pack;
     this.session = SINGLE_PLAYER_SESSION;
+    this.singlePlayerModeId = modeId ?? SINGLE_PLAYER_SESSION.rulesModeId;
     this.cameras.setSinglePlayerMode(true);
+    const resolvedMatchId = matchId ?? 'single-' + Date.now();
     this.singlePlayerMatch = new Match(
-      'single-' + Date.now(),
+      resolvedMatchId,
       'none',
       pack,
       world,
-      SINGLE_PLAYER_SESSION.rulesModeId,
+      this.singlePlayerModeId,
     );
     const turret = this.singlePlayerMatch.runtime.rules.loadout.turret;
     this.prediction.setTurretRates(turret.turnRate, turret.pitchFollowRate ?? 8);
@@ -259,6 +272,16 @@ export class GameClient {
     this.prediction.setGround(this.arenaWorld);
     this.running = true;
     this.loop();
+  }
+
+  /**
+   * Stage-selective preload for the authoritative selected run. Only the
+   * assets used by the run are fetched; Demo and optional monsters are
+   * never preloaded here.
+   */
+  async preloadMonsterRun(pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
+    if (!run) return;
+    await this.assets.preloadModels(resolveSelectedPreloadAssetIds(pack, run));
   }
 
   /**
@@ -276,7 +299,7 @@ export class GameClient {
         'none',
         this.contentPack,
         session.world,
-        SINGLE_PLAYER_SESSION.rulesModeId,
+        this.singlePlayerModeId,
       );
       this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
       this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
@@ -325,23 +348,23 @@ export class GameClient {
     waveId: number | null;
     leaderHp: number;
     leaderMaxHp: number;
+    monster?: {
+      phase: 'FARMING' | 'BOSS_INTRO' | 'BOSS_ACTIVE' | 'RESULTS';
+      level: number;
+      encounters: Array<{
+        slotId: string;
+        enemyId: string;
+        label: string;
+        hp: number;
+        maxHp: number;
+        alive: boolean;
+        kind: 'elite' | 'boss';
+      }>;
+    };
   } | undefined {
     const m = this.singlePlayerMatch;
     if (!m) return undefined;
-    const stage = m.runtime.systems.stage.state;
-    const horde = m.runtime.systems.horde;
-    const runtime =
-      horde && horde.currentWaveId !== null
-        ? m.runtime.systems.waves.waves.get(horde.currentWaveId)
-        : undefined;
-    const leader = runtime ? m.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
-    return {
-      phase: stage.phase,
-      farmingTimeRemaining: stage.farmingTimeRemaining,
-      waveId: stage.activeWaveId,
-      leaderHp: leader?.hp ?? 0,
-      leaderMaxHp: leader?.maxHp ?? 0,
-    };
+    return stageViewForMatch(m.runtime);
   }
 
   /** Core Loop 06 M11: horde debug metrics (single player match only). */
@@ -444,6 +467,8 @@ export class GameClient {
     this.registry.reset();
     this.presenter.reset();
     this.prediction.reset();
+    this.aggregateSectors.reset();
+    this.xpShards.reset();
     this.singlePlayerAcc = 0;
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;
@@ -504,6 +529,14 @@ export class GameClient {
 
   private stepSinglePlayer(dt: number): void {
     const m = this.singlePlayerMatch!;
+    // The match can enter results between frames (deferred event drain,
+    // direct damage paths). Notify exactly once before the running-only
+    // guard so the results screen always appears.
+    if (m.state.phase === 'results' && !this.singlePlayerResultsShown) {
+      this.singlePlayerResultsShown = true;
+      this.onSinglePlayerResults?.(m.results!);
+      return;
+    }
     if (m.state.phase !== 'running' || !this.inputEnabled) return;
     const turret = this.prediction.getTurretSpaces();
     m.setGunnerInput({
@@ -611,6 +644,8 @@ export class GameClient {
     }
 
     this.world.vfx.update(dt);
+    const shards = this.presenter.remoteFrame?.xpShards ?? this.presenter.latest?.xpShards ?? [];
+    this.xpShards.update(shards, this.time, dt);
     const latest = this.presenter.latest;
     this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
@@ -965,6 +1000,7 @@ export class GameClient {
     cancelAnimationFrame(this.raf);
     this.stopChargeSound();
     this.aggregateSectors.reset();
+    this.xpShards.dispose();
     this.world.arena.dispose();
     this.registry.reset();
     this.progressionOverlay?.dispose();

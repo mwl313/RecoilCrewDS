@@ -3,8 +3,8 @@ import { PROTOCOL_VERSION, protocolOk } from '../../src/shared/net/protocol';
 import { makeMatch } from './helpers';
 
 describe('progression network protocol (progression08)', () => {
-  it('protocol version was bumped deliberately for selectUpgrade + skipRelicPresentation', () => {
-    expect(PROTOCOL_VERSION).toBe(8);
+  it('protocol version was bumped deliberately for selectUpgrade, relic, and preload messages', () => {
+    expect(PROTOCOL_VERSION).toBe(11);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'selectUpgrade', offerId: 'x', cardIndex: 0 })).toBe(true);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'skipRelicPresentation', acquisitionSequence: 1 })).toBe(true);
   });

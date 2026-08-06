@@ -19,16 +19,16 @@ describe('monster roster content', () => {
     .map((id) => pack.getEnemy(id))
     .filter((e) => e.type === 'monster');
 
-  it('contains 45 monsters: 39 ordinary, 4 elites, 2 bosses', () => {
-    expect(monsters).toHaveLength(45);
+  it('contains 51 monsters: 39 ordinary + 4+2 elites + 2+4 bosses (cross-role pool)', () => {
+    expect(monsters).toHaveLength(51);
     const tiers = monsters.reduce<Record<string, number>>((acc, m) => {
       if (m.type !== 'monster') return acc;
       acc[m.tier] = (acc[m.tier] ?? 0) + 1;
       return acc;
     }, {});
     expect(tiers.fodder + tiers.specialist).toBe(39);
-    expect(tiers.elite).toBe(4);
-    expect(tiers.boss).toBe(2);
+    expect(tiers.elite).toBe(6);
+    expect(tiers.boss).toBe(6);
   });
 
   it('every ordinary/elite has exactly one melee or ranged attack; bosses are mixed', () => {
@@ -135,7 +135,7 @@ describe('mode parity and normalization', () => {
   it('normalizes to 1.02/1.53/1.70 m and propagates tier scale 1/3/5', () => {
     expect(TARGET_HEIGHTS).toEqual({ small: 1.02, medium: 1.53, large: 1.7 });
     expect(TIER_SCALES).toEqual({ fodder: 1, specialist: 1, elite: 3, boss: 5 });
-    const source = { width: 3, height: 3, depth: 2 };
+    const source = { width: 3, height: 3, depth: 2, groundOffset: 0.5 };
     const small = normalizedEnemyDimensions(source, 'small', 'fodder');
     expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
     expect(small.collisionRadius).toBeCloseTo(0.45 * Math.max(small.normalizedWidth, small.normalizedDepth), 6);

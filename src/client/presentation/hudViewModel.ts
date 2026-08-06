@@ -1,4 +1,5 @@
 import type { MatchState, Role } from '../../shared/types';
+import type { HordeEncounterView, HordeMonsterStageView } from '../../shared/net/protocol';
 import { BASE_CONFIG } from '../../shared/config';
 
 /**
@@ -67,7 +68,29 @@ export interface HudViewModel {
     leaderHpMax: number;
     stageClear: boolean;
     gameOver: boolean;
+    /** Production monster loop (present only in main-stage modes). */
+    monster: {
+      level: number;
+      phase: 'FARMING' | 'BOSS_INTRO' | 'BOSS_ACTIVE' | 'RESULTS';
+      waveTimerLabel: string;
+      waveCountdownText: string;
+      waveWarning: string;
+      waveWarningVisible: boolean;
+      elite1: HudEncounterBar;
+      elite2: HudEncounterBar;
+      boss: HudEncounterBar;
+    };
   };
+}
+
+export interface HudEncounterBar {
+  visible: boolean;
+  label: string;
+  hp: number;
+  maxHp: number;
+  hpText: string;
+  ratio: number;
+  ratioMax: number;
 }
 
 export interface HudProjectionContext {
@@ -100,6 +123,7 @@ export interface HudProjectionContext {
     waveId: number | null;
     leaderHp: number;
     leaderMaxHp: number;
+    monster?: HordeMonsterStageView;
   };
 }
 
@@ -142,7 +166,38 @@ export function emptyHudViewModel(): HudViewModel {
       leaderHpMax: 1,
       stageClear: false,
       gameOver: false,
+      monster: {
+        level: 0,
+        phase: 'FARMING',
+        waveTimerLabel: '',
+        waveCountdownText: '',
+        waveWarning: '',
+        waveWarningVisible: false,
+        elite1: emptyEncounterBar(),
+        elite2: emptyEncounterBar(),
+        boss: emptyEncounterBar(),
+      },
     },
+  };
+}
+
+export function emptyEncounterBar(): HudEncounterBar {
+  return { visible: false, label: '', hp: 0, maxHp: 1, hpText: '', ratio: 0, ratioMax: 1 };
+}
+
+function encounterBar(row: HordeEncounterView | undefined): HudEncounterBar {
+  if (!row) return emptyEncounterBar();
+  const ratio = row.maxHp > 0 ? Math.max(0, Math.min(1, row.hp / row.maxHp)) : 0;
+  const hp = Math.max(0, Math.round(row.hp));
+  const maxHp = Math.max(1, Math.round(row.maxHp));
+  return {
+    visible: row.alive && row.maxHp > 0,
+    label: row.label,
+    hp,
+    maxHp,
+    hpText: `${hp} / ${maxHp}`,
+    ratio,
+    ratioMax: 1,
   };
 }
 
@@ -203,6 +258,45 @@ export class HudProjector {
       stage && stage.leaderMaxHp > 0
         ? Math.max(0, Math.min(1, stage.leaderHp / stage.leaderMaxHp))
         : 0;
+    const monsterView = stage?.monster;
+    const monsterPhase = monsterView?.phase ?? 'FARMING';
+    const rem = stage?.farmingTimeRemaining ?? 0;
+    const stagePhase = stage?.phase ?? 'farming1';
+    const waveCountdown =
+      monsterPhase === 'FARMING'
+        ? Math.max(
+            0,
+            Math.ceil(
+              stagePhase === 'farming1' || stagePhase === 'wave1'
+                ? rem - 120
+                : stagePhase === 'farming2' || stagePhase === 'wave2'
+                  ? rem - 60
+                  : rem,
+            ),
+          )
+        : 0;
+    const waveTimerLabel =
+      monsterPhase === 'FARMING'
+        ? 'TIME UNTIL NEW WAVE'
+        : monsterPhase === 'BOSS_INTRO'
+          ? 'BOSS INCOMING'
+          : '';
+    const waveWarning =
+      monsterPhase === 'FARMING' && waveCountdown <= 5 && waveCountdown > 0
+        ? stagePhase === 'farming1' || stagePhase === 'wave1'
+          ? 'WAVE 1 INCOMING'
+          : stagePhase === 'farming2' || stagePhase === 'wave2'
+            ? 'WAVE 2 INCOMING'
+            : 'BOSS INCOMING'
+        : '';
+    const eliteRows = monsterView?.encounters.filter((e) => e.kind === 'elite') ?? [];
+    const aliveElites = eliteRows.filter((e) => e.alive);
+    // Default one-elite matches promote the single active elite to the
+    // primary bar; two-elite matches keep slot order so each bar stays
+    // bound to its own encounter and hides independently on death.
+    const elites =
+      aliveElites.length <= 1 ? (aliveElites[0] ? [aliveElites[0]] : eliteRows) : eliteRows;
+    const boss = monsterView?.encounters.find((e) => e.kind === 'boss');
     return {
       role: opts.role,
       session: opts.session,
@@ -257,6 +351,22 @@ export class HudProjector {
         leaderHpMax: 1,
         stageClear: stage?.phase === 'clear',
         gameOver: stage?.phase === 'gameOver',
+        monster: {
+          level: monsterView?.level ?? 0,
+          phase: monsterPhase,
+          waveTimerLabel,
+          waveCountdownText:
+            waveTimerLabel && monsterPhase === 'FARMING'
+              ? waveCountdown > 0
+                ? `${String(Math.floor(waveCountdown / 60)).padStart(2, '0')}:${String(waveCountdown % 60).padStart(2, '0')}`
+                : '00:00'
+              : '',
+          waveWarning,
+          waveWarningVisible: waveWarning !== '',
+          elite1: encounterBar(elites[0]),
+          elite2: encounterBar(elites[1]),
+          boss: encounterBar(boss),
+        },
       },
     };
   }

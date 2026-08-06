@@ -1,0 +1,18 @@
+{
+  "id": "horde.bossWave.production",
+  "label": "Production Boss Wave",
+  "leaderSlotId": "selected.boss",
+  "bossSlotId": "selected.boss",
+  "openingPackIds": ["pack.production.bossEscortCohort"],
+  "reinforcementPackIds": ["pack.production.bossEscortCohort"],
+  "openingThreat": 30,
+  "reinforcementThreat": 40,
+  "reinforcementThreatPerSecond": 3,
+  "maximumActiveWaveThreat": 120,
+  "maximumActiveWaveEntities": 80,
+  "approachPolicyId": "horde.navigationPolicy.main",
+  "rewardTableId": "reward.main",
+  "purgeWaveCohortOnLeaderDeath": true,
+  "hpThresholdEvents": [],
+  "completion": "clearStage"
+}

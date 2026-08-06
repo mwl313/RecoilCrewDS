@@ -5,7 +5,12 @@ import type { EnemyState, EnemyType } from '../types';
 import { createBuiltinEnemyBehaviors } from './enemyBehaviors';
 import { EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
 import { EnemyRuntimeState } from './enemyRuntimeState';
-import { enemyHp, enemyRadius, enemyThreat } from './monsterCompat';
+import { enemyHp, enemyRadius, enemyThreat, isMonster } from './monsterCompat';
+import {
+  DEFAULT_MELEE_ENGAGEMENT_PROFILE,
+  MeleeReservationManager,
+  type MeleeCandidate,
+} from '../monsters/meleeReservations';
 import {
   MAIN_STAGE_CURVE,
   MAIN_STAGE_XP_REWARDS,
@@ -13,8 +18,15 @@ import {
   resolveMonsterSpawnLock,
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
+import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
+import { resolveMonsterEngagementGeometry } from '../monsters/engagementGeometry';
+import { updateEnemySemantics } from '../monsters/monsterSemantics';
+import { mulberry32, type Rng } from '../mapgen/prng';
+import { hash32 } from '../mapgen/seed';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
+import { cancelAttackCycle } from '../monsters/monsterAttack';
+import type { StageEvent } from '../stage/stageTypes';
 
 /** Wire type -> definition id (documented engine default mapping). */
 const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
@@ -35,10 +47,60 @@ export class EnemySystem {
   readonly behaviors: EnemyBehaviorRegistry;
   /** Legacy-compatible shared dodge credit flag (one per match, as before). */
   sharedDodgeAwarded = false;
+  /** Production: deterministic melee engagement reservations (match-scoped). */
+  readonly meleeReservations: MeleeReservationManager;
   private readonly runtimes = new Map<number, EnemyRuntimeState>();
+  private readonly spawnRng: Rng;
 
   constructor(private readonly ctx: SystemContext) {
     this.behaviors = createBuiltinEnemyBehaviors();
+    this.spawnRng = mulberry32(hash32('monsterSpawn', this.ctx.state.matchId));
+    const profile =
+      this.ctx.rules.meleeEngagementProfiles.get('meleeEngagement.default') ??
+      DEFAULT_MELEE_ENGAGEMENT_PROFILE;
+    this.meleeReservations = new MeleeReservationManager(profile);
+    this.ctx.eventBus.subscribe('stageEvent', (payload) => {
+      const event = payload as StageEvent;
+      if (event.type === 'phaseChanged' || event.type === 'stageCleared' || event.type === 'gameOver') {
+        this.releaseAllCombatState();
+      }
+    });
+  }
+
+  /** Reservation ownership for a living melee monster (public for tests/HUD). */
+  meleeReservedFor(enemyId: number): boolean {
+    return this.meleeReservations.hasReservation(enemyId);
+  }
+
+  hasActiveAttackCycle(enemyId: number): boolean {
+    return this.runtimes.get(enemyId)?.attackRuntime?.active === true;
+  }
+
+  /** Immediate death/purge cleanup; pending cues can never survive removal. */
+  releaseEnemyCombatState(enemyId: number): void {
+    const runtime = this.runtimes.get(enemyId);
+    if (runtime?.attackRuntime) cancelAttackCycle(runtime.attackRuntime);
+    if (runtime) {
+      runtime.attackRuntime = undefined;
+      runtime.meleeReserved = false;
+    }
+    this.meleeReservations.release(enemyId);
+    const enemy = this.ctx.state.enemies.find((candidate) => candidate.id === enemyId);
+    if (enemy) enemy.telegraph = 0;
+  }
+
+  /** Phase/rematch terminal cleanup for all match-scoped combat ownership. */
+  releaseAllCombatState(): void {
+    for (const id of this.runtimes.keys()) this.releaseEnemyCombatState(id);
+    this.meleeReservations.releaseAll();
+  }
+
+  /** Authoritative semantic action + stable sequence (presentation/HUD). */
+  semanticFor(enemyId: number): { action: string; sequence: number } {
+    const runtime = this.runtimes.get(enemyId);
+    return runtime
+      ? { action: runtime.semanticAction, sequence: runtime.semanticSequence }
+      : { action: 'Idle', sequence: 0 };
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
@@ -54,7 +116,11 @@ export class EnemySystem {
   }
 
   radiusFor(enemy: EnemyState): number {
-    return enemyRadius(this.defFor(enemy));
+    const def = this.defFor(enemy);
+    if (isMonster(def)) {
+      return resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
+    }
+    return enemyRadius(def);
   }
 
   /** Threat contribution used by population budgets (monster-aware). */
@@ -92,10 +158,11 @@ export class EnemySystem {
     let sz = z;
     if (sx === undefined || sz === undefined) {
       const gates = this.ctx.world.bugSpawns;
+      const rng = isMonster(def) ? this.spawnRng : Math.random;
       for (let i = 0; i < 12; i++) {
-        const g = gates[Math.floor(Math.random() * gates.length)];
-        const px = g.x + (Math.random() - 0.5) * 4;
-        const pz = g.z + (Math.random() - 0.5) * 4;
+        const g = gates[Math.floor(rng() * gates.length)];
+        const px = g.x + (rng() - 0.5) * 4;
+        const pz = g.z + (rng() - 0.5) * 4;
         if (dist2(px, pz, s.tank.x, s.tank.z) > 10 * 10) {
           sx = px;
           sz = pz;
@@ -142,6 +209,7 @@ export class EnemySystem {
               resolvedRewardXp: spawnLock.resolvedRewardXp,
               scaledContactDps: spawnLock.scaledContactDps,
               scaledProjectileDamage: spawnLock.scaledProjectileDamage,
+              rewardClass: isMonster(def) ? def.rewardClass : 'ambient',
             },
           }
         : {}),
@@ -173,7 +241,12 @@ export class EnemySystem {
       bossIntroSeconds: 4,
       bossPhaseLevel: curve.bossPhaseLevel,
     };
-    const level = monsterLevelForPhase(this.ctx.state.time, phaseConfig, (t) =>
+    // One authoritative active-farming clock: elite-wave time pauses
+    // `stage.activeFarmingElapsed`, so spawn-locked HP/damage/XP never
+    // advance while a wave is held. The boss phase locks to the authored
+    // boss level (activeFarmingElapsed reaches 180 at boss start).
+    const activeFarmingTime = this.ctx.stage.state.activeFarmingElapsed;
+    const level = monsterLevelForPhase(activeFarmingTime, phaseConfig, (t) =>
       monsterLevelAtTime(t, curve),
     );
     const singlePlayerMultiplier = this.ctx.sessionKind === 'singlePlayer' ? 2 : 1;
@@ -192,9 +265,51 @@ export class EnemySystem {
   update(dt: number): void {
     const s = this.ctx.state;
     this.ctx.enemySpatial.rebuild(s.enemies);
+    const meleeCandidates: MeleeCandidate[] = [];
+    for (const e of s.enemies) {
+      if (!e.alive) continue;
+      const def = this.defFor(e);
+      if (!isMonster(def) || def.attack.type !== 'melee') continue;
+      const dx = s.tank.x - e.x;
+      const dz = s.tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      const monsterDims = resolveMonsterDimensions(def.id, def.sizeClass, def.tier);
+      const geometry = resolveMonsterEngagementGeometry({
+        enemyRadius: monsterDims.collisionRadius,
+        tankRadius: this.ctx.rules.config.arena.tankRadius,
+        authoredAttackReach: def.attack.range,
+      });
+      meleeCandidates.push({
+        id: e.id,
+        x: e.x,
+        z: e.z,
+        collisionDiameter: monsterDims.collisionRadius * 2,
+        threat: enemyThreat(def),
+        alive: e.alive,
+        attackRange: geometry.effectiveAttackDistance,
+        distanceToTank: d,
+        // Reservation angles are tank->enemy bearings so a reserved enemy
+        // physically approaches its own side of the attack ring.
+        angleToTank: Math.atan2(e.x - s.tank.x, e.z - s.tank.z),
+        lastDamageAt: 0,
+      });
+    }
+    this.meleeReservations.update(s.tank.x, s.tank.z, meleeCandidates, s.time);
     const policy = this.lodPolicy();
     for (const e of s.enemies) {
+      let runtime = this.runtimes.get(e.id);
+      if (!runtime) {
+        runtime = new EnemyRuntimeState();
+        runtime.lastUpdateT = s.time;
+        runtime.phaseOffset = (e.id % 16) / 16;
+        this.runtimes.set(e.id, runtime);
+      }
       if (!e.alive) {
+        this.releaseEnemyCombatState(e.id);
+        // Death lock: semantic action is evaluated after behavior state,
+        // but death always overrides everything.
+        updateEnemySemantics(runtime, { alive: false, moving: false, attacking: false });
+        if (e.monster) this.syncSemanticCue(e, runtime);
         e.stateT += dt;
         continue;
       }
@@ -203,15 +318,9 @@ export class EnemySystem {
       e.telegraph = Math.max(0, e.telegraph - dt);
       e.hitCd = Math.max(0, (e.hitCd ?? 0) - dt);
       const def = this.defFor(e);
-      let runtime = this.runtimes.get(e.id);
-      if (!runtime) {
-        runtime = new EnemyRuntimeState();
-        runtime.lastUpdateT = s.time;
-        runtime.phaseOffset = (e.id % 16) / 16;
-        this.runtimes.set(e.id, runtime);
-      }
       const tier = this.tierFor(e, runtime);
       runtime.tier = tier;
+      runtime.meleeReserved = this.meleeReservations.hasReservation(e.id);
       if (policy) {
         const freq = tierFrequency(policy, tier);
         if (s.time < runtime.nextUpdateAt) {
@@ -229,15 +338,50 @@ export class EnemySystem {
           this.behaviors.require(behavior.id).update(this.ctx, e, runtime, dt);
         }
       }
-      runtime.speed *= this.ctx.progression?.enemySpeedMultiplier?.(e) ?? 1;
       this.ctx.enemyImpulses.update(e, def, dt);
+      // Semantic action reflects the current frame's final movement,
+      // attack, and death state (bug-fix ordering).
+      updateEnemySemantics(runtime, {
+        alive: true,
+        moving: runtime.speed > 0.2 && runtime.distToTank > 0.5,
+        attacking: runtime.attackRuntime?.active === true,
+      });
+      if (e.monster) this.syncSemanticCue(e, runtime);
     }
     s.enemies = s.enemies.filter((e) => e.alive || e.stateT <= 2.5);
     const live = new Set<number>();
     for (const e of s.enemies) live.add(e.id);
     for (const id of [...this.runtimes.keys()]) {
-      if (!live.has(id)) this.runtimes.delete(id);
+      if (!live.has(id)) {
+        this.releaseEnemyCombatState(id);
+        this.runtimes.delete(id);
+      }
     }
+  }
+
+  /**
+   * Authoritative compact semantic cue for client presentation. Written
+   * only for generalized monsters; legacy enemies keep legacy inference.
+   * Attack cues refresh per attack cycle so each swing is a distinct
+   * presentation event. Animation never decides gameplay.
+   */
+  private syncSemanticCue(e: EnemyState, runtime: EnemyRuntimeState): void {
+    const action = runtime.semanticAction;
+    const cycle = runtime.attackRuntime?.active === true ? runtime.attackSequence + 1 : 0;
+    const sequence = runtime.semanticSequence * 1000 + cycle;
+    if (e.actionCue?.sequence === sequence) return;
+    const durationSeconds =
+      action === 'Attack'
+        ? runtime.attackRuntime?.cycleDuration ?? 1
+        : action === 'Death'
+          ? 1.2
+          : 0;
+    e.actionCue = {
+      sequence,
+      actionId: `enemy.semantic.${action.toLowerCase()}`,
+      startedAtTick: Math.round(this.ctx.state.time * 30),
+      durationTicks: Math.max(0, Math.round(durationSeconds * 30)),
+    };
   }
 
   /** Current LOD tier for an enemy (public for tests and debug overlays). */
@@ -290,7 +434,10 @@ export class EnemySystem {
       else keep.push(e);
     }
     this.ctx.state.enemies = keep;
-    for (const e of removed) this.runtimes.delete(e.id);
+    for (const e of removed) {
+      this.releaseEnemyCombatState(e.id);
+      this.runtimes.delete(e.id);
+    }
     return removed;
   }
 }

@@ -1,0 +1,9 @@
+{
+  "id": "objective.mainStage",
+  "label": "Main Stage Survival",
+  "description": "Survive farming, elite waves, and the boss. Stage/boss flow owns results; the timer does not auto-complete.",
+  "kind": "scoreAttack",
+  "durationSeconds": 180,
+  "scoring": "scoring.demoScoreAttack",
+  "results": "results.mainStage"
+}

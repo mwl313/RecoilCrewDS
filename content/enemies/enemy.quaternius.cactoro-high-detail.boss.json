@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.cactoro-high-detail.boss",
+  "label": "Cactoro High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.cactoro-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.cactoro-high-detail.hero",
+  "stats": {
+    "hp": 240,
+    "speed": 2.8,
+    "threat": 45
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "slam",
+        "type": "melee",
+        "damage": 26,
+        "rate": 0.8,
+        "range": 4
+      },
+      {
+        "id": "needle",
+        "type": "ranged",
+        "damage": 24,
+        "rate": 0.4,
+        "range": 40,
+        "projectileId": "projectile.enemySpitShot",
+        "telegraphTime": 1.1
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

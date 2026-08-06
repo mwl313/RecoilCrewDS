@@ -18,12 +18,12 @@ export const MULTIPLAYER_SESSION: GameSessionContext = {
   kind: 'multiplayer',
   networked: true,
   localControl: 'assignedRole',
-  rulesModeId: 'mode.demoScoreAttack',
+  rulesModeId: 'mode.mainStage',
 };
 
 export const SINGLE_PLAYER_SESSION: GameSessionContext = {
   kind: 'singlePlayer',
   networked: false,
   localControl: 'combined',
-  rulesModeId: 'mode.singlePlayerScoreAttack',
+  rulesModeId: 'mode.singlePlayerMainStage',
 };

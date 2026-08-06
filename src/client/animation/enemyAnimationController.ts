@@ -116,10 +116,10 @@ export class EnemyAnimationController {
       return;
     }
 
-    // A one-shot that has finished returns to the resolved state (usually
-    // idle/locomotion) on the next update.
+    // A completed one-shot releases its interrupt priority so the resolved
+    // baseline state (normally idle/locomotion) can take control again.
     if (anim.currentAction && this.isFinishedOneShot(anim.currentAction)) {
-      this.applyLocomotion(resolution.role, state.speed);
+      anim.currentPriority = 0;
     }
 
     const isNewCue = state.cue ? state.cue.sequence > this.lastCueSequence : false;
@@ -158,6 +158,7 @@ export class EnemyAnimationController {
     if (!action) return; // static pose fallback (no usable clip)
     const priority = this.stateMap[targetRole]?.interruptPriority ?? 0;
     if (!opts.force && anim.currentAction && priority < anim.currentPriority) return;
+    const previousAction = anim.currentAction;
     anim.currentRole = targetRole;
     anim.currentAction = action;
     anim.currentPriority = priority;
@@ -169,8 +170,8 @@ export class EnemyAnimationController {
     if (this.stateMap[targetRole]?.loop !== 'once') {
       action.setLoop(THREE.LoopRepeat, Infinity);
     }
-    if (anim.currentAction && anim.currentAction !== action) {
-      anim.currentAction.fadeOut(opts.duration);
+    if (previousAction && previousAction !== action) {
+      previousAction.fadeOut(opts.duration);
     }
     action.fadeIn(opts.duration);
     action.play();

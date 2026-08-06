@@ -1,0 +1,67 @@
+{
+  "id": "enemy.quaternius.ninja-high-detail.boss",
+  "label": "Ninja High Detail Boss",
+  "type": "monster",
+  "tier": "boss",
+  "sizeClass": "large",
+  "tierScale": 5,
+  "presentationProfileId": "enemyPresentation.quaternius.ninja-high-detail.hero",
+  "animationProfileId": "enemyAnimation.quaternius.ninja-high-detail.hero",
+  "stats": {
+    "hp": 200,
+    "speed": 4.8,
+    "threat": 45
+  },
+  "rewardClass": "boss",
+  "levelScaling": {
+    "health": true,
+    "damage": false
+  },
+  "attack": {
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "slash",
+        "type": "melee",
+        "damage": 26,
+        "rate": 1,
+        "range": 4
+      },
+      {
+        "id": "shuriken",
+        "type": "ranged",
+        "damage": 18,
+        "rate": 0.5,
+        "range": 36,
+        "projectileId": "projectile.enemyBoneShot",
+        "telegraphTime": 0.9
+      }
+    ]
+  },
+  "behaviors": [
+    {
+      "id": "movement.trackTank",
+      "parameters": {}
+    },
+    {
+      "id": "movement.densitySteering",
+      "parameters": {}
+    },
+    {
+      "id": "attack.bossCue",
+      "parameters": {}
+    },
+    {
+      "id": "movement.integrate",
+      "parameters": {}
+    }
+  ],
+  "spawnTags": [
+    "boss",
+    "mixed",
+    "large"
+  ]
+}

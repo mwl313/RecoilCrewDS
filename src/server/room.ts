@@ -8,9 +8,14 @@ import type { DriverInput, GunnerInput, MatchResults, ModifierId, Role } from '.
 import { SNAPSHOT_INTERVAL, NET_TUNING } from '../shared/net/tuning';
 import { HordeReplicationTracker } from '../shared/net/horde/hordeReplication';
 import type { HordeWaveState } from '../shared/net/horde/hordeProtocol';
-import type { GunnerActionType } from '../shared/net/protocol';
+import {
+  checkProtocolCompatibility,
+  PROTOCOL_VERSION,
+  type GunnerActionType,
+} from '../shared/net/protocol';
 import type { TankImpulseWire } from '../shared/effects/tankImpulseSystem';
 import { opLogTail } from '../shared/sim/opLog';
+import { ENEMY_DEFINITION_ORDER_HASH } from '../generated/enemyDefinitionIndex.generated';
 import type {
   ClientLobbyState,
   CrewSeat,
@@ -22,6 +27,8 @@ import { computeStartEligibility } from '../shared/lobby/lobbyEligibility';
 import { isCrewSeat, seatConflict, validateChatText } from '../shared/lobby/lobbyValidation';
 import { validateNickname } from '../shared/lobby/nicknameValidation';
 import { generateDefaultNickname } from '../shared/lobby/nicknamePool';
+import { stageViewForMatch } from '../shared/monsters/monsterStageView';
+import { resolveSelectedMonsterRun } from '../shared/monsters/monsterPreload';
 
 export interface SocketLike {
   send(msg: unknown): void;
@@ -48,7 +55,7 @@ export interface Client {
   graceLeft: number;
 }
 
-export type RoomPhase = 'lobby' | 'countdown' | 'running' | 'results';
+export type RoomPhase = 'lobby' | 'loading' | 'countdown' | 'running' | 'results';
 
 /** Content pack metadata broadcast to clients (Phase 1, additive). */
 export interface ContentMetadata {
@@ -67,6 +74,11 @@ export interface Room {
   hostPlayerId: string;
   lobbyRevision: number;
   lobbyPhase: 'lobby' | 'countdown';
+  /** Production preload gate: elapsed seconds waiting for assetReady. */
+  loadingT: number;
+  /** Match id reserved before the countdown so run selection is stable. */
+  pendingMatchId: string | null;
+  assetReady: { driver: boolean; gunner: boolean };
   countdownEndsAtWallMs: number | null;
   chat: LobbyChatMessage[];
   chatSequence: number;
@@ -109,6 +121,14 @@ export interface LoopMetrics {
 }
 
 const CODE_ALPHABET = GAME.roomCodeAlphabet;
+/** Production preload gate: proceed after this many seconds regardless. */
+const ASSET_READY_TIMEOUT_SECONDS = 15;
+/**
+ * Test-only server damage hook, enabled exclusively on qualification
+ * servers (ALLOW_TEST_DAMAGE=1). Never enabled in production deployments;
+ * it exists so the automated two-client e2e can complete a full run.
+ */
+const TEST_DAMAGE_ENABLED = process.env.ALLOW_TEST_DAMAGE === '1';
 
 function randomCode(): string {
   let out = '';
@@ -137,27 +157,8 @@ function waveStateFor(match: Match): HordeWaveState | null {
   };
 }
 
-function stageViewFor(match: Match): {
-  phase: string;
-  farmingTimeRemaining: number;
-  waveId: number | null;
-  leaderHp: number;
-  leaderMaxHp: number;
-} {
-  const stage = match.runtime.systems.stage.state;
-  const horde = match.runtime.systems.horde;
-  const runtime =
-    horde && horde.currentWaveId !== null
-      ? match.runtime.systems.waves.waves.get(horde.currentWaveId)
-      : undefined;
-  const leader = runtime ? match.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
-  return {
-    phase: stage.phase,
-    farmingTimeRemaining: stage.farmingTimeRemaining,
-    waveId: stage.activeWaveId,
-    leaderHp: leader?.hp ?? 0,
-    leaderMaxHp: leader?.maxHp ?? 0,
-  };
+function stageViewFor(match: Match) {
+  return stageViewForMatch(match.runtime);
 }
 
 function sanitizeDriver(raw: unknown): DriverInput | null {
@@ -291,6 +292,9 @@ export class RoomManager {
       hostPlayerId: playerId,
       lobbyRevision: 1,
       lobbyPhase: 'lobby',
+      loadingT: 0,
+      pendingMatchId: null,
+      assetReady: { driver: false, gunner: false },
       countdownEndsAtWallMs: null,
       chat: [],
       chatSequence: 0,
@@ -424,7 +428,9 @@ export class RoomManager {
       this.clients.set(candidate.id, candidate);
       player.connected = true;
       player.reconnectDeadlineWallMs = null;
-      player.ready = false;
+      // Mid-round reconnects (running/results) keep the crew ready so a
+      // rematch can proceed; lobby reconnects must re-ready explicitly.
+      player.ready = room.phase === 'running' || room.phase === 'results';
       // Restore seat → match slot references (unchanged client role).
       if (player.seat === 'driver') room.driver = candidate;
       else if (player.seat === 'gunner') room.gunner = candidate;
@@ -442,6 +448,15 @@ export class RoomManager {
         hostPlayerId: room.hostPlayerId,
         phase: room.phase,
         arena: room.arenaSession?.metadata ?? null,
+        ...((room.phase === 'running' || room.phase === 'results') && room.content
+          ? {
+              content: room.content,
+              definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+              matchId: room.match?.state.matchId,
+              modeId: this.contentMeta?.modeId ?? 'mode.mainStage',
+              run: room.match?.runtime.systems.monsterRun ?? null,
+            }
+          : {}),
         lobby,
         chat: room.chat,
       });
@@ -564,12 +579,82 @@ export class RoomManager {
       this.broadcastResults(room);
       if (room.rematch.driver && room.rematch.gunner) {
         room.rematch = { driver: null, gunner: null };
-        room.phase = 'countdown';
-        room.countdownT = 3.4;
         room.ready = { driver: false, gunner: false };
-        room.lastCountdownShown = 3;
-        this.broadcast(room, { t: 'countdown', n: 3, modifier: room.rematchModifier });
+        if (this.isProductionRoom()) {
+          this.beginProductionLoading(room);
+        } else {
+          this.beginCountdown(room, room.rematchModifier);
+        }
       }
+      return;
+    }
+    if (t === 'assetReady') {
+      if (room.phase !== 'loading' || !client.role) return;
+      if (raw.matchId !== room.pendingMatchId) return;
+      if (this.contentMeta) {
+        const compat = checkProtocolCompatibility({
+          // The WebSocket transport enforces the protocol version before
+          // dispatch; the room-level gate validates the content hashes.
+          clientProtocol: PROTOCOL_VERSION,
+          clientContentHash:
+            typeof raw.contentHash === 'string' ? raw.contentHash : undefined,
+          clientDefinitionOrderHash:
+            typeof raw.definitionOrderHash === 'string' ? raw.definitionOrderHash : undefined,
+          serverProtocol: PROTOCOL_VERSION,
+          serverContentHash: this.contentMeta.hash,
+          serverDefinitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+        });
+        if (!compat.ok) {
+          const reason = compat.reason ?? 'incompatible client';
+          this.sendWithSocket(socket, {
+            t: 'error',
+            code: 'compatibility',
+            message: reason,
+          });
+          socket.close(1008, reason);
+          this.cancelCountdown(room, 'compatibility');
+          return;
+        }
+      }
+      room.assetReady[client.role] = true;
+      if (room.assetReady.driver && room.assetReady.gunner) this.beginCountdown(room);
+      return;
+    }
+    if (t === 'testDamageEnemyByDef') {
+      if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
+      const defId = typeof raw.defId === 'string' ? raw.defId : '';
+      const amount = typeof raw.amount === 'number' && Number.isFinite(raw.amount) ? raw.amount : 0;
+      const enemy = room.match.state.enemies.find((e) => e.defId === defId && e.alive);
+      if (enemy && amount > 0) room.match.runtime.damageEnemy(enemy, amount, 'test');
+      return;
+    }
+    if (t === 'testHealTank') {
+      if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
+      room.match.state.tank.integrity = room.match.runtime.cfg.tank.maxIntegrity;
+      room.match.state.tank.deadT = 0;
+      return;
+    }
+    if (t === 'testImpulseEnemyByDef') {
+      if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
+      const defId = typeof raw.defId === 'string' ? raw.defId : '';
+      const horizontal = typeof raw.horizontal === 'number' ? raw.horizontal : 0;
+      const vertical = typeof raw.vertical === 'number' ? raw.vertical : 0;
+      const enemy = room.match.state.enemies.find((e) => e.defId === defId && e.alive);
+      const def = room.match.runtime.systems.enemies.defById(defId);
+      if (!enemy || !def) return;
+      const t = room.match.state.tank;
+      const dx = t.x - enemy.x;
+      const dz = t.z - enemy.z;
+      const d = Math.hypot(dx, dz) || 1;
+      room.match.runtime.systems.enemyImpulses.apply(
+        enemy,
+        def,
+        dx / d,
+        dz / d,
+        horizontal,
+        vertical,
+        'cannon',
+      );
       return;
     }
     if (t === 'leave') {
@@ -668,10 +753,27 @@ export class RoomManager {
             this.broadcast(room, { t: 'countdown', n: 0 });
             room.lobbyPhase = 'lobby';
             room.countdownEndsAtWallMs = null;
-            this.startMatch(room);
+            try {
+              this.startMatch(room);
+            } catch (error) {
+              // A mode/content resolution failure must never take down the
+              // whole server; return the crew to the lobby instead.
+              console.error(`[room ${room.code}] match start failed; returning to lobby`, error);
+              room.phase = 'lobby';
+              room.pendingMatchId = null;
+              room.countdownT = 0;
+              this.broadcastLobby(room);
+            }
           } else {
             this.cancelCountdown(room, 'eligibility');
           }
+        }
+      } else if (room.phase === 'loading') {
+        // Production preload gate: proceed after explicit client readiness
+        // or the documented timeout so a stuck client cannot stall a crew.
+        room.loadingT += dt;
+        if (room.loadingT >= ASSET_READY_TIMEOUT_SECONDS) {
+          this.beginCountdown(room);
         }
       } else if (room.phase === 'running' && room.match) {
         for (const client of [room.driver, room.gunner]) {
@@ -708,6 +810,8 @@ export class RoomManager {
   private startMatch(room: Room) {
     const matchIndex = room.matchIndex;
     room.matchIndex = matchIndex + 1;
+    const matchId = room.pendingMatchId ?? room.code + '-' + this.now();
+    room.pendingMatchId = null;
     let world: ArenaWorld | undefined;
     if (this.pack) {
       const session = selectArenaSessionFromPack(this.pack, {
@@ -719,9 +823,13 @@ export class RoomManager {
     } else {
       room.arenaSession = null;
     }
+    // Production multiplayer runs the main-stage horde loop. The room's
+    // content metadata is authoritative when present (tests and fixture
+    // servers keep the Demo mode); the live server pins mode.mainStage.
+    const modeId = this.contentMeta?.modeId ?? (this.pack ? 'mode.mainStage' : undefined);
     room.match = this.pack
-      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world)
-      : new Match(room.code + '-' + this.now(), room.rematchModifier, undefined, world);
+      ? new Match(matchId, room.rematchModifier, this.pack, world, modeId)
+      : new Match(matchId, room.rematchModifier, undefined, world);
     const hordeDef = room.match.rules.hordeDirector;
     room.hordeReplication =
       hordeDef && hordeDef.enforceStage === true && room.match.runtime.systems.horde
@@ -734,6 +842,8 @@ export class RoomManager {
       t: 'start',
       matchId: room.match.state.matchId,
       modifier: room.rematchModifier,
+      protocolVersion: PROTOCOL_VERSION,
+      definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
     };
     if (room.content) startMsg.content = room.content;
     if (room.arenaSession) startMsg.arena = room.arenaSession.metadata;
@@ -852,12 +962,82 @@ export class RoomManager {
   }
 
   private cancelCountdown(room: Room, reason: string): void {
-    if (room.lobbyPhase !== 'countdown' && room.phase !== 'countdown') return;
+    if (
+      room.lobbyPhase !== 'countdown' &&
+      room.phase !== 'countdown' &&
+      room.phase !== 'loading'
+    ) {
+      return;
+    }
     room.lobbyPhase = 'lobby';
     room.phase = 'lobby';
     room.countdownEndsAtWallMs = null;
     room.countdownT = 0;
+    room.loadingT = 0;
+    room.pendingMatchId = null;
+    room.assetReady = { driver: false, gunner: false };
     void reason;
+    this.broadcastLobby(room);
+  }
+
+  /** True when the live mode uses a gameplay roster (production loop). */
+  private isProductionRoom(): boolean {
+    if (!this.pack) return false;
+    const modeId = this.contentMeta?.modeId ?? 'mode.mainStage';
+    try {
+      return resolveSelectedMonsterRun(this.pack, 'probe', modeId) !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Production preload gate: reserve the match id, broadcast the
+   * authoritative selected run, and wait for client assetReady before the
+   * countdown. Demo rooms never enter this phase.
+   */
+  private beginProductionLoading(room: Room): void {
+    if (!this.pack) {
+      this.beginCountdown(room);
+      return;
+    }
+    const modeId = this.contentMeta?.modeId ?? 'mode.mainStage';
+    const matchId = room.code + '-' + this.now();
+    const run = resolveSelectedMonsterRun(this.pack, matchId, modeId);
+    room.phase = 'loading';
+    room.lobbyPhase = 'lobby';
+    room.loadingT = 0;
+    room.pendingMatchId = matchId;
+    room.assetReady = { driver: false, gunner: false };
+    room.lastCountdownShown = 3;
+    this.broadcast(room, {
+      t: 'runConfig',
+      matchId,
+      modeId,
+      run,
+      ...(this.contentMeta
+        ? {
+            contentHash: this.contentMeta.hash,
+            definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+          }
+        : {}),
+    });
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+  }
+
+  private beginCountdown(room: Room, modifier?: ModifierId): void {
+    room.lobbyPhase = 'countdown';
+    room.phase = 'countdown';
+    room.countdownEndsAtWallMs = this.now() + LOBBY_COUNTDOWN_SECONDS * 1000;
+    room.countdownT = LOBBY_COUNTDOWN_SECONDS;
+    room.lastCountdownShown = 3;
+    room.loadingT = 0;
+    room.assetReady = { driver: false, gunner: false };
+    const msg: Record<string, unknown> = { t: 'countdown', n: 3 };
+    if (modifier !== undefined) msg.modifier = modifier;
+    this.broadcast(room, msg);
+    room.lobbyRevision++;
     this.broadcastLobby(room);
   }
 
@@ -926,14 +1106,11 @@ export class RoomManager {
     this.broadcastLobby(room);
     const eligibility = computeStartEligibility({ players: room.players, contentAvailable: this.contentAvailable() });
     if (eligibility.eligible) {
-      room.lobbyPhase = 'countdown';
-      room.phase = 'countdown';
-      room.countdownEndsAtWallMs = this.now() + LOBBY_COUNTDOWN_SECONDS * 1000;
-      room.countdownT = LOBBY_COUNTDOWN_SECONDS;
-      room.lastCountdownShown = 3;
-      this.broadcast(room, { t: 'countdown', n: 3 });
-      room.lobbyRevision++;
-      this.broadcastLobby(room);
+      if (this.isProductionRoom()) {
+        this.beginProductionLoading(room);
+      } else {
+        this.beginCountdown(room);
+      }
     }
     return { accepted: true };
   }

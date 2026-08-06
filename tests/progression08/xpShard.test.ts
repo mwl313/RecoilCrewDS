@@ -20,10 +20,10 @@ describe('XP shards and magnet collection (progression08)', () => {
     const m = makeMatch();
     m.systems.xpShards.spawn(5, m.state.tank.x + 0.2, m.state.tank.z);
     step(m, 2);
-    const shard = m.state.xpShards[0];
-    expect(shard.collected).toBe(true);
+    // Collected shards are removed from authoritative state (bug-fix
+    // phase 5: no unbounded growth); the XP is granted exactly once.
+    expect(m.state.xpShards.length).toBe(0);
     expect(m.state.teamProgression.totalXpCollected).toBe(10); // single player xpMultiplier 2
-    expect(m.state.xpShards.filter((s) => !s.collected).length).toBe(0);
   });
 
   it('magnet radius pulls shards toward the tank with proximity acceleration', () => {

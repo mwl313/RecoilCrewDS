@@ -1,4 +1,5 @@
 import type { EnemyAttackRuntime } from '../monsters/monsterAttack';
+import type { EnemySemanticAction } from '../monsters/monsterSemantics';
 
 /** Per-enemy scratch state shared by composed behaviors within a frame. */
 export class EnemyRuntimeState {
@@ -20,7 +21,14 @@ export class EnemyRuntimeState {
   phaseOffset = 0;
   /** Monster system: melee reservation ownership (authoritative). */
   meleeReserved = false;
+  /** Monster system: density/separation vector (blended after engagement). */
+  densityX = 0;
+  densityZ = 0;
   /** Monster system: persistent authoritative attack cycle. */
   attackRuntime?: EnemyAttackRuntime;
   attackSequence = 0;
+  /** Authoritative semantic presentation state (Idle/Walk/Attack/Death). */
+  semanticAction: EnemySemanticAction = 'Idle';
+  semanticSequence = 0;
+  deathLocked = false;
 }

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { AssetService } from '../assets';
 import type { EnemyPresentationProfileDefinition } from '../../shared/animation/animationProfileTypes';
+import { ENEMY_DEFINITION_SIZE_TIER } from '../../generated/monsterDimensions.generated';
+import { resolveGeneratedGroundOffset, resolveMonsterDimensionsForDefId } from '../../shared/monsters/monsterNormalization';
 
 export interface AggregateSectorRecord {
   sectorId: number;
@@ -46,6 +48,7 @@ export class AggregateSectorRenderer {
     private readonly assets: AssetService,
     private readonly resolveProfile: AggregateSectorResolver,
     private readonly capacityPerAsset = 512,
+    private readonly groundHeightAt: (x: number, z: number) => number = () => 0,
   ) {}
 
   update(sectors: readonly AggregateSectorRecord[], tankX: number, tankZ: number): void {
@@ -75,10 +78,31 @@ export class AggregateSectorRenderer {
       for (const sector of list) {
         if (index >= group.capacity) break;
         group.slots.set(sector.sectorId, index);
-        this.dummy.position.set(sector.x, 0, sector.z);
-        this.dummy.rotation.set(0, (sector.presentationSeed % 360) * (Math.PI / 180), 0);
-        const scale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, sector.count)) * 0.25, 0.7, 1.8);
-        this.dummy.scale.setScalar(scale);
+        const profile = this.resolveProfile(sector);
+        const dims =
+          sector.enemyDefId && ENEMY_DEFINITION_SIZE_TIER[sector.enemyDefId]
+            ? resolveMonsterDimensionsForDefId(sector.enemyDefId)
+            : undefined;
+        const profileScale = profile?.transform?.scale;
+        const sx = typeof profileScale === 'number' ? profileScale : (profileScale?.[0] ?? 1);
+        const sy = typeof profileScale === 'number' ? profileScale : (profileScale?.[1] ?? 1);
+        const sz = typeof profileScale === 'number' ? profileScale : (profileScale?.[2] ?? 1);
+        const crowdScale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, sector.count)) * 0.25, 0.7, 1.8);
+        const dimsScale = dims?.finalScale ?? 1;
+        const k = dimsScale * crowdScale;
+        const rotation = profile?.transform?.rotation;
+        const yaw = (sector.presentationSeed % 360) * (Math.PI / 180);
+        this.dummy.rotation.set(rotation?.[0] ?? 0, (rotation?.[1] ?? 0) + yaw, rotation?.[2] ?? 0);
+        this.dummy.scale.set(sx * k, sy * k, sz * k);
+        const groundCorrection = dims
+          ? resolveGeneratedGroundOffset(dims, profile?.transform) * crowdScale
+          : 0;
+        const position = profile?.transform?.position;
+        this.dummy.position.set(
+          sector.x + (position?.[0] ?? 0) * k,
+          this.groundHeightAt(sector.x, sector.z) + groundCorrection,
+          sector.z + (position?.[2] ?? 0) * k,
+        );
         this.dummy.updateMatrix();
         for (const mesh of group.instanced) mesh.setMatrixAt(index, this.dummy.matrix);
         index++;
@@ -151,7 +175,9 @@ export class AggregateSectorRenderer {
   private installProcedural(assetId: string): void {
     if (this.groups.has(assetId)) return;
     const material = new THREE.MeshStandardMaterial({ color: 0x6f8f9f, roughness: 0.9 });
-    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(0.7, 1.1, 6), material, this.capacityPerAsset);
+    const geometry = new THREE.ConeGeometry(0.7, 1.1, 6);
+    geometry.translate(0, 0.55, 0);
+    const mesh = new THREE.InstancedMesh(geometry, material, this.capacityPerAsset);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.frustumCulled = false;
     mesh.count = 0;

@@ -36,6 +36,7 @@ export class AssetInstanceFactory {
 
   registerProject(def: ProjectAssetDefinition): void {
     this.projectDefs.set(def.id, def);
+    if (def.fallbackAssetId) this.models.registerFallback(def.id, def.fallbackAssetId);
   }
 
   async preloadModels(ids: readonly string[]): Promise<void> {

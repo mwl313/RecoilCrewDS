@@ -7,6 +7,8 @@ export interface AnimationLodCandidate {
   enemyId: number;
   distance: number;
   populationClass?: string;
+  /** Replicated presentation priority: 0 none, 1 elite, 2 boss. */
+  priority?: 0 | 1 | 2;
   telegraphing: boolean;
   attacking: boolean;
   damagedRecently: boolean;
@@ -40,7 +42,11 @@ export function selectAnimationLod(
   const d = input.distance;
   const current = input.currentTier;
 
-  const isHero = input.populationClass === 'boss' || input.populationClass === 'elite';
+  const isHero =
+    input.priority === 2 ||
+    input.priority === 1 ||
+    input.populationClass === 'boss' ||
+    input.populationClass === 'elite';
   if (policy.heroAlwaysNear && isHero) return 'hero';
   if (isHero) return 'hero';
 

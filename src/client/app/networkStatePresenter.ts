@@ -70,6 +70,7 @@ export class NetworkStatePresenter {
   private readonly frame: RemoteFrame = {
     enemies: [],
     pickups: [],
+    xpShards: [],
     shells: [],
     truck: { active: false, x: 0, y: 0, z: 0, yaw: 0, hp: 0, waypoint: 0, escaped: false, sirenT: 0 },
     turret: { yaw: 0, pitch: 0 },
@@ -237,6 +238,7 @@ export class NetworkStatePresenter {
         enemyId: entry.e.id,
         distance: entry.distance,
         populationClass: entry.e.ownership?.populationClass,
+        priority: entry.e.ownership?.priority ?? 0,
         telegraphing: entry.e.telegraph > 0,
         attacking: isAttackingEnemyState(entry.e),
         damagedRecently: entry.e.flash > 0 || lastImpulse > deps.time() - 0.5,

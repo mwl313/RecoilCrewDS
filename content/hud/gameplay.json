@@ -63,6 +63,43 @@
         "class": "hud-stage",
         "children": [
           {
+            "id": "stage-monster-level",
+            "type": "statText",
+            "class": "stage-monster-level",
+            "text": "",
+            "bindings": [
+              { "target": "text", "source": "stage.monster.level", "format": "LV {0}", "fallback": "" }
+            ]
+          },
+          {
+            "id": "stage-wave-timer-label",
+            "type": "text",
+            "class": "stage-wave-label",
+            "text": "",
+            "bindings": [
+              { "target": "text", "source": "stage.monster.waveTimerLabel" }
+            ]
+          },
+          {
+            "id": "stage-wave-countdown",
+            "type": "statText",
+            "class": "stage-timer",
+            "text": "",
+            "bindings": [
+              { "target": "text", "source": "stage.monster.waveCountdownText" }
+            ]
+          },
+          {
+            "id": "stage-wave-warning",
+            "type": "text",
+            "class": "stage-wave-label wave",
+            "text": "",
+            "bindings": [
+              { "target": "text", "source": "stage.monster.waveWarning" },
+              { "target": "visible", "source": "stage.monster.waveWarningVisible" }
+            ]
+          },
+          {
             "id": "stage-wave-label",
             "type": "text",
             "class": "stage-wave-label",
@@ -85,6 +122,46 @@
             "class": "stage-leader-hp",
             "props": { "valueSource": "stage.leaderHpRatio", "maxSource": "stage.leaderHpMax" },
             "bindings": [{ "target": "visible", "source": "stage.waveActive" }]
+          }
+        ]
+      },
+      {
+        "id": "hud-encounters",
+        "type": "vertical",
+        "class": "hud-encounters",
+        "children": [
+          {
+            "id": "encounter-elite1",
+            "type": "vertical",
+            "class": "encounter-bar elite",
+            "bindings": [{ "target": "visible", "source": "stage.monster.elite1.visible" }],
+            "children": [
+              { "id": "encounter-elite1-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite1.label" }] },
+              { "id": "encounter-elite1-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite1.hpText" }] },
+              { "id": "encounter-elite1-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.elite1.ratio", "maxSource": "stage.monster.elite1.ratioMax" } }
+            ]
+          },
+          {
+            "id": "encounter-elite2",
+            "type": "vertical",
+            "class": "encounter-bar elite",
+            "bindings": [{ "target": "visible", "source": "stage.monster.elite2.visible" }],
+            "children": [
+              { "id": "encounter-elite2-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite2.label" }] },
+              { "id": "encounter-elite2-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.elite2.hpText" }] },
+              { "id": "encounter-elite2-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.elite2.ratio", "maxSource": "stage.monster.elite2.ratioMax" } }
+            ]
+          },
+          {
+            "id": "encounter-boss",
+            "type": "vertical",
+            "class": "encounter-bar boss",
+            "bindings": [{ "target": "visible", "source": "stage.monster.boss.visible" }],
+            "children": [
+              { "id": "encounter-boss-label", "type": "text", "class": "encounter-label", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.boss.label" }] },
+              { "id": "encounter-boss-hp", "type": "statText", "class": "encounter-hp", "text": "", "bindings": [{ "target": "text", "source": "stage.monster.boss.hpText" }] },
+              { "id": "encounter-boss-fill", "type": "progressBar", "class": "encounter-fill", "props": { "valueSource": "stage.monster.boss.ratio", "maxSource": "stage.monster.boss.ratioMax" } }
+            ]
           }
         ]
       },
@@ -202,7 +279,24 @@
         "crosshairVisible": false,
         "pointerLocked": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
-        "stage": { "phase": "farming1", "farmingTimeRemaining": 72, "waveId": null, "leaderHp": 0, "leaderMaxHp": 0 }
+        "stage": {
+          "phase": "farming1",
+          "farmingTimeRemaining": 72,
+          "waveId": null,
+          "leaderHp": 0,
+          "leaderMaxHp": 0,
+          "monster": {
+            "phase": "FARMING",
+            "level": 5,
+            "waveTimerLabel": "TIME UNTIL NEW WAVE",
+            "waveCountdownText": "00:48",
+            "waveWarning": "",
+            "waveWarningVisible": false,
+            "elite1": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
+            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
+            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
+          }
+        }
       }
     },
     {
@@ -220,7 +314,24 @@
         "crosshairVisible": true,
         "pointerLocked": true,
         "objective": { "visible": true, "screenX": 420, "screenY": 180, "label": "LOOT TRUCK" },
-        "stage": { "phase": "wave1", "farmingTimeRemaining": 120, "waveId": 1, "leaderHp": 40, "leaderMaxHp": 100 }
+        "stage": {
+          "phase": "wave1",
+          "farmingTimeRemaining": 120,
+          "waveId": 1,
+          "leaderHp": 40,
+          "leaderMaxHp": 100,
+          "monster": {
+            "phase": "FARMING",
+            "level": 9,
+            "waveTimerLabel": "TIME UNTIL NEW WAVE",
+            "waveCountdownText": "01:00",
+            "waveWarning": "WAVE 2 INCOMING",
+            "waveWarningVisible": true,
+            "elite1": { "visible": true, "label": "Alien Elite", "hp": 620, "maxHp": 1000, "hpText": "620 / 1000", "ratio": 0.62, "ratioMax": 1 },
+            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
+            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
+          }
+        }
       }
     },
     {
@@ -238,7 +349,24 @@
         "crosshairVisible": true,
         "pointerLocked": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0, "label": "" },
-        "stage": { "phase": "farming1", "farmingTimeRemaining": 61, "waveId": null, "leaderHp": 0, "leaderMaxHp": 0 }
+        "stage": {
+          "phase": "farming1",
+          "farmingTimeRemaining": 61,
+          "waveId": null,
+          "leaderHp": 0,
+          "leaderMaxHp": 0,
+          "monster": {
+            "phase": "FARMING",
+            "level": 4,
+            "waveTimerLabel": "TIME UNTIL NEW WAVE",
+            "waveCountdownText": "01:00",
+            "waveWarning": "",
+            "waveWarningVisible": false,
+            "elite1": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
+            "elite2": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 },
+            "boss": { "visible": false, "label": "", "hp": 0, "maxHp": 1, "hpText": "", "ratio": 0, "ratioMax": 1 }
+          }
+        }
       }
     }
   ]

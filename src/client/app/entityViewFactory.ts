@@ -18,6 +18,14 @@ import type {
   EnemyPresentationProfileDefinition,
 } from '../../shared/animation/animationProfileTypes';
 import type { AnimationShadowRules } from '../../shared/animation/animationProfileTypes';
+import {
+  ENEMY_DEFINITION_SIZE_TIER,
+} from '../../generated/monsterDimensions.generated';
+import {
+  resolveMonsterDimensionsForDefId,
+  type ResolvedMonsterDimensions,
+} from '../../shared/monsters/monsterNormalization';
+import { applyMonsterScaleAndOffset } from './monsterTransform';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
@@ -38,7 +46,23 @@ export class EntityViewFactory {
     const model = instance.root;
     const group = new THREE.Group();
     group.add(model);
-    applyProfileTransform(group, profile.transform);
+    // Test/telemetry diagnostics: exact identity on the rendered rig.
+    group.userData.enemyId = e.id;
+    group.userData.defId = e.defId ?? '';
+    group.userData.presentationProfile = resolution.profileId;
+    group.userData.type = e.type;
+    const monsterDims =
+      e.defId && ENEMY_DEFINITION_SIZE_TIER[e.defId]
+        ? resolveMonsterDimensionsForDefId(e.defId)
+        : undefined;
+    if (monsterDims) {
+      applyMonsterScaleAndOffset(model, profile.transform, monsterDims);
+      group.userData.finalScale = monsterDims.finalScale;
+      group.userData.groundOffset = monsterDims.groundOffset;
+      group.userData.tier = monsterDims.tierScale;
+    } else {
+      applyProfileTransform(group, profile.transform);
+    }
     scene.add(group);
     const materials = collectMaterials(model);
     applyShadowPolicy(model, resolution.shadowPolicy.tiers.hero);
@@ -81,6 +105,7 @@ export class EntityViewFactory {
     return {
       group,
       model,
+      dimensions: monsterDims,
       presentationProfileId: resolution.profileId,
       presentationResolution: resolution,
       animation,
@@ -130,6 +155,9 @@ export class EntityViewFactory {
     const model = instance.root;
     rig.model = model;
     rig.group.add(model);
+    if (rig.dimensions) {
+      applyMonsterScaleAndOffset(model, profile.transform, rig.dimensions);
+    }
     rig.modelVariant = wantFar ? 'far' : 'near';
     rig.currentLod = tier;
     rig.materials = collectMaterials(model);
@@ -219,6 +247,8 @@ export function applyProfileTransform(
   if (transform.position) group.position.set(transform.position[0], transform.position[1], transform.position[2]);
   if (transform.rotation) group.rotation.set(transform.rotation[0], transform.rotation[1], transform.rotation[2]);
 }
+
+export { applyMonsterScaleAndOffset } from './monsterTransform';
 
 export function applyShadowPolicy(model: THREE.Object3D, rules: AnimationShadowRules): void {
   model.traverse((obj) => {
