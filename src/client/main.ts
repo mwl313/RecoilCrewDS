@@ -36,6 +36,7 @@ import {
   resolveSelectedMonsterRun,
   resolveSelectedPreloadAssetIds,
 } from '../shared/monsters/monsterPreload';
+import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNormalization';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -819,6 +820,95 @@ if (TEST_MODE) {
     },
     testHealTank: () => {
       net.send({ t: 'testHealTank' });
+    },
+    testImpulse: (defId: string, horizontal: number, vertical: number) => {
+      net.send({ t: 'testImpulseEnemyByDef', defId, horizontal, vertical });
+    },
+    xp: {
+      spawn: (count: number) => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return 0;
+        const t = m.state.tank;
+        for (let i = 0; i < count; i++) {
+          m.runtime.systems.xpShards.spawn(
+            1,
+            t.x + Math.sin(i * 0.7) * 6,
+            t.z + Math.cos(i * 0.7) * 6,
+          );
+        }
+        return m.state.xpShards.length;
+      },
+      stats: () => {
+        const renderer = (game as unknown as {
+          xpShards: {
+            liveCount: number;
+            popCount: number;
+            overflow: number;
+            capacity: number;
+            mesh: { count: number };
+            overflowIndicator: { visible: boolean };
+          };
+        })?.xpShards;
+        if (!renderer) return null;
+        return {
+          liveCount: renderer.liveCount,
+          popCount: renderer.popCount,
+          overflow: renderer.overflow,
+          capacity: renderer.capacity,
+          drawCount: renderer.mesh.count,
+          overflowVisible: renderer.overflowIndicator.visible,
+        };
+      },
+    },
+    monsterSpawn: (defId: string, x: number, z: number) => {
+      const m = game?.singlePlayerMatch;
+      if (!m) return -1;
+      const def = m.runtime.rules.enemies.get(defId);
+      if (!def) return -1;
+      const e = m.runtime.systems.enemies.spawnEnemyDef(def, x, z);
+      return e?.id ?? -1;
+    },
+    monsterImpulse: (id: number, horizontal: number, vertical: number) => {
+      const m = game?.singlePlayerMatch;
+      if (!m) return false;
+      const e = m.state.enemies.find((x) => x.id === id);
+      if (!e) return false;
+      const def = m.runtime.systems.enemies.defFor(e);
+      const dx = m.state.tank.x - e.x;
+      const dz = m.state.tank.z - e.z;
+      const d = Math.hypot(dx, dz) || 1;
+      m.runtime.systems.enemyImpulses.apply(e, def, dx / d, dz / d, horizontal, vertical, 'cannon');
+      return true;
+    },
+    enemyById: (id: number) => {
+      const m = game?.singlePlayerMatch;
+      const e = m?.state.enemies.find((x) => x.id === id);
+      if (!e) return null;
+      return { id: e.id, defId: e.defId ?? '', x: e.x, y: e.y, z: e.z, alive: e.alive };
+    },
+    enemyRenderY: (id: number) => {
+      const registry = (game as unknown as {
+        registry: { enemyRigs: Map<number, { group: { position: { y: number } } }> };
+      })?.registry;
+      return registry?.enemyRigs.get(id)?.group.position.y ?? null;
+    },
+    enemyReplicated: (defId: string) => {
+      const s = latestState;
+      if (!s) return null;
+      const e = s.enemies.find((x) => x.defId === defId && x.alive);
+      return e ? { id: e.id, y: e.y, defId: e.defId ?? '', alive: e.alive } : null;
+    },
+    monsterDims: (defId: string) => {
+      try {
+        const d = resolveMonsterDimensionsForDefId(defId);
+        return { collisionRadius: d.collisionRadius, finalHeight: d.finalHeight };
+      } catch {
+        return null;
+      }
+    },
+    monsterSemantic: (id: number) => {
+      const m = game?.singlePlayerMatch;
+      return m ? m.runtime.systems.enemies.semanticFor(id).action : null;
     },
     arena: () => arenaSession?.metadata ?? null,
     run: () => latestRunConfig?.run ?? null,

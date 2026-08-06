@@ -428,7 +428,9 @@ export class RoomManager {
       this.clients.set(candidate.id, candidate);
       player.connected = true;
       player.reconnectDeadlineWallMs = null;
-      player.ready = false;
+      // Mid-round reconnects (running/results) keep the crew ready so a
+      // rematch can proceed; lobby reconnects must re-ready explicitly.
+      player.ready = room.phase === 'running' || room.phase === 'results';
       // Restore seat → match slot references (unchanged client role).
       if (player.seat === 'driver') room.driver = candidate;
       else if (player.seat === 'gunner') room.gunner = candidate;
@@ -627,6 +629,29 @@ export class RoomManager {
       if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
       room.match.state.tank.integrity = room.match.runtime.cfg.tank.maxIntegrity;
       room.match.state.tank.deadT = 0;
+      return;
+    }
+    if (t === 'testImpulseEnemyByDef') {
+      if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
+      const defId = typeof raw.defId === 'string' ? raw.defId : '';
+      const horizontal = typeof raw.horizontal === 'number' ? raw.horizontal : 0;
+      const vertical = typeof raw.vertical === 'number' ? raw.vertical : 0;
+      const enemy = room.match.state.enemies.find((e) => e.defId === defId && e.alive);
+      const def = room.match.runtime.systems.enemies.defById(defId);
+      if (!enemy || !def) return;
+      const t = room.match.state.tank;
+      const dx = t.x - enemy.x;
+      const dz = t.z - enemy.z;
+      const d = Math.hypot(dx, dz) || 1;
+      room.match.runtime.systems.enemyImpulses.apply(
+        enemy,
+        def,
+        dx / d,
+        dz / d,
+        horizontal,
+        vertical,
+        'cannon',
+      );
       return;
     }
     if (t === 'leave') {

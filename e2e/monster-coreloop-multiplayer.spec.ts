@@ -125,6 +125,66 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
   await driver.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-wave1-driver.png' });
   await gunner.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-wave1-gunner.png' });
 
+  // ---- Airborne arc agreement (second-pass): launch a phase fodder and
+  // compare replicated + rendered Y on both clients.
+  const closeFodderDefId = (runDriver as { phases: Array<{ closeFodderEnemyId: string }> }).phases[0].closeFodderEnemyId;
+  await driver.evaluate(
+    ({ defId }) => {
+      const w = window as unknown as { __recoil: { testImpulse(defId: string, h: number, v: number): void } };
+      w.__recoil.testImpulse(defId, 1.5, 12);
+    },
+    { defId: closeFodderDefId },
+  );
+  await driver.waitForTimeout(700);
+  const airD = await driver.evaluate(
+    (defId) => {
+      const w = window as unknown as {
+        __recoil: {
+          enemyReplicated(d: string): { id: number; y: number; defId: string; alive: boolean } | null;
+          enemyRenderY(id: number): number | null;
+          groundHeightAt(x: number, z: number): number;
+          state(): { tank: { x: number; z: number } };
+        };
+      };
+      const e = w.__recoil.enemyReplicated(defId);
+      if (!e) return null;
+      const tank = w.__recoil.state().tank;
+      return {
+        y: e.y,
+        renderedY: w.__recoil.enemyRenderY(e.id),
+        ground: w.__recoil.groundHeightAt(tank.x, tank.z),
+      };
+    },
+    closeFodderDefId,
+  );
+  const airG = await gunner.evaluate(
+    (defId) => {
+      const w = window as unknown as {
+        __recoil: {
+          enemyReplicated(d: string): { id: number; y: number; defId: string; alive: boolean } | null;
+          enemyRenderY(id: number): number | null;
+        };
+      };
+      const e = w.__recoil.enemyReplicated(defId);
+      if (!e) return null;
+      return { y: e.y, renderedY: w.__recoil.enemyRenderY(e.id) };
+    },
+    closeFodderDefId,
+  );
+  if (!airD || !airG || airD.renderedY === null || airG.renderedY === null) {
+    throw new Error('airborne comparison unavailable');
+  }
+  expect(airD.y).toBeGreaterThan(airD.ground + 0.4);
+  expect(Math.abs(airD.y - airG.y)).toBeLessThanOrEqual(0.06);
+  // Both clients render the same snapshots: rendered Y must agree closely
+  // between driver and gunner. The replicated-vs-rendered offset is bounded
+  // by one interpolation frame of vertical velocity (documented tolerance).
+  expect(Math.abs(airD.renderedY - airG.renderedY)).toBeLessThanOrEqual(0.15);
+  expect(Math.abs(airD.renderedY - airD.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(airG.renderedY - airG.y)).toBeLessThanOrEqual(1);
+  await driver.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-airborne-driver.png' });
+  await gunner.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-airborne-gunner.png' });
+
   // Kill wave 1 elite (qualification server test hook) -> farming resumes.
   const runForKill = runDriver as { eliteWaves: Array<Array<{ enemyId: string }>>; boss: { enemyId: string } };
   await driver.evaluate(
@@ -182,6 +242,37 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
   await driver.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-boss-driver.png' });
   await gunner.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-boss-gunner.png' });
 
+  // ---- Reconnect during boss state (second-pass): the gunner drops and
+  // rejoins through the compatibility gate; both clients must still see the
+  // same boss encounter.
+  const gunnerSessionId = await gunner.evaluate(
+    () => (window as unknown as { __recoil: { sessionId(): string } }).__recoil.sessionId(),
+  );
+  await gunner.close();
+  const gunner2 = await ctx.newPage();
+  gunner2.on('pageerror', (e) => errors[1].push(e.message));
+  await gunner2.goto('/?test=1');
+  await gunner2.click('#screen-boot');
+  await gunner2.evaluate(
+    ({ code, sid }) => {
+      const w = window as unknown as { __recoil: { rejoin(c: string, s: string): void } };
+      w.__recoil.rejoin(code, sid);
+    },
+    { code, sid: gunnerSessionId },
+  );
+  await gunner2.waitForFunction(
+    () => {
+      const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
+      return s?.phase === 'running';
+    },
+    undefined,
+    { timeout: 45_000 },
+  );
+  await expect(gunner2.locator('#encounter-boss')).toBeVisible({ timeout: 30_000 });
+  const bossLabelG2 = await gunner2.textContent('#encounter-boss-label');
+  expect(bossLabelG2).toBe(bossLabelD);
+  await gunner2.screenshot({ path: 'docs/monster-system/qualification-screenshots/mp-boss-reconnect-gunner.png' });
+
   // Kill the boss -> victory on both clients.
   await driver.evaluate(
     ({ defId }) => {
@@ -190,7 +281,7 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
     },
     { defId: runForKill.boss.enemyId },
   );
-  for (const page of [driver, gunner]) {
+  for (const page of [driver, gunner2]) {
     await page.waitForFunction(
       () => {
         const w = window as unknown as { __recoil: { state(): { phase: string } | null } };
@@ -205,19 +296,38 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
   // Rematch vote: both pick a modifier, the room re-runs the preload gate,
   // and both clients enter a fresh match.
   await driver.locator('#mods .mod').first().click();
-  await gunner.locator('#mods .mod').first().click();
+  await gunner2.locator('#mods .mod').first().click();
   const oldMatchId = await driver.evaluate(
     () => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId,
   );
-  for (const page of [driver, gunner]) {
-    await page.waitForFunction(
-      (oldId) => {
-        const s = (window as unknown as { __recoil: { state(): { phase: string; matchId: string } | null } }).__recoil.state();
-        return s?.phase === 'running' && s.matchId !== oldId;
-      },
-      oldMatchId,
-      { timeout: 90_000 },
-    );
+  for (const [label, page] of [['driver', driver], ['gunner2', gunner2]] as const) {
+    try {
+      await page.waitForFunction(
+        (oldId) => {
+          const s = (window as unknown as { __recoil: { state(): { phase: string; matchId: string } | null } }).__recoil.state();
+          return s?.phase === 'running' && s.matchId !== oldId;
+        },
+        oldMatchId,
+        { timeout: 90_000 },
+      );
+    } catch (error) {
+      const dump = await page.evaluate(() => {
+        const w = window as unknown as {
+          __recoil: {
+            flow(): string;
+            state(): { phase: string; matchId: string } | null;
+            runConfig(): { t: string; matchId?: string; contentHash?: string } | null;
+          };
+        };
+        return {
+          flow: w.__recoil.flow(),
+          state: w.__recoil.state(),
+          runConfig: w.__recoil.runConfig(),
+        };
+      });
+      console.log(`[mp-qualify] rematch stuck on ${label}:`, JSON.stringify(dump));
+      throw error;
+    }
     await expect(page.locator('#stage-wave-timer-label')).toHaveText('TIME UNTIL NEW WAVE');
     await expect(page.locator('#encounter-elite1')).not.toBeVisible();
     await expect(page.locator('#encounter-boss')).not.toBeVisible();

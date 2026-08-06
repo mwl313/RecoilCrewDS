@@ -266,3 +266,50 @@ npm run test:demo                    PASS (golden unchanged)
 ### Handoff notes
 
 Phase 5 (full qualification incl. browser rounds and visual review) remains.
+
+---
+
+## Phase 5 — Full qualification
+
+### Commits
+
+```text
+<pending>  monster-fix2: qualify second-pass monster corrections
+```
+
+### Gates run
+
+```text
+npx tsc --noEmit                      PASS
+npm run generate:content-pack         PASS
+npm run generate:presentation-content PASS
+npm run generate:map-profiles         PASS
+npm test                              PASS (145 files / 1074 tests)
+npm run build                         PASS
+npm run test:demo                     PASS (golden unchanged)
+npm run test:horde                    PASS
+npm run test:horde:benchmark          PASS
+npm run test:netcode                  PASS
+npm run test:progression              PASS
+npm run validate:enemy-animations     PASS
+npm run test:monsterpack-import       PASS
+npm run test:monsterpack-rendering    PASS
+```
+
+### Browser rounds
+
+```text
+Single Player full round  PASS (farming/waves/boss/rematch)
+Two-client full round     PASS (airborne agreement, boss reconnect, rematch)
+Visual gallery            PASS (grounding/XP/airborne/boss/protocol)
+```
+
+### Screenshots and clip
+
+Saved under `docs/monster-system/qualification-screenshots/` (17 PNGs +
+`fix2-gallery-clip.webm`). Human visual review is pending and recorded in
+`MONSTER_SYSTEM_SECOND_PASS_FIX_REPORT.md` rather than claimed.
+
+### Handoff notes
+
+All phases complete. Final report written. Branch remains unmerged.
