@@ -647,6 +647,7 @@ export class MatchRuntime {
     e.state = 'dead';
     e.stateT = 0;
     e.telegraph = 0;
+    this.systems.enemies.releaseEnemyCombatState(e.id);
     if (e.type === 'lootTruck') {
       s.truck.active = false;
     }

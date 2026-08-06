@@ -16,6 +16,7 @@ import { MatchRuntime } from '../src/shared/sim/matchRuntime';
 import { MONSTER_DIMENSIONS } from '../src/generated/monsterDimensions.generated';
 import {
   resolveMonsterDimensions,
+  resolveProjectileSocketOffset,
   resolveProjectileSocketY,
   slugFromEnemyId,
 } from '../src/shared/monsters/monsterNormalization';
@@ -290,9 +291,39 @@ describe('monster stage timeline', () => {
     expect(resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder')).toBe(small);
     expect(slugFromEnemyId('enemy.quaternius.alien-high-detail.boss')).toBe('alien-high-detail');
     const socketY = resolveProjectileSocketY('enemy.quaternius.wizard', 'medium', 'fodder');
+    const socket = resolveProjectileSocketOffset('enemy.quaternius.wizard', 'medium', 'fodder');
     const dims = resolveMonsterDimensions('enemy.quaternius.wizard', 'medium', 'fodder');
     expect(socketY).toBeGreaterThan(0);
     expect(socketY).toBeLessThan(dims.normalizedHeight);
+    expect(socket[2]).toBeGreaterThan(0);
+    expect(socketY).not.toBeCloseTo(dims.normalizedHeight * 0.7, 4);
+  });
+
+  it('releases pending attacks and melee reservations immediately on death and phase cleanup', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-combat-cleanup', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const enemy = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x + 1, prod.state.tank.z);
+    if (!enemy) throw new Error('spawn failed');
+    for (let i = 0; i < 240 && prod.state.phase === 'countdown'; i++) prod.step(1 / 60);
+    for (let i = 0; i < 30 && !prod.systems.enemies.hasActiveAttackCycle(enemy.id); i++) prod.step(1 / 60);
+    expect(prod.systems.enemies.meleeReservedFor(enemy.id)).toBe(true);
+    expect(prod.systems.enemies.hasActiveAttackCycle(enemy.id)).toBe(true);
+    prod.systems.damage.applyEnemy(enemy, 99999, 'test');
+    expect(prod.systems.enemies.meleeReservedFor(enemy.id)).toBe(false);
+    expect(prod.systems.enemies.hasActiveAttackCycle(enemy.id)).toBe(false);
+
+    const second = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x - 1, prod.state.tank.z);
+    if (!second) throw new Error('spawn failed');
+    prod.step(1 / 60);
+    expect(prod.systems.enemies.meleeReservations.size).toBeGreaterThan(0);
+    prod.eventBus.emit('stageEvent', {
+      type: 'phaseChanged',
+      phase: 'wave1',
+      farmingTimeRemaining: 120,
+      totalElapsedTime: 60,
+    });
+    prod.eventBus.drain();
+    expect(prod.systems.enemies.meleeReservations.size).toBe(0);
   });
 
   it('semantic actions transition with stable sequences and death locks', () => {

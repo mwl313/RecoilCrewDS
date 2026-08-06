@@ -18,13 +18,16 @@ export interface SelectedMonsterRun {
   phases: [SelectedPhaseRoster, SelectedPhaseRoster, SelectedPhaseRoster];
   eliteWaves: SelectedFeaturedEncounter[][];
   boss: SelectedFeaturedEncounter;
+  /** Authoritative, replicated escort population for the selected boss. */
+  bossEscortCount: number;
 }
 
 /**
  * Deterministic production run selection.
  *
  * Named PRNG streams only (never Math.random):
- * monsterRoster.phase1/2/3, monsterRoster.eliteWave1/2, monsterRoster.boss.
+ * monsterRoster.phase1/2/3, monsterRoster.eliteWave1/2, monsterRoster.boss,
+ * monsterRoster.bossEscorts.
  *
  * Rules:
  * - exactly three slots per phase
@@ -101,6 +104,9 @@ export function selectMonsterRun(
   if (!boss) {
     throw new Error(`monster run selection failed: no featured identity remaining for boss`);
   }
+  const escortStream = mulberry32(forkSeed(seed, 'monsterRoster.bossEscorts'));
+  const [escortMin, escortMax] = roster.bossEscortCount;
+  const bossEscortCount = escortMin + Math.floor(escortStream() * (escortMax - escortMin + 1));
 
   return {
     gameplayRosterId: roster.id,
@@ -108,6 +114,7 @@ export function selectMonsterRun(
     phases,
     eliteWaves,
     boss: { identityId: boss.identityId, enemyId: boss.bossEnemyId },
+    bossEscortCount,
   };
 }
 

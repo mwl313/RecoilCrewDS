@@ -6,6 +6,7 @@ import { ContentLoader } from '../../src/shared/content/contentLoader';
 import type { ContentPack } from '../../src/shared/content/contentPack';
 import { hordeDirectorSchema, spawnPackSchema, waveSchema } from '../../src/shared/content/schemas/horde';
 import { Match } from '../../src/shared/sim/match';
+import { allocateOrdinaryMix } from '../../src/shared/horde/hordeDirector';
 import { selectArenaSession } from '../../src/shared/mapgen/arenaSession';
 import { resolveMapBundle } from '../../src/shared/mapgen/profiles';
 
@@ -60,6 +61,14 @@ function killLeader(m: Match): void {
 }
 
 describe('horde content graph', () => {
+  it('allocates ordinary production populations to the authored 50/30/20 mix', () => {
+    const result = allocateOrdinaryMix(
+      { closeFodder: 0.5, rangedFodder: 0.3, specialist: 0.2 },
+      { closeFodder: 0, rangedFodder: 0, specialist: 0 },
+      10,
+    );
+    expect(result).toEqual({ closeFodder: 5, rangedFodder: 3, specialist: 2 });
+  });
   it('resolves the shared horde.mainStage director from content', () => {
     const pack = packWithStageEnforced(false);
     const m = new Match('horde-graph', 'none', pack);

@@ -103,6 +103,21 @@ describe('WaveController ownership and lifecycle', () => {
     expect(c.spendReinforcement(runtime.waveId, 6, 'enemy.scrapBug', 2)).toBe(false);
   });
 
+  it('keeps a two-elite wave active until every selected leader dies', () => {
+    const { m, runtime } = makeWave({
+      leaderEnemyIds: ['enemy.rammer', 'enemy.gunTower'],
+    });
+    expect(runtime.leaderIds).toHaveLength(2);
+    const [firstId, secondId] = runtime.leaderIds;
+    const first = m.state.enemies.find((e) => e.id === firstId)!;
+    const second = m.state.enemies.find((e) => e.id === secondId)!;
+    m.damageEnemy(first, 999, 'cannon');
+    expect(runtime.state).toBe('active');
+    expect(second.alive).toBe(true);
+    m.damageEnemy(second, 999, 'cannon');
+    expect(runtime.state).toBe('complete');
+  });
+
   it('reinforcement packs spawn every authored entry atomically', () => {
     const { m, c, runtime } = makeWave();
     const entries = [

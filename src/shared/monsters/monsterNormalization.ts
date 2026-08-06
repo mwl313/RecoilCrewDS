@@ -29,6 +29,7 @@ import {
   ENEMY_DEFINITION_SIZE_TIER,
   MONSTER_DIMENSIONS,
 } from '../../generated/monsterDimensions.generated';
+import type { EnemyPresentationProfileDefinition } from '../animation/animationProfileTypes';
 
 export interface NormalizedEnemyDimensions {
   targetHeight: number;
@@ -59,6 +60,7 @@ export interface ResolvedMonsterDimensions extends NormalizedEnemyDimensions {
   finalWidth: number;
   finalHeight: number;
   finalDepth: number;
+  projectileSocket: [number, number, number];
   projectileSocketY: number;
 }
 
@@ -94,7 +96,14 @@ export function normalizedEnemyDimensions(
 export function resolvedMonsterDimensions(
   enemyId: string,
   familySlug: string,
-  source: { width: number; height: number; depth: number; groundOffset: number },
+  source: {
+    width: number;
+    height: number;
+    depth: number;
+    groundOffset: number;
+    projectileSocket?: [number, number, number];
+    groundSocket?: [number, number, number];
+  },
   sizeClass: 'small' | 'medium' | 'large',
   tier: 'fodder' | 'specialist' | 'elite' | 'boss',
   optionalVariantScale = 1,
@@ -102,6 +111,14 @@ export function resolvedMonsterDimensions(
   const base = normalizedEnemyDimensions(source, sizeClass, tier, optionalVariantScale);
   const tierScale = TIER_SCALES[tier];
   const normalizationScale = TARGET_HEIGHTS[sizeClass] / Math.max(0.01, source.height);
+  const finalScale = normalizationScale * tierScale * optionalVariantScale;
+  const projectile = source.projectileSocket ?? [0, source.height * 0.7, 0];
+  const ground = source.groundSocket ?? [0, 0, 0];
+  const projectileSocket: [number, number, number] = [
+    (projectile[0] - ground[0]) * finalScale,
+    (projectile[1] - ground[1]) * finalScale,
+    (projectile[2] - ground[2]) * finalScale,
+  ];
   return {
     ...base,
     enemyId,
@@ -114,11 +131,12 @@ export function resolvedMonsterDimensions(
     normalizationScale,
     tierScale,
     variantScale: optionalVariantScale,
-    finalScale: normalizationScale * tierScale * optionalVariantScale,
+    finalScale,
     finalWidth: base.normalizedWidth,
     finalHeight: base.normalizedHeight,
     finalDepth: base.normalizedDepth,
-    projectileSocketY: base.normalizedHeight * 0.7,
+    projectileSocket,
+    projectileSocketY: projectileSocket[1],
   };
 }
 
@@ -166,11 +184,61 @@ export function resolveMonsterDimensionsForDefId(
   return resolveMonsterDimensions(defId, meta.sizeClass, meta.tier, meta.optionalVariantScale);
 }
 
-/** Provisional normalized projectile socket height (centralized tuning point). */
+/** Authored projectile socket offset, normalized with the gameplay body. */
+export function resolveProjectileSocketOffset(
+  enemyId: string,
+  sizeClass: 'small' | 'medium' | 'large',
+  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+): [number, number, number] {
+  return resolveMonsterDimensions(enemyId, sizeClass, tier).projectileSocket;
+}
+
+/** Compatibility accessor for consumers that need only authored socket Y. */
 export function resolveProjectileSocketY(
   enemyId: string,
   sizeClass: 'small' | 'medium' | 'large',
   tier: 'fodder' | 'specialist' | 'elite' | 'boss',
 ): number {
-  return resolveMonsterDimensions(enemyId, sizeClass, tier).normalizedHeight * 0.7;
+  return resolveProjectileSocketOffset(enemyId, sizeClass, tier)[1];
+}
+
+/**
+ * Scan-free local root correction for markerless/static presentations.
+ * Uses the generated neutral AABB and the complete authored pose.
+ */
+export function resolveGeneratedGroundOffset(
+  dims: ResolvedMonsterDimensions,
+  transform: EnemyPresentationProfileDefinition['transform'] | undefined,
+): number {
+  const scale = transform?.scale;
+  const sx = (typeof scale === 'number' ? scale : (scale?.[0] ?? 1)) * dims.finalScale;
+  const sy = (typeof scale === 'number' ? scale : (scale?.[1] ?? 1)) * dims.finalScale;
+  const sz = (typeof scale === 'number' ? scale : (scale?.[2] ?? 1)) * dims.finalScale;
+  const rotation = transform?.rotation ?? [0, 0, 0];
+  const position = transform?.position ?? [0, 0, 0];
+  let minimumY = Number.POSITIVE_INFINITY;
+  for (const x of [-dims.sourceWidth / 2, dims.sourceWidth / 2]) {
+    for (const y of [-dims.sourceGroundOffset, dims.sourceHeight - dims.sourceGroundOffset]) {
+      for (const z of [-dims.sourceDepth / 2, dims.sourceDepth / 2]) {
+        const rotated = rotateXyz(x * sx, y * sy, z * sz, rotation);
+        minimumY = Math.min(minimumY, rotated[1] + position[1] * dims.finalScale);
+      }
+    }
+  }
+  return Number.isFinite(minimumY) ? -minimumY : 0;
+}
+
+function rotateXyz(
+  x: number,
+  y: number,
+  z: number,
+  rotation: readonly [number, number, number],
+): [number, number, number] {
+  const [rx, ry, rz] = rotation;
+  const cx = Math.cos(rx); const sx = Math.sin(rx);
+  const cy = Math.cos(ry); const sy = Math.sin(ry);
+  const cz = Math.cos(rz); const sz = Math.sin(rz);
+  const y1 = y * cx - z * sx; const z1 = y * sx + z * cx;
+  const x2 = x * cy + z1 * sy; const z2 = -x * sy + z1 * cy;
+  return [x2 * cz - y1 * sz, x2 * sz + y1 * cz, z2];
 }

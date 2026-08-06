@@ -4,6 +4,8 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 export interface WaveOpeningOptions {
   definitionId: string;
   leaderEnemyId: string;
+  /** Additional co-leaders selected for a multi-elite production wave. */
+  leaderEnemyIds?: string[];
   openingThreat: number;
   reinforcementThreat: number;
   reinforcementThreatPerSecond: number;
@@ -16,6 +18,9 @@ export interface WaveRuntime {
   waveId: number;
   definitionId: string;
   leaderId: number;
+  /** Every designated leader; leaderId remains the primary cohort anchor. */
+  leaderIds: number[];
+  defeatedLeaderIds: number[];
   initialThreatRemaining: number;
   reinforcementThreatRemaining: number;
   activeWaveThreat: number;
@@ -50,6 +55,8 @@ export class WaveController {
       waveId,
       definitionId: opts.definitionId,
       leaderId: 0,
+      leaderIds: [],
+      defeatedLeaderIds: [],
       initialThreatRemaining: opts.openingThreat,
       reinforcementThreatRemaining: opts.reinforcementThreat,
       activeWaveThreat: 0,
@@ -59,10 +66,13 @@ export class WaveController {
     };
     this.waves.set(waveId, runtime);
 
-    const def = this.ctx.enemies.defById(opts.leaderEnemyId);
-    if (def) {
-      const gate = this.ctx.world.bugSpawns[(waveId * 7) % Math.max(1, this.ctx.world.bugSpawns.length)];
-      const leader = this.ctx.enemies.spawnEnemyDef(def, gate.x, gate.z, {
+    const leaderEnemyIds = opts.leaderEnemyIds?.length ? opts.leaderEnemyIds : [opts.leaderEnemyId];
+    const gate = this.ctx.world.bugSpawns[(waveId * 7) % Math.max(1, this.ctx.world.bugSpawns.length)];
+    for (let i = 0; i < leaderEnemyIds.length; i++) {
+      const def = this.ctx.enemies.defById(leaderEnemyIds[i]);
+      if (!def) continue;
+      const angle = leaderEnemyIds.length <= 1 ? 0 : (i / leaderEnemyIds.length) * Math.PI * 2;
+      const leader = this.ctx.enemies.spawnEnemyDef(def, gate.x + Math.sin(angle) * 3, gate.z + Math.cos(angle) * 3, {
         populationClass: opts.boss ? 'boss' : 'wave',
         waveId,
         leaderId: null,
@@ -72,11 +82,12 @@ export class WaveController {
       });
       if (leader) {
         leader.ownership = { ...leader.ownership!, leaderId: leader.id };
-        runtime.leaderId = leader.id;
-        runtime.activeWaveThreat += opts.openingThreat;
+        runtime.leaderIds.push(leader.id);
+        if (runtime.leaderId === 0) runtime.leaderId = leader.id;
         runtime.activeWaveEntities++;
       }
     }
+    if (runtime.leaderIds.length > 0) runtime.activeWaveThreat += opts.openingThreat;
     runtime.state = 'active';
     this.emitWaveEvent('waveOpened', runtime);
     return runtime;
@@ -96,6 +107,8 @@ export class WaveController {
       purgeOnLeaderDeath: false,
     };
     runtime.leaderId = enemyId;
+    runtime.leaderIds = [enemyId];
+    runtime.defeatedLeaderIds = [];
   }
 
   /** Spawn a tagged cohort (opening or reinforcement pack). */
@@ -248,9 +261,12 @@ export class WaveController {
 
   private onKilled(payload: EntityKilledEvent): void {
     for (const runtime of [...this.waves.values()]) {
-      if (runtime.leaderId === payload.enemy.id && runtime.state !== 'complete') {
-        this.finishWave(runtime);
+      if (!runtime.leaderIds.includes(payload.enemy.id) || runtime.state === 'complete') continue;
+      if (!runtime.defeatedLeaderIds.includes(payload.enemy.id)) {
+        runtime.defeatedLeaderIds.push(payload.enemy.id);
+        runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - 1);
       }
+      if (runtime.defeatedLeaderIds.length === runtime.leaderIds.length) this.finishWave(runtime);
     }
   }
 

@@ -25,6 +25,8 @@ import { mulberry32, type Rng } from '../mapgen/prng';
 import { hash32 } from '../mapgen/seed';
 import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
+import { cancelAttackCycle } from '../monsters/monsterAttack';
+import type { StageEvent } from '../stage/stageTypes';
 
 /** Wire type -> definition id (documented engine default mapping). */
 const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
@@ -57,11 +59,40 @@ export class EnemySystem {
       this.ctx.rules.meleeEngagementProfiles.get('meleeEngagement.default') ??
       DEFAULT_MELEE_ENGAGEMENT_PROFILE;
     this.meleeReservations = new MeleeReservationManager(profile);
+    this.ctx.eventBus.subscribe('stageEvent', (payload) => {
+      const event = payload as StageEvent;
+      if (event.type === 'phaseChanged' || event.type === 'stageCleared' || event.type === 'gameOver') {
+        this.releaseAllCombatState();
+      }
+    });
   }
 
   /** Reservation ownership for a living melee monster (public for tests/HUD). */
   meleeReservedFor(enemyId: number): boolean {
     return this.meleeReservations.hasReservation(enemyId);
+  }
+
+  hasActiveAttackCycle(enemyId: number): boolean {
+    return this.runtimes.get(enemyId)?.attackRuntime?.active === true;
+  }
+
+  /** Immediate death/purge cleanup; pending cues can never survive removal. */
+  releaseEnemyCombatState(enemyId: number): void {
+    const runtime = this.runtimes.get(enemyId);
+    if (runtime?.attackRuntime) cancelAttackCycle(runtime.attackRuntime);
+    if (runtime) {
+      runtime.attackRuntime = undefined;
+      runtime.meleeReserved = false;
+    }
+    this.meleeReservations.release(enemyId);
+    const enemy = this.ctx.state.enemies.find((candidate) => candidate.id === enemyId);
+    if (enemy) enemy.telegraph = 0;
+  }
+
+  /** Phase/rematch terminal cleanup for all match-scoped combat ownership. */
+  releaseAllCombatState(): void {
+    for (const id of this.runtimes.keys()) this.releaseEnemyCombatState(id);
+    this.meleeReservations.releaseAll();
   }
 
   /** Authoritative semantic action + stable sequence (presentation/HUD). */
@@ -274,6 +305,7 @@ export class EnemySystem {
         this.runtimes.set(e.id, runtime);
       }
       if (!e.alive) {
+        this.releaseEnemyCombatState(e.id);
         // Death lock: semantic action is evaluated after behavior state,
         // but death always overrides everything.
         updateEnemySemantics(runtime, { alive: false, moving: false, attacking: false });
@@ -320,7 +352,10 @@ export class EnemySystem {
     const live = new Set<number>();
     for (const e of s.enemies) live.add(e.id);
     for (const id of [...this.runtimes.keys()]) {
-      if (!live.has(id)) this.runtimes.delete(id);
+      if (!live.has(id)) {
+        this.releaseEnemyCombatState(id);
+        this.runtimes.delete(id);
+      }
     }
   }
 
@@ -399,7 +434,10 @@ export class EnemySystem {
       else keep.push(e);
     }
     this.ctx.state.enemies = keep;
-    for (const e of removed) this.runtimes.delete(e.id);
+    for (const e of removed) {
+      this.releaseEnemyCombatState(e.id);
+      this.runtimes.delete(e.id);
+    }
     return removed;
   }
 }

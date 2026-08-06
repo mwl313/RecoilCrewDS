@@ -18,7 +18,7 @@ export interface GlbSummary {
 }
 
 interface GlbJson {
-  nodes?: Array<{ name?: string }>;
+  nodes?: Array<{ name?: string; translation?: [number, number, number] }>;
   meshes?: unknown[];
   materials?: unknown[];
   skins?: unknown[];
@@ -45,6 +45,15 @@ export function readGlbSummary(buffer: Buffer): GlbSummary {
     hasSkinnedMesh: (json.skins ?? []).length > 0,
     hasAnimation: clipNames.length > 0,
   };
+}
+
+/** Read one authored node's local translation from the import-time GLB JSON. */
+export function readGlbNodeTranslation(
+  buffer: Buffer,
+  nodeName: string,
+): [number, number, number] | undefined {
+  const node = (readJsonChunk(buffer).nodes ?? []).find((candidate) => candidate.name === nodeName);
+  return node ? [...(node.translation ?? [0, 0, 0])] : undefined;
 }
 
 function readJsonChunk(buffer: Buffer): GlbJson {

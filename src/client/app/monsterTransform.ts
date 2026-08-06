@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { EnemyPresentationProfileDefinition } from '../../shared/animation/animationProfileTypes';
 import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNormalization';
+import { resolveGeneratedGroundOffset } from '../../shared/monsters/monsterNormalization';
 
 /**
  * Production monster grounding and transform composition (second-pass).
@@ -15,8 +16,8 @@ import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNor
  * variant scale. This helper also composes the full authored profile pose:
  * vector scale, rotation, and position. Prepared animated imports ground from
  * their authored `socketshadow` marker because bind-pose/animated bounds are
- * not a stable ground reference. Static and procedural models ground from
- * their final local bounds after the complete authored pose.
+ * not a stable ground reference. Markerless models use generated dimensions;
+ * no render-time mesh or skinned-vertex bounds scan is performed.
  *
  * Parent transforms are intentionally ignored while measuring: the entity
  * group carries the terrain/airborne Y each frame, so the model's local foot
@@ -24,9 +25,6 @@ import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNor
  */
 
 const _m1 = new THREE.Matrix4();
-const _m2 = new THREE.Matrix4();
-const _box = new THREE.Box3();
-const _box2 = new THREE.Box3();
 const _vertex = new THREE.Vector3();
 const MONSTER_GROUND_ANCHOR = 'socketshadow';
 
@@ -44,7 +42,7 @@ export function applyMonsterScaleAndOffset(
   dims: ResolvedMonsterDimensions,
 ): void {
   applyMonsterPose(model, transform, dims);
-  groundMonsterModel(model);
+  groundMonsterModel(model, transform, dims);
 }
 
 /** Compose the authored pose without reading bounds. */
@@ -76,16 +74,20 @@ function applyMonsterPose(
 }
 
 /** Ground an already-posed model from its current rendered bounds. */
-function groundMonsterModel(model: THREE.Object3D): void {
+function groundMonsterModel(
+  model: THREE.Object3D,
+  transform: EnemyPresentationProfileDefinition['transform'] | undefined,
+  dims: ResolvedMonsterDimensions,
+): void {
   // Measure after composing the complete authored pose. This is important
   // for imported profiles with a non-zero Y position: adding their authored
   // Y after grounding would turn that metadata into a visible hover.
   // Prepared imported monsters expose a stable semantic ground marker. Use
   // it instead of transient skinned bounds (which are invalid in the freshly
   // cloned bind pose and naturally move during walk/jump animation). Static
-  // and procedural fallback models without the marker use rendered bounds.
+  // and markerless models use the generated neutral-pose AABB.
   const anchor = model.getObjectByName(MONSTER_GROUND_ANCHOR);
-  model.position.y += anchor ? localObjectOffset(model, anchor) : localFootOffset(model);
+  model.position.y += anchor ? localObjectOffset(model, anchor) : resolveGeneratedGroundOffset(dims, transform);
 }
 
 function localObjectOffset(model: THREE.Object3D, object: THREE.Object3D): number {
@@ -94,54 +96,4 @@ function localObjectOffset(model: THREE.Object3D, object: THREE.Object3D): numbe
   object.getWorldPosition(_vertex);
   if (model.parent) _vertex.applyMatrix4(_m1.copy(model.parent.matrixWorld).invert());
   return -_vertex.y;
-}
-
-/**
- * Distance (>= 0 when feet are below the root) from an object's local root
- * to its lowest local-space bound. Rotation, scale, and nested child
- * transforms are included; parent transforms are ignored.
- */
-export function localFootOffset(object: THREE.Object3D): number {
-  // Measure in the object's parent coordinate space. Skinned vertex
-  // positions depend on the current bone world matrices, so update the real
-  // hierarchy and then remove the parent's transform from each mesh matrix.
-  // This keeps the result parent-independent without inventing substitute
-  // bone matrices.
-  if (object.parent) object.parent.updateWorldMatrix(true, false);
-  object.updateWorldMatrix(true, true);
-  const parentInverse = object.parent
-    ? _m1.copy(object.parent.matrixWorld).invert().clone()
-    : _m1.identity().clone();
-  _box.makeEmpty();
-  object.traverse((child) => expandRenderedBounds(child, _box, parentInverse));
-  if (_box.isEmpty()) return 0;
-  return -_box.min.y;
-}
-
-function expandRenderedBounds(
-  object: THREE.Object3D,
-  out: THREE.Box3,
-  parentInverse: THREE.Matrix4,
-): void {
-  const relative = _m2.multiplyMatrices(parentInverse, object.matrixWorld).clone();
-  const mesh = object as THREE.Mesh;
-  const skinnedMesh = object as THREE.SkinnedMesh;
-  const geometry = mesh.geometry;
-  if (geometry) {
-    const position = geometry.getAttribute('position');
-    if (skinnedMesh.isSkinnedMesh && position) {
-      // Static geometry bounds are bind-space bounds for skinned GLBs and do
-      // not describe the rendered pose. Measure deformed vertices exactly,
-      // matching Three.js' precise Box3 path.
-      for (let i = 0; i < position.count; i++) {
-        skinnedMesh.getVertexPosition(i, _vertex);
-        out.expandByPoint(_vertex.applyMatrix4(relative));
-      }
-    } else {
-      if (!geometry.boundingBox) geometry.computeBoundingBox();
-      const gb = geometry.boundingBox!;
-      _box2.copy(gb).applyMatrix4(relative);
-      out.union(_box2);
-    }
-  }
 }

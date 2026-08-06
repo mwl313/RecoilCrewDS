@@ -4,324 +4,730 @@ export interface MonsterSourceDimensions {
   height: number;
   depth: number;
   groundOffset: number;
-  hasProjectileSocket: boolean;
+  projectileSocket: [number, number, number];
+  groundSocket: [number, number, number];
 }
 
 export const MONSTER_DIMENSIONS: Record<string, MonsterSourceDimensions> = {
   "alien": {
     "width": 1.426542,
-    "height": 0.71568,
-    "depth": 1.2,
-    "groundOffset": 0.35784,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 0.71568,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.28627198934555054
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "alien-high-detail": {
     "width": 1.92001,
-    "height": 0.961291,
-    "depth": 2,
-    "groundOffset": 0.480645,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 0.961291,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.38451600074768066
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "alpaking": {
     "width": 2.41455,
-    "height": 1.265593,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.632796,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.265593,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.5062367916107178
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "alpaking-evolved": {
     "width": 1.629932,
-    "height": 1.126616,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.563308,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.126616,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.45064640045166016
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "armabee": {
     "width": 2.732788,
-    "height": 1.315812,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.657906,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.315812,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.5263248085975647
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "armabee-evolved": {
     "width": 2.416623,
-    "height": 1.149006,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.574503,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.149006,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.459602415561676
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "birb": {
     "width": 1.28063,
-    "height": 1.263015,
-    "depth": 1.2,
-    "groundOffset": 0.631507,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.263015,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.5052055716514587
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "blue-demon": {
     "width": 2.374949,
-    "height": 1.4172850000000001,
-    "depth": 2,
-    "groundOffset": 0.708642,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.4172850000000001,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.566914439201355
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "bunny": {
     "width": 1.866448,
-    "height": 0.995294,
-    "depth": 1.999999,
-    "groundOffset": 0.497647,
-    "hasProjectileSocket": true
+    "height": 1.999999,
+    "depth": 0.995294,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.3981176018714905
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "cactoro": {
     "width": 1.364952,
-    "height": 1.228573,
-    "depth": 1.2,
-    "groundOffset": 0.614286,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.228573,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.49142879247665405
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "cactoro-high-detail": {
     "width": 1.708497,
-    "height": 1.136977,
-    "depth": 2,
-    "groundOffset": 0.568488,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.136977,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.4547904133796692
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "cat": {
     "width": 1.291354,
-    "height": 1.06022,
-    "depth": 1.2,
-    "groundOffset": 0.53011,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.06022,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.4240880012512207
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "chicken": {
     "width": 1.1978659999999999,
-    "height": 1.0718670000000001,
-    "depth": 1.2,
-    "groundOffset": 0.535933,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.0718670000000001,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.42874640226364136
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "demon": {
     "width": 3.601679,
-    "height": 2.193953,
-    "depth": 1.8,
-    "groundOffset": 1.096977,
-    "hasProjectileSocket": true
+    "height": 1.8,
+    "depth": 2.193953,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.8775808215141296
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "demon-high-detail": {
     "width": 2.4861,
-    "height": 1.355074,
-    "depth": 2,
-    "groundOffset": 0.677537,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.355074,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.542030394077301
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "dino": {
     "width": 2.1308920000000002,
-    "height": 1.28164,
-    "depth": 2.000001,
-    "groundOffset": 0.64082,
-    "hasProjectileSocket": true
+    "height": 2.000001,
+    "depth": 1.28164,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.512656033039093
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "dragon": {
     "width": 3.4813590000000003,
-    "height": 1.947047,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.973523,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.947047,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.77881920337677
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "dragon-evolved": {
     "width": 2.784632,
-    "height": 1.696907,
-    "depth": 1.8,
-    "groundOffset": 0.848453,
-    "hasProjectileSocket": true
+    "height": 1.8,
+    "depth": 1.696907,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.6787623763084412
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "fish": {
     "width": 1.225316,
-    "height": 1.237518,
-    "depth": 1.2,
-    "groundOffset": 0.618759,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.237518,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.495007187128067
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "fish-high-detail": {
     "width": 1.825208,
-    "height": 1.33059,
-    "depth": 2,
-    "groundOffset": 0.665295,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.33059,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.5322359800338745
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "frog": {
     "width": 2.568775,
-    "height": 1.331444,
-    "depth": 2.000001,
-    "groundOffset": 0.665722,
-    "hasProjectileSocket": true
+    "height": 2.000001,
+    "depth": 1.331444,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.5325767993927002
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "ghost": {
     "width": 1.737479,
-    "height": 1.113277,
-    "depth": 1.7999990000000001,
-    "groundOffset": 0.556638,
-    "hasProjectileSocket": true
+    "height": 1.7999990000000001,
+    "depth": 1.113277,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.44531121850013733
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "ghost-skull": {
     "width": 1.746294,
-    "height": 1.251092,
-    "depth": 1.7999990000000001,
-    "groundOffset": 0.625546,
-    "hasProjectileSocket": true
+    "height": 1.7999990000000001,
+    "depth": 1.251092,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.5004367828369141
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "glub": {
     "width": 2.202094,
-    "height": 1.11867,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.559335,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.11867,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.44746798276901245
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "glub-evolved": {
     "width": 1.394138,
-    "height": 0.650292,
-    "depth": 1.199999,
-    "groundOffset": 0.325146,
-    "hasProjectileSocket": true
+    "height": 1.199999,
+    "depth": 0.650292,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.2601167857646942
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "goleling": {
     "width": 3.404572,
-    "height": 1.524715,
-    "depth": 1.199999,
-    "groundOffset": 0.762357,
-    "hasProjectileSocket": true
+    "height": 1.199999,
+    "depth": 1.524715,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.6098864078521729
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "goleling-evolved": {
     "width": 2.051954,
-    "height": 1.021931,
-    "depth": 1.2000000000000002,
-    "groundOffset": 0.510965,
-    "hasProjectileSocket": true
+    "height": 1.2000000000000002,
+    "depth": 1.021931,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.2640000581741333,
+      0.4087727963924408
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "green-blob": {
     "width": 1.447824,
-    "height": 1.413095,
-    "depth": 1.2,
-    "groundOffset": 0.706547,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.413095,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.5652376413345337
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "green-spiky-blob": {
     "width": 1.010692,
-    "height": 1.20083,
-    "depth": 1.2,
-    "groundOffset": 0.600415,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.20083,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.48033198714256287
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "hywirl": {
     "width": 1.946997,
-    "height": 1.475975,
-    "depth": 1.7999990000000001,
-    "groundOffset": 0.737987,
-    "hasProjectileSocket": true
+    "height": 1.7999990000000001,
+    "depth": 1.475975,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.590389609336853
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "monkroose": {
     "width": 2.3097440000000002,
-    "height": 1.171562,
-    "depth": 2,
-    "groundOffset": 0.585781,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.171562,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.4686240255832672
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "mushnub": {
     "width": 0.9985,
-    "height": 0.99851,
-    "depth": 1.2,
-    "groundOffset": 0.499255,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 0.99851,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.39940398931503296
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "mushnub-evolved": {
     "width": 0.92383,
-    "height": 0.95542,
-    "depth": 1.2,
-    "groundOffset": 0.47771,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 0.95542,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.3821679949760437
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "mushroom-king": {
     "width": 1.966636,
-    "height": 1.20085,
-    "depth": 1.999999,
-    "groundOffset": 0.600425,
-    "hasProjectileSocket": true
+    "height": 1.999999,
+    "depth": 1.20085,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.48034000396728516
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "ninja": {
     "width": 0.989702,
-    "height": 1.06162,
-    "depth": 1.2,
-    "groundOffset": 0.53081,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.06162,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.4246479868888855
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "ninja-high-detail": {
     "width": 2.156022,
-    "height": 1.892722,
-    "depth": 2,
-    "groundOffset": 0.946361,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.892722,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.7570887804031372
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "orc": {
     "width": 2.144888,
-    "height": 1.099267,
-    "depth": 2.000001,
-    "groundOffset": 0.549633,
-    "hasProjectileSocket": true
+    "height": 2.000001,
+    "depth": 1.099267,
+    "groundOffset": 0.000001,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.4397071897983551
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "orc-enemy": {
     "width": 1.341594,
-    "height": 0.841542,
-    "depth": 1.2,
-    "groundOffset": 0.420771,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 0.841542,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.3366168141365051
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "pigeon": {
     "width": 1.559568,
-    "height": 1.335543,
-    "depth": 1.2,
-    "groundOffset": 0.667771,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.335543,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.5342167615890503
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "pink-blob": {
     "width": 1.090454,
-    "height": 1.03346,
-    "depth": 1.2,
-    "groundOffset": 0.51673,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.03346,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.41338402032852173
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "squidle": {
     "width": 3.319416,
-    "height": 2.022014,
-    "depth": 1.8000009999999997,
-    "groundOffset": 1.011006,
-    "hasProjectileSocket": true
+    "height": 1.8000009999999997,
+    "depth": 2.022014,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.8088055849075317
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "tribal": {
     "width": 1.383498,
-    "height": 0.92042,
-    "depth": 1.7999999999999998,
-    "groundOffset": 0.46021,
-    "hasProjectileSocket": true
+    "height": 1.7999999999999998,
+    "depth": 0.92042,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.7960000038146973,
+      0.3681679964065552
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "wizard": {
     "width": 1.073314,
-    "height": 1.063992,
-    "depth": 1.2,
-    "groundOffset": 0.531996,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.063992,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.42559680342674255
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "yeti": {
     "width": 1.250148,
-    "height": 1.2722630000000001,
-    "depth": 1.2,
-    "groundOffset": 0.636131,
-    "hasProjectileSocket": true
+    "height": 1.2,
+    "depth": 1.2722630000000001,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      0.8640000224113464,
+      0.5089055895805359
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   },
   "yeti-high-detail": {
     "width": 2.439407,
-    "height": 1.159451,
-    "depth": 2,
-    "groundOffset": 0.579726,
-    "hasProjectileSocket": true
+    "height": 2,
+    "depth": 1.159451,
+    "groundOffset": 0,
+    "projectileSocket": [
+      0,
+      1.440000057220459,
+      0.463780015707016
+    ],
+    "groundSocket": [
+      0,
+      0,
+      0
+    ]
   }
 };
 

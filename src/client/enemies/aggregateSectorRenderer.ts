@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import type { AssetService } from '../assets';
 import type { EnemyPresentationProfileDefinition } from '../../shared/animation/animationProfileTypes';
 import { ENEMY_DEFINITION_SIZE_TIER } from '../../generated/monsterDimensions.generated';
-import { resolveMonsterDimensionsForDefId } from '../../shared/monsters/monsterNormalization';
-import { localFootOffset } from '../app/monsterTransform';
+import { resolveGeneratedGroundOffset, resolveMonsterDimensionsForDefId } from '../../shared/monsters/monsterNormalization';
 
 export interface AggregateSectorRecord {
   sectorId: number;
@@ -27,8 +26,6 @@ interface AggregateGroup {
   capacity: number;
   loaded: boolean;
   procedural: boolean;
-  /** Profile id -> measured local foot offset at profile scale/rotation. */
-  footOffsets: Map<string, number>;
 }
 
 /**
@@ -97,17 +94,13 @@ export class AggregateSectorRenderer {
         const yaw = (sector.presentationSeed % 360) * (Math.PI / 180);
         this.dummy.rotation.set(rotation?.[0] ?? 0, (rotation?.[1] ?? 0) + yaw, rotation?.[2] ?? 0);
         this.dummy.scale.set(sx * k, sy * k, sz * k);
-        // foot0 is the root-to-foot distance at profile scale; it scales
-        // linearly with the sector's finalScale x crowdScale multiplier.
-        const foot0 = profile
-          ? this.footOffsetFor(profile, group)
-          : dims
-            ? dims.groundOffset / dimsScale
-            : 0;
+        const groundCorrection = dims
+          ? resolveGeneratedGroundOffset(dims, profile?.transform) * crowdScale
+          : 0;
         const position = profile?.transform?.position;
         this.dummy.position.set(
           sector.x + (position?.[0] ?? 0) * k,
-          this.groundHeightAt(sector.x, sector.z) + foot0 * k + (position?.[1] ?? 0) * k,
+          this.groundHeightAt(sector.x, sector.z) + groundCorrection,
           sector.z + (position?.[2] ?? 0) * k,
         );
         this.dummy.updateMatrix();
@@ -163,7 +156,6 @@ export class AggregateSectorRenderer {
             capacity: this.capacityPerAsset,
             loaded: true,
             procedural: false,
-            footOffsets: new Map(),
           });
           // Re-apply sectors now that the group exists (async load).
           this.update(this.lastSectors, this.lastTankX, this.lastTankZ);
@@ -183,7 +175,9 @@ export class AggregateSectorRenderer {
   private installProcedural(assetId: string): void {
     if (this.groups.has(assetId)) return;
     const material = new THREE.MeshStandardMaterial({ color: 0x6f8f9f, roughness: 0.9 });
-    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(0.7, 1.1, 6), material, this.capacityPerAsset);
+    const geometry = new THREE.ConeGeometry(0.7, 1.1, 6);
+    geometry.translate(0, 0.55, 0);
+    const mesh = new THREE.InstancedMesh(geometry, material, this.capacityPerAsset);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.frustumCulled = false;
     mesh.count = 0;
@@ -196,42 +190,7 @@ export class AggregateSectorRenderer {
       capacity: this.capacityPerAsset,
       loaded: true,
       procedural: true,
-      footOffsets: new Map(),
     });
-  }
-
-  /**
-   * Measured local foot offset for one profile/asset pair. The aggregate
-   * prototype is posed with the profile rotation + full vector scale at
-   * position 0; the resulting foot offset scales linearly with the sector's
-   * `dims.finalScale x crowdScale`, so it is measured once per profile.
-   */
-  private footOffsetFor(
-    profile: EnemyPresentationProfileDefinition,
-    group: AggregateGroup,
-  ): number {
-    const cached = group.footOffsets.get(profile.id);
-    if (cached !== undefined) return cached;
-    if (group.procedural) {
-      // Procedural cone foot sits at its base (local minY = 0).
-      const offset = 0;
-      group.footOffsets.set(profile.id, offset);
-      return offset;
-    }
-    const prototype = group.root;
-    prototype.rotation.set(0, 0, 0);
-    prototype.scale.set(1, 1, 1);
-    prototype.position.set(0, 0, 0);
-    const rotation = profile.transform?.rotation;
-    if (rotation) prototype.rotation.set(rotation[0], rotation[1], rotation[2]);
-    const scale = profile.transform?.scale;
-    const sx = typeof scale === 'number' ? scale : (scale?.[0] ?? 1);
-    const sy = typeof scale === 'number' ? scale : (scale?.[1] ?? 1);
-    const sz = typeof scale === 'number' ? scale : (scale?.[2] ?? 1);
-    prototype.scale.set(sx, sy, sz);
-    const offset = localFootOffset(prototype);
-    group.footOffsets.set(profile.id, offset);
-    return offset;
   }
 
   private disposeGroup(key: string, group: AggregateGroup): void {

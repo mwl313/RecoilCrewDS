@@ -110,6 +110,31 @@ describe('production asset-ready preload gate', () => {
     expect(gunner.last('countdown')).toBeDefined();
   });
 
+  it('reconnects with the exact server-selected run instead of requiring reconstruction', () => {
+    const { manager, advance } = makeManager('mode.mainStage');
+    const { driver, gunner, code } = createCrew(manager, 'mode.mainStage');
+    const config = driver.last('runConfig')!;
+    const matchId = config.matchId as string;
+    for (const socket of [driver, gunner]) {
+      manager.handle(socket, {
+        t: 'assetReady',
+        matchId,
+        contentHash: pack.hash,
+        definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+      });
+    }
+    advance(3_500);
+    stepSeconds(manager, 3.5);
+    const sessionId = gunner.last('joined')!.sessionId as string;
+    manager.disconnect(manager.getClient(gunner)!);
+    const replacement = new FakeSocket();
+    manager.rejoin(code, sessionId, replacement);
+    const joined = replacement.last('joined')!;
+    expect(joined.matchId).toBe(matchId);
+    expect(joined.modeId).toBe('mode.mainStage');
+    expect(joined.run).toEqual(config.run);
+  });
+
   it('rejects assetReady with mismatched content/definition hashes before match start', () => {
     const { manager, advance } = makeManager('mode.mainStage');
     const { driver } = createCrew(manager, 'mode.mainStage');

@@ -19,6 +19,15 @@ describe('monster run selection', () => {
     expect(JSON.stringify(a)).not.toBe(JSON.stringify(c));
   });
 
+  it('selects and replicates a deterministic boss escort count from the authored range', () => {
+    for (let seed = 0; seed < 50; seed++) {
+      const selected = selectMonsterRun(roster, seed);
+      expect(selected.bossEscortCount).toBeGreaterThanOrEqual(roster.bossEscortCount[0]);
+      expect(selected.bossEscortCount).toBeLessThanOrEqual(roster.bossEscortCount[1]);
+      expect(selectMonsterRun(roster, seed).bossEscortCount).toBe(selected.bossEscortCount);
+    }
+  });
+
   it('selects exactly three slots per phase with no within-phase duplicates', () => {
     for (const seed of [1, 42, 777, 20260802]) {
       const run = selectMonsterRun(roster, seed);

@@ -261,7 +261,27 @@ net.onMessage = (msg) => {
         if (!compat.ok) {
           showProtocolError(compat.reason ?? 'incompatible build');
         } else if (!mapGateFailed) {
-          void resumeOnline(msg.arena as ArenaMetadata, phase === 'results');
+          const reconnectMatchId = msg.matchId as string | undefined;
+          if (reconnectMatchId) {
+            latestRunConfig = {
+              protocol: PROTOCOL_VERSION,
+              t: 'runConfig',
+              matchId: reconnectMatchId,
+              modeId: (msg.modeId as string | undefined) ?? 'mode.mainStage',
+              run: (msg.run as RunConfigMessage['run']) ?? null,
+              contentHash: (msg.content as { hash?: string } | undefined)?.hash,
+              definitionOrderHash: msg.definitionOrderHash as string | undefined,
+            };
+          }
+          const reconnectConfig = latestRunConfig?.matchId === reconnectMatchId ? latestRunConfig : null;
+          void (async () => {
+            if (reconnectConfig?.run) {
+              const loaded = assets ?? (await assetsPromise);
+              await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, reconnectConfig.run));
+              lastPreloadedMatchId = reconnectMatchId ?? '';
+            }
+            await resumeOnline(msg.arena as ArenaMetadata, phase === 'results', reconnectMatchId);
+          })();
         }
         break;
       }
@@ -320,6 +340,7 @@ net.onMessage = (msg) => {
         } catch (error) {
           console.warn('[runConfig] asset preload failed; proceeding anyway', error);
         } finally {
+          lastPreloadedMatchId = config.matchId;
           net.send({
             t: 'assetReady',
             matchId: config.matchId,
@@ -356,7 +377,7 @@ net.onMessage = (msg) => {
       const meta = msg.arena as ArenaMetadata | undefined;
       if (meta && !mapGateFailed) {
         if (!arenaSession) {
-          void resumeOnline(meta, false);
+          void resumeOnline(meta, false, (msg.state as MatchState | undefined)?.matchId);
         } else if (meta.arenaChecksum !== arenaSession.metadata.arenaChecksum) {
           showMapError('checksum');
         }
@@ -364,15 +385,6 @@ net.onMessage = (msg) => {
       const horde = msg.horde as HordeSnapshotBlock | undefined;
       latestStageView = msg.stage as HordeStageView | undefined;
       const snapshotState = msg.state as MatchState | undefined;
-      if (
-        latestStageView?.monster &&
-        snapshotState?.matchId &&
-        game &&
-        snapshotState.matchId !== lastPreloadedMatchId
-      ) {
-        lastPreloadedMatchId = snapshotState.matchId;
-        void game.preloadSelectedRun(CLIENT_CONTENT_PACK, snapshotState.matchId, 'mode.mainStage');
-      }
       let sectors: Array<{
         sectorId: number;
         x: number;
@@ -540,7 +552,7 @@ function showProtocolError(reason: string): void {
   mapGateFailed = true;
 }
 
-async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void> {
+async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: string): Promise<void> {
   if (arenaSession && arenaSession.metadata.arenaChecksum === meta.arenaChecksum) {
     // Same active map: resume the existing game.
     if (game) {
@@ -562,7 +574,7 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void
   if (game) {
     game.applyArenaSession(session);
   }
-  await startOnline(role, session.world);
+  await startOnline(role, session.world, matchId);
   if (results) flow = 'results';
 }
 
@@ -570,7 +582,8 @@ async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string):
   sessionKind = 'multiplayer';
   if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
   if (matchId && matchId !== lastPreloadedMatchId) {
-    await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, 'mode.mainStage');
+    const config = latestRunConfig?.matchId === matchId ? latestRunConfig : null;
+    await game.preloadMonsterRun(CLIENT_CONTENT_PACK, config?.run ?? null);
     lastPreloadedMatchId = matchId;
   }
   attachGameCallbacks(game);
@@ -597,7 +610,8 @@ async function startSinglePlayer(): Promise<void> {
     params.get('mode') === 'demo' ? 'mode.singlePlayerScoreAttack' : SINGLE_PLAYER_SESSION.rulesModeId;
   activeSinglePlayerModeId = spModeId;
   game = await createGame(session.world);
-  await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, spModeId);
+  const selectedRun = resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, matchId, spModeId);
+  await game.preloadMonsterRun(CLIENT_CONTENT_PACK, selectedRun);
   lastPreloadedMatchId = matchId;
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
@@ -780,7 +794,7 @@ if (TEST_MODE) {
         if (latestRunConfig?.run) return latestRunConfig.run;
         const m = game?.singlePlayerMatch;
         if (!m) return null;
-        return resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, m.state.matchId, activeSinglePlayerModeId);
+        return m.runtime.systems.monsterRun;
       },
       enemies: () =>
         game?.singlePlayerMatch?.state.enemies.map((e) => ({

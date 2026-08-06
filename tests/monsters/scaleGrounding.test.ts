@@ -46,7 +46,9 @@ describe('monster scale, collision, and grounding (bug-fix phase 2)', () => {
       'enemy.quaternius.yeti-high-detail',
     ]) {
       const d = resolveMonsterDimensionsForDefId(defId);
-      expect(d.sourceGroundOffset).toBeGreaterThan(0);
+      // Prepared hero GLBs author socket.shadow at the grounded root, so a
+      // zero source offset is the expected import contract.
+      expect(d.sourceGroundOffset).toBeGreaterThanOrEqual(0);
       // scaledGroundOffset = sourceGroundOffset × finalScale; placing the
       // visual root at terrain + groundOffset puts the lowest vertex at 0.
       expect(d.groundOffset).toBeCloseTo(d.sourceGroundOffset * d.finalScale, 6);

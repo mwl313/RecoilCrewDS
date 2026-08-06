@@ -13,6 +13,7 @@ import type {
   StageSequenceDefinition,
   WaveDefinition,
 } from '../content/schemas/horde';
+import type { EnemyGameplayRosterDefinition, OrdinaryRosterSlot } from '../content/schemas/enemyGameplayRoster';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import { phaseFarmingProgress, type StageEvent } from '../stage/stageTypes';
 import { PopulationManager, type PopulationTally } from './populationManager';
@@ -28,6 +29,7 @@ export interface ResolvedHordeDirector {
   waves: Map<string, WaveDefinition>;
   bossWave: BossWaveDefinition;
   rewardTables: Map<string, RewardTableDefinition>;
+  gameplayRoster: EnemyGameplayRosterDefinition | null;
   policies: {
     anchor: SpawnAnchorPolicyDefinition;
     navigation: HordeNavigationPolicyDefinition;
@@ -49,6 +51,7 @@ export function resolveHordeDirector(pack: ContentPack, def: HordeDirectorDefini
     waves: new Map(def.waveIds.map((id) => [id, pack.getWave(id)])),
     bossWave: pack.getBossWave(def.bossWaveId),
     rewardTables: new Map([...rewardTableIds].map((id) => [id, pack.getRewardTable(id)])),
+    gameplayRoster: def.gameplayRosterId ? pack.getEnemyGameplayRoster(def.gameplayRosterId) : null,
     policies: {
       anchor: pack.getSpawnAnchorPolicy(def.spawnAnchorPolicyId),
       navigation: pack.getHordeNavigationPolicy(def.navigationPolicyId),
@@ -78,6 +81,11 @@ export class HordeDirector {
   private readonly packCooldowns = new Map<string, number>();
   /** Deferred boss wave: opened exactly once after the authoritative intro. */
   private pendingBossWave: BossWaveDefinition | null = null;
+  private ordinaryMixCounts: Record<OrdinaryRosterSlot, number> = {
+    closeFodder: 0,
+    rangedFodder: 0,
+    specialist: 0,
+  };
 
   constructor(
     private readonly ctx: SystemContext,
@@ -129,13 +137,16 @@ export class HordeDirector {
     const pack = this.pickPack(phase.eligiblePackTags, 'farming');
     if (!pack) return;
     if (this.spawnBudget < pack.threatCost) return;
-    const plan = this.ctx.spawnPlanner.plan(pack, 'ambient');
+    const entries = this.resolvePackEntries(pack, false);
+    const plannedPack = this.packForEntries(pack, entries);
+    const plan = this.ctx.spawnPlanner.plan(plannedPack, 'ambient');
     if (!plan) {
       this.anchorFailures++;
       return;
     }
     if (!this.population.hardCapacity(this.resolved.limits, tally, pack.entityCost, pack.threatCost)) return;
-    this.spawnPackFromPlan(pack, plan, 'ambient', null, null);
+    this.spawnPackFromPlan(entries, pack, plan, 'ambient', null, null);
+    this.commitOrdinaryMix(entries, pack);
     this.spawnBudget -= pack.threatCost;
     this.lastSelectedPack = pack.id;
     this.lastAnchor = { x: plan.anchor.x, z: plan.anchor.z };
@@ -146,6 +157,7 @@ export class HordeDirector {
   private refreshPhaseSlots(phaseIndex: number): void {
     if (phaseIndex === this.lastFarmingPhase) return;
     this.lastFarmingPhase = phaseIndex;
+    this.ordinaryMixCounts = { closeFodder: 0, rangedFodder: 0, specialist: 0 };
     const run = this.ctx.monsterRun;
     if (!run || !this.ctx.monsterSlots) return;
     const phase = run.phases[phaseIndex];
@@ -171,12 +183,9 @@ export class HordeDirector {
       if (pack) {
         // Atomic reinforcement pack: preflight budget/cap/definitions/wave
         // state, then spawn every authored entry or none.
-        const entries = pack.entries.map((entry) => ({
-          enemyId: this.resolveEntry(entry),
-          count: Math.max(0, entry.count),
-          formationRole: entry.formationRole,
-        }));
+        const entries = this.resolvePackEntries(pack, runtime.definitionId === this.resolved.bossWave.id);
         if (waves.spendReinforcementPack(runtime.waveId, pack.threatCost, entries)) {
+          this.commitOrdinaryMix(entries, pack);
           this.lastSelectedPack = packId;
         }
       }
@@ -208,9 +217,12 @@ export class HordeDirector {
   }
 
   private openWave(def: BossWaveDefinition | WaveDefinition, isBoss: boolean, waveId: number): void {
+    const selectedLeaders = !isBoss ? this.ctx.monsterRun?.eliteWaves[waveId - 1]?.map((elite) => elite.enemyId) : undefined;
+    const primaryLeader = this.resolveLeader(def);
     const runtime = this.ctx.waves.openWave({
       definitionId: def.id,
-      leaderEnemyId: this.resolveLeader(def),
+      leaderEnemyId: selectedLeaders?.[0] ?? primaryLeader,
+      leaderEnemyIds: selectedLeaders?.length ? selectedLeaders : [primaryLeader],
       openingThreat: def.openingThreat,
       reinforcementThreat: def.reinforcementThreat,
       reinforcementThreatPerSecond: def.reinforcementThreatPerSecond,
@@ -222,21 +234,19 @@ export class HordeDirector {
     for (const packId of def.openingPackIds) {
       const pack = this.resolved.packs.get(packId);
       if (pack) {
-        const plan = this.ctx.spawnPlanner.plan(pack, isBoss ? 'boss' : 'wave');
+        const entries = this.resolvePackEntries(pack, isBoss);
+        const plannedPack = this.packForEntries(pack, entries);
+        const plan = this.ctx.spawnPlanner.plan(plannedPack, isBoss ? 'boss' : 'wave');
         const positions = plan?.positions ?? [];
-        const entries = pack.entries.map((entry) => ({
-          enemyId: this.resolveEntry(entry),
-          count: Math.max(0, entry.count),
-          formationRole: entry.formationRole,
-        }));
         // Atomic opening pack: every authored entry spawns or none does.
         if (entries.some((e) => !this.ctx.enemies.defById(e.enemyId))) continue;
-        this.ctx.waves.spawnCohortPack(
+        const spawned = this.ctx.waves.spawnCohortPack(
           runtime.waveId,
           entries,
           pack.threatCost,
           positions.length > 0 ? positions : undefined,
         );
+        if (spawned) this.commitOrdinaryMix(entries, pack);
       }
     }
     // Boss-intro presentation is emitted once at the deferred intro start
@@ -266,6 +276,7 @@ export class HordeDirector {
   }
 
   private spawnPackFromPlan(
+    entries: ResolvedPackEntry[],
     pack: SpawnPackDefinition,
     plan: SpawnPlan,
     populationClass: SpawnOwnership['populationClass'],
@@ -274,8 +285,8 @@ export class HordeDirector {
   ): void {
     let seed = pack.id.length + this.ctx.state.nextEnemyId;
     let positionIndex = 0;
-    for (const entry of pack.entries) {
-      const def = this.ctx.enemies.defById(this.resolveEntry(entry));
+    for (const entry of entries) {
+      const def = this.ctx.enemies.defById(entry.enemyId);
       if (!def) continue;
       for (let i = 0; i < entry.count; i++) {
         seed += 1;
@@ -306,6 +317,92 @@ export class HordeDirector {
   private resolveLeader(def: { leaderEnemyId?: string; leaderSlotId?: string }): string {
     return def.leaderEnemyId ?? this.slot(def.leaderSlotId);
   }
+
+  private resolvePackEntries(pack: SpawnPackDefinition, bossEscort: boolean): ResolvedPackEntry[] {
+    const roster = this.resolved.gameplayRoster;
+    if (!roster) {
+      return pack.entries.map((entry) => ({
+        enemyId: this.resolveEntry(entry),
+        count: Math.max(0, entry.count),
+        formationRole: entry.formationRole,
+      }));
+    }
+    const isBossEscort = bossEscort && pack.tags.includes('escort');
+    const usesOrdinaryRoster = pack.tags.includes('farming') || pack.tags.includes('wave') || isBossEscort;
+    if (!usesOrdinaryRoster) {
+      return pack.entries.map((entry) => ({ enemyId: this.resolveEntry(entry), count: entry.count, formationRole: entry.formationRole }));
+    }
+    const totalCount = isBossEscort
+      ? (this.ctx.monsterRun?.bossEscortCount ?? pack.entityCost)
+      : pack.entries.reduce((sum, entry) => sum + Math.max(0, entry.count), 0);
+    const start = isBossEscort
+      ? { closeFodder: 0, rangedFodder: 0, specialist: 0 }
+      : this.ordinaryMixCounts;
+    const counts = allocateOrdinaryMix(roster.ordinaryMix, start, totalCount);
+    const delta = {
+      closeFodder: counts.closeFodder - start.closeFodder,
+      rangedFodder: counts.rangedFodder - start.rangedFodder,
+      specialist: counts.specialist - start.specialist,
+    };
+    const phase3 = isBossEscort;
+    return (['closeFodder', 'rangedFodder', 'specialist'] as const)
+      .filter((slot) => delta[slot] > 0)
+      .map((slot) => ({
+        enemyId: this.slot(`selected.${phase3 ? 'phase3.' : 'phase.'}${slot}`),
+        count: delta[slot],
+        formationRole: formationRoleFor(slot),
+        rosterSlot: slot,
+      }));
+  }
+
+  private commitOrdinaryMix(entries: ResolvedPackEntry[], pack: SpawnPackDefinition): void {
+    if (!this.resolved.gameplayRoster || pack.tags.includes('escort')) return;
+    for (const entry of entries) {
+      if (entry.rosterSlot) this.ordinaryMixCounts[entry.rosterSlot] += entry.count;
+    }
+  }
+
+  private packForEntries(pack: SpawnPackDefinition, entries: ResolvedPackEntry[]): SpawnPackDefinition {
+    return {
+      ...pack,
+      entries: entries.map((entry) => ({ enemyId: entry.enemyId, count: entry.count, formationRole: entry.formationRole })),
+      entityCost: entries.reduce((sum, entry) => sum + entry.count, 0),
+    };
+  }
+}
+
+interface ResolvedPackEntry {
+  enemyId: string;
+  count: number;
+  formationRole?: string;
+  rosterSlot?: OrdinaryRosterSlot;
+}
+
+export function allocateOrdinaryMix(
+  mix: Record<OrdinaryRosterSlot, number>,
+  current: Record<OrdinaryRosterSlot, number>,
+  additionalCount: number,
+): Record<OrdinaryRosterSlot, number> {
+  const result = { ...current };
+  const slots: OrdinaryRosterSlot[] = ['closeFodder', 'rangedFodder', 'specialist'];
+  for (let i = 0; i < additionalCount; i++) {
+    const targetTotal = Object.values(result).reduce((sum, value) => sum + value, 0) + 1;
+    let selected = slots[0];
+    let selectedDeficit = Number.NEGATIVE_INFINITY;
+    for (const slot of slots) {
+      const deficit = mix[slot] * targetTotal - result[slot];
+      if (deficit > selectedDeficit) {
+        selected = slot;
+        selectedDeficit = deficit;
+      }
+    }
+    result[selected]++;
+  }
+  return result;
+}
+
+function formationRoleFor(slot: OrdinaryRosterSlot): string {
+  return slot === 'closeFodder' ? 'line' : slot === 'rangedFodder' ? 'support' : 'vanguard';
 }
 
 function anchorIdToNumber(id: string): number {

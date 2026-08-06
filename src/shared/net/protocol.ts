@@ -63,8 +63,10 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * Protocol 10 (monster-fix2): horde materialize/delta records gained
  * quantized Y, vertical velocity, airborne flag, and impulse start tick;
  * handshake now validates content-pack hash + enemy-definition-order hash.
+ * Protocol 11: selected runs carry boss escort count and reconnects reuse
+ * the server-selected run instead of reconstructing it client-side.
  */
-export const PROTOCOL_VERSION = 10;
+export const PROTOCOL_VERSION = 11;
 
 export interface ProtocolEnvelope {
   protocol: number;

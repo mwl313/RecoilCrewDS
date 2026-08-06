@@ -3,6 +3,7 @@ import { loadContentPackFromFilesystem } from '../../src/shared/content/contentL
 import { Match } from '../../src/shared/sim/match';
 import { selectArenaSession } from '../../src/shared/mapgen/arenaSession';
 import { resolveMapBundle } from '../../src/shared/mapgen/profiles';
+import { allocateOrdinaryMix } from '../../src/shared/horde/hordeDirector';
 
 const pack = loadContentPackFromFilesystem('content');
 const DT = 1 / 30;
@@ -71,7 +72,7 @@ function countByDefId(m: Match, waveId: number): Map<string, number> {
 }
 
 describe('production wave composition (bug-fix phase 1)', () => {
-  it('opens wave 1 with every authored pack entry (waveCohort 2/1/1 + farmingCluster 3 close)', { timeout: 30_000 }, () => {
+  it('opens wave 1 with roster-mixed entries from every opening pack', { timeout: 30_000 }, () => {
     const m = makeMatch();
     stepUntilPhase(m, 'wave1');
     const horde = m.runtime.systems.horde!;
@@ -81,12 +82,13 @@ describe('production wave composition (bug-fix phase 1)', () => {
     const close = slots['selected.phase.closeFodder'];
     const ranged = slots['selected.phase.rangedFodder'];
     const specialist = slots['selected.phase.specialist'];
-    // waveCohort adds 2 close + 1 ranged + 1 specialist; farmingCluster
-    // adds 3 close — every authored entry is preserved.
+    // The two authored packs contribute seven total entities, while their
+    // identities are allocated against the roster mix accumulated in phase.
     const cohort = countByDefId(m, waveId);
-    expect(cohort.get(close)).toBe(5);
-    expect(cohort.get(ranged)).toBe(1);
-    expect(cohort.get(specialist)).toBe(1);
+    expect((cohort.get(close) ?? 0) + (cohort.get(ranged) ?? 0) + (cohort.get(specialist) ?? 0)).toBe(7);
+    expect(cohort.get(close)).toBeGreaterThan(0);
+    expect(cohort.get(ranged)).toBeGreaterThan(0);
+    expect(cohort.get(specialist)).toBeGreaterThan(0);
     const closeEnemy = m.state.enemies.find((e) => e.defId === close && e.ownership?.waveId === waveId);
     expect(closeEnemy?.ownership?.formationRole).toBe('line');
     const rangedEnemy = m.state.enemies.find((e) => e.defId === ranged && e.ownership?.waveId === waveId);
@@ -126,9 +128,16 @@ describe('production wave composition (bug-fix phase 1)', () => {
     const specialist = slots['selected.phase3.specialist'];
     const bossDefId = slots['selected.boss'];
     const counts = countByDefId(m, waveId);
-    expect(counts.get(close)).toBe(2);
-    expect(counts.get(ranged)).toBe(1);
-    expect(counts.get(specialist)).toBe(1);
+    const escortCount = m.runtime.systems.monsterRun!.bossEscortCount;
+    const expected = allocateOrdinaryMix(
+      m.runtime.systems.horde!.resolved.gameplayRoster!.ordinaryMix,
+      { closeFodder: 0, rangedFodder: 0, specialist: 0 },
+      escortCount,
+    );
+    expect(counts.get(close)).toBe(expected.closeFodder);
+    expect(counts.get(ranged)).toBe(expected.rangedFodder);
+    expect(counts.get(specialist)).toBe(expected.specialist);
+    expect(expected.closeFodder + expected.rangedFodder + expected.specialist).toBe(escortCount);
     expect(counts.get(bossDefId)).toBe(1);
     const escort = m.state.enemies.find((e) => e.defId === specialist && e.ownership?.waveId === waveId);
     expect(escort?.ownership?.formationRole).toBe('vanguard');

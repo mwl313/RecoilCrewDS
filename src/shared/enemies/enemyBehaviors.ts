@@ -11,7 +11,7 @@ import {
 } from '../monsters/monsterAttack';
 import {
   resolveMonsterDimensions,
-  resolveProjectileSocketY,
+  resolveProjectileSocketOffset,
 } from '../monsters/monsterNormalization';
 import {
   reservationTarget,
@@ -674,10 +674,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
         const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
         ctx.projectiles.spawn(
-          e.x,
-          e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier),
-          e.z,
+          socket.x,
+          socket.y,
+          socket.z,
           dx / d,
           0,
           dz / d,
@@ -741,7 +742,8 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         runtime.attackRuntime = atk;
         if (pattern.type === 'ranged') {
           e.telegraph = pattern.telegraphTime;
-          pushEvent(ctx, 'rammerTelegraph', e.x, e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier), e.z, { id: e.id, kind: 'boss' });
+          const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+          pushEvent(ctx, 'rammerTelegraph', socket.x, socket.y, socket.z, { id: e.id, kind: 'boss' });
         }
       }
       const res = advanceAttackCycle(atk, s.time, () => {
@@ -759,10 +761,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const dx = s.tank.x - e.x;
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
         ctx.projectiles.spawn(
-          e.x,
-          e.y + resolveProjectileSocketY(def.id, def.sizeClass, def.tier),
-          e.z,
+          socket.x,
+          socket.y,
+          socket.z,
           dx / d,
           0,
           dz / d,
@@ -793,4 +796,20 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
   });
 
   return registry;
+}
+
+function projectileSocketWorld(
+  x: number,
+  y: number,
+  z: number,
+  yaw: number,
+  socket: readonly [number, number, number],
+): { x: number; y: number; z: number } {
+  const sin = Math.sin(yaw);
+  const cos = Math.cos(yaw);
+  return {
+    x: x + socket[0] * cos + socket[2] * sin,
+    y: y + socket[1],
+    z: z - socket[0] * sin + socket[2] * cos,
+  };
 }

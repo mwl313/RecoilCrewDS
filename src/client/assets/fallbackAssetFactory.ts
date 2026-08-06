@@ -74,6 +74,16 @@ export class FallbackAssetFactory {
       for (const c of children) g.add(c);
       return g;
     };
+    const monsterAnchors = (factory: () => THREE.Object3D, projectileY: number): (() => THREE.Object3D) => () => {
+      const root = factory();
+      const shadow = new THREE.Object3D();
+      shadow.name = 'socketshadow';
+      const projectile = new THREE.Object3D();
+      projectile.name = 'socketprojectile';
+      projectile.position.set(0, projectileY, 0.35);
+      root.add(shadow, projectile);
+      return root;
+    };
 
     const buildTankChassis = (): THREE.Object3D => {
       const root = new THREE.Group();
@@ -279,13 +289,13 @@ export class FallbackAssetFactory {
       ['playerTank.chassis', buildTankChassis],
       ['playerTank.turret', buildTankTurret],
       ['playerTank.barrel', buildTankBarrel],
-      ['enemy.scrapBug', buildScrapBug],
-      ['enemy.rammer', buildRammer],
-      ['enemy.gunTower', buildGunTower],
-      ['enemy.lootTruck', buildLootTruck],
-      ['enemy.witch', buildWitch],
-      ['enemy.spider', buildSpider],
-      ['enemy.beast', buildBeast],
+      ['enemy.scrapBug', monsterAnchors(buildScrapBug, 1.15)],
+      ['enemy.rammer', monsterAnchors(buildRammer, 1.8)],
+      ['enemy.gunTower', monsterAnchors(buildGunTower, 2.1)],
+      ['enemy.lootTruck', monsterAnchors(buildLootTruck, 1.5)],
+      ['enemy.witch', monsterAnchors(buildWitch, 2.1)],
+      ['enemy.spider', monsterAnchors(buildSpider, 0.75)],
+      ['enemy.beast', monsterAnchors(buildBeast, 1.25)],
       ['pickup.normalScrap', () => buildPickup('normal')],
       ['pickup.heavyScrap', () => buildPickup('heavy')],
       ['prop.explosiveBarrel', buildBarrelProp],

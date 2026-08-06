@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import {
   applyMonsterScaleAndOffset,
-  localFootOffset,
 } from '../../src/client/app/monsterTransform';
 import {
   resolvedMonsterDimensions,
+  resolveGeneratedGroundOffset,
   resolveMonsterDimensionsForDefId,
 } from '../../src/shared/monsters/monsterNormalization';
 import { AggregateSectorRenderer } from '../../src/client/enemies/aggregateSectorRenderer';
@@ -23,7 +23,7 @@ const FOOT_TOLERANCE = 0.05;
 function makeModel(belowRoot: number, height = 1): THREE.Group {
   const model = new THREE.Group();
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, height, 1));
-  mesh.position.y = -(belowRoot + height / 2);
+  mesh.position.y = height / 2 - belowRoot;
   model.add(mesh);
   return model;
 }
@@ -124,13 +124,12 @@ describe('monster grounding production transform (second-pass)', () => {
     expect(box.max.z).toBeLessThan(-0.2);
   });
 
-  it('uses rendered skinned bounds instead of distant bind-space geometry', () => {
+  it('uses generated dimensions instead of scanning distant bind-space geometry', () => {
     const model = makeSkinnedBindOffsetModel();
     const d = dimsFor('enemy.quaternius.ninja-high-detail', 'medium', 'elite', 1, 0.5);
     applyMonsterScaleAndOffset(model, undefined, d);
 
-    // The old static-geometry path produced an offset around 60 * finalScale
-    // and launched this model high above the terrain.
+    // Runtime grounding does not inspect the deliberately distant geometry.
     expect(model.position.y).toBeLessThan((60 * d.finalScale) / 10);
     expect(Math.abs(worldMinY(model, 7) - 7)).toBeLessThanOrEqual(FOOT_TOLERANCE);
   });
@@ -157,6 +156,10 @@ describe('monster grounding production transform (second-pass)', () => {
 
   it('grounds a procedural fallback even when its pivot is far from geometry', () => {
     const model = makeModel(62, 2);
+    const anchor = new THREE.Object3D();
+    anchor.name = 'socketshadow';
+    anchor.position.y = -62;
+    model.add(anchor);
     applyMonsterScaleAndOffset(
       model,
       { position: [0, 0.5, 0] },
@@ -196,6 +199,12 @@ describe('monster grounding production transform (second-pass)', () => {
     const d = dimsFor('enemy.quaternius.ninja', 'small', 'fodder');
     const near = makeModel(1, 2);
     const far = makeModel(0.7, 1.7);
+    for (const [model, foot] of [[near, -1], [far, -0.7]] as const) {
+      const anchor = new THREE.Object3D();
+      anchor.name = 'socketshadow';
+      anchor.position.y = foot;
+      model.add(anchor);
+    }
     applyMonsterScaleAndOffset(near, undefined, d);
     applyMonsterScaleAndOffset(far, undefined, d);
     expect(Math.abs(worldMinY(near, 6) - 6)).toBeLessThanOrEqual(FOOT_TOLERANCE);
@@ -209,6 +218,12 @@ describe('monster grounding production transform (second-pass)', () => {
       makeModel(0.8, 1.8),
       makeModel(0.6, 1.6),
     ];
+    for (const [model, foot] of models.map((model, index) => [model, [-1, -0.8, -0.6][index]] as const)) {
+      const anchor = new THREE.Object3D();
+      anchor.name = 'socketshadow';
+      anchor.position.y = foot;
+      model.add(anchor);
+    }
     const centers: number[] = [];
     for (const model of models) {
       applyMonsterScaleAndOffset(model, undefined, d);
@@ -233,20 +248,10 @@ describe('aggregate sector terrain placement (second-pass)', () => {
     return group;
   }
 
-  it('uses the measured local foot offset at the ground height function', () => {
-    const prototype = aggregatePrototype(1);
-    const foot0 = localFootOffset(prototype);
-    expect(foot0).toBeCloseTo(2, 4);
-    const k = 2.5;
-    const groundY = 7.25;
-    const dummy = new THREE.Group();
-    dummy.add(aggregatePrototype(1));
-    dummy.rotation.y = 0.7;
-    dummy.scale.setScalar(k);
-    dummy.position.set(3, groundY + foot0 * k, -4);
-    dummy.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(dummy);
-    expect(Math.abs(box.min.y - groundY)).toBeLessThanOrEqual(FOOT_TOLERANCE);
+  it('uses generated dimensions for markerless ground correction', () => {
+    const dims = dimsFor('enemy.quaternius.ninja', 'small', 'fodder', 2, 1);
+    expect(resolveGeneratedGroundOffset(dims, undefined)).toBeCloseTo(dims.groundOffset, 6);
+    expect(resolveGeneratedGroundOffset(dims, { position: [0, 0.5, 0] })).toBeCloseTo(dims.groundOffset - 0.5 * dims.finalScale, 6);
   });
 
   it('places instanced aggregate sectors on raised terrain through the renderer', async () => {
@@ -298,11 +303,9 @@ describe('aggregate sector terrain placement (second-pass)', () => {
     const mesh = groups.get('agg')!.instanced[0];
     const dummy = new THREE.Object3D();
     mesh.getMatrixAt(0, dummy.matrix);
-    const foot0 = localFootOffset(prototype);
-    const dimsScale = resolveMonsterDimensionsForDefId('enemy.quaternius.ninja').finalScale;
+    const dims = resolveMonsterDimensionsForDefId('enemy.quaternius.ninja');
     const crowdScale = THREE.MathUtils.clamp(0.7 + Math.sqrt(Math.min(8, 3)) * 0.25, 0.7, 1.8);
-    const k = dimsScale * crowdScale;
-    expect(dummy.matrix.elements[13]).toBeCloseTo(9.5 + foot0 * k, 3);
+    expect(dummy.matrix.elements[13]).toBeCloseTo(9.5 + resolveGeneratedGroundOffset(dims, { scale: 1, position: [0, 0, 0] }) * crowdScale, 3);
     renderer.reset();
   });
 });

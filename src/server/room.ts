@@ -452,6 +452,9 @@ export class RoomManager {
           ? {
               content: room.content,
               definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+              matchId: room.match?.state.matchId,
+              modeId: this.contentMeta?.modeId ?? 'mode.mainStage',
+              run: room.match?.runtime.systems.monsterRun ?? null,
             }
           : {}),
         lobby,

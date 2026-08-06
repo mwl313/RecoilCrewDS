@@ -32,9 +32,9 @@ import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver
 import { XpShardRenderer } from '../pickups/xpShardRenderer';
 import { stageViewForMatch } from '../../shared/monsters/monsterStageView';
 import {
-  resolveSelectedMonsterRun,
   resolveSelectedPreloadAssetIds,
 } from '../../shared/monsters/monsterPreload';
+import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -275,12 +275,11 @@ export class GameClient {
   }
 
   /**
-   * Stage-selective preload for the deterministic selected run. Only the
+   * Stage-selective preload for the authoritative selected run. Only the
    * assets used by the run are fetched; Demo and optional monsters are
    * never preloaded here.
    */
-  async preloadSelectedRun(pack: ContentPack, matchId: string, modeId: string): Promise<void> {
-    const run = resolveSelectedMonsterRun(pack, matchId, modeId);
+  async preloadMonsterRun(pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
     if (!run) return;
     await this.assets.preloadModels(resolveSelectedPreloadAssetIds(pack, run));
   }
