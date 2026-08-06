@@ -8,11 +8,13 @@ import { rewriteGlbNodeTransform } from './glbSummary';
 export function repairMonsterRuntimeAsset(variantId: string, buffer: Buffer): Buffer {
   switch (variantId) {
     case 'model.quaternius.demon-high-detail.hero':
-      // The Demon source omits the humanoid root's +90° correction. In glTF
-      // this leaves the animated body lying on its side and off-origin.
+      // The Demon source uses +Z-down for the animated humanoid. Convert it
+      // to Three.js +Y-up with a +90° X rotation, then recenter and ground the
+      // corrected idle pose. The previous -90° repair grounded the bounds but
+      // inverted the skeleton (feet above hips and head below hips).
       return rewriteGlbNodeTransform(buffer, 'HordeReadyContent', {
-        translation: [1.6624350365630063, 0.4728426543951705, 0.07571140766835616],
-        rotation: [-0.7071067811865475, 0, 0, 0.7071067811865476],
+        translation: [1.6624350365630063, 1.5830285080588224, -0.07571140766835616],
+        rotation: [0.7071067811865475, 0, 0, 0.7071067811865476],
         scale: [0.6827593445777893, 0.6827593445777893, 0.6827593445777893],
       });
     case 'model.quaternius.orc.hero':

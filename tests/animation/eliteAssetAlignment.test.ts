@@ -61,4 +61,33 @@ describe('runtime hero asset alignment regressions', () => {
       );
     });
   }
+
+  it('demon-high-detail keeps its humanoid skeleton upright', async () => {
+    const gltf = await loadElite('demon-high-detail');
+    const root = cloneSkeleton(gltf.scene);
+    const idle = gltf.animations.find((clip) => clip.name.endsWith('|Idle'));
+    expect(idle).toBeDefined();
+    const mixer = new THREE.AnimationMixer(root);
+    mixer.clipAction(idle!).play();
+    mixer.setTime(Math.max(0, idle!.duration - 0.001));
+    root.updateMatrixWorld(true);
+
+    const head = root.getObjectByName('Head');
+    const hips = root.getObjectByName('Hips');
+    const leftFoot = root.getObjectByName('FootL');
+    const rightFoot = root.getObjectByName('FootR');
+    expect(head).toBeDefined();
+    expect(hips).toBeDefined();
+    expect(leftFoot).toBeDefined();
+    expect(rightFoot).toBeDefined();
+
+    const headY = head!.getWorldPosition(new THREE.Vector3()).y;
+    const hipsY = hips!.getWorldPosition(new THREE.Vector3()).y;
+    const highestFootY = Math.max(
+      leftFoot!.getWorldPosition(new THREE.Vector3()).y,
+      rightFoot!.getWorldPosition(new THREE.Vector3()).y,
+    );
+    expect(headY).toBeGreaterThan(hipsY + 0.25);
+    expect(hipsY).toBeGreaterThan(highestFootY + 0.25);
+  });
 });
