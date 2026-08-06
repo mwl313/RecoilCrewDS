@@ -14,6 +14,15 @@ export function disposeAnimationInstance(instance: EnemyAnimationInstance): void
   instance.actions.clear();
   instance.currentAction = null;
   instance.currentRole = null;
+  // SkeletonUtils.clone creates per-instance Skeleton objects. Rendering a
+  // skinned mesh lazily allocates a GPU bone texture on each skeleton; mixer
+  // cleanup alone does not release it.
+  const skeletons = new Set<THREE.Skeleton>();
+  instance.root.traverse((object) => {
+    const skinned = object as THREE.SkinnedMesh;
+    if (skinned.isSkinnedMesh) skeletons.add(skinned.skeleton);
+  });
+  for (const skeleton of skeletons) skeleton.dispose();
   animationTelemetry.liveMixers = Math.max(0, animationTelemetry.liveMixers - 1);
   animationTelemetry.animationActionCount = Math.max(0, animationTelemetry.animationActionCount - actionCount);
 }

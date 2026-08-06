@@ -35,11 +35,19 @@
 - Generic far instancing preserves multi-material assets and source child transforms.
 - Audit and visual evidence are documented in `MONSTER_PRESENTATION_AUDIT.md`.
 
+### Phase C
+
+- The committed server harness separates simulation, AI, interpolation, replication, projectile/XP, memory and state growth.
+- The committed browser route runs 24 rendering scenarios and records real GPU timer results when supported.
+- Current-machine production allocation: 40 near + 120 mid + 590 far, total 750.
+- Raw full-state JSON is not a viable high-population transport; compact tiered horde replication is mandatory.
+- Per-instance skeleton GPU resources are now disposed, and every benchmark scenario returns renderer textures to zero after cleanup.
+- Hardware caveat and lower-class release gates are documented in `ENEMY_CAPACITY_BENCHMARK.md`.
+
 ## Next work
 
-1. Extend the existing enemy benchmark to capture CPU, render, animation, and replication budgets at defined populations.
-2. Build the urban environment as a separate prototype/profile using the preserved source ZIPs; do not replace the current map.
-3. Run the complete final command matrix and update this handoff with commit SHAs and measured results.
+1. Build the urban environment as a separate prototype/profile using the preserved source ZIPs; do not replace the current map.
+2. Run the complete final command matrix and update this handoff with commit SHAs and measured results.
 
 ## Known observations
 

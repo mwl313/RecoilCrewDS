@@ -46,6 +46,18 @@ Implemented:
 
 Findings, exact lighting/material values, evidence, and acceptance coverage are in [MONSTER_PRESENTATION_AUDIT.md](MONSTER_PRESENTATION_AUDIT.md).
 
+## Phase C — complete
+
+Implemented:
+
+- Fixed 100/250/500/750 server and renderer population matrices.
+- Separate authoritative step, enemy AI, interpolation, compact replication, raw snapshot, CPU frame, GPU frame, draw-call, triangle, mixer, skin, shadow, projectile, XP, memory, and state-growth measurements.
+- Automated current-machine browser benchmark with WebGL GPU timer support and committed JSON evidence.
+- Per-instance skeleton disposal after the benchmark exposed accumulating GPU bone textures.
+- Data-backed production allocation of 40 near, 120 mid and up to 590 animated far within a 750 current-machine total.
+
+Measured results, hardware limitations, lower-tier release gates and raw evidence are in [ENEMY_CAPACITY_BENCHMARK.md](ENEMY_CAPACITY_BENCHMARK.md).
+
 ## Qualification notes
 
 - The full suite initially reported one legitimate test update needed for the new authoritative dash gate (`roadkill.test.ts` now supplies `dashState = 'burst'`).
@@ -54,6 +66,5 @@ Findings, exact lighting/material values, evidence, and acceptance coverage are 
 
 ## Remaining phases
 
-- Phase C: repeatable enemy-capacity benchmark, budgets, and recommendations.
 - Phase D: current-map cohesion pass plus separate urban-apocalypse prototype and comparison.
 - Final: complete required command matrix, browser evidence, reports, focused commits, and branch handoff.
