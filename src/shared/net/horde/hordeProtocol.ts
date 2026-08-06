@@ -21,6 +21,8 @@ export interface HordeSnapshotBlock {
   seq: number;
   /** [id, type, xq, zq, yawq, hpq, maxHpq, flags, profileIndex] for newly seen enemies. */
   materialize: number[][];
+  /** Semantic presentation cues: [id, sequence, actionIndex, startTick, durationTicks]. */
+  cues: number[][];
   /** Enemy ids removed (purge/cleanup) — never a kill, no reward semantics. */
   despawn: number[];
   /** Enemy ids that died since the last snapshot. */
@@ -98,6 +100,24 @@ export function presentationProfileIndex(e: EnemyState): number {
 export function presentationProfileIdForIndex(index: number): string | undefined {
   if (!Number.isInteger(index) || index <= 0) return undefined;
   return ENEMY_ANIMATION_PRESENTATION_PROFILE_ORDER[index - 1];
+}
+
+/** Semantic presentation actions (Idle/Walk/Attack/Death) with a tiny codec. */
+const SEMANTIC_ACTION_ORDER = [
+  'enemy.semantic.idle',
+  'enemy.semantic.walk',
+  'enemy.semantic.attack',
+  'enemy.semantic.death',
+] as const;
+
+export function semanticActionIndex(actionId: string): number {
+  const i = SEMANTIC_ACTION_ORDER.indexOf(actionId as (typeof SEMANTIC_ACTION_ORDER)[number]);
+  return i < 0 ? 0 : i + 1;
+}
+
+export function semanticActionIdForIndex(index: number): string | undefined {
+  if (!Number.isInteger(index) || index <= 0) return undefined;
+  return SEMANTIC_ACTION_ORDER[index - 1];
 }
 
 export function encodeDelta(e: EnemyState): number[] {

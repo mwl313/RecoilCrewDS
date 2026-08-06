@@ -13,6 +13,8 @@ import {
   HORDE_FLAG_TELEGRAPH,
   materializeTypeName,
   presentationProfileIdForIndex,
+  semanticActionIdForIndex,
+  semanticActionIndex,
   quantizeHp,
   quantizeXZ,
   quantizeYaw,
@@ -48,6 +50,7 @@ const SNAPSHOT_HZ = 20;
  */
 export class HordeReplicationTracker {
   private readonly last = new Map<number, LastRecord>();
+  private readonly lastCue = new Map<number, number>();
   private seq = 0;
   private frame = 0;
   private lastSectors = '';
@@ -71,6 +74,7 @@ export class HordeReplicationTracker {
     const block: HordeSnapshotBlock = {
       seq: ++this.seq,
       materialize: [],
+      cues: [],
       despawn: [],
       death: [],
       near: [],
@@ -91,9 +95,11 @@ export class HordeReplicationTracker {
 
     for (const e of enemies) {
       seen.add(e.id);
+      this.pushCue(block, e);
       if (!e.alive) {
         const prev = this.last.get(e.id);
         if (prev && prev.alive) block.death.push(e.id);
+        this.lastCue.delete(e.id);
         this.last.delete(e.id);
         continue;
       }
@@ -137,6 +143,7 @@ export class HordeReplicationTracker {
     for (const [id, prev] of [...this.last]) {
       if (!seen.has(id)) {
         if (prev.alive) block.despawn.push(id);
+        this.lastCue.delete(id);
         this.last.delete(id);
       }
     }
@@ -146,8 +153,26 @@ export class HordeReplicationTracker {
     return block;
   }
 
+  /** Emit a semantic presentation cue exactly once per sequence change. */
+  private pushCue(block: HordeSnapshotBlock, e: EnemyState): void {
+    const cue = e.actionCue;
+    if (!cue) return;
+    const actionIndex = semanticActionIndex(cue.actionId);
+    if (actionIndex === 0) return;
+    if (this.lastCue.get(e.id) === cue.sequence) return;
+    this.lastCue.set(e.id, cue.sequence);
+    block.cues.push([
+      e.id,
+      cue.sequence,
+      actionIndex,
+      Math.max(0, Math.round(cue.startedAtTick)),
+      Math.max(0, Math.round(cue.durationTicks)),
+    ]);
+  }
+
   reset(): void {
     this.last.clear();
+    this.lastCue.clear();
     this.seq = 0;
     this.frame = 0;
     this.stats = { enemyBytes: 0, serializeMs: 0, deltaQueue: 0 };
@@ -202,6 +227,18 @@ export class HordeReplicationClient {
     for (const rec of block.sectors) {
       const sector = decodeSector(rec);
       this.sectors.set(sector.sectorId, sector);
+    }
+    for (const rec of block.cues) {
+      const [id, sequence, actionIndex, startTick, durationTicks] = rec;
+      const enemy = this.enemies.get(id);
+      const actionId = semanticActionIdForIndex(actionIndex);
+      if (!enemy || !actionId) continue;
+      enemy.actionCue = {
+        sequence,
+        actionId,
+        startedAtTick: startTick,
+        durationTicks,
+      };
     }
     for (const id of block.death) {
       const e = this.enemies.get(id);

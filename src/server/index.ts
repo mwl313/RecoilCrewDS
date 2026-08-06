@@ -100,7 +100,9 @@ if (fs.existsSync(CONTENT_DIR)) {
     packId: contentPack.id,
     version: contentPack.version,
     hash: contentPack.hash,
-    modeId: contentPack.modeId,
+    // Live multiplayer uses the production main-stage loop; the Demo mode
+    // remains a content fixture for tests and previews.
+    modeId: 'mode.mainStage',
   };
   console.log(`[recoil-crew] content pack ${contentPack.id}@${contentPack.version} hash=${contentPack.hash.slice(0, 12)} mode=${contentPack.modeId}`);
 } else {

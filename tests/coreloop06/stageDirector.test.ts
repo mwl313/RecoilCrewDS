@@ -3,6 +3,7 @@ import { StageDirector } from '../../src/shared/stage/stageDirector';
 import { FarmingClock } from '../../src/shared/stage/farmingClock';
 import { GameplayEventBus } from '../../src/shared/core/gameplayEventBus';
 import type { StageEvent } from '../../src/shared/stage/stageTypes';
+import type { StageSequenceConfig } from '../../src/shared/stage/stageTypes';
 
 const DT = 1 / 30;
 
@@ -27,6 +28,26 @@ function killLeader(stage: StageDirector, flush: () => void): void {
   flush();
 }
 
+const PRODUCTION_SEQUENCE: StageSequenceConfig = {
+  farmingCountdownSeconds: 180,
+  triggers: [
+    { atRemainingSeconds: 120, waveId: 'wave.production.wave1' },
+    { atRemainingSeconds: 60, waveId: 'wave.production.wave2' },
+  ],
+  bossAtRemainingSeconds: 0,
+  pauseCountdownDuringWave: false,
+};
+
+function makeProductionStage(): { stage: StageDirector; events: StageEvent[]; flush: () => void } {
+  const bus = new GameplayEventBus();
+  const events: StageEvent[] = [];
+  bus.subscribe('stageEvent', (e) => events.push(e as StageEvent));
+  const stage = new StageDirector(PRODUCTION_SEQUENCE, bus);
+  stage.start();
+  bus.drain();
+  return { stage, events, flush: () => bus.drain() };
+}
+
 describe('FarmingClock', () => {
   it('advances only while running and pauses/resumes', () => {
     const c = new FarmingClock(180);
@@ -38,6 +59,45 @@ describe('FarmingClock', () => {
     c.resume();
     c.advance(10);
     expect(c.remaining).toBe(160);
+  });
+});
+
+describe('StageDirector production sequence (non-pausing countdown)', () => {
+  it('keeps the farming clock running through wave1 and opens wave2 at 60 remaining', () => {
+    const { stage, flush } = makeProductionStage();
+    step(stage, 60 + DT, flush);
+    expect(stage.state.phase).toBe('wave1');
+    expect(stage.state.activeWaveId).toBe(1);
+    expect(stage.state.farmingTimeRemaining).toBeLessThanOrEqual(120);
+    expect(stage.state.farmingTimeRemaining).toBeGreaterThan(119.9);
+    // Countdown keeps running while the wave is active (no pause).
+    step(stage, 30, flush);
+    expect(stage.state.phase).toBe('wave1');
+    expect(stage.state.farmingTimeRemaining).toBeLessThan(90);
+    expect(stage.state.farmingTimeRemaining).toBeGreaterThan(89.9);
+    killLeader(stage, flush);
+    expect(stage.state.phase).toBe('farming2');
+    // The countdown never paused, so wave2 still opens when it crosses the
+    // 60-second threshold (sim time ~120), not after the wave clears.
+    step(stage, 30 + DT, flush);
+    expect(stage.state.phase).toBe('wave2');
+    expect(stage.state.activeWaveId).toBe(2);
+    expect(stage.state.farmingTimeRemaining).toBeLessThanOrEqual(60);
+  });
+
+  it('reaches the boss wave at 180 sim seconds and stays at zero', () => {
+    const { stage, events, flush } = makeProductionStage();
+    step(stage, 60 + DT, flush);
+    killLeader(stage, flush);
+    step(stage, 60 + DT, flush);
+    killLeader(stage, flush);
+    expect(stage.state.phase).toBe('farming3');
+    step(stage, 60, flush);
+    expect(stage.state.phase).toBe('bossWave');
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(0, 5);
+    expect(events.some((e) => e.type === 'bossStarted')).toBe(true);
+    step(stage, 20, flush);
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(0, 5);
   });
 });
 

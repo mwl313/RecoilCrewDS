@@ -52,6 +52,14 @@ describe('enemy animation state resolver (animation07 M6)', () => {
     expect(r.reason).toContain('action cue');
   });
 
+  it('semantic monster cues map to Idle/Walk/Attack/Death roles', () => {
+    expect(resolveEnemyAnimationState(PROFILE, { alive: true, state: 'hunt', stateT: 0, speed: 0, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.semantic.idle') }).role).toBe('idle');
+    expect(resolveEnemyAnimationState(PROFILE, { alive: true, state: 'hunt', stateT: 0, speed: 2, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.semantic.walk') }).role).toBe('walk');
+    expect(resolveEnemyAnimationState(PROFILE, { alive: true, state: 'hunt', stateT: 0, speed: 9, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.semantic.walk') }).role).toBe('run');
+    expect(resolveEnemyAnimationState(PROFILE, { alive: true, state: 'hunt', stateT: 0, speed: 0, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.semantic.attack') }).role).toBe('attackPrimary');
+    expect(resolveEnemyAnimationState(PROFILE, { alive: false, state: 'dead', stateT: 0, speed: 0, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.semantic.death') }).role).toBe('death');
+  });
+
   it('a finished cue falls through to normal inference', () => {
     const r = resolveEnemyAnimationState(PROFILE, { alive: true, state: 'hunt', stateT: 0, speed: 1, telegraph: 0, flash: 0, airborne: false, cue: cue('enemy.attack.primary'), currentTick: 60 });
     expect(r.role).toBe('walk');

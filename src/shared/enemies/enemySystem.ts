@@ -262,6 +262,7 @@ export class EnemySystem {
         moving: runtime.speed > 0.2 && runtime.distToTank > 0.5,
         attacking: runtime.attackRuntime?.active === true,
       });
+      if (e.monster) this.syncSemanticCue(e, runtime);
       if (!e.alive) {
         e.stateT += dt;
         continue;
@@ -300,6 +301,31 @@ export class EnemySystem {
     for (const id of [...this.runtimes.keys()]) {
       if (!live.has(id)) this.runtimes.delete(id);
     }
+  }
+
+  /**
+   * Authoritative compact semantic cue for client presentation. Written
+   * only for generalized monsters; legacy enemies keep legacy inference.
+   * Attack cues refresh per attack cycle so each swing is a distinct
+   * presentation event. Animation never decides gameplay.
+   */
+  private syncSemanticCue(e: EnemyState, runtime: EnemyRuntimeState): void {
+    const action = runtime.semanticAction;
+    const cycle = runtime.attackRuntime?.active === true ? runtime.attackSequence + 1 : 0;
+    const sequence = runtime.semanticSequence * 1000 + cycle;
+    if (e.actionCue?.sequence === sequence) return;
+    const durationSeconds =
+      action === 'Attack'
+        ? runtime.attackRuntime?.cycleDuration ?? 1
+        : action === 'Death'
+          ? 1.2
+          : 0;
+    e.actionCue = {
+      sequence,
+      actionId: `enemy.semantic.${action.toLowerCase()}`,
+      startedAtTick: Math.round(this.ctx.state.time * 30),
+      durationTicks: Math.max(0, Math.round(durationSeconds * 30)),
+    };
   }
 
   /** Current LOD tier for an enemy (public for tests and debug overlays). */

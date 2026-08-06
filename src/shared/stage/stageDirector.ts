@@ -68,6 +68,13 @@ export class StageDirector {
       } else if (this.state.phase === 'farming3' && remaining <= this.config.bossAtRemainingSeconds) {
         this.beginWave('bossWave', 3, this.config.bossAtRemainingSeconds);
       }
+    } else if (!this.config.pauseCountdownDuringWave) {
+      // Production sequence: the farming clock keeps running through waves
+      // so the 60/120/180 second cadence is simulation time, never extended
+      // by wave duration. Trigger checks stay in farming phases; a wave that
+      // outlives the next threshold simply begins as soon as it clears.
+      this.clock.advance(input.dt);
+      this.state.farmingTimeRemaining = this.clock.remaining;
     }
   }
 
@@ -102,11 +109,15 @@ export class StageDirector {
   }
 
   private beginWave(phase: 'wave1' | 'wave2' | 'bossWave', waveId: number, resumeRemaining: number): void {
-    // Snap to the exact trigger threshold so leader death resumes at the
-    // authored value (120/60/0) without accumulated fixed-step drift.
-    this.clock.remaining = resumeRemaining;
-    this.state.farmingTimeRemaining = resumeRemaining;
-    this.clock.pause();
+    // Demo pauses the countdown during a wave and resumes at the exact
+    // trigger threshold (120/60/0) without accumulated fixed-step drift.
+    // Production keeps the clock running, so the current remaining value is
+    // preserved rather than snapped backwards.
+    if (this.config.pauseCountdownDuringWave) {
+      this.clock.remaining = resumeRemaining;
+      this.state.farmingTimeRemaining = resumeRemaining;
+    }
+    if (this.config.pauseCountdownDuringWave) this.clock.pause();
     this.transition(phase);
     this.state.activeWaveId = waveId;
     this.state.activeLeaderId = null;

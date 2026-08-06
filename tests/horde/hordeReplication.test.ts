@@ -12,6 +12,8 @@ import {
   flagsFor,
   presentationProfileIdForIndex,
   presentationProfileIndex,
+  semanticActionIdForIndex,
+  semanticActionIndex,
   quantizeXZ,
   quantizeYaw,
   type HordeSnapshotBlock,
@@ -51,6 +53,19 @@ const POLICY = {
 };
 
 describe('horde record codec', () => {
+  it('round-trips semantic action codec indexes', () => {
+    for (const id of [
+      'enemy.semantic.idle',
+      'enemy.semantic.walk',
+      'enemy.semantic.attack',
+      'enemy.semantic.death',
+    ]) {
+      expect(semanticActionIdForIndex(semanticActionIndex(id))).toBe(id);
+    }
+    expect(semanticActionIdForIndex(0)).toBeUndefined();
+    expect(semanticActionIndex('enemy.semantic.nope')).toBe(0);
+  });
+
   it('round-trips quantized materialize and delta records', () => {
     const e = enemy(7, 12.34, -56.78, 1.2345, 7.3);
     const m = encodeMaterialize(e);
@@ -128,6 +143,52 @@ describe('HordeReplicationTracker (server, M9)', () => {
     expect(block.wave?.waveId).toBe(1);
     expect(block.wave?.leaderHp).toBe(4);
   });
+
+  it('replicates semantic presentation cues once per sequence and applies them on the client', () => {
+    const tracker = new HordeReplicationTracker(POLICY);
+    const a = enemy(1, 0, 0, 0, 10);
+    a.actionCue = {
+      sequence: 5,
+      actionId: 'enemy.semantic.attack',
+      startedAtTick: 60,
+      durationTicks: 30,
+    };
+    const b1 = tracker.track([a], 2, null, () => 0);
+    expect(b1.cues).toEqual([[1, 5, 3, 60, 30]]);
+    const b2 = tracker.track([a], 2.05, null, () => 0);
+    expect(b2.cues).toEqual([]);
+    a.actionCue = {
+      sequence: 9,
+      actionId: 'enemy.semantic.death',
+      startedAtTick: 75,
+      durationTicks: 36,
+    };
+    const b3 = tracker.track([a], 2.5, null, () => 0);
+    expect(b3.cues).toEqual([[1, 9, 4, 75, 36]]);
+
+    const client = new HordeReplicationClient(() => 0);
+    client.apply(
+      {
+        seq: 1,
+        materialize: [encodeMaterialize(a)],
+        cues: [[1, 5, 3, 60, 30]],
+        despawn: [],
+        death: [],
+        near: [],
+        mid: [],
+        far: [],
+        sectors: [],
+        wave: null,
+      },
+      2,
+    );
+    expect(client.enemies.get(1)?.actionCue).toEqual({
+      sequence: 5,
+      actionId: 'enemy.semantic.attack',
+      startedAtTick: 60,
+      durationTicks: 30,
+    });
+  });
 });
 
 describe('HordeReplicationClient (client, M9)', () => {
@@ -138,6 +199,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     const b1: HordeSnapshotBlock = {
       seq: 1,
       materialize: [encodeMaterialize(a), encodeMaterialize(b)],
+      cues: [],
       despawn: [],
       death: [],
       near: [],
@@ -153,6 +215,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     const b2: HordeSnapshotBlock = {
       seq: 2,
       materialize: [],
+      cues: [],
       despawn: [2],
       death: [],
       near: [encodeDelta({ ...a, x: 12, yaw: 0.5 })],
@@ -179,6 +242,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     client.apply({
       seq: 1,
       materialize: [rec],
+      cues: [],
       despawn: [],
       death: [],
       near: [],
@@ -196,6 +260,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     client.apply({
       seq: 1,
       materialize: [encodeMaterialize(a)],
+      cues: [],
       despawn: [],
       death: [1],
       near: [],
@@ -214,6 +279,7 @@ describe('HordeReplicationClient (client, M9)', () => {
     client.apply({
       seq: 1,
       materialize: [encodeMaterialize(enemy(1, 0, 0, 0, 10))],
+      cues: [],
       despawn: [],
       death: [],
       near: [],

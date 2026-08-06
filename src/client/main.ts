@@ -10,6 +10,7 @@ import { DebugOverlay } from './app/debugOverlay';
 import { PresentationWorld } from './presentation/presentationWorld';
 import { CLIENT_CONTENT_PACK } from '../generated/contentPack.generated';
 import type { GameSessionKind } from '../shared/session/gameSessionKind';
+import { SINGLE_PLAYER_SESSION } from '../shared/session/gameSessionKind';
 import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
 import {
   reconstructArenaSession,
@@ -70,6 +71,7 @@ let singlePlayerMatchIndex = 0;
 let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
+let lastPreloadedMatchId = '';
 let localPlayerId = '';
 let lobbyState: ClientLobbyState | null = null;
 let lobbyChat: LobbyChatMessage[] = [];
@@ -267,9 +269,9 @@ net.onMessage = (msg) => {
       break;
     case 'start':
       if (msg.arena) {
-        void startOnlineWithArena(role, msg.arena as ArenaMetadata);
+        void startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined);
       } else {
-        void startOnline(role, null);
+        void startOnline(role, null, msg.matchId as string | undefined);
       }
       hud.hideCountdown();
       break;
@@ -284,6 +286,16 @@ net.onMessage = (msg) => {
       }
       const horde = msg.horde as HordeSnapshotBlock | undefined;
       latestStageView = msg.stage as HordeStageView | undefined;
+      const snapshotState = msg.state as MatchState | undefined;
+      if (
+        latestStageView?.monster &&
+        snapshotState?.matchId &&
+        game &&
+        snapshotState.matchId !== lastPreloadedMatchId
+      ) {
+        lastPreloadedMatchId = snapshotState.matchId;
+        void game.preloadSelectedRun(CLIENT_CONTENT_PACK, snapshotState.matchId, 'mode.mainStage');
+      }
       let sectors: Array<{
         sectorId: number;
         x: number;
@@ -430,14 +442,14 @@ function showMapError(reason: string): void {
   mapGateFailed = true;
 }
 
-async function startOnlineWithArena(r: Role, meta: ArenaMetadata): Promise<void> {
+async function startOnlineWithArena(r: Role, meta: ArenaMetadata, matchId?: string): Promise<void> {
   const session = buildSessionFromMetadata(meta);
   if ('error' in session) {
     showMapError(session.error);
     return;
   }
   arenaSession = session;
-  await startOnline(r, session.world);
+  await startOnline(r, session.world, matchId);
 }
 
 async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void> {
@@ -466,9 +478,13 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean): Promise<void
   if (results) flow = 'results';
 }
 
-async function startOnline(r: Role, world: ArenaWorld | null): Promise<void> {
+async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string): Promise<void> {
   sessionKind = 'multiplayer';
   if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
+  if (matchId && matchId !== lastPreloadedMatchId) {
+    await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, 'mode.mainStage');
+    lastPreloadedMatchId = matchId;
+  }
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
   game.startOnline(r);
@@ -488,14 +504,17 @@ async function startSinglePlayer(): Promise<void> {
   const session = buildSinglePlayerSession();
   arenaSession = session.metadata ? session : null;
   singlePlayerMatchIndex++;
+  const matchId = 'single-' + Date.now();
   game = await createGame(session.world);
+  await game.preloadSelectedRun(CLIENT_CONTENT_PACK, matchId, SINGLE_PLAYER_SESSION.rulesModeId);
+  lastPreloadedMatchId = matchId;
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
     hud.showSinglePlayerResults(results as never);
     input.releaseLock();
     flow = 'results';
   };
-  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world);
+  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId);
   game.suppressAutoInput = TEST_MODE;
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);

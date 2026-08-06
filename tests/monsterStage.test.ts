@@ -23,6 +23,10 @@ import {
   createEnemySemanticScratch,
   updateEnemySemantics,
 } from '../src/shared/monsters/monsterSemantics';
+import {
+  monsterPhaseForStage,
+  stageViewForMatch,
+} from '../src/shared/monsters/monsterStageView';
 
 const pack = loadContentPackFromFilesystem('content');
 const roster = pack.getEnemyGameplayRoster('enemyGameplayRoster.quaternius.mainStage');
@@ -316,5 +320,57 @@ describe('monster stage timeline', () => {
     prod.systems.damage.applyEnemy(foe, 99999, 'test');
     for (let i = 0; i < 3; i++) prod.step(1 / 60);
     expect(prod.systems.enemies.semanticFor(foe.id).action).toBe('Death');
+  });
+
+  it('writes authoritative semantic action cues for monsters (attack then death)', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-cue', 'none', 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.ninja');
+    const foe = prod.systems.enemies.spawnEnemyDef(def, prod.state.tank.x + 1, prod.state.tank.z);
+    if (!foe) throw new Error('spawn failed');
+    for (let i = 0; i < 300 && prod.state.phase === 'countdown'; i++) prod.step(1 / 60);
+    for (let i = 0; i < 240; i++) {
+      prod.step(1 / 60);
+      if (foe.actionCue?.actionId === 'enemy.semantic.attack') break;
+    }
+    expect(foe.actionCue?.actionId).toBe('enemy.semantic.attack');
+    const attackSeq = foe.actionCue!.sequence;
+    prod.systems.damage.applyEnemy(foe, 99999, 'test');
+    prod.step(1 / 60);
+    expect(foe.actionCue?.actionId).toBe('enemy.semantic.death');
+    expect(foe.actionCue!.sequence).toBeGreaterThan(attackSeq);
+  });
+
+  it('stage view carries the monster block with level, phase, and encounters', () => {
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-view', 'none', 'mode.mainStage');
+    prod.state.time = 45;
+    const view = stageViewForMatch(prod);
+    expect(view.monster?.phase).toBe('FARMING');
+    expect(view.monster?.level).toBe(4);
+    const eliteDef = pack.getEnemy(prod.systems.monsterSlots!['selected.wave1.elite0']);
+    const elite = prod.systems.enemies.spawnEnemyDef(eliteDef, prod.state.tank.x + 10, prod.state.tank.z);
+    expect(elite).not.toBeNull();
+    const bossDef = pack.getEnemy(prod.systems.monsterSlots!['selected.boss']);
+    const boss = prod.systems.enemies.spawnEnemyDef(bossDef, prod.state.tank.x + 20, prod.state.tank.z);
+    expect(boss).not.toBeNull();
+    const full = stageViewForMatch(prod);
+    const eliteRow = full.monster!.encounters.find((e) => e.slotId === 'selected.wave1.elite0');
+    const bossRow = full.monster!.encounters.find((e) => e.slotId === 'selected.boss');
+    expect(eliteRow?.kind).toBe('elite');
+    expect(eliteRow?.alive).toBe(true);
+    expect(eliteRow?.maxHp).toBeGreaterThan(0);
+    expect(bossRow?.kind).toBe('boss');
+    expect(bossRow?.alive).toBe(true);
+  });
+
+  it('demo stage view has no monster block and the boss wave maps to BOSS_ACTIVE after intro', () => {
+    const demo = MatchRuntime.fromContentPack(pack, 'demo-view');
+    expect(stageViewForMatch(demo).monster).toBeUndefined();
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-bossview', 'none', 'mode.mainStage');
+    const stage = prod.systems.stage.state;
+    stage.phase = 'bossWave';
+    stage.phaseStartedAt = stage.totalElapsedTime - 1;
+    expect(monsterPhaseForStage(stage)).toBe('BOSS_INTRO');
+    stage.phaseStartedAt = stage.totalElapsedTime - 10;
+    expect(monsterPhaseForStage(stage)).toBe('BOSS_ACTIVE');
   });
 });

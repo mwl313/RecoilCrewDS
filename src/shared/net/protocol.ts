@@ -13,6 +13,29 @@ export interface HordeStageView {
   waveId: number | null;
   leaderHp: number;
   leaderMaxHp: number;
+  /** Production monster loop (present only for gameplay-roster modes). */
+  monster?: HordeMonsterStageView;
+}
+
+export type HordeMonsterPhase = 'FARMING' | 'BOSS_INTRO' | 'BOSS_ACTIVE' | 'RESULTS';
+
+export interface HordeEncounterView {
+  /** Slot id in the selected-run plan (selected.waveN.eliteI / selected.boss). */
+  slotId: string;
+  enemyId: string;
+  label: string;
+  hp: number;
+  maxHp: number;
+  alive: boolean;
+  kind: 'elite' | 'boss';
+}
+
+export interface HordeMonsterStageView {
+  phase: HordeMonsterPhase;
+  /** Current authoritative monster level (1-13). */
+  level: number;
+  /** Active elite/boss encounter rows for the HUD encounter bars. */
+  encounters: HordeEncounterView[];
 }
 
 /**

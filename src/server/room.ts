@@ -22,6 +22,7 @@ import { computeStartEligibility } from '../shared/lobby/lobbyEligibility';
 import { isCrewSeat, seatConflict, validateChatText } from '../shared/lobby/lobbyValidation';
 import { validateNickname } from '../shared/lobby/nicknameValidation';
 import { generateDefaultNickname } from '../shared/lobby/nicknamePool';
+import { stageViewForMatch } from '../shared/monsters/monsterStageView';
 
 export interface SocketLike {
   send(msg: unknown): void;
@@ -137,27 +138,8 @@ function waveStateFor(match: Match): HordeWaveState | null {
   };
 }
 
-function stageViewFor(match: Match): {
-  phase: string;
-  farmingTimeRemaining: number;
-  waveId: number | null;
-  leaderHp: number;
-  leaderMaxHp: number;
-} {
-  const stage = match.runtime.systems.stage.state;
-  const horde = match.runtime.systems.horde;
-  const runtime =
-    horde && horde.currentWaveId !== null
-      ? match.runtime.systems.waves.waves.get(horde.currentWaveId)
-      : undefined;
-  const leader = runtime ? match.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
-  return {
-    phase: stage.phase,
-    farmingTimeRemaining: stage.farmingTimeRemaining,
-    waveId: stage.activeWaveId,
-    leaderHp: leader?.hp ?? 0,
-    leaderMaxHp: leader?.maxHp ?? 0,
-  };
+function stageViewFor(match: Match) {
+  return stageViewForMatch(match.runtime);
 }
 
 function sanitizeDriver(raw: unknown): DriverInput | null {
@@ -719,8 +701,12 @@ export class RoomManager {
     } else {
       room.arenaSession = null;
     }
+    // Production multiplayer runs the main-stage horde loop. The room's
+    // content metadata is authoritative when present (tests and fixture
+    // servers keep the Demo mode); the live server pins mode.mainStage.
+    const modeId = this.contentMeta?.modeId ?? (this.pack ? 'mode.mainStage' : undefined);
     room.match = this.pack
-      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world)
+      ? new Match(room.code + '-' + this.now(), room.rematchModifier, this.pack, world, modeId)
       : new Match(room.code + '-' + this.now(), room.rematchModifier, undefined, world);
     const hordeDef = room.match.rules.hordeDirector;
     room.hordeReplication =

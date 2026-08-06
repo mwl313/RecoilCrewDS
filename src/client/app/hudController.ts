@@ -1,5 +1,6 @@
 import type { Hud } from '../hud';
 import type { MatchState, Role } from '../../shared/types';
+import type { HordeMonsterStageView } from '../../shared/net/protocol';
 
 export interface HudContext {
   role: Role;
@@ -21,6 +22,7 @@ export interface HudContext {
     waveId: number | null;
     leaderHp: number;
     leaderMaxHp: number;
+    monster?: HordeMonsterStageView;
   };
 }
 

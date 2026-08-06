@@ -29,6 +29,11 @@ import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector'
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
+import { stageViewForMatch } from '../../shared/monsters/monsterStageView';
+import {
+  resolveSelectedMonsterRun,
+  resolveSelectedPreloadAssetIds,
+} from '../../shared/monsters/monsterPreload';
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -237,12 +242,13 @@ export class GameClient {
   }
 
   /** Single Player: one local ContentPack-driven match with combined controls. */
-  startSinglePlayer(pack: ContentPack, world: ArenaWorld): void {
+  startSinglePlayer(pack: ContentPack, world: ArenaWorld, matchId?: string): void {
     this.contentPack = pack;
     this.session = SINGLE_PLAYER_SESSION;
     this.cameras.setSinglePlayerMode(true);
+    const resolvedMatchId = matchId ?? 'single-' + Date.now();
     this.singlePlayerMatch = new Match(
-      'single-' + Date.now(),
+      resolvedMatchId,
       'none',
       pack,
       world,
@@ -259,6 +265,17 @@ export class GameClient {
     this.prediction.setGround(this.arenaWorld);
     this.running = true;
     this.loop();
+  }
+
+  /**
+   * Stage-selective preload for the deterministic selected run. Only the
+   * assets used by the run are fetched; Demo and optional monsters are
+   * never preloaded here.
+   */
+  async preloadSelectedRun(pack: ContentPack, matchId: string, modeId: string): Promise<void> {
+    const run = resolveSelectedMonsterRun(pack, matchId, modeId);
+    if (!run) return;
+    await this.assets.preloadModels(resolveSelectedPreloadAssetIds(pack, run));
   }
 
   /**
@@ -325,23 +342,23 @@ export class GameClient {
     waveId: number | null;
     leaderHp: number;
     leaderMaxHp: number;
+    monster?: {
+      phase: 'FARMING' | 'BOSS_INTRO' | 'BOSS_ACTIVE' | 'RESULTS';
+      level: number;
+      encounters: Array<{
+        slotId: string;
+        enemyId: string;
+        label: string;
+        hp: number;
+        maxHp: number;
+        alive: boolean;
+        kind: 'elite' | 'boss';
+      }>;
+    };
   } | undefined {
     const m = this.singlePlayerMatch;
     if (!m) return undefined;
-    const stage = m.runtime.systems.stage.state;
-    const horde = m.runtime.systems.horde;
-    const runtime =
-      horde && horde.currentWaveId !== null
-        ? m.runtime.systems.waves.waves.get(horde.currentWaveId)
-        : undefined;
-    const leader = runtime ? m.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
-    return {
-      phase: stage.phase,
-      farmingTimeRemaining: stage.farmingTimeRemaining,
-      waveId: stage.activeWaveId,
-      leaderHp: leader?.hp ?? 0,
-      leaderMaxHp: leader?.maxHp ?? 0,
-    };
+    return stageViewForMatch(m.runtime);
   }
 
   /** Core Loop 06 M11: horde debug metrics (single player match only). */
