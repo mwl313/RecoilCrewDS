@@ -32,6 +32,9 @@ export class StageDirector {
       phase: 'farming1',
       farmingTimeRemaining: config.farmingCountdownSeconds,
       totalElapsedTime: 0,
+      activeFarmingElapsed: 0,
+      phaseActiveFarmingStartedAt: 0,
+      bossIntroRemaining: 0,
       activeWaveId: null,
       activeLeaderId: null,
       phaseStartedAt: 0,
@@ -58,6 +61,7 @@ export class StageDirector {
     if (farming) {
       this.clock.advance(input.dt);
       this.state.farmingTimeRemaining = this.clock.remaining;
+      this.state.activeFarmingElapsed += input.dt;
       const remaining = this.clock.remaining;
       if (this.state.phase === 'farming1') {
         const trigger = this.config.triggers[0];
@@ -68,13 +72,9 @@ export class StageDirector {
       } else if (this.state.phase === 'farming3' && remaining <= this.config.bossAtRemainingSeconds) {
         this.beginWave('bossWave', 3, this.config.bossAtRemainingSeconds);
       }
-    } else if (!this.config.pauseCountdownDuringWave) {
-      // Production sequence: the farming clock keeps running through waves
-      // so the 60/120/180 second cadence is simulation time, never extended
-      // by wave duration. Trigger checks stay in farming phases; a wave that
-      // outlives the next threshold simply begins as soon as it clears.
-      this.clock.advance(input.dt);
-      this.state.farmingTimeRemaining = this.clock.remaining;
+    } else if (this.state.phase === 'bossWave' && this.state.bossIntroRemaining > 0) {
+      this.state.bossIntroRemaining = Math.max(0, this.state.bossIntroRemaining - input.dt);
+      if (this.state.bossIntroRemaining <= 0) this.emit('bossActive');
     }
   }
 
@@ -116,6 +116,8 @@ export class StageDirector {
     if (this.config.pauseCountdownDuringWave) {
       this.clock.remaining = resumeRemaining;
       this.state.farmingTimeRemaining = resumeRemaining;
+      this.state.bossIntroRemaining =
+        phase === 'bossWave' ? this.config.bossIntroSeconds : 0;
     }
     if (this.config.pauseCountdownDuringWave) this.clock.pause();
     this.transition(phase);
@@ -135,6 +137,9 @@ export class StageDirector {
   private transition(phase: StagePhase): void {
     this.state.phase = phase;
     this.state.phaseStartedAt = this.state.totalElapsedTime;
+    if (phase.startsWith('farming')) {
+      this.state.phaseActiveFarmingStartedAt = this.state.activeFarmingElapsed;
+    }
     this.state.phaseSequence++;
     this.emit('phaseChanged');
   }

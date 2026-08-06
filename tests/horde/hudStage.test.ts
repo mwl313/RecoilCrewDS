@@ -356,7 +356,7 @@ describe('stage HUD projection (M11)', () => {
     const warned = projector.project(state({ time: 57 }), base);
     expect(warned.stage.monster.waveWarning).toBe('WAVE 1 INCOMING');
     expect(warned.stage.monster.waveWarningVisible).toBe(true);
-    const quiet = projector.project(state({ time: 40 }), base);
+    const quiet = projector.project(state({ time: 40 }), { ...base, stage: { ...base.stage, farmingTimeRemaining: 126 } });
     expect(quiet.stage.monster.waveWarning).toBe('');
   });
 

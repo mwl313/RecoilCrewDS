@@ -14,7 +14,7 @@ import type {
   WaveDefinition,
 } from '../content/schemas/horde';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
-import type { StageEvent } from '../stage/stageTypes';
+import { phaseFarmingProgress, type StageEvent } from '../stage/stageTypes';
 import { PopulationManager, type PopulationTally } from './populationManager';
 import type { SpawnOwnership } from './spawnOwnership';
 import type { SpawnPlan } from './spawnPlanner';
@@ -76,6 +76,8 @@ export class HordeDirector {
   anchorFailures = 0;
   currentWaveId: number | null = null;
   private readonly packCooldowns = new Map<string, number>();
+  /** Deferred boss wave: opened exactly once after the authoritative intro. */
+  private pendingBossWave: BossWaveDefinition | null = null;
 
   constructor(
     private readonly ctx: SystemContext,
@@ -90,6 +92,16 @@ export class HordeDirector {
     const stage = this.ctx.stage;
     const tally = this.population.refresh();
     const phase = stage.state.phase;
+    if (
+      this.pendingBossWave &&
+      phase === 'bossWave' &&
+      stage.state.bossIntroRemaining <= 0 &&
+      this.currentWaveId === null
+    ) {
+      const def = this.pendingBossWave;
+      this.pendingBossWave = null;
+      this.openWave(def, true, 3);
+    }
     for (const [id, cd] of this.packCooldowns) {
       this.packCooldowns.set(id, cd - dt);
       if (cd - dt <= 0) this.packCooldowns.delete(id);
@@ -105,7 +117,7 @@ export class HordeDirector {
     this.refreshPhaseSlots(phaseIndex);
     const phase = this.resolved.farmingPhases[phaseIndex];
     const stage = this.ctx.stage;
-    const progress = Math.max(0, Math.min(1, (phase.durationSeconds - stage.state.farmingTimeRemaining) / Math.max(0.001, phase.durationSeconds)));
+    const progress = phaseFarmingProgress(stage.state, phase.durationSeconds);
     const entityTarget = lerp(phase.entityTargetStart, phase.entityTargetEnd, progress);
     const threatTarget = lerp(phase.threatTargetStart, phase.threatTargetEnd, progress);
     const income = lerp(phase.spawnIncomeStart, phase.spawnIncomeEnd, progress);
@@ -183,6 +195,20 @@ export class HordeDirector {
     const isBoss = event.waveId === 3;
     const def = isBoss ? this.resolved.bossWave : this.resolved.waves.get(this.waveIdToDefinitionId(event.waveId));
     if (!def) return;
+    if (isBoss && this.ctx.monsterRun) {
+      // Authoritative intro: do not spawn or simulate the boss/escorts until
+      // the stage's intro countdown completes. Demo keeps its immediate
+      // boss wave (permanent fixture).
+      this.pendingBossWave = this.resolved.bossWave;
+      pushEvent(this.ctx, 'assist', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {
+        label: 'BOSS INCOMING',
+      });
+      return;
+    }
+    this.openWave(def, isBoss, event.waveId ?? 1);
+  }
+
+  private openWave(def: BossWaveDefinition | WaveDefinition, isBoss: boolean, waveId: number): void {
     const runtime = this.ctx.waves.openWave({
       definitionId: def.id,
       leaderEnemyId: this.resolveLeader(def),
@@ -216,7 +242,7 @@ export class HordeDirector {
       }
     }
     pushEvent(this.ctx, 'assist', this.ctx.state.tank.x, this.ctx.state.tank.y + 2, this.ctx.state.tank.z, {
-      label: isBoss ? 'BOSS INCOMING' : `WAVE ${event.waveId} INCOMING`,
+      label: isBoss ? 'BOSS INCOMING' : `WAVE ${waveId} INCOMING`,
     });
   }
 

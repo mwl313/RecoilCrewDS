@@ -19,6 +19,12 @@ export interface StageRuntimeState {
   farmingTimeRemaining: number;
   /** Independent of the paused countdown; always advances with sim time. */
   totalElapsedTime: number;
+  /** Farming time that actually counted down (excludes elite-wave pauses). */
+  activeFarmingElapsed: number;
+  /** activeFarmingElapsed when the current farming phase began. */
+  phaseActiveFarmingStartedAt: number;
+  /** Seconds remaining in the authoritative boss intro (0 outside bossWave). */
+  bossIntroRemaining: number;
   activeWaveId: number | null;
   activeLeaderId: number | null;
   phaseStartedAt: number;
@@ -30,6 +36,8 @@ export interface StageSequenceConfig {
   triggers: Array<{ atRemainingSeconds: number; waveId: string }>;
   bossAtRemainingSeconds: number;
   pauseCountdownDuringWave: boolean;
+  /** Authoritative boss intro window; the boss wave simulates only after it. */
+  bossIntroSeconds: number;
 }
 
 export interface StageStepInput {
@@ -45,6 +53,7 @@ export type StageEventType =
   | 'waveLeaderKilled'
   | 'waveCleared'
   | 'bossStarted'
+  | 'bossActive'
   | 'stageCleared'
   | 'gameOver';
 
@@ -64,4 +73,14 @@ export const DEFAULT_STAGE_SEQUENCE: StageSequenceConfig = {
   ],
   bossAtRemainingSeconds: 0,
   pauseCountdownDuringWave: true,
+  bossIntroSeconds: 4,
 };
+
+/**
+ * Active phase-local farming progress (0..1). Elite-wave time never counts
+ * toward farming progress because activeFarmingElapsed pauses with the clock.
+ */
+export function phaseFarmingProgress(state: StageRuntimeState, durationSeconds: number): number {
+  const elapsed = Math.max(0, state.activeFarmingElapsed - state.phaseActiveFarmingStartedAt);
+  return Math.max(0, Math.min(1, elapsed / Math.max(0.001, durationSeconds)));
+}

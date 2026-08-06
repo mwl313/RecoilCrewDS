@@ -140,7 +140,15 @@ export function createSystemContext(
   ctx.statusEffects = new StatusEffectSystem(ctx);
   ctx.capabilities = new CapabilitySystem(state);
   ctx.contact = new TankContactCombat(ctx);
-  ctx.stage = new StageDirector(hordeDirector ? hordeDirector.stageSequence : DEFAULT_STAGE_SEQUENCE, eventBus);
+  ctx.stage = new StageDirector(
+    hordeDirector
+      ? {
+          ...hordeDirector.stageSequence,
+          bossIntroSeconds: hordeDirector.stageSequence.bossIntroSeconds ?? 4,
+        }
+      : DEFAULT_STAGE_SEQUENCE,
+    eventBus,
+  );
   ctx.waves = new WaveController(ctx, (waveId) => ctx.stage.notifyLeaderKilled());
   ctx.horde = hordeDirector ? new HordeDirector(ctx, hordeDirector) : null;
   ctx.spawnPlanner = new SpawnPlanner(

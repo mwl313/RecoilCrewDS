@@ -115,6 +115,7 @@ describe('production wave composition (bug-fix phase 1)', () => {
     step(m, 61);
     killWaveLeader(m);
     stepUntilPhase(m, 'bossWave');
+    step(m, 4.2);
     const stage = m.runtime.systems.stage.state;
     expect(stage.phase).toBe('bossWave');
     const horde = m.runtime.systems.horde!;

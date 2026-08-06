@@ -103,7 +103,7 @@ describe('monster stage timeline', () => {
   it('production packs, waves, and boss wave resolve through selected slots', () => {
     const slots = resolveSelectedSlots(roster, run);
     const sequence = pack.getStageSequence('horde.stageSequence.production');
-    expect(sequence.pauseCountdownDuringWave).toBe(false);
+    expect(sequence.pauseCountdownDuringWave).toBe(true);
     for (const packId of pack.getHordeDirector('horde.mainStage.production').packIds) {
       const def = pack.getSpawnPack(packId);
       const resolved = resolvePackSlotIds(def.entries, slots);
@@ -368,9 +368,9 @@ describe('monster stage timeline', () => {
     const prod = MatchRuntime.fromContentPack(pack, 'prod-bossview', 'none', 'mode.mainStage');
     const stage = prod.systems.stage.state;
     stage.phase = 'bossWave';
-    stage.phaseStartedAt = stage.totalElapsedTime - 1;
+    stage.bossIntroRemaining = 1;
     expect(monsterPhaseForStage(stage)).toBe('BOSS_INTRO');
-    stage.phaseStartedAt = stage.totalElapsedTime - 10;
+    stage.bossIntroRemaining = 0;
     expect(monsterPhaseForStage(stage)).toBe('BOSS_ACTIVE');
   });
 });

@@ -7,5 +7,6 @@
     { "atRemainingSeconds": 60, "waveId": "wave.production.wave2" }
   ],
   "bossAtRemainingSeconds": 0,
-  "pauseCountdownDuringWave": false
+  "pauseCountdownDuringWave": true,
+  "bossIntroSeconds": 4
 }

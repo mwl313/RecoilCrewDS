@@ -11,7 +11,7 @@ Starting SHA: `f3ee97034775f1ee3d216144cb1bc2be489ba542`
 | 1 — Multiplayer identity and wave composition | IN PROGRESS | (next commit) |
 | 2 — Scale, collision, and grounding | IN PROGRESS | (next commit) |
 | 3 — Movement and behavior | IN PROGRESS | (next commit) |
-| 4 — Timer, pacing, boss intro | pending | |
+| 4 — Timer, pacing, boss intro | IN PROGRESS | (next commit) |
 | 5 — XP presentation and cleanup | pending | |
 | 6 — End-to-end qualification | pending | |
 
@@ -169,3 +169,53 @@ multi-second simulations):
 
 `npx tsc --noEmit` PASS · `npm test` PASS (140 files / 1020 tests) ·
 slow mapgen tests given explicit 30 s timeouts.
+
+## Phase 4 — Timer, pacing, and boss intro
+
+### Defect 13/14 (confirmed): farming countdown ran during elite waves
+
+`content/horde/stageSequenceProduction.json` now uses
+`pauseCountdownDuringWave: true` (and `bossIntroSeconds: 4`). The
+StageDirector pauses the farming clock during waves and resumes at the exact
+authored threshold; a 90-second wave leaves the timer frozen at 120 (wave 1)
+or 60 (wave 2), and no queued threshold is consumed while a wave is active.
+
+### Defect 11 (confirmed): farming ramps used the global clock
+
+`StageRuntimeState` now tracks `activeFarmingElapsed` and
+`phaseActiveFarmingStartedAt`; `HordeDirector.stepFarming` uses
+`phaseFarmingProgress(state, phase.durationSeconds)` so each phase ramps
+entity target, threat target, and spawn income over its own active farming
+time. Elite-wave time never counts toward farming progress.
+
+### Defect 12 (confirmed): boss intro was presentation-only
+
+The boss wave is now authoritative: at 180 s the stage enters `bossWave`
+with `bossIntroRemaining = bossIntroSeconds` (4). During the intro the
+`HordeDirector` holds the boss wave (no leader, no escorts, no movement/
+collision/telegraph/projectile/attack-cycle simulation), then opens it
+exactly once when the intro expires. Demo keeps its immediate boss wave
+(permanent fixture). `monsterPhaseForStage` uses `bossIntroRemaining` for
+the HUD's `BOSS INCOMING` state.
+
+### Defect 13b: HUD timer now freezes with the farming clock
+
+The HUD wave countdown is projected from `farmingTimeRemaining`
+(phase-adjusted) instead of raw sim time, so an active elite wave shows a
+frozen timer with the wave label.
+
+### Tests added
+
+- `tests/coreloop06/stageDirector.test.ts`: frozen 120/60 during long waves,
+  exact resume, boss-intro countdown and `bossActive` once.
+- `tests/horde/timerPacing.test.ts`: 90 s wave freeze at 120/60, no queued
+  threshold consumed, phase-local progress start/mid/end with wave time
+  excluded, and deferred boss/escort spawn exactly once after the intro.
+- `tests/horde/hudStage.test.ts`: countdown/warning driven by the farming
+  clock.
+
+### Gates
+
+`npx tsc --noEmit` PASS · `npm test` PASS (141 files / 1025 tests) ·
+`npm run build` PASS · `test:demo` PASS (golden unchanged) ·
+`generate:content-pack` PASS.

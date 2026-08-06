@@ -35,7 +35,8 @@ const PRODUCTION_SEQUENCE: StageSequenceConfig = {
     { atRemainingSeconds: 60, waveId: 'wave.production.wave2' },
   ],
   bossAtRemainingSeconds: 0,
-  pauseCountdownDuringWave: false,
+  pauseCountdownDuringWave: true,
+  bossIntroSeconds: 4,
 };
 
 function makeProductionStage(): { stage: StageDirector; events: StageEvent[]; flush: () => void } {
@@ -62,42 +63,56 @@ describe('FarmingClock', () => {
   });
 });
 
-describe('StageDirector production sequence (non-pausing countdown)', () => {
-  it('keeps the farming clock running through wave1 and opens wave2 at 60 remaining', () => {
+describe('StageDirector production sequence (bug-fix phase 4)', () => {
+  it('freezes the farming clock at 120 during a long wave 1 and resumes exactly', () => {
     const { stage, flush } = makeProductionStage();
     step(stage, 60 + DT, flush);
     expect(stage.state.phase).toBe('wave1');
     expect(stage.state.activeWaveId).toBe(1);
-    expect(stage.state.farmingTimeRemaining).toBeLessThanOrEqual(120);
-    expect(stage.state.farmingTimeRemaining).toBeGreaterThan(119.9);
-    // Countdown keeps running while the wave is active (no pause).
-    step(stage, 30, flush);
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(120, 5);
+    // 90 seconds of wave time must not consume any farming time.
+    step(stage, 90, flush);
     expect(stage.state.phase).toBe('wave1');
-    expect(stage.state.farmingTimeRemaining).toBeLessThan(90);
-    expect(stage.state.farmingTimeRemaining).toBeGreaterThan(89.9);
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(120, 5);
+    expect(stage.state.activeFarmingElapsed).toBeGreaterThanOrEqual(60);
+    expect(stage.state.activeFarmingElapsed).toBeLessThan(60.1);
     killLeader(stage, flush);
     expect(stage.state.phase).toBe('farming2');
-    // The countdown never paused, so wave2 still opens when it crosses the
-    // 60-second threshold (sim time ~120), not after the wave clears.
-    step(stage, 30 + DT, flush);
-    expect(stage.state.phase).toBe('wave2');
-    expect(stage.state.activeWaveId).toBe(2);
-    expect(stage.state.farmingTimeRemaining).toBeLessThanOrEqual(60);
+    step(stage, 1, flush);
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(119, 5);
   });
 
-  it('reaches the boss wave at 180 sim seconds and stays at zero', () => {
+  it('freezes the farming clock at 60 during a long wave 2', () => {
+    const { stage, flush } = makeProductionStage();
+    step(stage, 60 + DT, flush);
+    killLeader(stage, flush);
+    step(stage, 60 + DT, flush);
+    expect(stage.state.phase).toBe('wave2');
+    expect(stage.state.activeWaveId).toBe(2);
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(60, 5);
+    step(stage, 90, flush);
+    expect(stage.state.phase).toBe('wave2');
+    expect(stage.state.farmingTimeRemaining).toBeCloseTo(60, 5);
+  });
+
+  it('reaches the boss wave, counts down the authoritative intro, then activates', () => {
     const { stage, events, flush } = makeProductionStage();
     step(stage, 60 + DT, flush);
     killLeader(stage, flush);
     step(stage, 60 + DT, flush);
     killLeader(stage, flush);
     expect(stage.state.phase).toBe('farming3');
-    step(stage, 60, flush);
+    step(stage, 60 + DT, flush);
     expect(stage.state.phase).toBe('bossWave');
     expect(stage.state.farmingTimeRemaining).toBeCloseTo(0, 5);
     expect(events.some((e) => e.type === 'bossStarted')).toBe(true);
-    step(stage, 20, flush);
-    expect(stage.state.farmingTimeRemaining).toBeCloseTo(0, 5);
+    expect(stage.state.bossIntroRemaining).toBeCloseTo(4, 5);
+    step(stage, 3, flush);
+    expect(stage.state.bossIntroRemaining).toBeCloseTo(1, 5);
+    expect(events.some((e) => e.type === 'bossActive')).toBe(false);
+    step(stage, 1 + DT, flush);
+    expect(stage.state.bossIntroRemaining).toBe(0);
+    expect(events.some((e) => e.type === 'bossActive')).toBe(true);
   });
 });
 

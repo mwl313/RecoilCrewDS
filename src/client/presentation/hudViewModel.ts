@@ -260,9 +260,20 @@ export class HudProjector {
         : 0;
     const monsterView = stage?.monster;
     const monsterPhase = monsterView?.phase ?? 'FARMING';
+    const rem = stage?.farmingTimeRemaining ?? 0;
+    const stagePhase = stage?.phase ?? 'farming1';
     const waveCountdown =
       monsterPhase === 'FARMING'
-        ? Math.max(0, Math.ceil((state.time < 60 ? 60 : state.time < 120 ? 120 : 180) - state.time))
+        ? Math.max(
+            0,
+            Math.ceil(
+              stagePhase === 'farming1' || stagePhase === 'wave1'
+                ? rem - 120
+                : stagePhase === 'farming2' || stagePhase === 'wave2'
+                  ? rem - 60
+                  : rem,
+            ),
+          )
         : 0;
     const waveTimerLabel =
       monsterPhase === 'FARMING'
@@ -272,9 +283,9 @@ export class HudProjector {
           : '';
     const waveWarning =
       monsterPhase === 'FARMING' && waveCountdown <= 5 && waveCountdown > 0
-        ? state.time < 60
+        ? stagePhase === 'farming1' || stagePhase === 'wave1'
           ? 'WAVE 1 INCOMING'
-          : state.time < 120
+          : stagePhase === 'farming2' || stagePhase === 'wave2'
             ? 'WAVE 2 INCOMING'
             : 'BOSS INCOMING'
         : '';

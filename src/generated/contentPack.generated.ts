@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'e311fd310e102e2cbc9b163d58058130e6ed3aba19f0e1948e0b1c5be8e51571';
+export const CONTENT_PACK_SOURCE_HASH = 'f95ab02137fe676d4250695e51d8042cbb6b85596f53cc99340d84f7f9ac0197';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '01ba314d07adb62748e67d6cbd82ce3d894ca2deea1a7c08ffa36589cedd27f1';
+export const CONTENT_PACK_HASH = 'dddfbb4c7c001d858b5813d63d432411be3f4e8b56392607a5cd126e581933e8';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -192,7 +192,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
   ],
   "stageSequences": [
     { id: "horde.stageSequence.main", definition: {"id":"horde.stageSequence.main","label":"Main Stage Sequence","behaviors":[],"farmingCountdownSeconds":180,"triggers":[{"atRemainingSeconds":120,"waveId":"wave.vanguard"},{"atRemainingSeconds":60,"waveId":"wave.encirclement"}],"bossAtRemainingSeconds":0,"pauseCountdownDuringWave":true} },
-    { id: "horde.stageSequence.production", definition: {"id":"horde.stageSequence.production","label":"Main Stage Production Sequence","behaviors":[],"farmingCountdownSeconds":180,"triggers":[{"atRemainingSeconds":120,"waveId":"wave.production.wave1"},{"atRemainingSeconds":60,"waveId":"wave.production.wave2"}],"bossAtRemainingSeconds":0,"pauseCountdownDuringWave":false} },
+    { id: "horde.stageSequence.production", definition: {"id":"horde.stageSequence.production","label":"Main Stage Production Sequence","behaviors":[],"farmingCountdownSeconds":180,"triggers":[{"atRemainingSeconds":120,"waveId":"wave.production.wave1"},{"atRemainingSeconds":60,"waveId":"wave.production.wave2"}],"bossAtRemainingSeconds":0,"pauseCountdownDuringWave":true,"bossIntroSeconds":4} },
   ],
   "farmingPhases": [
     { id: "horde.farming.phase1", definition: {"id":"horde.farming.phase1","label":"Farming Phase 1","behaviors":[],"durationSeconds":60,"entityTargetStart":10,"entityTargetEnd":18,"threatTargetStart":12,"threatTargetEnd":22,"spawnIncomeStart":0.8,"spawnIncomeEnd":1.2,"eligiblePackTags":["farming"]} },

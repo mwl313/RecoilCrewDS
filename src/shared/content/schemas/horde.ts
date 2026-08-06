@@ -90,6 +90,7 @@ export const stageSequenceSchema = z
     triggers: z.array(stageTriggerSchema).min(1),
     bossAtRemainingSeconds: nonNegativeNumber,
     pauseCountdownDuringWave: z.boolean(),
+    bossIntroSeconds: positiveNumber.optional(),
   })
   .strict();
 

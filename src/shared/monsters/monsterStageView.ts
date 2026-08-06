@@ -4,9 +4,6 @@ import type { MonsterMatchPhase } from './monsterStage';
 import { MAIN_STAGE_CURVE, monsterLevelAtTime } from './monsterDifficulty';
 import type { StageRuntimeState } from '../stage/stageTypes';
 
-/** Authoritative boss-intro presentation window (matches monsterPhase). */
-const BOSS_INTRO_SECONDS = 4;
-
 /**
  * Authoritative monster match phase derived from the runtime stage. Farming
  * includes both farming phases and elite waves; the boss wave begins with a
@@ -15,9 +12,7 @@ const BOSS_INTRO_SECONDS = 4;
 export function monsterPhaseForStage(stage: StageRuntimeState): MonsterMatchPhase {
   switch (stage.phase) {
     case 'bossWave':
-      return stage.totalElapsedTime - stage.phaseStartedAt < BOSS_INTRO_SECONDS
-        ? 'BOSS_INTRO'
-        : 'BOSS_ACTIVE';
+      return stage.bossIntroRemaining > 0 ? 'BOSS_INTRO' : 'BOSS_ACTIVE';
     case 'clear':
     case 'gameOver':
       return 'RESULTS';
