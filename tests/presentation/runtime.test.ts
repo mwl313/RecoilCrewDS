@@ -8,6 +8,7 @@ import { HudProjector, emptyHudViewModel } from '../../src/client/presentation/h
 import type { MatchState } from '../../src/shared/types';
 import { PRESENTATION_SCENES, PRESENTATION_HUDS } from '../../src/generated/presentationContent.generated';
 import { SceneFlowPresenter } from '../../src/client/presentation/sceneFlowPresenter';
+import { HudRuntime } from '../../src/client/presentation/hudRuntime';
 
 function makeRuntime(container: HTMLElement): { runtime: SceneRuntime; actions: SceneActionRegistry } {
   const registry = new UiComponentRegistry();
@@ -200,6 +201,46 @@ describe('HudProjector', () => {
     expect(vm.objective.visible).toBe(false); // truck inactive
   });
 
+  it('projects connection health and the compact progression strip', () => {
+    const projector = new HudProjector();
+    const vm = projector.project(state({
+      matchFlow: 'upgradeSelection',
+      teamProgression: {
+        level: 4,
+        currentXp: 75,
+        xpForNextLevel: 100,
+        totalXpCollected: 240,
+        pendingLevelUps: 1,
+        levelUpOffersCompleted: 3,
+        treasureChestsOpened: 0,
+        relicAcquisitionSequence: 0,
+        relicStacks: {},
+        activeSelection: null,
+        lastRelicResult: null,
+        pendingRelicResults: [],
+      },
+    }), {
+      role: 'driver',
+      peerConnected: true,
+      ping: 205,
+      fps: 60,
+      pointerLocked: true,
+      session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
+      rules: { progressionEnabled: true },
+      objective: null,
+    });
+    expect(vm.connection.degraded).toBe(true);
+    expect(vm.progression).toMatchObject({
+      visible: true,
+      level: 4,
+      currentXp: 75,
+      xpForNextLevel: 100,
+      ratio: 0.75,
+      pendingLevelUps: 1,
+      upgradePending: true,
+    });
+  });
+
   it('gunner and single-player projection and prompts', () => {
     const projector = new HudProjector();
     const vm = projector.project(
@@ -238,7 +279,66 @@ describe('HudProjector', () => {
   });
 });
 
+describe('HudRuntime trajectory reticle', () => {
+  it('uses viewport coordinates directly and stays outside the transformed prompt group', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 720 });
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const runtime = new HudRuntime(container, registry, themeRoot);
+
+    runtime.setTrajectoryReticle(321, 234, true, false);
+    const crosshair = container.querySelector('#crosshair') as HTMLElement;
+    const promptGroup = container.querySelector('#hud-center') as HTMLElement;
+    expect(crosshair.style.left).toBe('321px');
+    expect(crosshair.style.top).toBe('234px');
+    expect(crosshair.style.transform).toBe('translate(-50%, -50%)');
+    expect(promptGroup.contains(crosshair)).toBe(false);
+
+    runtime.setTrajectoryReticle(9999, -50, true, true);
+    expect(crosshair.style.left).toBe('1272px');
+    expect(crosshair.style.top).toBe('8px');
+    expect(crosshair.classList.contains('blocked')).toBe(true);
+    runtime.dispose();
+  });
+});
+
 describe('SceneFlowPresenter overlay visibility', () => {
+  it('keeps the live menu and presentation world mounted beneath menu overlays', () => {
+    const container = document.createElement('div');
+    const themeRoot = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, themeRoot, registry);
+    const started: number[] = [];
+    const disposed: number[] = [];
+    flow.setPresentationFactory((() => ({
+      start: () => started.push(1),
+      dispose: () => disposed.push(1),
+    })) as never);
+    flow.bind({} as never);
+
+    flow.showState('main');
+    flow.showState('settings');
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect((container.querySelector('#screen-settings') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect(started).toEqual([1]);
+    expect(disposed).toEqual([]);
+
+    flow.showState('main');
+    expect((container.querySelector('#screen-settings') as HTMLElement).classList.contains('hidden')).toBe(true);
+    expect(started).toEqual([1]);
+    expect(disposed).toEqual([]);
+
+    flow.showState('howto');
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect((container.querySelector('#screen-howto') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect(started).toEqual([1]);
+    expect(disposed).toEqual([]);
+  });
+
   it('game visibility hides every scene overlay (pause/menu regression)', async () => {
     const container = document.createElement('div');
     const themeRoot = document.createElement('div');

@@ -7,7 +7,7 @@
     "responseMode": "instant",
     "turnRate": 60,
     "pitchFollowRate": 40,
-    "maxPitch": 0.42,
-    "minPitch": -1.45
+    "maxPitch": 1.5707963267948966,
+    "minPitch": -1.5707963267948966
   }
 }

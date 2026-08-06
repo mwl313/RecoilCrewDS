@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A small standalone visual-system mockup for the Recoil Crew interface."
+    />
+    <title>Recoil Crew — UI Field Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="prototype">
+      <header class="prototype__header">
+        <div>
+          <p class="prototype__eyebrow">UI FIELD PROTOTYPE // 01</p>
+          <h1>One system. Three pressure levels.</h1>
+        </div>
+        <p class="prototype__note">Concept only — no game runtime is connected.</p>
+      </header>
+
+      <section class="demo" aria-label="Recoil Crew interface mockup">
+        <input class="view-radio" type="radio" name="view" id="view-menu" checked />
+        <input class="view-radio" type="radio" name="view" id="view-lobby" />
+        <input class="view-radio" type="radio" name="view" id="view-hud" />
+
+        <nav class="view-switcher" aria-label="Choose mockup view">
+          <span class="view-switcher__label">DISPLAY MODE</span>
+          <label for="view-menu"><b>01</b> MENU</label>
+          <label for="view-lobby"><b>02</b> CREW</label>
+          <label for="view-hud"><b>03</b> HUD</label>
+        </nav>
+
+        <div class="viewport-shell">
+          <div class="viewport-shell__edge" aria-hidden="true"></div>
+
+          <section class="game-screen menu-screen" id="screen-menu" aria-label="Main menu concept">
+            <div class="ambient-grid" aria-hidden="true"></div>
+            <header class="screen-topbar">
+              <span class="brand-mark"><i>RC</i> / FIELD UNIT 07</span>
+              <span class="system-state"><i></i> SYSTEM READY</span>
+            </header>
+
+            <div class="menu-copy">
+              <p class="section-tag">CO-OP TANK SURVIVAL</p>
+              <div class="wordmark" aria-label="Recoil Crew">
+                <span>RECOI&thinsp;L</span>
+                <strong>CREW</strong>
+              </div>
+
+              <nav class="action-rail" aria-label="Example main menu">
+                <button class="action-button action-button--primary" type="button">
+                  <span class="action-button__index">01</span>
+                  <span>CREATE CREW</span>
+                  <b>›</b>
+                </button>
+                <button class="action-button" type="button">
+                  <span class="action-button__index">02</span>
+                  <span>JOIN CREW</span>
+                  <b>›</b>
+                </button>
+                <button class="action-button" type="button">
+                  <span class="action-button__index">03</span>
+                  <span>SINGLE PLAYER</span>
+                  <b>›</b>
+                </button>
+              </nav>
+            </div>
+
+            <div class="tank-stage" aria-hidden="true">
+              <div class="target-ring"></div>
+              <div class="tank tank--hero">
+                <div class="tank__barrel"></div>
+                <div class="tank__turret"></div>
+                <div class="tank__body"></div>
+                <div class="tank__tread tank__tread--left"></div>
+                <div class="tank__tread tank__tread--right"></div>
+              </div>
+              <div class="tank-caption">
+                <span>SHARED CHASSIS</span>
+                <strong>RC–07</strong>
+              </div>
+            </div>
+
+            <footer class="screen-footer">
+              <button type="button">SETTINGS</button>
+            </footer>
+          </section>
+
+          <section class="game-screen lobby-screen" id="screen-lobby" aria-label="Crew lobby concept">
+            <div class="ambient-grid" aria-hidden="true"></div>
+            <header class="screen-topbar">
+              <span class="brand-mark"><i>RC</i> / CREW LINK</span>
+              <div class="room-code"><small>ROOM CODE</small><strong>7X2K9</strong><button type="button">COPY</button></div>
+            </header>
+
+            <div class="mission-strip">
+              <div><small>RUN TYPE</small><strong>MONSTER SURVIVAL</strong></div>
+              <div><small>FIRST CONTACT</small><strong>WAVE 01</strong></div>
+              <div><small>CREW STATUS</small><strong class="status-ready">LINKED</strong></div>
+            </div>
+
+            <article class="crew-card crew-card--driver">
+              <p class="section-tag">SEAT 01</p>
+              <div class="crew-card__role"><i></i><span>DRIVER</span></div>
+              <h2>ROADKING</h2>
+              <p>Mobility, collision, survival.</p>
+              <div class="crew-card__status"><span>INPUT</span><strong>READY</strong></div>
+            </article>
+
+            <div class="lobby-stage" aria-hidden="true">
+              <div class="link-line link-line--left"></div>
+              <div class="link-line link-line--right"></div>
+              <div class="tank tank--lobby">
+                <div class="tank__barrel"></div>
+                <div class="tank__turret"></div>
+                <div class="tank__body"></div>
+                <div class="tank__tread tank__tread--left"></div>
+                <div class="tank__tread tank__tread--right"></div>
+              </div>
+              <span>SHARED VEHICLE</span>
+            </div>
+
+            <article class="crew-card crew-card--gunner">
+              <p class="section-tag">SEAT 02</p>
+              <div class="crew-card__role"><i></i><span>GUNNER</span></div>
+              <h2>BLASTWAVE</h2>
+              <p>Targeting, recoil, destruction.</p>
+              <div class="crew-card__status"><span>INPUT</span><strong>READY</strong></div>
+            </article>
+
+            <footer class="lobby-actions">
+              <p><i></i> BOTH CREW MEMBERS CONNECTED</p>
+              <button type="button">READY FOR WAVE <b>›</b></button>
+            </footer>
+          </section>
+
+          <section class="game-screen hud-screen" id="screen-hud" aria-label="Gameplay HUD concept">
+            <div class="road-scene" aria-hidden="true">
+              <div class="road-scene__horizon"></div>
+              <div class="road-scene__road"></div>
+              <div class="road-scene__vehicle"></div>
+            </div>
+
+            <header class="hud-topline">
+              <div class="role-chip role-chip--driver"><i></i><span>DRIVER</span><small>LINK STABLE</small></div>
+              <div class="wave-clock"><small>TIME UNTIL NEW WAVE</small><strong>00:42</strong><span>MONSTER LV 12</span></div>
+              <button type="button" aria-label="Pause">Ⅱ</button>
+            </header>
+
+            <div class="encounter">
+              <div class="encounter__title"><span>ELITE CONTACT</span><strong>IRON MAW</strong><small>8,420 / 12,000</small></div>
+              <div class="meter meter--danger"><i style="--fill:70%"></i></div>
+            </div>
+
+            <div class="reticle" aria-hidden="true"><i></i><b></b><span></span></div>
+
+            <div class="warning-callout"><span>LEFT FLANK</span><strong>IMPACT RISK</strong></div>
+
+            <footer class="hud-bottomline">
+              <div class="hud-cluster hud-cluster--survival">
+                <div class="hud-label"><span>CHASSIS</span><strong>84</strong><small>/ 100</small></div>
+                <div class="meter"><i style="--fill:84%"></i></div>
+                <div class="xp-line"><span>CREW LV 08</span><div class="meter meter--xp"><i style="--fill:63%"></i></div><strong>63%</strong></div>
+              </div>
+
+              <div class="hud-cluster hud-cluster--ability">
+                <div class="ability ability--ready"><span>SHIFT</span><strong>DASH</strong><small>READY</small></div>
+                <div class="ability"><span>SPACE</span><strong>JUMP</strong><small>2 CHARGES</small></div>
+              </div>
+            </footer>
+          </section>
+        </div>
+      </section>
+
+      <footer class="prototype__footer">
+        <span>Shared grammar: plate cuts · restrained amber · role color · mechanical state</span>
+        <span>Layout changes with purpose; components stay related.</span>
+      </footer>
+    </main>
+  </body>
+</html>

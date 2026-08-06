@@ -73,11 +73,15 @@ export class SceneFlowPresenter {
    * presentation world so a menu background never renders behind gameplay.
    */
   setGameVisible(show: boolean): void {
-    for (const runtime of this.runtimes.values()) {
-      runtime.element?.classList.add('hidden');
-    }
+    this.hideAllScenes();
     if (this.hudElement) this.hudElement.classList.toggle('hidden', !show);
     if (show) this.disposePresentationWorld();
+  }
+
+  /** Hide cached content-driven scenes while an external composite view is active. */
+  hideAllScenes(): void {
+    for (const runtime of this.runtimes.values()) runtime.element?.classList.add('hidden');
+    this.disposePresentationWorld();
   }
 
   setUiSound(fn: () => void): void {
@@ -96,17 +100,40 @@ export class SceneFlowPresenter {
     const flow = PRESENTATION_FLOWS[DEFAULT_PRESENTATION_FLOW_ID];
     const state = flow.states.find((s) => s.id === stateId);
     if (!state) throw new Error(`unknown flow state: ${stateId}`);
+    const previousState = this.currentState;
     this.currentState = stateId;
     const runtime = this.ensureRuntimeFor(state.sceneId);
     const previous = this.currentSceneId && this.currentSceneId !== state.sceneId
       ? this.runtimes.get(this.currentSceneId)
       : null;
     this.currentSceneId = state.sceneId;
+
+    // Settings and How To are menu overlays, not replacement screens. Keep
+    // the main menu DOM and its presentation world alive beneath them so the
+    // backdrop is the exact screen the player opened the overlay from.
+    if (this.isMenuOverlayState(stateId) && previousState === 'main') {
+      runtime.enter();
+      if (this.hudElement) this.hudElement.classList.add('hidden');
+      if (!this.activeWorld) this.syncPresentationWorld('main');
+      return;
+    }
+    if (stateId === 'main' && this.isMenuOverlayState(previousState)) {
+      previous?.leave();
+      runtime.element?.classList.remove('hidden');
+      if (this.hudElement) this.hudElement.classList.add('hidden');
+      if (!this.activeWorld) this.syncPresentationWorld('main');
+      return;
+    }
+
     // Replay enter/leave per transition (scenes are cached, not rebuilt).
     previous?.leave();
     runtime.enter();
     if (this.hudElement) this.hudElement.classList.toggle('hidden', stateId !== 'game');
     this.syncPresentationWorld(stateId);
+  }
+
+  private isMenuOverlayState(stateId: FlowStateId): boolean {
+    return stateId === 'settings' || stateId === 'howto';
   }
 
   private syncPresentationWorld(stateId: FlowStateId): void {

@@ -31,9 +31,9 @@ describe('instant turret response (Combat 05 M3)', () => {
   it('instant pitch clamps to turret limits', () => {
     const p = new PredictionController('gunner', { send: () => undefined });
     p.updateTurretTarget(0, 9, 0, DT);
-    expect(p.getTurretSpaces().predictedPitch).toBeCloseTo(0.42, 9);
+    expect(p.getTurretSpaces().predictedPitch).toBeCloseTo(Math.PI / 2, 9);
     p.updateTurretTarget(0, -9, 0, DT);
-    expect(p.getTurretSpaces().predictedPitch).toBeCloseTo(-1.45, 9);
+    expect(p.getTurretSpaces().predictedPitch).toBeCloseTo(-Math.PI / 2, 9);
   });
 
   it('rate-limited mode still uses the legacy chase path', () => {
@@ -63,7 +63,7 @@ describe('instant turret response (Combat 05 M3)', () => {
     const m = new Match('instant-clamp');
     m.setGunnerInput({ aimYaw: 0, aimPitch: 9, primary: false, secondary: false });
     m.step(DT);
-    expect(m.state.turret.pitch).toBeCloseTo(0.42, 9);
+    expect(m.state.turret.pitch).toBeCloseTo(Math.PI / 2, 9);
     const yaw0 = m.state.turret.yaw;
     m.setGunnerInput({ aimYaw: Number.NaN, aimPitch: 0, primary: false, secondary: false });
     m.step(DT);

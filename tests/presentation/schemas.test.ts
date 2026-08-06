@@ -32,6 +32,17 @@ function tempRoot(): string {
   return dir;
 }
 
+function findNodeByType(node: Record<string, unknown>, type: string): Record<string, unknown> | undefined {
+  if (node.type === type) return node;
+  const children = Array.isArray(node.children) ? node.children : [];
+  for (const child of children) {
+    if (!child || typeof child !== 'object') continue;
+    const match = findNodeByType(child as Record<string, unknown>, type);
+    if (match) return match;
+  }
+  return undefined;
+}
+
 describe('presentation content pipeline', () => {
   it('generated bundle is current (stale detection)', () => {
     const current = buildPresentationContent(CONTENT_ROOT);
@@ -45,6 +56,28 @@ describe('presentation content pipeline', () => {
     expect(Object.keys(loaded.huds)).toContain('hud.gameplay');
     expect(Object.keys(loaded.themes)).toContain('theme.driver');
     expect(loaded.flows['flow.primary'].initialSceneId).toBe('scene.boot');
+  });
+
+  it('keeps the shared logo gap and retired flavor copy out of every scene', () => {
+    const scenes = JSON.stringify(PRESENTATION_SCENES);
+    expect(JSON.stringify(PRESENTATION_SCENES['scene.boot'])).toContain('RECOI\u2009L');
+    expect(JSON.stringify(PRESENTATION_SCENES['scene.mainMenu'])).toContain('RECOI\u2009L');
+    expect(scenes).not.toContain('ONE TANK // TWO BRAINS // ZERO BRAKES');
+    expect(scenes).not.toContain('DRIVER STEERS. GUNNER SHOOTS.');
+    expect(scenes).not.toContain('WASD DRIVE // MOUSE AIM // RMB CANNON');
+  });
+
+  it('encodes the upgraded menu hierarchy, drag behavior, and true menu overlays', () => {
+    const menu = PRESENTATION_SCENES['scene.mainMenu'];
+    const menuJson = JSON.stringify(menu);
+    expect(menuJson).toContain('SYSTEM STATUS: READY');
+    expect(menuJson).toContain('CURRENT NICKNAME: ---');
+    expect(menuJson).toContain('ui-action ui-action--04');
+    expect(menuJson).toContain('ui-action ui-action--05');
+    expect(menu.entities?.[0]?.transform?.scale).toEqual([1.05, 1.05, 1.05]);
+    expect(menu.entities?.[0]?.components.some((component) => component.type === 'dragRotate')).toBe(true);
+    expect(PRESENTATION_SCENES['scene.settings'].root.class).toContain('ui-overlay-screen');
+    expect(PRESENTATION_SCENES['scene.howTo'].root.class).toContain('ui-overlay-screen');
   });
 
   it('rejects duplicate node ids', () => {
@@ -62,6 +95,19 @@ describe('presentation content pipeline', () => {
   it('rejects unknown component types', () => {
     const parsed = uiNodeSchema.safeParse({ id: 'x', type: 'nope', children: [] });
     expect(parsed.success).toBe(false);
+  });
+
+  it('accepts semantic appearance metadata and rejects ad-hoc appearance keys', () => {
+    expect(uiNodeSchema.safeParse({
+      id: 'x',
+      type: 'panel',
+      appearance: { tone: 'driver', emphasis: 'hero', density: 'compact', shape: 'plate' },
+    }).success).toBe(true);
+    expect(uiNodeSchema.safeParse({
+      id: 'x',
+      type: 'panel',
+      appearance: { gradient: 'generic-purple' },
+    }).success).toBe(false);
   });
 
   it('rejects unknown actions and transforms', () => {
@@ -85,7 +131,9 @@ describe('presentation content pipeline', () => {
     const root = tempRoot();
     try {
       const hud = JSON.parse(readFileSync(path.join(root, 'hud', 'gameplay.json'), 'utf8'));
-      hud.root.children[3].children[0].children[0].children[1].children[0].props.valueSource = 'not.a.hud.path';
+      const progressBar = findNodeByType(hud.root, 'progressBar');
+      expect(progressBar).toBeDefined();
+      (progressBar!.props as Record<string, unknown>).valueSource = 'not.a.hud.path';
       writeFileSync(path.join(root, 'hud', 'gameplay.json'), JSON.stringify(hud));
       expect(() => loadPresentationContent(root)).toThrow(/invalid prop valueSource source/);
     } finally {

@@ -1,0 +1,330 @@
+.ui-action,
+.ui-compact-action,
+.ui-text-action {
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.ui-action {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 44px 0 48px;
+  color: #c5cbca;
+  background: rgba(24, 30, 32, 0.94);
+  clip-path: var(--ui-cut-sm);
+  text-align: left;
+  font: italic 800 20px/1 var(--ui-display);
+  letter-spacing: 0.035em;
+  transition: color var(--ui-fast), background var(--ui-fast), transform var(--ui-fast);
+}
+
+.ui-action::before {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  content: '//';
+  color: currentColor;
+  opacity: 0.38;
+  transform: translateY(-50%);
+  font: italic 700 10px/1 var(--ui-display);
+}
+
+.ui-action::after {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  content: '›';
+  transform: translateY(-53%);
+  font: italic 800 30px/1 var(--ui-display);
+}
+
+.ui-action:hover:not(:disabled) {
+  color: white;
+  background: #293033;
+  transform: translateX(4px);
+}
+
+.ui-action:active:not(:disabled) { transform: translateX(4px) translateY(1px); }
+
+.ui-action[data-ui-tone='action'],
+.ui-action[data-ui-emphasis='hero'] {
+  min-height: 58px;
+  color: var(--ui-ink-0);
+  background: var(--ui-amber);
+  font-size: 24px;
+}
+
+.ui-action[data-ui-tone='action']:hover:not(:disabled),
+.ui-action[data-ui-emphasis='hero']:hover:not(:disabled) {
+  color: var(--ui-ink-0);
+  background: var(--ui-amber-hot);
+}
+
+.ui-action:disabled { cursor: default; opacity: 0.48; }
+
+.ui-compact-action {
+  min-height: 32px;
+  padding: 7px 13px;
+  color: #c8cfcd;
+  border: 1px solid var(--ui-line-strong);
+  background: var(--ui-ink-3);
+  clip-path: var(--ui-cut-sm);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.ui-compact-action:hover { color: var(--ui-ink-0); border-color: var(--ui-amber); background: var(--ui-amber); }
+.ui-compact-action.selected { color: var(--ui-ink-0); border-color: var(--role); background: var(--role); }
+
+.ui-text-action {
+  padding: 7px 0;
+  color: var(--ui-muted);
+  background: transparent;
+  font: italic 700 13px/1 var(--ui-display);
+  letter-spacing: 0.1em;
+}
+
+.ui-text-action:hover { color: var(--ui-paper); }
+
+.ui-form-panel {
+  position: absolute;
+  z-index: 8;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(540px, calc(100vw - 48px));
+  padding: 34px 38px 30px;
+  transform: translate(-50%, -50%);
+  border-left: 3px solid var(--ui-amber);
+  background: var(--ui-panel);
+  clip-path: var(--ui-cut-lg);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+}
+
+.ui-form-panel::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 84px;
+  height: 3px;
+  content: '';
+  background: var(--ui-amber);
+}
+
+.ui-form-panel h2 {
+  margin: 0;
+  color: var(--ui-paper);
+  text-align: left;
+  font: italic 900 clamp(38px, 5vw, 60px)/0.9 var(--ui-display);
+  letter-spacing: -0.02em;
+}
+
+.ui-form-copy {
+  max-width: 410px;
+  color: var(--ui-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ui-code-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 12px 14px 12px 22px;
+  border: 1px solid var(--ui-line-strong);
+  background: rgba(255, 255, 255, 0.035);
+  clip-path: var(--ui-cut-sm);
+}
+
+.ui-code-box .code,
+.ui-code-input {
+  color: var(--ui-amber);
+  text-shadow: none;
+  font: italic 800 clamp(30px, 4vw, 42px)/1 var(--ui-display);
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-code-input {
+  width: 100%;
+  min-height: 78px;
+  padding: 10px 18px;
+  border: 1px solid var(--ui-line-strong);
+  border-radius: 0;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.035);
+  clip-path: var(--ui-cut-sm);
+}
+
+.ui-code-input:focus { border-color: var(--ui-amber); box-shadow: none; }
+.ui-code-input::placeholder { color: #5e6768; opacity: 0.75; }
+
+.ui-status-line {
+  min-height: 20px;
+  color: var(--ui-muted);
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.ui-status-line::before {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 9px;
+  content: '';
+  background: var(--ui-success);
+}
+
+.ui-form-error { min-height: 18px; color: #ff8074; text-align: left; font-size: 12px; }
+
+/* Menu overlays share one malleable field-console shell. Individual screens
+   only supply their interior modules; the backdrop, cut plate, title scale,
+   rules, and actions stay uniform. */
+.ui-overlay-screen {
+  z-index: 60;
+  display: block;
+  background: transparent;
+}
+
+.ui-overlay-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 6, 7, 0.84), rgba(4, 6, 7, 0.68)),
+    rgba(4, 6, 7, 0.46);
+  backdrop-filter: blur(4px) saturate(0.72);
+}
+
+.ui-overlay-panel {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  width: min(680px, calc(100vw - 56px));
+  max-height: calc(100vh - 56px);
+  padding: 32px 36px 30px;
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--ui-line-strong);
+  border-left: 4px solid var(--ui-amber);
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.035), transparent 34%),
+    rgba(9, 12, 13, 0.96);
+  clip-path: var(--ui-cut-lg);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.68);
+  backdrop-filter: none;
+}
+
+.ui-overlay-panel::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 110px;
+  height: 4px;
+  content: '';
+  background: var(--ui-amber);
+}
+
+.ui-overlay-panel h2 {
+  margin: 0;
+  color: var(--ui-paper);
+  text-align: left;
+  font: italic 900 clamp(42px, 5vw, 68px)/0.86 var(--ui-display);
+  letter-spacing: -0.025em;
+}
+
+.ui-overlay-rule {
+  width: 100%;
+  height: 1px;
+  margin: 2px 0 6px;
+  background: linear-gradient(90deg, var(--ui-amber) 0 92px, var(--ui-line) 92px 100%);
+}
+
+.ui-field-label,
+.ui-role-index {
+  color: var(--ui-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+
+.ui-nickname-input {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 18px;
+  color: var(--ui-paper);
+  border: 1px solid var(--ui-line-strong);
+  border-radius: 0;
+  outline: none;
+  background: rgba(255,255,255,.04);
+  clip-path: var(--ui-cut-sm);
+  font: italic 800 30px/1 var(--ui-display);
+  letter-spacing: .04em;
+}
+
+.ui-nickname-input:focus { border-color: var(--ui-amber); background: rgba(255, 173, 34, .06); }
+.ui-overlay-copy { color: var(--ui-muted); font-size: 12px; line-height: 1.5; }
+
+.ui-overlay-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ui-overlay-actions--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ui-overlay-actions .ui-action { min-width: 0; padding-inline: 36px 24px; font-size: 16px; }
+.ui-overlay-actions .ui-action::before { left: 12px; }
+
+.ui-howto-panel { width: min(960px, calc(100vw - 56px)); }
+.ui-howto-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.ui-role-card {
+  position: relative;
+  min-width: 0;
+  padding: 22px 24px 20px;
+  border: 1px solid var(--ui-line);
+  background: rgba(255,255,255,.028);
+  clip-path: var(--ui-cut-md);
+}
+
+.ui-role-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 84px;
+  height: 3px;
+  content: '';
+  background: var(--role-card-accent);
+}
+
+.ui-role-card--driver { --role-card-accent: var(--ui-driver); }
+.ui-role-card--gunner { --role-card-accent: var(--ui-gunner); }
+.ui-role-card h3 { margin: 8px 0 12px; color: var(--role-card-accent); font: italic 900 32px/1 var(--ui-display); letter-spacing: .04em; }
+
+.ui-control-copy {
+  margin: 0;
+  color: var(--ui-paper);
+  white-space: pre-line;
+  font: 800 13px/1.7 var(--ui-body);
+  letter-spacing: .08em;
+}
+
+.ui-role-note { margin: 14px 0 0; color: var(--ui-muted); font-size: 12px; line-height: 1.5; }
+.ui-howto-foot { margin: 0; text-align: center; font-weight: 800; letter-spacing: .12em; }
+.ui-overlay-close { align-self: flex-end; width: min(300px, 100%); }

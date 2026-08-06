@@ -9,18 +9,25 @@ export interface LobbyViewCallbacks {
 }
 
 const ELIGIBILITY_LABELS: Record<string, string> = {
-  eligible: 'Crew Ready',
-  waiting_for_player: 'Waiting for another player',
-  invalid_seats: 'Choose different crew roles (one Driver, one Gunner)',
+  eligible: 'Both crew members linked — ready for wave',
+  waiting_for_player: 'Waiting for another crew member',
+  invalid_seats: 'Choose different crew roles — one Driver, one Gunner',
   player_not_ready: 'A player is not Ready yet',
-  player_disconnected: 'A player is reconnecting',
-  content_unavailable: 'Content unavailable',
+  player_disconnected: 'A crew member is reconnecting',
+  content_unavailable: 'Run content unavailable',
 };
 
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text) element.textContent = text;
+  return element;
+}
+
 /**
- * Code-owned Lobby V2 view. Renders authoritative lobby state with
- * textContent only (never innerHTML), marks the local player with YOU by
- * playerId, and exposes seat/ready/chat/leave controls.
+ * Dynamic lobby composite. Network state remains authoritative and all remote
+ * strings are assigned through textContent; styling is shared with the
+ * content-driven UI system through semantic classes and role data attributes.
  */
 export class LobbyView {
   private readonly root: HTMLElement;
@@ -35,68 +42,82 @@ export class LobbyView {
   private localPlayerId = '';
 
   constructor(container: HTMLElement, private readonly cb: LobbyViewCallbacks) {
-    this.root = document.createElement('div');
+    this.root = el('div', 'screen ui-screen lobby-v2 lobby-screen');
     this.root.id = 'screen-ready';
-    this.root.className = 'screen lobby-v2';
+    this.root.dataset.uiDensity = 'comfortable';
 
-    const header = document.createElement('div');
-    header.className = 'lobby-header';
-    const title = document.createElement('h2');
-    title.textContent = 'CREW LOBBY';
-    this.code = document.createElement('span');
+    const safeFrame = el('div', 'ui-safe-frame');
+    safeFrame.setAttribute('aria-hidden', 'true');
+
+    const header = el('header', 'ui-topbar lobby-header');
+    const brand = el('div', 'ui-unit-mark', 'RC / CREW LINK');
+    const codeBox = el('div', 'lobby-code-box');
+    const codeLabel = el('small', '', 'ROOM CODE');
+    this.code = el('strong', 'code');
     this.code.id = 'lobby-code';
-    this.code.className = 'code';
-    this.copyButton = document.createElement('button');
+    this.copyButton = el('button', 'ui-compact-action', 'COPY');
     this.copyButton.id = 'copy-code';
-    this.copyButton.className = 'btn small';
-    this.copyButton.textContent = 'COPY';
+    this.copyButton.type = 'button';
     this.copyButton.addEventListener('click', () => this.cb.onCopy(this.code.textContent ?? ''));
-    const codeBox = document.createElement('div');
-    codeBox.className = 'code-box small';
-    codeBox.append(this.code, this.copyButton);
-    header.append(title, codeBox);
+    codeBox.append(codeLabel, this.code, this.copyButton);
+    header.append(brand, codeBox);
 
-    const body = document.createElement('div');
-    body.className = 'lobby-body';
-    const crew = document.createElement('section');
-    crew.className = 'lobby-crew';
-    this.playersHost = document.createElement('div');
+    const missionStrip = el('div', 'lobby-mission-strip');
+    for (const [label, value] of [
+      ['RUN TYPE', 'MONSTER SURVIVAL'],
+      ['CREW FORMAT', 'SHARED TANK'],
+      ['CHANNEL', 'PRIVATE'],
+    ]) {
+      const cell = el('div');
+      cell.append(el('small', '', label), el('strong', '', value));
+      missionStrip.appendChild(cell);
+    }
+
+    const body = el('div', 'lobby-body');
+    const crew = el('section', 'lobby-crew');
+    crew.setAttribute('aria-label', 'Crew seats');
+    this.playersHost = el('div', 'lobby-players');
     this.playersHost.id = 'lobby-players';
     crew.appendChild(this.playersHost);
-    this.hint = document.createElement('div');
-    this.hint.id = 'lobby-start-hint';
-    this.hint.className = 'lobby-hint';
-    crew.appendChild(this.hint);
-    this.readyButton = document.createElement('button');
-    this.readyButton.id = 'lobby-ready';
-    this.readyButton.dataset['act'] = 'ready';
-    this.readyButton.className = 'btn primary';
-    this.readyButton.addEventListener('click', () => this.cb.onReadyToggle());
-    crew.appendChild(this.readyButton);
-    this.leaveButton = document.createElement('button');
-    this.leaveButton.id = 'lobby-leave';
-    this.leaveButton.className = 'btn ghost';
-    this.leaveButton.textContent = 'LEAVE';
-    this.leaveButton.addEventListener('click', () => this.cb.onLeave());
-    crew.appendChild(this.leaveButton);
 
-    const chat = document.createElement('section');
-    chat.className = 'lobby-chat';
-    const chatTitle = document.createElement('h3');
-    chatTitle.textContent = 'ROOM CHAT';
-    this.chatHost = document.createElement('div');
+    const vehicle = el('div', 'lobby-vehicle-stage');
+    vehicle.setAttribute('aria-hidden', 'true');
+    const vehicleMark = el('div', 'lobby-vehicle-mark');
+    vehicleMark.append(el('span', '', 'SHARED CHASSIS'), el('strong', '', 'RC–07'));
+    const tank = el('div', 'lobby-tank');
+    tank.append(el('i', 'lobby-tank__barrel'), el('i', 'lobby-tank__turret'), el('i', 'lobby-tank__body'), el('i', 'lobby-tank__treads'));
+    vehicle.append(tank, vehicleMark);
+
+    body.append(crew, vehicle);
+
+    const actions = el('footer', 'lobby-actions');
+    this.hint = el('div', 'lobby-hint');
+    this.hint.id = 'lobby-start-hint';
+    this.readyButton = el('button', 'ui-action lobby-ready');
+    this.readyButton.id = 'lobby-ready';
+    this.readyButton.dataset.act = 'ready';
+    this.readyButton.dataset.uiTone = 'action';
+    this.readyButton.type = 'button';
+    this.readyButton.addEventListener('click', () => this.cb.onReadyToggle());
+    this.leaveButton = el('button', 'ui-text-action lobby-leave', 'LEAVE CREW');
+    this.leaveButton.id = 'lobby-leave';
+    this.leaveButton.type = 'button';
+    this.leaveButton.addEventListener('click', () => this.cb.onLeave());
+    actions.append(this.hint, this.leaveButton, this.readyButton);
+
+    const chat = el('section', 'lobby-chat');
+    const chatHeader = el('div', 'lobby-chat__header');
+    chatHeader.append(el('h3', '', 'CREW COMMS'), el('span', '', 'FOCUS TO EXPAND'));
+    this.chatHost = el('div', 'lobby-chat-messages');
     this.chatHost.id = 'lobby-chat-messages';
-    this.chatHost.className = 'lobby-chat-messages';
-    const chatRow = document.createElement('div');
-    chatRow.className = 'lobby-chat-row';
-    this.chatInput = document.createElement('input');
+    const chatRow = el('div', 'lobby-chat-row');
+    this.chatInput = el('input', 'lobby-chat-input');
     this.chatInput.id = 'lobby-chat-input';
     this.chatInput.maxLength = 200;
-    this.chatInput.placeholder = 'Message…';
-    const send = document.createElement('button');
+    this.chatInput.placeholder = 'Message your crew…';
+    const send = el('button', 'ui-compact-action', 'SEND');
     send.id = 'lobby-chat-send';
-    send.className = 'btn small';
-    send.textContent = 'SEND';
+    send.type = 'button';
     const submit = (): void => {
       const text = this.chatInput.value;
       if (!text.trim()) return;
@@ -104,14 +125,13 @@ export class LobbyView {
       this.chatInput.value = '';
     };
     send.addEventListener('click', submit);
-    this.chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submit();
+    this.chatInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') submit();
     });
     chatRow.append(this.chatInput, send);
-    chat.append(chatTitle, this.chatHost, chatRow);
+    chat.append(chatHeader, this.chatHost, chatRow);
 
-    body.append(crew, chat);
-    this.root.append(header, body);
+    this.root.append(safeFrame, header, missionStrip, body, actions, chat);
     container.appendChild(this.root);
   }
 
@@ -121,66 +141,71 @@ export class LobbyView {
     this.renderPlayers(state);
     const reason = state.startEligibility.reason;
     this.hint.textContent = ELIGIBILITY_LABELS[reason] ?? 'Crew not ready';
-    const me = state.players.find((p) => p.playerId === localPlayerId);
+    this.hint.classList.toggle('ready', state.startEligibility.eligible);
+    const me = state.players.find((player) => player.playerId === localPlayerId);
     const ready = me?.ready === true;
-    this.readyButton.textContent = ready ? 'READY ✓ (UNREADY)' : 'READY';
+    this.readyButton.textContent = ready ? 'LOCKED IN — UNREADY' : 'READY FOR WAVE';
     this.readyButton.classList.toggle('ready', ready);
     this.renderChat(chat);
   }
 
   private renderPlayers(state: ClientLobbyState): void {
     this.playersHost.textContent = '';
-    for (const player of state.players) {
-      const card = document.createElement('div');
-      card.className = 'lobby-player';
-      card.dataset['playerId'] = player.playerId;
-      card.classList.toggle('local', player.playerId === this.localPlayerId);
-      card.classList.toggle('reconnecting', !player.connected);
+    const orderedSeats: CrewSeat[] = ['driver', 'gunner'];
+    for (const seat of orderedSeats) {
+      const player = state.players.find((candidate) => candidate.seat === seat) ?? null;
+      const card = el('article', `lobby-player lobby-player--${seat}`);
+      card.dataset.seat = seat;
+      if (player) card.dataset.playerId = player.playerId;
+      card.classList.toggle('local', player?.playerId === this.localPlayerId);
+      card.classList.toggle('reconnecting', player !== null && !player.connected);
 
-      const nameLine = document.createElement('div');
-      nameLine.className = 'lobby-name';
-      const host = document.createElement('span');
-      const isHost = player.playerId === state.hostPlayerId;
-      host.className = 'lobby-badge host';
-      host.classList.toggle('host', isHost);
-      host.textContent = isHost ? '[HOST] ' : '';
-      const name = document.createElement('span');
-      name.textContent = player.displayName;
-      const you = document.createElement('span');
-      you.className = 'lobby-badge you';
-      you.dataset['you'] = String(player.playerId === this.localPlayerId);
-      you.textContent = player.playerId === this.localPlayerId ? ' [YOU]' : '';
-      nameLine.append(host, name, you);
+      const seatHeader = el('div', 'lobby-player__seat');
+      seatHeader.append(el('small', '', seat === 'driver' ? 'SEAT 01' : 'SEAT 02'), el('strong', '', seat.toUpperCase()));
+      card.appendChild(seatHeader);
+
+      const nameLine = el('div', 'lobby-name');
+      if (player) {
+        const isHost = player.playerId === state.hostPlayerId;
+        const host = el('span', 'lobby-badge host', isHost ? 'HOST' : '');
+        host.classList.toggle('host', isHost);
+        const name = el('span', 'lobby-player__name');
+        name.textContent = player.displayName;
+        const you = el('span', 'lobby-badge you', player.playerId === this.localPlayerId ? 'YOU' : '');
+        you.dataset.you = String(player.playerId === this.localPlayerId);
+        nameLine.append(host, name, you);
+      } else {
+        nameLine.appendChild(el('span', 'lobby-player__name lobby-player__empty', 'AWAITING CREW'));
+      }
       card.appendChild(nameLine);
 
-      const seatLine = document.createElement('div');
-      seatLine.className = 'lobby-seat';
-      seatLine.textContent = player.seat ? player.seat.toUpperCase() : 'NO ROLE';
-      card.appendChild(seatLine);
+      const duty = el('p', 'lobby-player__duty', seat === 'driver'
+        ? 'Mobility // collision // survival'
+        : 'Targeting // recoil // destruction');
+      card.appendChild(duty);
 
-      if (player.playerId === this.localPlayerId) {
-        const seatRow = document.createElement('div');
-        seatRow.className = 'lobby-seat-row';
-        for (const seat of ['driver', 'gunner'] as CrewSeat[]) {
-          const btn = document.createElement('button');
-          btn.id = `seat-${seat}`;
-          btn.dataset['seat'] = seat;
-          btn.className = 'btn small';
-          btn.textContent = seat.toUpperCase();
-          btn.classList.toggle('selected', player.seat === seat);
-          btn.addEventListener('click', () => this.cb.onSelectSeat(player.seat === seat ? null : seat));
-          seatRow.appendChild(btn);
+      if (player?.playerId === this.localPlayerId) {
+        const seatRow = el('div', 'lobby-seat-row');
+        for (const selectableSeat of orderedSeats) {
+          const button = el('button', 'ui-compact-action', selectableSeat.toUpperCase());
+          button.id = `seat-${selectableSeat}`;
+          button.dataset.seat = selectableSeat;
+          button.type = 'button';
+          button.classList.toggle('selected', player.seat === selectableSeat);
+          button.addEventListener('click', () => this.cb.onSelectSeat(player.seat === selectableSeat ? null : selectableSeat));
+          seatRow.appendChild(button);
         }
         card.appendChild(seatRow);
       }
 
-      const status = document.createElement('div');
-      status.className = 'lobby-status';
-      status.textContent = !player.connected
-        ? 'RECONNECTING…'
-        : player.ready
-          ? 'READY'
-          : 'NOT READY';
+      const status = el('div', 'lobby-status');
+      status.append(el('span', '', 'INPUT'), el('strong', '', !player
+        ? 'OPEN'
+        : !player.connected
+          ? 'RECONNECTING…'
+          : player.ready
+            ? 'READY'
+            : 'STANDBY'));
       card.appendChild(status);
       this.playersHost.appendChild(card);
     }
@@ -189,12 +214,10 @@ export class LobbyView {
   private renderChat(chat: readonly LobbyChatMessage[]): void {
     this.chatHost.textContent = '';
     for (const message of chat) {
-      const row = document.createElement('div');
-      row.className = 'lobby-chat-message';
-      const who = document.createElement('span');
-      who.className = 'lobby-chat-who';
+      const row = el('div', 'lobby-chat-message');
+      const who = el('span', 'lobby-chat-who');
       who.textContent = `${message.displayName}: `;
-      const text = document.createElement('span');
+      const text = el('span');
       text.textContent = message.text;
       row.append(who, text);
       this.chatHost.appendChild(row);

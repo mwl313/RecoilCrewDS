@@ -30,7 +30,14 @@ export interface MovementRulesBlock {
    * fixtures/rooms without the block keep BASE_CONFIG fallbacks; the server
    * always sends it with snapshots after a movement-rules revision.
    */
-  weapon?: { cannonCooldown: number; chargeTapMaxSeconds?: number; chargeFullSeconds?: number };
+  weapon?: {
+    cannonCooldown: number;
+    cannonSpeed?: number;
+    cannonGravity?: number;
+    cannonLife?: number;
+    chargeTapMaxSeconds?: number;
+    chargeFullSeconds?: number;
+  };
   /** Resolved tank rig geometry; the server always sends it with the block. */
   tankRig?: TankRigRulesBlock;
 }

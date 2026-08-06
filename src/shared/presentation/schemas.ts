@@ -42,6 +42,7 @@ export const SCENE_COMPONENT_TYPES = [
   'pointLight',
   'rotateAnimation',
   'floatAnimation',
+  'dragRotate',
 ] as const;
 
 /**
@@ -135,6 +136,7 @@ export const HUD_BINDING_PATHS = [
   'connection.peerConnected',
   'connection.pingMs',
   'connection.fps',
+  'connection.degraded',
   'match.timeRemaining',
   'match.timeUrgent',
   'match.score',
@@ -156,6 +158,14 @@ export const HUD_BINDING_PATHS = [
   'gunner.chargeRatio',
   'gunner.chargeFull',
   'gunner.chargeMax',
+  'progression.visible',
+  'progression.level',
+  'progression.currentXp',
+  'progression.xpForNextLevel',
+  'progression.ratio',
+  'progression.ratioMax',
+  'progression.pendingLevelUps',
+  'progression.upgradePending',
   'objective.visible',
   'objective.screenX',
   'objective.screenY',
@@ -278,6 +288,15 @@ const nodeEditorMetadataSchema = z
   })
   .strict();
 
+export const uiAppearanceSchema = z
+  .object({
+    tone: z.enum(['neutral', 'action', 'driver', 'gunner', 'success', 'warning', 'danger']).optional(),
+    emphasis: z.enum(['quiet', 'standard', 'hero']).optional(),
+    density: z.enum(['compact', 'comfortable', 'cinematic']).optional(),
+    shape: z.enum(['plain', 'plate', 'bar']).optional(),
+  })
+  .strict();
+
 export const uiNodeSchema: z.ZodType<UiNodeInput> = z.lazy(() =>
   z
     .object({
@@ -291,6 +310,7 @@ export const uiNodeSchema: z.ZodType<UiNodeInput> = z.lazy(() =>
       bindings: z.array(bindingSchema).optional(),
       actions: z.array(actionBindingSchema).optional(),
       animations: z.array(animationSchema).optional(),
+      appearance: uiAppearanceSchema.optional(),
       visible: z.boolean().optional(),
       children: z.array(uiNodeSchema).optional(),
       editor: nodeEditorMetadataSchema.optional(),
@@ -310,6 +330,7 @@ export interface UiNodeInput {
   bindings?: z.infer<typeof bindingSchema>[];
   actions?: z.infer<typeof actionBindingSchema>[];
   animations?: z.infer<typeof animationSchema>[];
+  appearance?: z.infer<typeof uiAppearanceSchema>;
   visible?: boolean;
   children?: UiNodeInput[];
   editor?: z.infer<typeof nodeEditorMetadataSchema>;
@@ -534,6 +555,7 @@ export type ThemeDefinition = z.infer<typeof themeDefinitionSchema>;
 export type ProjectAssetDefinition = z.infer<typeof projectAssetDefinitionSchema>;
 export type AssetCatalogDefinition = z.infer<typeof assetCatalogDefinitionSchema>;
 export type UiNodeDefinition = z.infer<typeof uiNodeSchema>;
+export type UiAppearance = z.infer<typeof uiAppearanceSchema>;
 export type BindingDefinition = z.infer<typeof bindingSchema>;
 export type ActionBindingDefinition = z.infer<typeof actionBindingSchema>;
 export type TransitionDefinition = z.infer<typeof transitionSchema>;

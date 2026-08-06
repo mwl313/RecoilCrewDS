@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import type { TankRigDefinition } from '../../shared/content/schemas/tank';
-import { computeWeaponMountWorldPose, type Vec3 } from '../../shared/vehicle/tankRigGeometry';
+import {
+  computeWeaponMountWorldPose,
+  resolveTerrainSafeMuzzle,
+  type GroundHeightAt,
+  type Vec3,
+} from '../../shared/vehicle/tankRigGeometry';
 import type { CameraCollisionQuery } from '../cameraCollision';
 import { rayAabbT } from '../arenaView';
 
@@ -32,6 +37,8 @@ export interface TrajectoryReticleInput {
   turretPitch: number;
   rig: TankRigDefinition;
   cameraQuery: CameraCollisionQuery | null;
+  groundHeightAt: GroundHeightAt;
+  projectile: { speed: number; gravity: number; life: number };
   /** Desired world aim point from the camera center ray. */
   desiredPoint: Vec3;
   /** Optional reusable result (avoid per-frame allocation). */
@@ -40,11 +47,16 @@ export interface TrajectoryReticleInput {
 
 const FALLBACK_RANGE = 90;
 const OFFSCREEN_MARGIN = 1.2;
+const TRAJECTORY_STEP = 1 / 60;
 
 const scratchOrigin = new THREE.Vector3();
 const scratchDir = new THREE.Vector3();
 const scratchQueryCenter = new THREE.Vector3();
 const scratchPoint = new THREE.Vector3();
+const scratchNext = new THREE.Vector3();
+const scratchVelocity = new THREE.Vector3();
+const scratchSegment = new THREE.Vector3();
+const scratchAimDelta = new THREE.Vector3();
 const scratchNdc = new THREE.Vector3();
 
 export function projectTrajectoryReticle(input: TrajectoryReticleInput): TrajectoryReticleResult {
@@ -61,7 +73,8 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
     return out;
   }
   const mount = computeWeaponMountWorldPose(input.tank, { yaw: input.turretLocalYaw, pitch: input.turretPitch }, input.rig);
-  const origin = scratchOrigin.set(mount.muzzle.x, mount.muzzle.y, mount.muzzle.z);
+  const safeMuzzle = resolveTerrainSafeMuzzle(mount, input.groundHeightAt);
+  const origin = scratchOrigin.set(safeMuzzle.x, safeMuzzle.y, safeMuzzle.z);
   const dir = scratchDir.set(mount.direction.x, mount.direction.y, mount.direction.z);
   if (dir.lengthSq() < 1e-12 || !Number.isFinite(origin.x + origin.y + origin.z)) {
     out.visible = false;
@@ -70,32 +83,49 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
   }
   dir.normalize();
 
-  // Fallback: where the shot line crosses the plane through the tank at the
-  // desired aim range (keeps the reticle meaningful when the ray points up).
+  // Follow the shell to the camera's desired aim range. Unlike the old
+  // straight ray, this uses the same integration order as ProjectileSystem:
+  // move first, then apply gravity.
   let range = FALLBACK_RANGE;
-  const aimDelta = new THREE.Vector3(input.desiredPoint.x - origin.x, input.desiredPoint.y - origin.y, input.desiredPoint.z - origin.z);
+  const aimDelta = scratchAimDelta.set(input.desiredPoint.x - origin.x, input.desiredPoint.y - origin.y, input.desiredPoint.z - origin.z);
   const desiredRange = aimDelta.dot(dir);
   if (Number.isFinite(desiredRange) && desiredRange > 1) range = desiredRange;
-  const planeDot = -dir.y;
-  if (planeDot > 1e-4) {
-    const groundT = (origin.y - input.tank.y) / planeDot;
-    if (groundT > 0.2 && groundT < range) range = groundT;
-  }
-
+  const speed = Math.max(0.001, input.projectile.speed);
+  const gravity = Math.max(0, input.projectile.gravity);
+  const duration = Math.min(Math.max(TRAJECTORY_STEP, input.projectile.life), range / speed);
+  const world = scratchPoint.copy(origin);
+  const velocity = scratchVelocity.copy(dir).multiplyScalar(speed);
   let blocked = false;
-  if (input.cameraQuery) {
-    scratchQueryCenter.copy(origin);
-    const candidates = input.cameraQuery.query(scratchQueryCenter, range + 1);
-    for (const c of candidates) {
-      const t = rayAabbT(origin, dir, c.box);
-      if (t !== null && t > 0.2 && t < range) {
-        range = t;
+  let elapsed = 0;
+  while (elapsed < duration - 1e-8) {
+    const dt = Math.min(TRAJECTORY_STEP, duration - elapsed);
+    const next = scratchNext.copy(world).addScaledVector(velocity, dt);
+    const segment = scratchSegment.copy(next).sub(world);
+    const segmentLength = segment.length();
+    if (input.cameraQuery && segmentLength > 1e-6) {
+      segment.divideScalar(segmentLength);
+      scratchQueryCenter.copy(world).addScaledVector(segment, segmentLength * 0.5);
+      const candidates = input.cameraQuery.query(scratchQueryCenter, segmentLength + 1);
+      let nearest = segmentLength;
+      for (const candidate of candidates) {
+        const hit = rayAabbT(world, segment, candidate.box);
+        if (hit !== null && hit > 0.01 && hit < nearest) nearest = hit;
+      }
+      if (nearest < segmentLength) {
+        world.addScaledVector(segment, nearest);
         blocked = true;
+        break;
       }
     }
+    const floor = input.groundHeightAt(next.x, next.z) + 0.05;
+    if (next.y <= floor) {
+      world.set(next.x, floor, next.z);
+      break;
+    }
+    world.copy(next);
+    velocity.y -= gravity * dt;
+    elapsed += dt;
   }
-
-  const world = scratchPoint.copy(origin).addScaledVector(dir, range);
   out.worldPoint.x = world.x;
   out.worldPoint.y = world.y;
   out.worldPoint.z = world.z;

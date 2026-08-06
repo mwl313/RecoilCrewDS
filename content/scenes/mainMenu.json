@@ -3,50 +3,73 @@
   "label": "Main Menu",
   "type": "hybrid",
   "environment": {
-    "background": "#0b1216",
+    "background": "#101516",
     "lights": [
-      { "type": "hemisphere", "color": "#7fb2c9", "groundColor": "#1c1512", "intensity": 0.9 },
-      { "type": "directional", "color": "#ffd9a0", "intensity": 1.5, "direction": [0.35, 0.8, 0.4] }
+      { "type": "hemisphere", "color": "#b8c5c0", "groundColor": "#241b12", "intensity": 1.05 },
+      { "type": "directional", "color": "#ffd18a", "intensity": 1.75, "direction": [-0.35, 0.72, 0.55] }
     ]
   },
   "entities": [
     {
       "id": "menuTank",
-      "transform": { "position": [0, -1.4, 0], "rotation": [0, 0.6, 0], "scale": [1.2, 1.2, 1.2] },
+      "transform": { "position": [1.35, -1.35, 0], "rotation": [0, -0.42, 0], "scale": [1.05, 1.05, 1.05] },
       "components": [
-        { "type": "model", "props": { "assetId": "playerTank.chassis" } },
-        { "type": "rotateAnimation", "props": { "speed": 0.12 } },
-        { "type": "floatAnimation", "props": { "amplitude": 0.35, "speed": 0.8 } }
+        { "type": "model", "props": { "assetId": "scene.menuTank" } },
+        { "type": "rotateAnimation", "props": { "speed": 0.055 } },
+        { "type": "floatAnimation", "props": { "amplitude": 0.08, "speed": 0.65 } },
+        { "type": "dragRotate", "props": { "regionStart": 0.46, "sensitivity": 0.009 } }
       ]
     }
   ],
-  "cameras": [{ "position": [0, 1.2, 5.5], "rotation": [0, 0, 0] }],
+  "cameras": [{ "position": [0, 0.75, 6.3], "rotation": [0, 0, 0] }],
   "enterTransition": { "type": "fade", "durationMs": 180 },
   "root": {
     "id": "screen-main",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-screen menu-screen",
+    "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plain" },
     "children": [
+      { "id": "main-frame", "type": "container", "class": "ui-safe-frame" },
+      {
+        "id": "main-topbar",
+        "type": "horizontal",
+        "class": "ui-topbar",
+        "children": [
+          { "id": "main-unit", "type": "text", "class": "ui-unit-mark", "text": "RC / FIELD UNIT 07" },
+          { "id": "main-system", "type": "text", "class": "ui-system-state", "text": "SYSTEM STATUS: READY" }
+        ]
+      },
       {
         "id": "main-panel",
         "type": "panel",
-        "class": "panel",
+        "class": "ui-menu-rail",
+        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plain" },
         "children": [
+          { "id": "main-kicker", "type": "text", "class": "ui-kicker", "text": "CO-OP TANK SURVIVAL" },
           {
             "id": "main-logo",
             "type": "container",
-            "class": "logo small",
+            "class": "ui-wordmark ui-wordmark--menu",
             "children": [
-              { "id": "main-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOIL CREW" },
-              { "id": "main-sub", "type": "text", "class": "logo-sub", "text": "ONE TANK · TWO BRAINS · ZERO BRAKES" }
+              { "id": "main-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
+              { "id": "main-title-crew", "type": "text", "class": "ui-wordmark-crew", "text": "CREW" }
             ]
           },
-          { "id": "main-create", "type": "button", "class": "btn primary", "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
-          { "id": "main-join", "type": "button", "class": "btn", "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
-          { "id": "main-single", "type": "button", "class": "btn", "props": { "dataAct": "single" }, "text": "SINGLE PLAYER", "actions": [{ "event": "click", "action": "app.startSinglePlayer" }] },
-          { "id": "main-settings", "type": "button", "class": "btn", "props": { "dataAct": "settings" }, "text": "SETTINGS", "actions": [{ "event": "click", "action": "app.openSettings" }] },
-          { "id": "main-howto", "type": "button", "class": "btn ghost", "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] },
-          { "id": "main-playing-as", "type": "text", "class": "playing-as", "bindings": [{ "target": "text", "source": "currentNickname", "fallback": "PLAYING AS: ---" }] }
+          { "id": "main-create", "type": "button", "class": "ui-action ui-action--01", "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
+          { "id": "main-join", "type": "button", "class": "ui-action ui-action--02", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
+          { "id": "main-single", "type": "button", "class": "ui-action ui-action--03", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "single" }, "text": "SINGLE PLAYER", "actions": [{ "event": "click", "action": "app.startSinglePlayer" }] },
+          { "id": "main-settings", "type": "button", "class": "ui-action ui-action--04", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "settings" }, "text": "SETTINGS", "actions": [{ "event": "click", "action": "app.openSettings" }] },
+          { "id": "main-howto", "type": "button", "class": "ui-action ui-action--05", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] },
+          { "id": "main-playing-as", "type": "text", "class": "playing-as", "bindings": [{ "target": "text", "source": "currentNickname", "fallback": "CURRENT NICKNAME: ---" }] }
+        ]
+      },
+      {
+        "id": "main-hero-caption",
+        "type": "container",
+        "class": "ui-hero-caption",
+        "children": [
+          { "id": "main-hero-label", "type": "text", "text": "DRAG TO ROTATE" },
+          { "id": "main-hero-id", "type": "text", "text": "RC–07" }
         ]
       }
     ]

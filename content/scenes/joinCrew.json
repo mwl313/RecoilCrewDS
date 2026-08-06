@@ -6,20 +6,29 @@
   "root": {
     "id": "screen-join",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-screen form-screen",
     "children": [
+      { "id": "join-frame", "type": "container", "class": "ui-safe-frame" },
+      { "id": "join-topbar", "type": "horizontal", "class": "ui-topbar", "children": [
+        { "id": "join-unit", "type": "text", "class": "ui-unit-mark", "text": "RC / CREW LINK" },
+        { "id": "join-step", "type": "text", "class": "ui-system-state", "text": "JOIN CHANNEL" }
+      ] },
       {
         "id": "join-panel",
         "type": "panel",
-        "class": "panel",
+        "class": "ui-form-panel",
+        "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" },
         "children": [
+          { "id": "join-kicker", "type": "text", "class": "ui-kicker", "text": "CREW LINK // REMOTE" },
           { "id": "join-title", "type": "text", "props": { "tag": "h2" }, "text": "JOIN CREW" },
-          { "id": "join-code", "type": "input", "props": { "maxlength": 6, "placeholder": "AB12CD", "autocomplete": "off", "spellcheck": false, "enterAction": "app.joinCrew" } },
-          { "id": "join-error", "type": "text", "class": "error", "bindings": [{ "target": "text", "source": "message", "fallback": "" }] },
-          { "id": "join-go", "type": "button", "class": "btn primary", "text": "JOIN", "actions": [{ "event": "click", "action": "app.joinCrew" }] },
-          { "id": "join-back", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
+          { "id": "join-copy", "type": "text", "class": "ui-form-copy", "text": "Enter the six-character room code supplied by your Driver." },
+          { "id": "join-code", "type": "input", "class": "ui-code-input", "props": { "maxlength": 6, "placeholder": "AB12CD", "autocomplete": "off", "spellcheck": false, "enterAction": "app.joinCrew" } },
+          { "id": "join-error", "type": "text", "class": "error ui-form-error", "bindings": [{ "target": "text", "source": "message", "fallback": "" }] },
+          { "id": "join-go", "type": "button", "class": "ui-action", "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" }, "text": "JOIN", "actions": [{ "event": "click", "action": "app.joinCrew" }] },
+          { "id": "join-back", "type": "button", "class": "ui-text-action", "props": { "dataAct": "back" }, "text": "BACK", "actions": [{ "event": "click", "action": "app.back" }] }
         ]
-      }
+      },
+      { "id": "join-footer", "type": "text", "class": "ui-screen-footer", "text": "ROOM CODES ARE NOT CASE SENSITIVE" }
     ]
   },
   "previewStates": [

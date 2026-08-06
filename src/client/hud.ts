@@ -102,11 +102,7 @@ export class Hud {
     }
     this.lobbyView.update(state, chat, localPlayerId);
     this.flow.setGameVisible(false);
-    // Hide every presentation scene so only the lobby view is visible.
-    const presenter = this.flow as unknown as { runtimes: Map<string, { element?: HTMLElement | null }> };
-    for (const runtime of presenter.runtimes.values()) {
-      runtime.element?.classList.add('hidden');
-    }
+    this.flow.hideAllScenes();
   }
 
   updateLobbyState(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
@@ -119,7 +115,7 @@ export class Hud {
   }
 
   setMainMenuNickname(nickname: string) {
-    this.flow.setSceneContext('scene.mainMenu', { currentNickname: `PLAYING AS: ${nickname}` });
+    this.flow.setSceneContext('scene.mainMenu', { currentNickname: `CURRENT NICKNAME: ${nickname}` });
   }
 
   setSettingsContext(patch: Record<string, unknown>) {

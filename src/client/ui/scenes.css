@@ -1,0 +1,231 @@
+.boot-screen {
+  cursor: pointer;
+  background:
+    linear-gradient(90deg, rgba(7, 9, 10, 0.98), rgba(7, 9, 10, 0.6)),
+    radial-gradient(circle at 64% 48%, #3f4645 0, #1a2021 38%, #080a0b 72%);
+}
+
+.boot-inner {
+  position: absolute;
+  z-index: 8;
+  top: 43%;
+  left: 50%;
+  width: min(760px, calc(100vw - 64px));
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.boot-screen .ui-wordmark {
+  --ui-boot-logo-size: clamp(102px, 15vw, 207px);
+  --ui-boot-center-correction: clamp(39px, 5.7vw, 79px);
+  display: inline-grid;
+  justify-items: start;
+  width: max-content;
+  max-width: 100%;
+  /* CREW deliberately overhangs left. Offset the layout by half of that
+     visible overhang so the complete two-word silhouette is centered. */
+  transform: translateX(var(--ui-boot-center-correction));
+}
+
+.ui-wordmark h1 {
+  margin: 8px 0 0;
+  color: var(--ui-paper);
+  text-shadow: none;
+  transform: skewX(-6deg);
+  font: italic 900 clamp(68px, 10vw, 138px)/0.76 var(--ui-display);
+  letter-spacing: -0.055em;
+}
+
+.ui-wordmark-crew {
+  display: block;
+  width: max-content;
+  margin: -0.02em 0 0 18%;
+  color: var(--ui-amber);
+  transform: skewX(-6deg);
+  font: italic 900 clamp(68px, 10vw, 138px)/0.76 var(--ui-display);
+  letter-spacing: -0.055em;
+}
+
+.boot-screen .ui-wordmark h1,
+.boot-screen .ui-wordmark .ui-wordmark-crew {
+  font-size: var(--ui-boot-logo-size);
+}
+
+.boot-screen .ui-wordmark h1 { width: max-content; }
+
+.boot-screen .ui-wordmark .ui-wordmark-crew {
+  margin: -0.02em 0 0 -0.78em;
+}
+
+.boot-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(500px, calc(100vw - 48px));
+  min-height: 112px;
+  margin: 30px auto 0;
+  padding: 24px 54px;
+  color: var(--ui-ink-0);
+  background: var(--ui-amber);
+  clip-path: var(--ui-cut-sm);
+  font: italic 850 38px/1 var(--ui-display);
+  letter-spacing: 0.12em;
+  animation: ui-hint-pulse 1.5s ease-in-out infinite;
+}
+
+.boot-keys { margin-top: 14px; color: var(--ui-muted); font-size: 10px; letter-spacing: 0.14em; }
+
+@keyframes ui-hint-pulse {
+  50% { background: var(--ui-amber-hot); transform: translateY(-2px); }
+}
+
+.menu-screen {
+  background:
+    linear-gradient(90deg, rgba(7, 9, 10, 0.99) 0 38%, rgba(7, 9, 10, 0.56) 57%, rgba(7, 9, 10, 0.12)),
+    radial-gradient(circle at 73% 48%, #4f5150 0, #202729 31%, #0d1113 70%);
+}
+
+.menu-screen::before {
+  opacity: 0.44;
+  background-image:
+    linear-gradient(rgba(255, 173, 34, 0.085) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(241, 238, 227, 0.06) 1px, transparent 1px);
+  animation: ui-menu-grid-treadmill 2.2s linear infinite;
+}
+
+@keyframes ui-menu-grid-treadmill {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 48px, 0 0; }
+}
+
+.ui-menu-rail {
+  position: absolute;
+  z-index: 8;
+  top: 13%;
+  left: calc(var(--ui-safe-x) + 2.5%);
+  display: flex;
+  flex-direction: column;
+  width: min(430px, 40vw);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.ui-wordmark--menu { margin: 5px 0 22px; }
+
+.ui-wordmark--menu h1 {
+  max-width: 420px;
+  font-size: clamp(62px, 7.6vw, 112px);
+}
+
+.ui-wordmark--menu .ui-wordmark-crew {
+  font-size: clamp(62px, 7.6vw, 112px);
+}
+
+.ui-wordmark--menu .ui-tagline { margin: 23px 0 4px; }
+
+.ui-menu-rail .ui-action {
+  min-height: 48px;
+  margin-top: 5px;
+  font-size: 20px;
+}
+.ui-menu-rail .ui-action--01::before { content: '01'; }
+.ui-menu-rail .ui-action--02::before { content: '02'; }
+.ui-menu-rail .ui-action--03::before { content: '03'; }
+.ui-menu-rail .ui-action--04::before { content: '04'; }
+.ui-menu-rail .ui-action--05::before { content: '05'; }
+
+.playing-as {
+  margin-top: 12px;
+  padding: 8px 0 8px 12px;
+  color: var(--ui-paper);
+  border-left: 3px solid var(--ui-amber);
+  background: linear-gradient(90deg, rgba(255, 173, 34, 0.09), transparent 78%);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+
+#main-system {
+  gap: 11px;
+  color: var(--ui-paper);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#main-system::before {
+  width: 9px;
+  height: 9px;
+  animation: ui-status-breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes ui-status-breathe {
+  0%, 100% { opacity: 0.28; box-shadow: 0 0 2px rgba(121, 220, 136, 0.18); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(121, 220, 136, 0.82); }
+}
+
+.menu-screen.tank-drag-ready { cursor: grab; }
+.menu-screen.tank-drag-active { cursor: grabbing; user-select: none; }
+
+.ui-hero-caption {
+  position: absolute;
+  z-index: 8;
+  right: calc(var(--ui-safe-x) + 2%);
+  bottom: 11%;
+  min-width: 150px;
+  padding: 10px 16px;
+  border-right: 4px solid var(--ui-amber);
+  background: rgba(7, 9, 10, 0.76);
+  text-align: right;
+}
+
+.ui-hero-caption > :first-child { color: var(--ui-muted); font-size: 9px; letter-spacing: 0.15em; }
+.ui-hero-caption > :last-child { font: italic 900 28px/1 var(--ui-display); }
+
+.form-screen {
+  background:
+    linear-gradient(115deg, rgba(7, 9, 10, 0.98), rgba(7, 9, 10, 0.74)),
+    radial-gradient(circle at 50% 45%, #3d4545 0, #171d1f 40%, #080a0b 78%);
+}
+
+.countdown-screen {
+  background:
+    linear-gradient(rgba(7, 9, 10, 0.72), rgba(7, 9, 10, 0.88)),
+    radial-gradient(circle at center, #484b45, #111617 67%);
+}
+
+.countdown-screen > .ui-kicker {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.countdown-inner {
+  position: absolute;
+  z-index: 8;
+  top: 49%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.countdown-number {
+  color: var(--ui-paper);
+  text-shadow: 14px 0 0 rgba(255, 173, 34, 0.2);
+  transform: skewX(-5deg);
+  font: italic 900 clamp(150px, 24vw, 330px)/0.72 var(--ui-display);
+}
+
+.countdown-number.pop { animation: ui-countdown-pop 0.9s cubic-bezier(0.2, 1.3, 0.4, 1); }
+.countdown-sub { margin-top: 28px; color: var(--ui-amber); font: italic 800 24px/1 var(--ui-display); letter-spacing: 0.22em; }
+
+@keyframes ui-countdown-pop {
+  0% { opacity: 0; transform: skewX(-5deg) scale(1.7); }
+  26% { opacity: 1; transform: skewX(-5deg) scale(0.94); }
+  100% { transform: skewX(-5deg) scale(1); }
+}

@@ -9,6 +9,7 @@ import type { TankImpulseWire } from '../../shared/effects/tankImpulseSystem';
 import type { GunnerActionType } from '../../shared/net/protocol';
 import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
+import { VERTICAL_AIM_MAX_PITCH, VERTICAL_AIM_MIN_PITCH } from '../../shared/vehicle/tankRigTypes';
 
 export interface PredictionCallbacks {
   send(msg: Record<string, unknown>): void;
@@ -37,8 +38,8 @@ export class PredictionController {
   private inputSeq = 0;
   private turretTurnRate = 4.6;
   private pitchFollowRate = 8;
-  private turretMinPitch = -1.45;
-  private turretMaxPitch = 0.42;
+  private turretMinPitch = VERTICAL_AIM_MIN_PITCH;
+  private turretMaxPitch = VERTICAL_AIM_MAX_PITCH;
   private turretResponseMode: 'instant' | 'rateLimited' = 'instant';
   private latestMovement: MovementRulesBlock | null = null;
   private ground: GroundQuery = STATIC_GROUND_QUERY;
@@ -112,6 +113,10 @@ export class PredictionController {
   /** Arena half the predictor is bound to (for diagnostics/tests). */
   groundHalf(): number {
     return this.ground.half;
+  }
+
+  groundHeightAt(x: number, z: number): number {
+    return this.ground.groundHeightAt(x, z);
   }
 
   /** True when local tank prediction is disabled (wrong-ground fallback). */

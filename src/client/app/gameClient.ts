@@ -25,6 +25,7 @@ import type { ContentPack } from '../../shared/content/contentPack';
 import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } from '../../shared/session/gameSessionKind';
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
+import { computeWeaponMountWorldPose, resolveTerrainSafeMuzzle } from '../../shared/vehicle/tankRigGeometry';
 import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
@@ -199,6 +200,7 @@ export class GameClient {
       prediction,
       colliders: () => renderWorld.arena.colliders,
       cameraQuery: () => renderWorld.arena.cameraQuery,
+      groundHeightAt: (x, z) => prediction.groundHeightAt(x, z),
       input,
       audio,
       onTankRig: (block) => gameRef?.applyTankRigBlock(block),
@@ -861,7 +863,17 @@ export class GameClient {
   private playLocalGunnerAction(action: GunnerActionType): void {
     const latest = this.presenter.latest;
     this.tankRig.chassis.updateMatrixWorld(true);
-    const muzzle = getMuzzleWorld(this.tankRig);
+    let muzzle: { x: number; y: number; z: number } = getMuzzleWorld(this.tankRig);
+    const tank = this.presenter.getRenderTank();
+    if (tank) {
+      const turret = this.prediction.getTurretSpaces();
+      const mount = computeWeaponMountWorldPose(
+        tank,
+        { yaw: turret.predictedYawLocal, pitch: turret.predictedPitch },
+        this.tankRig.rigDefinition,
+      );
+      muzzle = resolveTerrainSafeMuzzle(mount, (x, z) => this.prediction.groundHeightAt(x, z));
+    }
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     if (action === 'secondaryPressed') {
       if (charging) {

@@ -52,6 +52,8 @@ export interface PitchLimits {
   maxPitch: number;
 }
 
+export type GroundHeightAt = (x: number, z: number) => number;
+
 function vec(x: number, y: number, z: number): Vec3 {
   return { x, y, z };
 }
@@ -97,6 +99,38 @@ export function computeWeaponMountWorldPose(
   const forwardAxis = rig.forwardAxis ?? [0, 0, 1];
   const direction = normalize(rotateY(rotateX(vec(forwardAxis[0], forwardAxis[1], forwardAxis[2]), -pitch), worldYaw));
   return { turretPivot, barrelPivot, muzzle, direction };
+}
+
+/**
+ * Back the projectile origin up along the barrel line when an extreme
+ * downward pose puts the authored visual muzzle below terrain. This keeps
+ * the deliberate under-tank ground detonation while preventing a shell from
+ * beginning underground. Recoil continues to use the unchanged direction.
+ */
+export function resolveTerrainSafeMuzzle(
+  mount: WeaponMountWorldPose,
+  groundHeightAt: GroundHeightAt,
+  clearance = 0.08,
+): Vec3 {
+  const origin = { ...mount.muzzle };
+  if (!Number.isFinite(origin.x + origin.y + origin.z)) return origin;
+
+  for (let i = 0; i < 3; i++) {
+    const floor = groundHeightAt(origin.x, origin.z) + clearance;
+    if (origin.y >= floor) return origin;
+    if (mount.direction.y < -1e-5) {
+      const backtrack = (floor - origin.y) / -mount.direction.y + 1e-4;
+      origin.x -= mount.direction.x * backtrack;
+      origin.y -= mount.direction.y * backtrack;
+      origin.z -= mount.direction.z * backtrack;
+    } else {
+      origin.y = floor;
+      return origin;
+    }
+  }
+
+  origin.y = Math.max(origin.y, groundHeightAt(origin.x, origin.z) + clearance);
+  return origin;
 }
 
 /** World position of the rig's aim pivot (camera/turret solve reference). */

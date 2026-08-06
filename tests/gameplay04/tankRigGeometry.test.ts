@@ -5,6 +5,7 @@ import { DEFAULT_TANK_RIG } from '../../src/shared/vehicle/tankRigTypes';
 import {
   computeAimPivotWorld,
   computeWeaponMountWorldPose,
+  resolveTerrainSafeMuzzle,
   solveTurretAim,
   type TankPose,
 } from '../../src/shared/vehicle/tankRigGeometry';
@@ -81,6 +82,19 @@ describe('shared weapon-mount geometry', () => {
     const shared = computeWeaponMountWorldPose(tank({ yaw: 0 }), { yaw: 0, pitch: 0.5 }, DEFAULT_TANK_RIG);
     expect(shared.direction.y).toBeCloseTo(Math.sin(0.5), 6);
     expect(shared.direction.z).toBeCloseTo(Math.cos(0.5), 6);
+  });
+
+  it('backs a vertical-down muzzle up to terrain without changing shot direction', () => {
+    const mount = computeWeaponMountWorldPose(
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: -Math.PI / 2 },
+      DEFAULT_TANK_RIG,
+    );
+    expect(mount.muzzle.y).toBeLessThan(0);
+    const safe = resolveTerrainSafeMuzzle(mount, () => 0);
+    expect(safe.y).toBeCloseTo(0.0801, 3);
+    expect(mount.direction.y).toBeCloseTo(-1, 6);
+    expect(Math.hypot(safe.x, safe.z)).toBeLessThan(1);
   });
 
   it('solveTurretAim points the rig aim pivot at the desired world point', () => {

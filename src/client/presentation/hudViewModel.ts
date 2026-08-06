@@ -19,6 +19,7 @@ export interface HudViewModel {
     peerConnected: boolean;
     pingMs: number;
     fps: number;
+    degraded: boolean;
   };
   match: {
     timeRemaining: number;
@@ -46,6 +47,16 @@ export interface HudViewModel {
     chargeRatio: number;
     chargeFull: boolean;
     chargeMax: number;
+  };
+  progression: {
+    visible: boolean;
+    level: number;
+    currentXp: number;
+    xpForNextLevel: number;
+    ratio: number;
+    ratioMax: number;
+    pendingLevelUps: number;
+    upgradePending: boolean;
   };
   /** Local predicted charge (same-frame for Gunner/Single Player). */
   localCharge?: { unlocked: boolean; held: boolean; ratio: number; full: boolean };
@@ -115,6 +126,7 @@ export interface HudProjectionContext {
     cannonCooldown?: number;
     chargeTapMaxSeconds?: number;
     chargeFullSeconds?: number;
+    progressionEnabled?: boolean;
   };
   objective: { x: number; y: number; visible: boolean } | null;
   stage?: {
@@ -132,7 +144,7 @@ export function emptyHudViewModel(): HudViewModel {
     role: 'driver',
     session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true },
     pointerLocked: false,
-    connection: { peerConnected: false, pingMs: 0, fps: 60 },
+    connection: { peerConnected: false, pingMs: 0, fps: 60, degraded: true },
     match: { timeRemaining: 90, timeUrgent: false, score: 0, scoreText: '0', combo: 1, comboHot: false },
     tank: {
       integrity: 100,
@@ -152,6 +164,16 @@ export function emptyHudViewModel(): HudViewModel {
       chargeRatio: 0,
       chargeFull: false,
       chargeMax: 1,
+    },
+    progression: {
+      visible: false,
+      level: 1,
+      currentXp: 0,
+      xpForNextLevel: 1,
+      ratio: 0,
+      ratioMax: 1,
+      pendingLevelUps: 0,
+      upgradePending: false,
     },
     prompt: '',
     promptSub: '',
@@ -297,6 +319,10 @@ export class HudProjector {
     const elites =
       aliveElites.length <= 1 ? (aliveElites[0] ? [aliveElites[0]] : eliteRows) : eliteRows;
     const boss = monsterView?.encounters.find((e) => e.kind === 'boss');
+    const teamProgression = state.teamProgression;
+    const progressionVisible = opts.rules?.progressionEnabled ?? teamProgression !== undefined;
+    const currentXp = teamProgression?.currentXp ?? 0;
+    const xpForNextLevel = Math.max(1, teamProgression?.xpForNextLevel ?? 1);
     return {
       role: opts.role,
       session: opts.session,
@@ -305,6 +331,7 @@ export class HudProjector {
         peerConnected: opts.peerConnected,
         pingMs: Math.round(opts.ping),
         fps: Math.round(opts.fps),
+        degraded: !opts.peerConnected || opts.ping >= 180,
       },
       match: {
         timeRemaining: remaining,
@@ -332,6 +359,16 @@ export class HudProjector {
         chargeRatio,
         chargeFull,
         chargeMax: 1,
+      },
+      progression: {
+        visible: progressionVisible,
+        level: teamProgression?.level ?? 1,
+        currentXp,
+        xpForNextLevel,
+        ratio: Math.max(0, Math.min(1, currentXp / xpForNextLevel)),
+        ratioMax: 1,
+        pendingLevelUps: teamProgression?.pendingLevelUps ?? 0,
+        upgradePending: (teamProgression?.pendingLevelUps ?? 0) > 0 || state.matchFlow === 'upgradeSelection',
       },
       prompt,
       promptSub,

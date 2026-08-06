@@ -174,13 +174,16 @@ export function statScope(id: string): StatScope | null {
 }
 
 /**
- * Movement-critical stats: anything the Driver predictor simulates locally.
- * When one of these changes, the authoritative movement rules revision must
- * advance and the compact movement block must be replicated to clients.
+ * Client-prediction stats: movement plus ballistic values used by the
+ * trajectory reticle. When one changes, the movement rules revision must
+ * advance and the compact block must be replicated to clients.
  */
 export const MOVEMENT_STAT_IDS = new Set<string>([
   ...TANK_STAT_IDS,
   'match.grip',
   'match.gravity',
   'weapon.turretTurnRate',
+  'weapon.cannonSpeed',
+  'weapon.cannonGravity',
+  'weapon.cannonLife',
 ]);

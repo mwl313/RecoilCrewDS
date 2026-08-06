@@ -231,6 +231,23 @@ describe('damage, kill, and semantic events', () => {
 });
 
 describe('recoil parity (unbraced)', () => {
+  it('fires straight down from above terrain and launches the tank upward', () => {
+    const m = new Match('vertical-recoil');
+    m.state.enemies.length = 0;
+    m.runtime.systems.capabilities.revoke('cannon.charge');
+    m.setGunnerInput({ aimYaw: 0, aimPitch: -Math.PI / 2, secondary: true, primary: false });
+    m.step(DT);
+    const events = m.takeEvents();
+    const shot = events.find((event) => event.type === 'shot');
+    const impact = events.find((event) => event.type === 'enemyExplosion' && event.kind === 'cannon');
+
+    expect(m.state.turret.pitch).toBeCloseTo(-Math.PI / 2, 9);
+    expect(m.state.tank.vy).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.8);
+    expect(shot?.y).toBeGreaterThanOrEqual(0.08);
+    expect(Math.hypot((impact?.x ?? 99) - m.state.tank.x, (impact?.z ?? 99) - m.state.tank.z)).toBeLessThan(1);
+    expect(m.state.shells).toHaveLength(0);
+  });
+
   it('cannon recoil applies the full configured impulse', () => {
     const unbraced = new Match('recoil-unbraced');
     unbraced.runtime.systems.capabilities.revoke('cannon.charge');
