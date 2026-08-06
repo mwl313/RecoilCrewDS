@@ -1,0 +1,29 @@
+{
+  "id": "terrainProfile.urbanFlat",
+  "label": "Urban Prototype Flat Terrain",
+  "baseHeight": 0,
+  "heightRange": { "min": 0, "max": 1 },
+  "maxSlope": 0.5,
+  "slopeRules": {
+    "driveableMax": 0.55,
+    "riskyMax": 0.8,
+    "blockedMin": 0.9,
+    "cliffMin": 1.2,
+    "spawnMax": 0.2,
+    "recoveryMax": 0.2,
+    "landingMax": 0.3,
+    "maxStepUp": 0.8
+  },
+  "smoothingPasses": 0,
+  "slopeCorrectionIterations": 0,
+  "retryLimit": 8,
+  "maxGenerationMs": 500,
+  "legacySampled": false,
+  "features": {
+    "basin": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "ridge": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "plateau": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "valley": { "count": 0, "minSeparation": 0, "falloff": 0 },
+    "hill": { "count": 0, "minSeparation": 0, "falloff": 0 }
+  }
+}

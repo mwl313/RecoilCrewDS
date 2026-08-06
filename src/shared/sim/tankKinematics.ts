@@ -481,7 +481,7 @@ export function resolveTankFootprint(
     for (const foot of cfg.tank.footprint) {
       const ox = Math.sin(t.yaw) * foot.offset;
       const oz = Math.cos(t.yaw) * foot.offset;
-      const res = ground.resolveCircleContacts(t.x + ox, t.z + oz, foot.radius);
+      const res = ground.resolveCircleContacts(t.x + ox, t.z + oz, foot.radius, t.y);
       for (const c of res.contacts) {
         // Correction applies to the whole chassis.
         t.x += c.x - (t.x + ox);

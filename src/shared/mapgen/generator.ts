@@ -26,6 +26,7 @@ import {
 } from './cliffs';
 import { Heightfield } from './heightfield';
 import type { MapLayoutResult } from './layout';
+import type { UrbanLayout } from './urbanLayout';
 import { mulberry32, type Rng } from './prng';
 import { resolveSlopeRules, type SlopeRules, type TerrainProfileDef } from './profiles';
 import type { TerrainMaterialProfileDef } from './profiles';
@@ -93,6 +94,8 @@ export interface GeneratedArena {
   terrainSeedChecksum?: number;
   /** Phase 2 layout (routes/zones/spawns/gates/furniture). */
   layout?: MapLayoutResult;
+  /** Isolated authored urban layer used only by explicitly selected prototypes. */
+  urbanLayout?: UrbanLayout;
   /** Per-attempt retry diagnostics (production path only). */
   retryReport?: RetryReport;
 }

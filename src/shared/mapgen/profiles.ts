@@ -121,6 +121,8 @@ export interface MapDefinitionDef {
   isFallback: boolean;
   furnitureSetId: string;
   densityProfileId: string;
+  /** Optional isolated authored-city layer; production maps omit this. */
+  urbanPrototypeId?: 'urban200' | 'urban400';
 }
 
 export interface MapGenerationBundle {
@@ -165,6 +167,7 @@ export function resolveMapBundle(pack: ContentPack, mapId: string): MapGeneratio
       isFallback: map.isFallback,
       furnitureSetId: map.furnitureSetId,
       densityProfileId: map.densityProfileId,
+      urbanPrototypeId: map.urbanPrototypeId,
     },
     terrainMaterialProfile,
     terrainProfile: {

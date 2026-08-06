@@ -16,6 +16,8 @@
         "objectives/mainStage.json"      ],
       "maps": [
         "maps/arena_400_primary.json",
+        "maps/urban_200_prototype.json",
+        "maps/urban_400_prototype.json",
         "maps/fallback_legacy.json",
         "maps/dramatic_highlands.json",
         "maps/cliff_arena.json",
@@ -23,6 +25,7 @@
         "maps/rocket_jump_highlands.json"
       ],
       "terrainProfiles": [
+        "terrain-profiles/urban_flat.json",
         "terrain-profiles/primary.json",
         "terrain-profiles/fallback.json",
         "terrain-profiles/dramatic_highlands.json",
@@ -352,6 +355,7 @@
         "progression-mode-policies/singlePlayer.json"
       ],
       "terrainMaterialProfiles": [
+        "terrain-material-profiles/urban_concrete.json",
         "terrain-material-profiles/sparse_grass.json",
         "terrain-material-profiles/legacy_procedural.json"
       ]

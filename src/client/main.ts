@@ -44,6 +44,7 @@ import {
   resolveSelectedPreloadAssetIds,
 } from '../shared/monsters/monsterPreload';
 import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNormalization';
+import { urbanAssetIds } from '../shared/mapgen/urbanLayout';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -98,8 +99,14 @@ let lobbyChat: LobbyChatMessage[] = [];
 
 const params = new URLSearchParams(window.location.search);
 const TEST_MODE = params.has('test');
-const DEBUG_MODE = params.has('debug') || TEST_MODE;
+const DEBUG_MODE = (params.has('debug') || TEST_MODE) && !params.has('nodebug');
 const FORCED_SEED = params.has('seed') ? Number(params.get('seed')) : null;
+const FORCED_MAP_ID = (() => {
+  const value = params.get('map');
+  if (value === 'urban200') return 'map.urban200Prototype';
+  if (value === 'urban400') return 'map.urban400Prototype';
+  return value?.startsWith('map.') ? value : undefined;
+})();
 
 hud.bind({
   onBoot: () => {
@@ -513,15 +520,22 @@ function buildSessionFromMetadata(meta: ArenaMetadata): ArenaSessionResult | { e
 }
 
 function buildSinglePlayerSession(): ArenaSessionResult {
-  const { bundle, fallbackBundle } = resolveClientMapBundle();
+  const { bundle, fallbackBundle } = resolveClientMapBundle(FORCED_MAP_ID);
   const roomCode = FORCED_SEED !== null ? `SEED${FORCED_SEED}` : 'SINGLE';
   try {
-    return selectArenaSession({
+    const session = selectArenaSession({
       roomCode,
       matchIndex: singlePlayerMatchIndex,
       bundle,
       fallbackBundle,
     });
+    // Visual/collision QA hook: start on an authored roof without changing
+    // the normal prototype spawn order. It is inert outside explicit test mode.
+    if (TEST_MODE && params.get('urbanSpawn') === 'roof' && session.arena.urbanLayout) {
+      const roof = session.arena.urbanLayout.buildings[0];
+      session.world.spawnPoints.unshift({ x: roof.x, z: roof.z });
+    }
+    return session;
   } catch {
     return {
       arena: undefined as never,
@@ -626,6 +640,11 @@ async function startSinglePlayer(): Promise<void> {
   const spModeId =
     params.get('mode') === 'demo' ? 'mode.singlePlayerScoreAttack' : SINGLE_PLAYER_SESSION.rulesModeId;
   activeSinglePlayerModeId = spModeId;
+  if (session.arena?.urbanLayout) {
+    const loaded = assets ?? (await assetsPromise);
+    assets = loaded;
+    await loaded.preloadModels(urbanAssetIds(session.arena.urbanLayout));
+  }
   game = await createGame(session.world);
   const selectedRun = resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, matchId, spModeId);
   await game.preloadMonsterRun(CLIENT_CONTENT_PACK, selectedRun);
@@ -638,6 +657,9 @@ async function startSinglePlayer(): Promise<void> {
   };
   game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   game.suppressAutoInput = TEST_MODE;
+  if (TEST_MODE && params.get('urbanView') === 'overview' && session.arena?.urbanLayout) {
+    game.setUrbanOverview(session.arena.widthMeters);
+  }
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
   inGame = true;

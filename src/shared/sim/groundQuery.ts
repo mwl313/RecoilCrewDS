@@ -23,6 +23,7 @@ export interface GroundQuery {
     x: number,
     z: number,
     r: number,
+    elevation?: number,
   ): { x: number; z: number; contacts: CollisionContact[] };
   /** Cliff/step transition query (absent on the legacy analytic arena). */
   queryTerrainTransition?(fromX: number, fromZ: number, toX: number, toZ: number): TerrainTransition | null;

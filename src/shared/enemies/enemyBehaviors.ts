@@ -164,7 +164,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const turn = behaviorParam(def, 'movement.obstacleAvoid', 'turn', 1.1);
       const aheadX = e.x + runtime.dirX * lookAhead;
       const aheadZ = e.z + runtime.dirZ * lookAhead;
-      if (ctx.world.obstacleAt(aheadX, aheadZ)) {
+      if (ctx.world.obstacleAt(aheadX, aheadZ, e.y)) {
         const ang = Math.atan2(runtime.dirX, runtime.dirZ);
         const side = e.id % 2 === 0 ? 1 : -1;
         const newAng = ang + side * turn;
