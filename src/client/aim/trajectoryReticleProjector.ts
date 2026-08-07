@@ -24,6 +24,8 @@ export interface TrajectoryReticleResult {
   y: number;
   visible: boolean;
   blocked: boolean;
+  /** Cannon is in the exact vertical assist detent. */
+  verticalLocked: boolean;
   worldPoint: Vec3;
 }
 
@@ -65,11 +67,14 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
     y: 0,
     visible: false,
     blocked: false,
+    verticalLocked: false,
     worldPoint: { x: 0, y: 0, z: 0 },
   };
+  out.verticalLocked = Math.abs(Math.abs(input.turretPitch) - Math.PI / 2) < 1e-4;
   if (input.renderWidth <= 0 || input.renderHeight <= 0) {
     out.visible = false;
     out.blocked = false;
+    out.verticalLocked = false;
     return out;
   }
   const mount = computeWeaponMountWorldPose(input.tank, { yaw: input.turretLocalYaw, pitch: input.turretPitch }, input.rig);

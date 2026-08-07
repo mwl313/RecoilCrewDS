@@ -152,6 +152,7 @@ describe('trajectory reticle projection', () => {
     // Terrain is the intended impact surface for recoil shots, not a
     // near-cover obstruction state.
     expect(result.blocked).toBe(false);
+    expect(result.verticalLocked).toBe(true);
     expect(result.worldPoint.y).toBeCloseTo(0.05, 6);
     expect(Math.hypot(result.worldPoint.x, result.worldPoint.z)).toBeLessThan(1.1);
   });
@@ -167,7 +168,14 @@ describe('trajectory reticle projection', () => {
 
   it('reuses a caller-provided result object without allocation churn', () => {
     const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
-    const out: TrajectoryReticleResult = { x: -1, y: -1, visible: false, blocked: false, worldPoint: { x: 0, y: 0, z: 0 } };
+    const out: TrajectoryReticleResult = {
+      x: -1,
+      y: -1,
+      visible: false,
+      blocked: false,
+      verticalLocked: false,
+      worldPoint: { x: 0, y: 0, z: 0 },
+    };
     const r = project(cam, { x: 0, y: 0, z: 0, yaw: 0 }, { yaw: 0, pitch: 0 }, { x: 0, y: 2, z: 20 }, null, out);
     expect(r).toBe(out);
     expect(out.visible).toBe(true);

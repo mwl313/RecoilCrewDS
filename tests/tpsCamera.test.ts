@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import {
   TpsCameraController,
+  TPS_CAMERA_CONTROL_MAX_PITCH,
+  TPS_CAMERA_CONTROL_MIN_PITCH,
+  TPS_CAMERA_YAW_ATTENUATION_END_PITCH,
+  cameraPoleYawInputScale,
   computeWorldAim,
   localYawToWorld,
   mapLookPitchToBoomPitch,
@@ -77,6 +81,24 @@ describe('TPS camera direction conventions', () => {
     expect(cam.pitch).toBeCloseTo(TUNING.minPitch);
   });
 
+  it('smoothly removes horizontal camera spin at a vertical lock', () => {
+    const cam = new TpsCameraController({
+      ...TUNING,
+      minPitch: TPS_CAMERA_CONTROL_MIN_PITCH,
+      maxPitch: TPS_CAMERA_CONTROL_MAX_PITCH,
+    });
+    cam.pitch = -70 * Math.PI / 180;
+    cam.applyMouseDelta(100, 0);
+    expect(cam.yaw).toBeCloseTo(-100 * TUNING.sensitivityX, 6);
+
+    const yawBeforeLock = cam.yaw;
+    cam.pitch = -TPS_CAMERA_YAW_ATTENUATION_END_PITCH;
+    cam.applyMouseDelta(1000, 0);
+    expect(cameraPoleYawInputScale(cam.pitch)).toBe(0);
+    expect(cam.getInputDiagnostics().yawScale).toBe(0);
+    expect(cam.yaw).toBe(yawBeforeLock);
+  });
+
   it('gunner tuning can aim near-vertical for cannon takeoffs', () => {
     const gunner = new TpsCameraController({
       ...TUNING,
@@ -95,8 +117,8 @@ describe('TPS camera direction conventions', () => {
 
     for (const singlePlayer of [true, false]) {
       cm.setSinglePlayerMode(singlePlayer);
-      expect(cm.driverCam.minPitch).toBeCloseTo(-Math.PI / 2, 6);
-      expect(cm.driverCam.maxPitch).toBeCloseTo(Math.PI / 2, 6);
+      expect(cm.driverCam.minPitch).toBeCloseTo(TPS_CAMERA_CONTROL_MIN_PITCH, 6);
+      expect(cm.driverCam.maxPitch).toBeCloseTo(TPS_CAMERA_CONTROL_MAX_PITCH, 6);
       expect(cm.gunnerCam.minPitch).toBeCloseTo(cm.driverCam.minPitch, 6);
       expect(cm.gunnerCam.maxPitch).toBeCloseTo(cm.driverCam.maxPitch, 6);
     }

@@ -76,8 +76,8 @@ export class Hud {
     this.hudRuntime.setAssetUrlResolver(fn);
   }
 
-  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean) {
-    this.hudRuntime.setTrajectoryReticle(x, y, visible, blocked);
+  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean, verticalLocked = false) {
+    this.hudRuntime.setTrajectoryReticle(x, y, visible, blocked, verticalLocked);
   }
 
   showScreen(name: string) {

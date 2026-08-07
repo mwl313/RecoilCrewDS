@@ -5,6 +5,7 @@ import { computeAimPivotWorld } from '../src/shared/vehicle/tankRigGeometry';
 import {
   resolveTpsWeaponAim,
   TPS_AIM_POLE_THRESHOLDS,
+  TPS_VERTICAL_AIM_ASSIST,
   type TpsWeaponAimState,
 } from '../src/client/aim/tpsWeaponAimResolver';
 
@@ -111,20 +112,57 @@ describe('pole-safe TPS weapon aim resolver', () => {
     expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(0.8, 6);
   });
 
-  it('uses a continuous hysteresis band while returning from the pole', () => {
-    const ratio = 0.11;
-    const pitch = Math.acos(ratio);
-    const approaching = resolve(0.8, pitch, { poleActive: false });
-    const returning = resolve(0.8, pitch, { poleActive: true });
-    expect(approaching.diagnostics.poleActive).toBe(false);
-    expect(returning.diagnostics.poleActive).toBe(true);
-    expect(returning.diagnostics.poleBlendWeight).toBeGreaterThan(approaching.diagnostics.poleBlendWeight);
-    for (const boundary of [TPS_AIM_POLE_THRESHOLDS.enter, TPS_AIM_POLE_THRESHOLDS.exit]) {
-      const boundaryPitch = Math.acos(boundary);
-      const inactive = resolve(0.8, boundaryPitch, { poleActive: false });
-      const active = resolve(0.8, boundaryPitch, { poleActive: true });
-      expect(active.diagnostics.poleBlendWeight).toBeCloseTo(inactive.diagnostics.poleBlendWeight, 8);
+  it('enters a continuous assist and reaches exact vertical before the visual pole', () => {
+    const state = { poleActive: false };
+    const yaw = 0.8;
+    const before = resolve(yaw, TPS_VERTICAL_AIM_ASSIST.pitchStartPitch, state);
+    expect(before.diagnostics.pitchAssistWeight).toBe(0);
+    let previousPitch = before.desiredPitch;
+    for (let degree = 70.1; degree <= 84; degree += 0.1) {
+      const current = resolve(yaw, degree * Math.PI / 180, state);
+      expect(current.desiredPitch).toBeGreaterThanOrEqual(previousPitch - 1e-8);
+      expect(current.desiredPitch - previousPitch).toBeLessThan(0.02);
+      previousPitch = current.desiredPitch;
     }
+    expect(previousPitch).toBeCloseTo(Math.PI / 2, 6);
+    expect(state.poleActive).toBe(true);
+  });
+
+  it('does not reverse-spin against an offset shoulder-camera terrain point', () => {
+    const pivot = computeAimPivotWorld(tank, DEFAULT_TANK_RIG);
+    const state: TpsWeaponAimState = { poleActive: false };
+    let previousYaw = 0;
+    let maxYawStep = 0;
+    for (let degree = 70; degree <= 86; degree += 0.1) {
+      const result = resolveTpsWeaponAim({
+        tank,
+        rig: DEFAULT_TANK_RIG,
+        worldTarget: { x: pivot.x + 0.9, y: 0, z: pivot.z - 2.2 },
+        cameraYaw: 0,
+        cameraPitch: -degree * Math.PI / 180,
+        limits,
+      }, state);
+      if (degree > 70) {
+        maxYawStep = Math.max(maxYawStep, Math.abs(angleDiff(previousYaw, result.diagnostics.resolvedWorldYaw)));
+      }
+      previousYaw = result.diagnostics.resolvedWorldYaw;
+      if (degree >= 84) {
+        expect(result.desiredPitch).toBeCloseTo(-Math.PI / 2, 6);
+        expect(result.diagnostics.verticalLocked).toBe(true);
+      }
+    }
+    expect(maxYawStep).toBeLessThan(0.01);
+
+    const lockedYaw = previousYaw;
+    const movedAtPole = resolveTpsWeaponAim({
+      tank,
+      rig: DEFAULT_TANK_RIG,
+      worldTarget: { x: pivot.x + 0.9, y: 0, z: pivot.z - 2.2 },
+      cameraYaw: 2.4,
+      cameraPitch: -86 * Math.PI / 180,
+      limits,
+    }, state);
+    expect(Math.abs(angleDiff(lockedYaw, movedAtPole.diagnostics.resolvedWorldYaw))).toBeLessThan(1e-9);
   });
 
   it('is deterministic for Single Player and multiplayer Gunner state', () => {

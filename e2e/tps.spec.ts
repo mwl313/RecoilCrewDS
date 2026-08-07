@@ -1,4 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  TPS_CAMERA_CONTROL_MAX_PITCH,
+  mapLookPitchToBoomPitch,
+} from '../src/client/tpsCamera';
 
 async function enter(page: Page) {
   await page.goto('/?test=1');
@@ -45,7 +49,17 @@ function cameraState(page: Page) {
 }
 
 function turretSpaces(page: Page) {
-  return page.evaluate(() => (window as unknown as { __recoil: { turretSpaces(): { desiredYawLocal: number; predictedYawLocal: number; authoritativeYawLocal: number } } }).__recoil.turretSpaces());
+  return page.evaluate(() => (window as unknown as {
+    __recoil: {
+      turretSpaces(): {
+        desiredYawLocal: number;
+        predictedYawLocal: number;
+        authoritativeYawLocal: number;
+        desiredPitch: number;
+        predictedPitch: number;
+      };
+    };
+  }).__recoil.turretSpaces());
 }
 
 test('Driver mouse right looks right and mouse up looks up (non-inverted)', async ({ browser }) => {
@@ -83,11 +97,31 @@ test('Gunner mouse uses the same non-inverted directions', async ({ browser }) =
   });
   await b.waitForTimeout(100);
   expect((await cameraState(b)).yaw - y0).toBeGreaterThan(0.2);
+
+  await b.evaluate(() => {
+    const canvas = document.querySelector('canvas#game-canvas');
+    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: 20_000 }));
+  });
+  await b.waitForFunction((limit) => {
+    const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
+    return Math.abs(state.pitch + limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
+  const lockedCamera = await cameraState(b);
+  const lockedTurret = await turretSpaces(b);
+  expect(lockedTurret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
+  expect(lockedTurret.predictedPitch).toBeCloseTo(-Math.PI / 2, 4);
+
+  await b.evaluate(() => {
+    const canvas = document.querySelector('canvas#game-canvas');
+    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 1000, movementY: 0 }));
+  });
+  await b.waitForTimeout(100);
+  expect((await cameraState(b)).yaw).toBeCloseTo(lockedCamera.yaw, 6);
   await ctxA.close();
   await ctxB.close();
 });
 
-test('Single Player keeps pole aim, boom, turret, and reticle continuous at exact vertical', async ({ page }) => {
+test('Single Player vertical lock keeps the camera and turret stable at both poles', async ({ page }) => {
   await enter(page);
   await page.click('#screen-main [data-act="single"]');
   await page.waitForFunction(
@@ -108,7 +142,13 @@ test('Single Player keeps pole aim, boom, turret, and reticle continuous at exac
           yaw: number;
           pitch: number;
           follow: { boomPitch: number; lookPitch: number; cameraUpdateCount: number };
-          aim: { resolvedWorldYaw: number; resolvedPitch: number; horizontalRatio: number; poleActive: boolean };
+          aim: {
+            resolvedWorldYaw: number;
+            resolvedPitch: number;
+            horizontalRatio: number;
+            poleActive: boolean;
+            verticalLocked: boolean;
+          };
         };
         turretSpaces(): { desiredYawLocal: number; desiredPitch: number; predictedPitch: number };
       };
@@ -117,46 +157,50 @@ test('Single Player keeps pole aim, boom, turret, and reticle continuous at exac
   });
 
   await move(0, 20_000);
-  await page.waitForFunction(() => {
+  await page.waitForFunction((limit) => {
     const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
-    return Math.abs(state.pitch + Math.PI / 2) < 1e-5;
-  });
+    return Math.abs(state.pitch + limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
   const down = await fullState();
-  expect(down.camera.pitch).toBeCloseTo(-Math.PI / 2, 5);
-  expect(down.camera.follow.lookPitch).toBeCloseTo(-Math.PI / 2, 5);
-  expect(down.camera.follow.boomPitch).toBeCloseTo(-65 * Math.PI / 180, 4);
+  expect(down.camera.pitch).toBeCloseTo(-TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(down.camera.follow.lookPitch).toBeCloseTo(-TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(down.camera.follow.boomPitch).toBeCloseTo(
+    mapLookPitchToBoomPitch(-TPS_CAMERA_CONTROL_MAX_PITCH),
+    4,
+  );
   expect(down.turret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
   expect(down.turret.predictedPitch).toBeCloseTo(-Math.PI / 2, 4);
   expect(down.camera.aim.poleActive).toBe(true);
+  expect(down.camera.aim.verticalLocked).toBe(true);
 
   const yawBefore = down.camera.yaw;
   const updatesBefore = down.camera.follow.cameraUpdateCount;
   await move(-900, 0);
   await page.waitForTimeout(100);
   const rotated = await fullState();
-  expect(rotated.camera.yaw - yawBefore).toBeGreaterThan(1.5);
+  expect(Math.abs(rotated.camera.yaw - yawBefore)).toBeLessThan(1e-6);
   expect(rotated.camera.follow.cameraUpdateCount).toBeGreaterThan(updatesBefore);
-  const yawError = Math.atan2(
-    Math.sin(rotated.camera.aim.resolvedWorldYaw - rotated.camera.yaw),
-    Math.cos(rotated.camera.aim.resolvedWorldYaw - rotated.camera.yaw),
-  );
-  expect(Math.abs(yawError)).toBeLessThan(0.05);
+  expect(rotated.camera.aim.resolvedWorldYaw).toBeCloseTo(down.camera.aim.resolvedWorldYaw, 6);
   expect(rotated.turret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
 
   await move(0, -40_000);
-  await page.waitForFunction(() => {
+  await page.waitForFunction((limit) => {
     const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
-    return Math.abs(state.pitch - Math.PI / 2) < 1e-5;
-  });
+    return Math.abs(state.pitch - limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
   const up = await fullState();
-  expect(up.camera.pitch).toBeCloseTo(Math.PI / 2, 5);
-  expect(up.camera.follow.boomPitch).toBeCloseTo(65 * Math.PI / 180, 4);
+  expect(up.camera.pitch).toBeCloseTo(TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(up.camera.follow.boomPitch).toBeCloseTo(
+    mapLookPitchToBoomPitch(TPS_CAMERA_CONTROL_MAX_PITCH),
+    4,
+  );
   expect(up.turret.desiredPitch).toBeCloseTo(Math.PI / 2, 4);
   expect(up.turret.predictedPitch).toBeCloseTo(Math.PI / 2, 4);
 
   const reticle = await page.locator('#crosshair').boundingBox();
   expect(reticle).not.toBeNull();
   expect(Number.isFinite(reticle!.x + reticle!.y)).toBe(true);
+  await expect(page.locator('#crosshair')).toHaveClass(/vertical-lock/);
 });
 
 test('camera and terrain aim queries stay bounded across gameplay RAFs', async ({ page }) => {

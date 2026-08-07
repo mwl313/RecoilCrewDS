@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { clamp } from '../../shared/math';
 import {
   TpsCameraController,
+  TPS_CAMERA_CONTROL_MAX_PITCH,
+  TPS_CAMERA_CONTROL_MIN_PITCH,
   computeWorldAim,
   type CameraCollisionSource,
   type TpsCameraTuning,
@@ -26,12 +28,12 @@ import {
 export const SHARED_GAMEPLAY_CAMERA_TUNING: Partial<TpsCameraTuning> = {
   fov: 70,
   distance: 5.2,
-  shoulderOffset: 0.9,
-  shoulderHeight: 0.55,
+  shoulderOffset: 0.65,
+  shoulderHeight: 0.35,
   verticalArm: 0.65,
   speedFovBonus: 5.5,
-  minPitch: VERTICAL_AIM_MIN_PITCH,
-  maxPitch: VERTICAL_AIM_MAX_PITCH,
+  minPitch: TPS_CAMERA_CONTROL_MIN_PITCH,
+  maxPitch: TPS_CAMERA_CONTROL_MAX_PITCH,
 };
 
 /** Driver/Gunner TPS rigs + camera impulses; TPS math stays in tpsCamera. */
@@ -65,8 +67,8 @@ export class CameraManager {
 
   /** Preserve camera-control parity regardless of which game mode is entered. */
   setSinglePlayerMode(_singlePlayer: boolean): void {
-    this.driverCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
-    this.gunnerCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
+    this.driverCam.setPitchLimits(TPS_CAMERA_CONTROL_MIN_PITCH, TPS_CAMERA_CONTROL_MAX_PITCH);
+    this.gunnerCam.setPitchLimits(TPS_CAMERA_CONTROL_MIN_PITCH, TPS_CAMERA_CONTROL_MAX_PITCH);
   }
 
   resize(aspect: number): void {
@@ -121,8 +123,12 @@ export class CameraManager {
   }
 
   resetTransientState(): void {
-    this.driverAimState.poleActive = false;
-    this.gunnerAimState.poleActive = false;
+    for (const state of [this.driverAimState, this.gunnerAimState]) {
+      state.poleActive = false;
+      state.lockedWorldYaw = undefined;
+      state.lastResolvedWorldYaw = undefined;
+      state.lockedPoleSign = undefined;
+    }
     this.lastAimDiagnostics = null;
   }
 

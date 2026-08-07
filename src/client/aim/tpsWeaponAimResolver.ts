@@ -1,4 +1,4 @@
-import { clamp, wrapAngle } from '../../shared/math';
+import { angleLerp, clamp, wrapAngle } from '../../shared/math';
 import {
   computeAimPivotWorld,
   type PitchLimits,
@@ -10,16 +10,28 @@ import {
 
 const DIRECTION_EPSILON = 1e-8;
 
-/** Geometry-derived pole conditioning. Values are ratios, not angles. */
+export const TPS_VERTICAL_AIM_ASSIST = {
+  pitchStartPitch: (70 * Math.PI) / 180,
+  yawStartPitch: (78 * Math.PI) / 180,
+  lockPitch: (84 * Math.PI) / 180,
+} as const;
+
+/** Compatibility diagnostics expressed as horizontal direction ratios. */
 export const TPS_AIM_POLE_THRESHOLDS = {
-  blendInner: 0.035,
-  enter: 0.08,
-  exit: 0.14,
-  blendOuter: 0.18,
+  blendInner: Math.cos(TPS_VERTICAL_AIM_ASSIST.lockPitch),
+  enter: Math.cos(TPS_VERTICAL_AIM_ASSIST.lockPitch),
+  exit: Math.cos(TPS_VERTICAL_AIM_ASSIST.yawStartPitch),
+  blendOuter: Math.cos(TPS_VERTICAL_AIM_ASSIST.yawStartPitch),
 } as const;
 
 export interface TpsWeaponAimState {
   poleActive: boolean;
+  /** World yaw captured before yaw loses meaning near a vertical pole. */
+  lockedWorldYaw?: number;
+  /** Previous stable output used when a frame jumps directly into the lock. */
+  lastResolvedWorldYaw?: number;
+  /** Distinguishes a direct jump from the downward pole to the upward pole. */
+  lockedPoleSign?: -1 | 1;
 }
 
 export interface TpsWeaponAimDiagnostics {
@@ -28,8 +40,10 @@ export interface TpsWeaponAimDiagnostics {
   horizontalRatio: number;
   cameraHorizontalRatio: number;
   conditioningRatio: number;
+  pitchAssistWeight: number;
   poleBlendWeight: number;
   poleActive: boolean;
+  verticalLocked: boolean;
   resolvedWorldYaw: number;
   resolvedPitch: number;
 }
@@ -52,19 +66,11 @@ function smoothstep01(value: number): number {
   return t * t * (3 - 2 * t);
 }
 
-function cameraIntentDirection(yaw: number, pitch: number): Vec3 {
-  const cosPitch = Math.cos(pitch);
-  return {
-    x: Math.sin(yaw) * cosPitch,
-    y: Math.sin(pitch),
-    z: Math.cos(yaw) * cosPitch,
-  };
-}
-
 /**
- * Resolve over-the-shoulder parallax without allowing an ill-conditioned
- * world-point yaw to take control near straight up/down. Direction vectors
- * are blended; Euler yaw is derived only after the direction is stable.
+ * Resolve ordinary over-the-shoulder parallax, then enter an angular vertical
+ * assist before the camera reaches its visual pole. Pitch and shortest-path
+ * yaw are solved separately: raw direction vectors are never allowed to
+ * cancel and feed an unstable atan2 near straight up/down.
  */
 export function resolveTpsWeaponAim(
   input: TpsWeaponAimInput,
@@ -87,60 +93,55 @@ export function resolveTpsWeaponAim(
   const cameraHorizontalRatio = Math.abs(Math.cos(input.cameraPitch));
   const conditioningRatio = Math.min(horizontalRatio, cameraHorizontalRatio);
 
-  if (state.poleActive) {
-    if (conditioningRatio >= TPS_AIM_POLE_THRESHOLDS.exit) state.poleActive = false;
-  } else if (conditioningRatio <= TPS_AIM_POLE_THRESHOLDS.enter) {
-    state.poleActive = true;
-  }
-
-  const cameraDirection = cameraIntentDirection(input.cameraYaw, input.cameraPitch);
-  const worldDirection = targetDistance > DIRECTION_EPSILON
-    ? { x: dx / targetDistance, y: dy / targetDistance, z: dz / targetDistance }
-    : cameraDirection;
-  const blendT = (
-    TPS_AIM_POLE_THRESHOLDS.blendOuter - conditioningRatio
-  ) / (
-    TPS_AIM_POLE_THRESHOLDS.blendOuter - TPS_AIM_POLE_THRESHOLDS.blendInner
-  );
-  const basePoleBlendWeight = smoothstep01(blendT);
-  // On the way back out of the pole, retain a small extra amount of stable
-  // camera authority inside the enter/exit band. The sinusoidal term is zero
-  // at both switching thresholds, so hysteresis cannot introduce a jump.
-  const hysteresisT = (
-    conditioningRatio - TPS_AIM_POLE_THRESHOLDS.enter
-  ) / (
-    TPS_AIM_POLE_THRESHOLDS.exit - TPS_AIM_POLE_THRESHOLDS.enter
-  );
-  const hysteresisWeight = state.poleActive && hysteresisT > 0 && hysteresisT < 1
-    ? Math.sin(Math.PI * hysteresisT) * 0.08
-    : 0;
-  const poleBlendWeight = clamp(basePoleBlendWeight + hysteresisWeight, 0, 1);
-  const worldWeight = 1 - poleBlendWeight;
-  let bx = worldDirection.x * worldWeight + cameraDirection.x * poleBlendWeight;
-  let by = worldDirection.y * worldWeight + cameraDirection.y * poleBlendWeight;
-  let bz = worldDirection.z * worldWeight + cameraDirection.z * poleBlendWeight;
-  const blendedLength = Math.hypot(bx, by, bz);
-  if (blendedLength > DIRECTION_EPSILON) {
-    bx /= blendedLength;
-    by /= blendedLength;
-    bz /= blendedLength;
-  } else {
-    bx = cameraDirection.x;
-    by = cameraDirection.y;
-    bz = cameraDirection.z;
-  }
-
-  const resolvedFlat = Math.hypot(bx, bz);
-  // At the exact pole, yaw is the player's stored camera intent. atan2(0,0)
-  // is never treated as a meaningful direction.
-  const resolvedWorldYaw = resolvedFlat > DIRECTION_EPSILON
-    ? Math.atan2(bx, bz)
+  const worldPitch = targetDistance > DIRECTION_EPSILON
+    ? Math.atan2(dy, horizontalDistance)
+    : input.cameraPitch;
+  const worldYaw = horizontalDistance > DIRECTION_EPSILON
+    ? Math.atan2(dx, dz)
     : input.cameraYaw;
+  const absoluteCameraPitch = Math.abs(input.cameraPitch);
+  const pitchAssistT = (
+    absoluteCameraPitch - TPS_VERTICAL_AIM_ASSIST.pitchStartPitch
+  ) / (
+    TPS_VERTICAL_AIM_ASSIST.lockPitch - TPS_VERTICAL_AIM_ASSIST.pitchStartPitch
+  );
+  const yawAssistT = (
+    absoluteCameraPitch - TPS_VERTICAL_AIM_ASSIST.yawStartPitch
+  ) / (
+    TPS_VERTICAL_AIM_ASSIST.lockPitch - TPS_VERTICAL_AIM_ASSIST.yawStartPitch
+  );
+  const pitchAssistWeight = smoothstep01(pitchAssistT);
+  const poleBlendWeight = smoothstep01(yawAssistT);
+  const verticalLocked = pitchAssistWeight >= 1 - 1e-8;
+  state.poleActive = poleBlendWeight > 0;
+  const poleSign: -1 | 1 = input.cameraPitch < 0 ? -1 : 1;
+
+  if (state.poleActive && (
+    state.lockedWorldYaw === undefined || state.lockedPoleSign !== poleSign
+  )) {
+    // A normal sweep carries its previous stable yaw into the pole. A direct
+    // one-frame jump to full lock uses camera heading rather than the offset
+    // shoulder-camera terrain point.
+    state.lockedWorldYaw = state.lastResolvedWorldYaw
+      ?? (verticalLocked ? input.cameraYaw : worldYaw);
+    state.lockedPoleSign = poleSign;
+  } else if (!state.poleActive) {
+    state.lockedWorldYaw = undefined;
+    state.lockedPoleSign = undefined;
+  }
+
+  const resolvedWorldYaw = state.lockedWorldYaw === undefined
+    ? worldYaw
+    : angleLerp(worldYaw, state.lockedWorldYaw, poleBlendWeight);
+  const verticalPitch = poleSign < 0
+    ? input.limits.minPitch
+    : input.limits.maxPitch;
   const resolvedPitch = clamp(
-    Math.atan2(by, resolvedFlat),
+    worldPitch + (verticalPitch - worldPitch) * pitchAssistWeight,
     input.limits.minPitch,
     input.limits.maxPitch,
   );
+  state.lastResolvedWorldYaw = resolvedWorldYaw;
 
   return {
     desiredYawLocal: wrapAngle(resolvedWorldYaw - input.tank.yaw),
@@ -151,8 +152,10 @@ export function resolveTpsWeaponAim(
       horizontalRatio,
       cameraHorizontalRatio,
       conditioningRatio,
+      pitchAssistWeight,
       poleBlendWeight,
       poleActive: state.poleActive,
+      verticalLocked,
       resolvedWorldYaw,
       resolvedPitch,
     },

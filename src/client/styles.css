@@ -550,6 +550,18 @@ input:focus { border-color: var(--role); box-shadow: 0 0 18px rgba(53, 215, 232,
   margin: 0;
   transition: none;
 }
+.crosshair.reticle.vertical-lock:not(.blocked) .ch-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 0;
+  transform: rotate(45deg);
+  background: #98f0b2;
+  box-shadow: 0 0 8px rgba(152, 240, 178, 0.82);
+}
+.crosshair.reticle.vertical-lock:not(.blocked) .ch-ring {
+  filter: drop-shadow(0 0 4px rgba(152, 240, 178, 0.72));
+}
 .crosshair.reticle.blocked .ch-dot {
   background: #ff5a4a;
   box-shadow: 0 0 8px #ff5a4a;

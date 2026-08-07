@@ -291,18 +291,20 @@ describe('HudRuntime trajectory reticle', () => {
     registerDefaultUiComponents(registry);
     const runtime = new HudRuntime(container, registry, themeRoot);
 
-    runtime.setTrajectoryReticle(321, 234, true, false);
+    runtime.setTrajectoryReticle(321, 234, true, false, true);
     const crosshair = container.querySelector('#crosshair') as HTMLElement;
     const promptGroup = container.querySelector('#hud-center') as HTMLElement;
     expect(crosshair.style.left).toBe('321px');
     expect(crosshair.style.top).toBe('234px');
     expect(crosshair.style.transform).toBe('translate(-50%, -50%)');
+    expect(crosshair.classList.contains('vertical-lock')).toBe(true);
     expect(promptGroup.contains(crosshair)).toBe(false);
 
     runtime.setTrajectoryReticle(9999, -50, true, true);
     expect(crosshair.style.left).toBe('1272px');
     expect(crosshair.style.top).toBe('8px');
     expect(crosshair.classList.contains('blocked')).toBe(true);
+    expect(crosshair.classList.contains('vertical-lock')).toBe(false);
     runtime.dispose();
   });
 });

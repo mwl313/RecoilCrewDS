@@ -83,6 +83,33 @@ export const DEFAULT_TPS_TUNING: TpsCameraTuning = {
   speedFovBonus: 5.5,
 };
 
+/**
+ * Gameplay cameras stop short of the Euler pole. The weapon resolver maps
+ * the final part of this visual range to an exact vertical cannon direction.
+ */
+export const TPS_CAMERA_CONTROL_MAX_PITCH = (86 * Math.PI) / 180;
+export const TPS_CAMERA_CONTROL_MIN_PITCH = -TPS_CAMERA_CONTROL_MAX_PITCH;
+export const TPS_CAMERA_YAW_ATTENUATION_START_PITCH = (78 * Math.PI) / 180;
+export const TPS_CAMERA_YAW_ATTENUATION_END_PITCH = (84 * Math.PI) / 180;
+
+function smoothstep01(value: number): number {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+/** Horizontal look has no directional meaning at a vertical pole. */
+export function cameraPoleYawInputScale(pitch: number): number {
+  const absolutePitch = Math.abs(pitch);
+  if (absolutePitch <= TPS_CAMERA_YAW_ATTENUATION_START_PITCH) return 1;
+  if (absolutePitch >= TPS_CAMERA_YAW_ATTENUATION_END_PITCH) return 0;
+  const t = (
+    absolutePitch - TPS_CAMERA_YAW_ATTENUATION_START_PITCH
+  ) / (
+    TPS_CAMERA_YAW_ATTENUATION_END_PITCH - TPS_CAMERA_YAW_ATTENUATION_START_PITCH
+  );
+  return 1 - smoothstep01(t);
+}
+
 export interface CameraPose {
   position: THREE.Vector3;
   distance: number;
@@ -109,6 +136,7 @@ export interface CameraInputDiagnostics {
   yawAfter: number;
   pitchBefore: number;
   pitchAfter: number;
+  yawScale: number;
   accepted: boolean;
 }
 
@@ -175,6 +203,7 @@ export class TpsCameraController {
     yawAfter: 0,
     pitchBefore: 0,
     pitchAfter: 0,
+    yawScale: 1,
     accepted: true,
   };
 
@@ -254,6 +283,7 @@ export class TpsCameraController {
         yawAfter: this.yaw,
         pitchBefore,
         pitchAfter: this.pitch,
+        yawScale: cameraPoleYawInputScale(this.pitch),
         accepted: false,
       };
       return;
@@ -264,8 +294,14 @@ export class TpsCameraController {
     if (this.recentering) this.recentering = false; // user input cancels recenter
     const sx = this.tuning.invertMouseX ? -1 : 1;
     const sy = this.tuning.invertMouseY ? -1 : 1;
-    this.yaw -= dx * sx * this.tuning.sensitivityX;
-    this.pitch = clamp(this.pitch + -dy * sy * this.tuning.sensitivityY, this.tuning.minPitch, this.tuning.maxPitch);
+    const nextPitch = clamp(
+      this.pitch + -dy * sy * this.tuning.sensitivityY,
+      this.tuning.minPitch,
+      this.tuning.maxPitch,
+    );
+    const yawScale = cameraPoleYawInputScale(nextPitch);
+    this.yaw -= dx * sx * this.tuning.sensitivityX * yawScale;
+    this.pitch = nextPitch;
     this.inputDiagnostics = {
       dx,
       dy,
@@ -273,6 +309,7 @@ export class TpsCameraController {
       yawAfter: this.yaw,
       pitchBefore,
       pitchAfter: this.pitch,
+      yawScale,
       accepted: true,
     };
   }

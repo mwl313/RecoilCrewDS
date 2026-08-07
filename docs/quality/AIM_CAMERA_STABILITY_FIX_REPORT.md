@@ -53,17 +53,24 @@ every active gameplay RAF
 
 ## Pole-safe physical boom
 
-Player look pitch and weapon pitch still reach exact `±π/2`. Only physical camera placement is remapped.
+The gameplay camera is deliberately limited to `±86°`, while the weapon
+resolver reaches exact `±90°`. This keeps the view out of the Euler pole and
+leaves the exact vertical direction available for recoil movement.
 
 | Parameter | Value |
 | --- | ---: |
 | Identity region | `0°..50°` absolute pitch |
 | Exact-pole boom pitch | `65°` absolute pitch |
-| Look pitch endpoints | exact `-90°` and `+90°` |
+| Camera look endpoints | `-86°` and `+86°` |
+| Exact weapon endpoints | `-90°` and `+90°` |
 | Mapping | monotonic cubic Hermite |
 | Temporal damping | none |
 
-The curve has identity slope where it leaves 50°, approaches the bounded 65° boom with zero end slope, and is mirrored for up/down. Camera orientation is still built from the exact look pitch, so the view direction is truly vertical while the eye remains safely offset from the tank.
+The curve has identity slope where it leaves 50°, approaches the bounded 65°
+boom with zero end slope, and is mirrored for up/down. Horizontal camera input
+remains full through 78°, fades smoothly to zero by 84°, and remains suppressed
+through the 86° camera endpoint. Yaw therefore cannot become rapid screen-roll
+when the cannon is vertically locked.
 
 ## Pole-conditioning metric and resolver
 
@@ -83,16 +90,23 @@ cameraHorizontalRatio = abs(cos(lookPitch))
 conditioningRatio = min(horizontalRatio, cameraHorizontalRatio)
 ```
 
-This retains real target geometry as the authority in normal conditions while guaranteeing that stored angular intent becomes authoritative at a genuine look pole.
+Real target geometry remains authoritative in normal conditions. Down/up pitch
+assist begins at 70° absolute camera pitch and smoothly reaches an exact weapon
+pitch at 84°. Yaw stabilization begins separately at 78°, captures the last
+stable world yaw, and reaches full authority at 84°.
 
-| Threshold | Ratio | Approximate angular distance from pole |
-| --- | ---: | ---: |
-| Full camera authority (`blendInner`) | 0.035 | 2.0° |
-| Hysteresis enter | 0.080 | 4.6° |
-| Hysteresis exit | 0.140 | 8.0° |
-| Blend begins (`blendOuter`) | 0.180 | 10.4° |
+| Threshold | Absolute camera pitch | Behavior |
+| --- | ---: | --- |
+| Pitch assist begins | 70° | Parallax pitch starts yielding to vertical intent |
+| Yaw stabilization begins | 78° | Last stable world yaw is latched |
+| Exact vertical lock | 84° | Weapon is exactly ±90° and camera yaw input is zero |
+| Camera endpoint | 86° | Visual view remains outside the mathematical pole |
 
-The base blend is smoothstep-like. A small 0.08 sinusoidal return-path term supplies real hysteresis between enter/exit, is exactly zero at both switching boundaries, and therefore cannot create a threshold jump. World and camera direction vectors are normalized and blended before converting back to yaw/pitch. At an exact zero horizontal projection, stored camera yaw is used explicitly; `atan2(0, 0)` is never treated as intent.
+Pitch and yaw use independent smoothstep weights. Yaw is interpolated by the
+shortest angle and pitch is interpolated as a scalar; raw 3D directions are no
+longer blended near a pole. This prevents opposing shoulder-parallax and camera
+vectors from cancelling into a near-zero horizontal vector and accelerating
+`atan2()` through a backwards rotation.
 
 ## Real terrain-aware center ray
 
@@ -124,14 +138,15 @@ The test-only missing-frame switch proved that camera update count advances, the
 ## Weapon and reticle invariants
 
 - Single Player, multiplayer Driver, and multiplayer Gunner use the same camera
-  controls and geometry: 70° base FOV, 5.2 m boom, 0.9 m right-shoulder
-  offset, 0.55 m shoulder height, identical speed FOV, sensitivity, and exact
-  `±π/2` pitch limits. The higher/right placement keeps the barrel and turret
+  controls and geometry: 70° base FOV, 5.2 m boom, 0.65 m right-shoulder
+  offset, 0.35 m shoulder height, identical speed FOV and sensitivity, `±86°`
+  visual camera limits, and exact `±π/2` weapon limits. The higher/right placement keeps the barrel and turret
   from sitting directly over the forward sightline without changing aim math.
 - Local predicted turret response remains `instant`.
 - Server input cadence and snapshot rates were not changed.
 - Chassis yaw is applied exactly once.
 - The reticle remains based on predicted muzzle pose and the shared projectile integration, not a cosmetic screen-center marker.
+- Exact vertical lock changes the reticle centre to a compact green diamond.
 - Exact downward fire continues through `resolveTerrainSafeMuzzle()`: the muzzle is backed above terrain without altering its vertical shot direction, preserving the rocket-jump ground detonation case.
 
 ## Diagnostics added
@@ -142,6 +157,7 @@ Camera state/test hooks now expose:
 - rejected non-finite event count;
 - pointer-lock transition age and lock state;
 - camera yaw/pitch before and after accepted input;
+- pole-conditioned horizontal yaw input scale;
 - camera position and per-rig RAF update count;
 - look pitch, physical boom pitch, collision state, horizontal/vertical lag, and ground-clearance adjustment;
 - world target distance and hit kind;

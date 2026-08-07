@@ -2,11 +2,13 @@
 
 ## Status
 
-Implementation and qualification are complete in the `quality-improvement` worktree. The source remains uncommitted because the user did not request a commit or push for this milestone.
+The original implementation was completed on `quality-improvement`, merged to
+`main`, and later amended there with pole-safe camera input and vertical weapon
+lock. The current pole-control amendment remains uncommitted until requested.
 
-- Starting/current HEAD: `1e7307357a5daf26b6281163f01ef67ba5528488`
-- Branch: `quality-improvement`
-- Main inclusion: this implementation is not in `main`.
+- Original implementation baseline: `1e7307357a5daf26b6281163f01ef67ba5528488`
+- Branch: `main` (the original work was completed on `quality-improvement`).
+- Main inclusion: merged; subsequent pole-control amendments are maintained on `main`.
 - Live development server: port 5050 was running from this worktree during qualification.
 - Detailed rationale/results: [AIM_CAMERA_STABILITY_FIX_REPORT.md](AIM_CAMERA_STABILITY_FIX_REPORT.md)
 - Binding specification: [AIM_CAMERA_STABILITY_FIX_SPECIFICATION.md](AIM_CAMERA_STABILITY_FIX_SPECIFICATION.md)
@@ -19,7 +21,8 @@ Implementation and qualification are complete in the `quality-improvement` workt
 - [x] Rigid horizontal follow preserved (`horizontalFollowSeconds = 0`).
 - [x] Mouse delta remains raw and independent of `dt`.
 - [x] Physical boom is continuous, monotonic, and pole-safe.
-- [x] Full view pitch remains exact `±π/2`.
+- [x] Visual camera pitch stops at `±86°`; weapon pitch retains exact `±π/2`.
+- [x] Horizontal camera input fades from 78° and is zero at/after 84°.
 - [x] Collision changes position only, never yaw/pitch.
 
 ### Aim stability
@@ -27,9 +30,10 @@ Implementation and qualification are complete in the `quality-improvement` workt
 - [x] Dedicated TPS resolver replaces presenter-local Euler blending.
 - [x] Direct target/pivot conditioning ratio is used.
 - [x] Safe-boom exact-pole intent is also recognized.
-- [x] Directions, not Euler yaw values, are blended.
-- [x] Stored camera yaw is the exact-pole fallback.
-- [x] Smooth weighting and a continuous hysteresis return band are implemented.
+- [x] Pitch and shortest-path yaw are interpolated separately; opposing 3D
+      direction vectors cannot cancel near the pole.
+- [x] Last stable weapon yaw is latched through vertical lock.
+- [x] Pitch assist begins at 70° and reaches exact vertical at 84°.
 - [x] Fine up/down approach and return sweeps pass.
 - [x] 360°+ yaw near both poles passes.
 - [x] Direct-pivot singularity passes.
@@ -64,6 +68,7 @@ Implementation and qualification are complete in the `quality-improvement` workt
 - [x] Local predicted turret remains instant.
 - [x] Terrain-safe downward muzzle direction is preserved.
 - [x] Truthful predicted-projectile reticle remains on-screen and finite.
+- [x] A compact green diamond identifies exact vertical lock.
 - [x] Network cadence/protocol unchanged.
 
 ### Qualification
