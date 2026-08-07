@@ -157,6 +157,8 @@ const scratchUp = new THREE.Vector3(0, 1, 0);
 const scratchAnchor = new THREE.Vector3();
 const scratchDesired = new THREE.Vector3();
 const scratchEye = new THREE.Vector3();
+const scratchProposedEye = new THREE.Vector3();
+const scratchExpandedCollider = new THREE.Box3();
 const scratchRayDir = new THREE.Vector3();
 const scratchAimDir = new THREE.Vector3();
 const scratchAimPoint = new THREE.Vector3();
@@ -164,7 +166,11 @@ const FOLLOW_DISCONTINUITY_DISTANCE_SQ = 12 * 12;
 const AIM_MAX_DISTANCE = 90;
 const TERRAIN_MARCH_STEPS = 64;
 const TERRAIN_REFINEMENT_STEPS = 10;
-const AIM_MIN_DISTANCE = 0.2;
+const AIM_TERRAIN_START_DISTANCE = 0.2;
+const AIM_COLLIDER_EPSILON = 1e-4;
+const CAMERA_COLLISION_SKIN = 0.04;
+const CAMERA_EMERGENCY_MIN_DISTANCE = 0.15;
+const CAMERA_SAFETY_BACKTRACK_STEPS = 24;
 
 function candidatesOf(
   source: CameraCollisionSource,
@@ -173,6 +179,36 @@ function candidatesOf(
 ): readonly CameraCollider[] {
   if ('query' in source) return source.query(origin, radius);
   return source;
+}
+
+function expandedCameraBox(collider: CameraCollider, radius: number): THREE.Box3 {
+  return collider.expanded
+    ?? scratchExpandedCollider.copy(collider.box).expandByScalar(radius);
+}
+
+function cameraEyeOverlapsCollider(
+  eye: THREE.Vector3,
+  colliders: readonly CameraCollider[],
+  radius: number,
+): boolean {
+  for (const collider of colliders) {
+    if (expandedCameraBox(collider, radius).containsPoint(eye)) return true;
+  }
+  return false;
+}
+
+function placeCameraEye(
+  out: THREE.Vector3,
+  anchor: THREE.Vector3,
+  rayDir: THREE.Vector3,
+  distance: number,
+  cameraRadius: number,
+): number {
+  out.copy(anchor).addScaledVector(rayDir, distance);
+  const minY = Math.max(0, clientGroundHeightAt(out.x, out.z)) + cameraRadius + 0.12;
+  const adjustment = Math.max(0, minY - out.y);
+  if (adjustment > 0) out.y = minY;
+  return adjustment;
 }
 
 export class TpsCameraController {
@@ -395,14 +431,18 @@ export class TpsCameraController {
     const rayLen = rayDir.length();
     const boomLen = rayLen;
     let targetDistance = boomLen;
+    let hardSafeDistance = boomLen;
+    const candidates = rayLen > 1e-5
+      ? candidatesOf(colliders, anchor, boomLen + this.tuning.cameraRadius)
+      : [];
     if (rayLen > 1e-5) {
       rayDir.divideScalar(rayLen);
-      const candidates = candidatesOf(colliders, anchor, boomLen + this.tuning.cameraRadius);
       for (const c of candidates) {
-        const box = c.expanded ?? c.box.clone().expandByScalar(this.tuning.cameraRadius);
+        const box = expandedCameraBox(c, this.tuning.cameraRadius);
         const t = rayAabbT(anchor, rayDir, box);
-        if (t !== null && t > 0.05 && t < targetDistance) {
-          targetDistance = Math.max(this.tuning.minimumDistance, t - 0.01);
+        if (t !== null && t > 0.05 && t < hardSafeDistance) {
+          hardSafeDistance = Math.max(CAMERA_EMERGENCY_MIN_DISTANCE, t - CAMERA_COLLISION_SKIN);
+          targetDistance = Math.max(this.tuning.minimumDistance, hardSafeDistance);
         }
       }
     }
@@ -420,16 +460,70 @@ export class TpsCameraController {
     // A newly intersecting proxy must not teleport the camera several metres
     // in one rendered frame. Bound inward travel in world units per second;
     // outward release retains its exponential damping.
-    const nextDistance = pullIn
+    let nextDistance = pullIn
       ? Math.max(requestedDistance, this.currentDistance - this.tuning.collisionMaxPullInSpeed * safeDt)
       : requestedDistance;
-    this.currentDistance = clamp(nextDistance, this.tuning.minimumDistance, boomLen);
+    let safetyOverride = false;
+    placeCameraEye(
+      scratchProposedEye,
+      anchor,
+      rayDir,
+      nextDistance,
+      this.tuning.cameraRadius,
+    );
+    if (cameraEyeOverlapsCollider(scratchProposedEye, candidates, this.tuning.cameraRadius)) {
+      // Preserve normal collision damping whenever its proposed position is
+      // valid. If the damping would leave the camera sphere embedded, move
+      // only as far inward as necessary along the same boom for this frame.
+      const lineOfSightSafeDistance = Math.min(nextDistance, hardSafeDistance);
+      if (lineOfSightSafeDistance < nextDistance - 1e-5) {
+        nextDistance = lineOfSightSafeDistance;
+        safetyOverride = true;
+      }
 
-    const eye = scratchEye.copy(anchor).addScaledVector(rayDir, this.currentDistance);
-    // Ground clearance: never clip below the floor plus the camera radius.
-    const minY = Math.max(0, clientGroundHeightAt(eye.x, eye.z)) + this.tuning.cameraRadius + 0.12;
-    this.lastGroundClearanceAdjustment = Math.max(0, minY - eye.y);
-    if (eye.y < minY) eye.y = minY;
+      // Ground clearance can raise an otherwise valid boom point into an
+      // overhang. Backtrack only while the final, ground-adjusted eye remains
+      // occupied; normal TPS placement never enters this path.
+      placeCameraEye(
+        scratchProposedEye,
+        anchor,
+        rayDir,
+        nextDistance,
+        this.tuning.cameraRadius,
+      );
+      if (cameraEyeOverlapsCollider(scratchProposedEye, candidates, this.tuning.cameraRadius)) {
+        const startDistance = nextDistance;
+        const span = Math.max(0, startDistance - CAMERA_EMERGENCY_MIN_DISTANCE);
+        for (let step = 1; step <= CAMERA_SAFETY_BACKTRACK_STEPS; step++) {
+          const candidateDistance = startDistance - span * (step / CAMERA_SAFETY_BACKTRACK_STEPS);
+          placeCameraEye(
+            scratchProposedEye,
+            anchor,
+            rayDir,
+            candidateDistance,
+            this.tuning.cameraRadius,
+          );
+          if (!cameraEyeOverlapsCollider(scratchProposedEye, candidates, this.tuning.cameraRadius)) {
+            nextDistance = candidateDistance;
+            safetyOverride = true;
+            break;
+          }
+        }
+      }
+    }
+    const distanceFloor = safetyOverride
+      ? CAMERA_EMERGENCY_MIN_DISTANCE
+      : Math.min(this.tuning.minimumDistance, this.currentDistance);
+    this.currentDistance = clamp(nextDistance, distanceFloor, boomLen);
+
+    const eye = scratchEye;
+    this.lastGroundClearanceAdjustment = placeCameraEye(
+      eye,
+      anchor,
+      rayDir,
+      this.currentDistance,
+      this.tuning.cameraRadius,
+    );
 
     this.camera.position.copy(eye);
     // Three.js cameras look down local -Z; add π so the camera looks along
@@ -511,19 +605,23 @@ export function computeWorldAim(
   let terrainRefinementSteps = 0;
   const candidates = candidatesOf(colliders, origin, AIM_MAX_DISTANCE + 10);
   for (const c of candidates) {
-    const hit = rayAabbT(origin, dir, c.box);
-    if (hit !== null && hit > AIM_MIN_DISTANCE && hit < t) {
+    // A camera pressed close to cover must resolve that nearby surface rather
+    // than discarding it and jumping to the 90 m range fallback. If a camera
+    // ever begins inside a proxy, the first useful surface is its exit face.
+    const hit = rayAabbT(origin, dir, c.box, true);
+    if (hit !== null && hit > AIM_COLLIDER_EPSILON && hit < t) {
       t = hit;
       hitKind = 'collider';
     }
   }
 
   const terrainLimit = t;
-  let previousT = AIM_MIN_DISTANCE;
+  let previousT = AIM_TERRAIN_START_DISTANCE;
   let previousClearance = rayTerrainClearance(origin, dir, previousT, groundHeightAt);
-  for (let i = 1; i <= TERRAIN_MARCH_STEPS; i++) {
+  for (let i = 1; terrainLimit > AIM_TERRAIN_START_DISTANCE && i <= TERRAIN_MARCH_STEPS; i++) {
     terrainMarchSteps = i;
-    const sampleT = AIM_MIN_DISTANCE + (terrainLimit - AIM_MIN_DISTANCE) * (i / TERRAIN_MARCH_STEPS);
+    const sampleT = AIM_TERRAIN_START_DISTANCE
+      + (terrainLimit - AIM_TERRAIN_START_DISTANCE) * (i / TERRAIN_MARCH_STEPS);
     const clearance = rayTerrainClearance(origin, dir, sampleT, groundHeightAt);
     if (Number.isFinite(clearance) && clearance <= 0 && previousClearance > 0) {
       let low = previousT;

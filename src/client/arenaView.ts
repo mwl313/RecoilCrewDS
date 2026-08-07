@@ -466,7 +466,12 @@ class BoxAround extends THREE.Box3 {
   }
 }
 
-export function rayAabbT(origin: THREE.Vector3, dir: THREE.Vector3, box: THREE.Box3): number | null {
+export function rayAabbT(
+  origin: THREE.Vector3,
+  dir: THREE.Vector3,
+  box: THREE.Box3,
+  exitWhenInside = false,
+): number | null {
   let tmin = 0;
   let tmax = 1e9;
   for (let i = 0; i < 3; i++) {
@@ -485,7 +490,8 @@ export function rayAabbT(origin: THREE.Vector3, dir: THREE.Vector3, box: THREE.B
     tmax = Math.min(tmax, t2);
     if (tmin > tmax) return null;
   }
-  return tmin > 0 ? tmin : null;
+  if (tmin > 0) return tmin;
+  return exitWhenInside && tmax > 0 ? tmax : null;
 }
 
 export function cameraRayHit(colliders: Collider[], origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): number {

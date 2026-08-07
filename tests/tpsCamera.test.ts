@@ -217,8 +217,10 @@ describe('TPS camera rig placement', () => {
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
     const colliders = [box(-5, 0, -4, 5, 4, -1)];
     cam.update(1 / 30, colliders);
-    expect(cam.camera.position.z).toBeGreaterThan(-2.0);
-    expect(cam.camera.position.z).toBeLessThan(-0.8);
+    const expandedWall = colliders[0].box.clone().expandByScalar(TUNING.cameraRadius);
+    expect(expandedWall.containsPoint(cam.camera.position)).toBe(false);
+    expect(cam.camera.position.z).toBeGreaterThan(expandedWall.max.z);
+    expect(cam.camera.position.z).toBeLessThan(0);
   });
 
   it('bounds one-frame boom pull-in when a collider enters the camera path', () => {
@@ -230,6 +232,37 @@ describe('TPS camera rig placement', () => {
     const after = cam.getFollowDiagnostics().distance;
     expect(before - after).toBeGreaterThan(0);
     expect(before - after).toBeLessThanOrEqual(TUNING.collisionMaxPullInSpeed / 60 + 1e-6);
+  });
+
+  it('bypasses pull-in damping only when it would leave the camera embedded', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    const yawBefore = cam.yaw;
+    const pitchBefore = cam.pitch;
+    const solid = box(-5, 0, -6, 5, 5, -1);
+
+    cam.update(1 / 60, [solid]);
+
+    const expandedSolid = solid.box.clone().expandByScalar(TUNING.cameraRadius);
+    expect(expandedSolid.containsPoint(cam.camera.position)).toBe(false);
+    expect(cam.getFollowDiagnostics().distance).toBeLessThan(TUNING.minimumDistance);
+    expect(cam.yaw).toBe(yawBefore);
+    expect(cam.pitch).toBe(pitchBefore);
+  });
+
+  it('uses normal outward damping after an emergency collision correction', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.update(1 / 60, [box(-5, 0, -6, 5, 5, -1)]);
+    const blockedDistance = cam.getFollowDiagnostics().distance;
+
+    cam.update(1 / 60, []);
+    const releasedDistance = cam.getFollowDiagnostics().distance;
+
+    expect(releasedDistance).toBeGreaterThan(blockedDistance);
+    expect(releasedDistance).toBeLessThan(TUNING.distance);
   });
 
   it('never places the camera below the floor, even at maximum upward pitch', () => {
@@ -387,6 +420,32 @@ describe('gunner world aim and turret conversion', () => {
     expect(terrainHit.z).toBeLessThan(wallHit.z);
     expect(diagnostics.terrainMarchSteps).toBeLessThanOrEqual(64);
     expect(diagnostics.terrainRefinementSteps).toBeLessThanOrEqual(10);
+  });
+
+  it('keeps a fully blocked close aim ray on the blocker instead of the range fallback', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 2, 0);
+    camera.lookAt(0, 2, 10);
+    camera.updateMatrixWorld(true);
+    const diagnostics = { distance: 0, hitKind: 'range' as const, terrainMarchSteps: 0, terrainRefinementSteps: 0 };
+
+    const nearHit = computeWorldAim(
+      camera,
+      [box(-2, 0, 0.05, 2, 4, 0.1)],
+      () => 0,
+      diagnostics,
+    ).clone();
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(nearHit.z).toBeCloseTo(0.05, 5);
+
+    const insideExit = computeWorldAim(
+      camera,
+      [box(-2, 0, -0.1, 2, 4, 0.1)],
+      () => 0,
+      diagnostics,
+    );
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(insideExit.z).toBeCloseTo(0.1, 5);
   });
 
   it('converts world yaw to chassis-local yaw and back (single chassis application)', () => {

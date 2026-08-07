@@ -9,6 +9,7 @@ import {
 } from '../../shared/vehicle/tankRigGeometry';
 
 const DIRECTION_EPSILON = 1e-8;
+const MIN_PARALLAX_FORWARD_DISTANCE = 0.35;
 
 export const TPS_VERTICAL_AIM_ASSIST = {
   pitchStartPitch: (70 * Math.PI) / 180,
@@ -82,6 +83,9 @@ export function resolveTpsWeaponAim(
   const dz = input.worldTarget.z - pivot.z;
   const horizontalDistance = Math.hypot(dx, dz);
   const targetDistance = Math.hypot(dx, dy, dz);
+  const forwardDistance = dx * Math.sin(input.cameraYaw) + dz * Math.cos(input.cameraYaw);
+  const useBlockedAimFallback = targetDistance <= DIRECTION_EPSILON
+    || forwardDistance <= MIN_PARALLAX_FORWARD_DISTANCE;
   const horizontalRatio = targetDistance > DIRECTION_EPSILON
     ? horizontalDistance / targetDistance
     : 0;
@@ -93,10 +97,14 @@ export function resolveTpsWeaponAim(
   const cameraHorizontalRatio = Math.abs(Math.cos(input.cameraPitch));
   const conditioningRatio = Math.min(horizontalRatio, cameraHorizontalRatio);
 
-  const worldPitch = targetDistance > DIRECTION_EPSILON
+  // When close cover leaves the camera target at or behind the turret pivot,
+  // parallax geometry becomes ill-conditioned and can send the barrel toward
+  // a pole. Preserve the player's angular intent until the target is a usable
+  // distance in front of the tank; the trajectory reticle still marks cover.
+  const worldPitch = !useBlockedAimFallback
     ? Math.atan2(dy, horizontalDistance)
     : input.cameraPitch;
-  const worldYaw = horizontalDistance > DIRECTION_EPSILON
+  const worldYaw = !useBlockedAimFallback && horizontalDistance > DIRECTION_EPSILON
     ? Math.atan2(dx, dz)
     : input.cameraYaw;
   const absoluteCameraPitch = Math.abs(input.cameraPitch);

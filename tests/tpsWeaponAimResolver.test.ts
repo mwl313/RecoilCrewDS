@@ -112,6 +112,23 @@ describe('pole-safe TPS weapon aim resolver', () => {
     expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(0.8, 6);
   });
 
+  it('keeps angular camera intent when close cover makes parallax ill-conditioned', () => {
+    const pivot = computeAimPivotWorld(tank, DEFAULT_TANK_RIG);
+    const cameraYaw = 0;
+    const cameraPitch = 0.08;
+    const result = resolveTpsWeaponAim({
+      tank,
+      rig: DEFAULT_TANK_RIG,
+      worldTarget: { x: pivot.x, y: pivot.y + 8, z: pivot.z + 0.1 },
+      cameraYaw,
+      cameraPitch,
+      limits,
+    }, { poleActive: false });
+
+    expect(result.desiredPitch).toBeCloseTo(cameraPitch, 6);
+    expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(cameraYaw, 6);
+  });
+
   it('enters a continuous assist and reaches exact vertical before the visual pole', () => {
     const state = { poleActive: false };
     const yaw = 0.8;
