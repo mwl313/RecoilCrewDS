@@ -26,10 +26,11 @@ describe('progression lifecycle (progression08)', () => {
 
   it('wave purge releases no rewards and leaves XP untouched', () => {
     const m = makeMatch();
+    const initialChestCount = m.state.chests.length;
     const e = spawnEnemy(m);
     m.systems.enemies.purge((x) => x.id === e.id);
     expect(m.state.xpShards.length).toBe(0);
-    expect(m.state.chests.length).toBe(0);
+    expect(m.state.chests.length).toBe(initialChestCount);
     expect(m.state.teamProgression.totalXpCollected).toBe(0);
   });
 

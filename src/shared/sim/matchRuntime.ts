@@ -439,6 +439,7 @@ export class MatchRuntime {
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.stepTank(dt);
+    this.systems.progression.updateChestProximity(Date.now());
     this.weaponSystem.update(dt, this.gunnerInput);
     this.systems.enemies.update(dt);
     this.systems.contact.update();

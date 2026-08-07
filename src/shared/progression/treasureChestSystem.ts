@@ -5,6 +5,7 @@ import type {
 import type { TreasureChestState, TreasureChestSource } from './progressionTypes';
 import { rollWeighted } from './progressionRng';
 import type { UpgradeRarity } from '../content/schemas/progression';
+import { TREASURE_CHEST_STATE_GROUND_OFFSET } from './treasureChestGeometry';
 
 const RARITY_ORDER: UpgradeRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
@@ -56,6 +57,6 @@ export class TreasureChestSystem {
   }
 
   makeChest(id: number, source: TreasureChestSource, x: number, z: number, groundY: number): TreasureChestState {
-    return { id, source, x, y: groundY + 0.4, z, opened: false };
+    return { id, source, x, y: groundY + TREASURE_CHEST_STATE_GROUND_OFFSET, z, opened: false };
   }
 }

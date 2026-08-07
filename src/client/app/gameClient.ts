@@ -37,6 +37,8 @@ import {
 } from '../../shared/monsters/monsterPreload';
 import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
 import { interpolateSinglePlayerTank } from '../prediction/singlePlayerTankInterpolator';
+import { RELIC_CHEST_ASSET_ID } from '../relics/relicChestPresentation';
+import { RelicChestRenderer } from '../relics/relicChestRenderer';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -89,6 +91,7 @@ export class GameClient {
   private progressionOverlay: ProgressionOverlay | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
+  private readonly relicChests: RelicChestRenderer;
   private latestSectors: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
@@ -109,6 +112,22 @@ export class GameClient {
 
   qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> {
     return this.world.qualityDiagnostics();
+  }
+
+  relicChestDiagnostics(): Array<{
+    id: number;
+    visible: boolean;
+    position: [number, number, number];
+    scale: [number, number, number];
+    collider: unknown;
+  }> {
+    return [...this.relicChests.rigs].map(([id, rig]) => ({
+      id,
+      visible: rig.root.visible,
+      position: rig.root.position.toArray(),
+      scale: rig.root.scale.toArray(),
+      collider: rig.root.userData.collider,
+    }));
   }
 
   private constructor(deps: {
@@ -153,6 +172,7 @@ export class GameClient {
       (x, z) => this.arenaWorld.groundHeightAt(x, z),
     );
     this.xpShards = new XpShardRenderer(deps.world.scene);
+    this.relicChests = new RelicChestRenderer(deps.world.scene, this.assets);
   }
 
   /** Awaits assets, then builds the full client (called after load()). */
@@ -164,6 +184,7 @@ export class GameClient {
     onReady: () => void,
     world: ArenaWorld,
   ): Promise<GameClient> {
+    await assets.preloadModels([RELIC_CHEST_ASSET_ID]);
     const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
     const registry = new EntityViewRegistry(renderWorld.scene, factory);
@@ -486,6 +507,7 @@ export class GameClient {
     this.prediction.reset();
     this.aggregateSectors.reset();
     this.xpShards.reset();
+    this.relicChests.reset();
     this.singlePlayerAcc = 0;
     this.resetSinglePlayerRenderPose();
     this.lastCameraTank = this.singlePlayerMatch ? { ...this.singlePlayerMatch.state.tank } : null;
@@ -679,6 +701,8 @@ export class GameClient {
     this.world.vfx.update(dt);
     const shards = this.presenter.remoteFrame?.xpShards ?? this.presenter.latest?.xpShards ?? [];
     this.xpShards.update(shards, this.time, dt);
+    const chests = this.presenter.remoteFrame?.discrete.chests ?? this.presenter.latest?.chests ?? [];
+    this.relicChests.update(chests, dt);
     const latest = this.presenter.latest;
     this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
@@ -1110,6 +1134,7 @@ export class GameClient {
     this.stopChargeSound();
     this.aggregateSectors.reset();
     this.xpShards.dispose();
+    this.relicChests.dispose();
     this.world.arena.dispose();
     this.registry.reset();
     this.progressionOverlay?.dispose();

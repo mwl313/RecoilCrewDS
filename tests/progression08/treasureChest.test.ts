@@ -43,9 +43,25 @@ describe('treasure chest lifecycle (progression08)', () => {
     expect(m.state.teamProgression.treasureChestsOpened).toBe(0);
 
     const m2 = makeMatch();
+    const initialChestCount = m2.state.chests.length;
     const e = spawnEnemy(m2);
     m2.systems.enemies.purge((x) => x.id === e.id);
-    expect(m2.state.chests.length).toBe(0);
+    expect(m2.state.chests.length).toBe(initialChestCount);
+  });
+
+  it('places content-driven map chests and opens one through a spherical proximity pickup', () => {
+    const m = makeMatch();
+    const mapChests = m.state.chests.filter((chest) => chest.source === 'map');
+    expect(mapChests).toHaveLength(def.mapChestCount);
+    expect(mapChests.every((chest) => Math.hypot(chest.x - m.state.tank.x, chest.z - m.state.tank.z) >= def.mapChestMinSpawnDistance)).toBe(true);
+
+    const target = mapChests[0];
+    m.state.tank.x = target.x;
+    m.state.tank.y = target.y - 0.4;
+    m.state.tank.z = target.z;
+    expect(m.systems.progression.updateChestProximity(Date.now())).toBe(true);
+    expect(target.opened).toBe(true);
+    expect(m.state.matchFlow).toBe('relicSelection');
   });
 
   it('opening a chest rolls a relic and applies it once', () => {

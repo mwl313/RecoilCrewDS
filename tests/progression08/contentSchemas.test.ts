@@ -79,5 +79,7 @@ describe('progression content schemas (progression08)', () => {
     expect(def.enemyXpRewards.ambient).toBe(1);
     expect(def.enemyXpRewards.elite).toBe(40);
     expect(def.enemyXpRewards.boss).toBe(150);
+    expect(def.mapChestCount).toBe(3);
+    expect(def.mapChestMinSpawnDistance).toBe(12);
   });
 });

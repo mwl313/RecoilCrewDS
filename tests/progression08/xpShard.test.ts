@@ -30,9 +30,9 @@ describe('XP shards and magnet collection (progression08)', () => {
     const m = makeMatch();
     const t = m.state.tank;
     const magnet = m.rules.resolver.resolve('progression.magnetRadius');
-    expect(magnet).toBe(5);
-    m.systems.xpShards.spawn(1, t.x + 4.4, t.z);
-    m.systems.xpShards.spawn(1, t.x + 4.8, t.z);
+    expect(magnet).toBe(10);
+    m.systems.xpShards.spawn(1, t.x + 8.8, t.z);
+    m.systems.xpShards.spawn(1, t.x + 9.6, t.z);
     const near = m.state.xpShards[0];
     const far = m.state.xpShards[1];
     step(m, 1);
@@ -52,6 +52,6 @@ describe('XP shards and magnet collection (progression08)', () => {
     const m = makeMatch();
     m.state.teamProgression.relicStacks['relic.magnet_core'] = 2;
     m.systems.progression.projectionRefresh();
-    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBeCloseTo(10);
+    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBeCloseTo(20);
   });
 });

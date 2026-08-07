@@ -118,7 +118,7 @@ export class RelicChestPresentation {
       transparent: true,
       opacity: this.chestGlowOpacity,
       blending: THREE.AdditiveBlending,
-      depthTest: false,
+      depthTest: true,
       depthWrite: false,
       toneMapped: false,
     });

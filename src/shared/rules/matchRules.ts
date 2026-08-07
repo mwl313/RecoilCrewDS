@@ -183,7 +183,7 @@ export class MatchRules {
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
     blocks.match = {
       ...blocks.match,
-      'progression.magnetRadius': 5,
+      'progression.magnetRadius': this.xpPickupContent?.magnet.baseRadius ?? 5,
       'progression.xpMultiplier': 1,
     };
     blocks.tank = {

@@ -18,5 +18,7 @@
     "boss": 150
   },
   "enemyChestDropChance": 0.015,
+  "mapChestCount": 3,
+  "mapChestMinSpawnDistance": 12,
   "duplicateUniqueRelicXp": 250
 }
