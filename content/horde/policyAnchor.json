@@ -1,7 +1,8 @@
 {
   "id": "horde.anchorPolicy.main",
   "label": "Main Anchor Policy",
-  "visibleNearField": 18,
+  "visibleNearField": 23,
+  "preferredTankDistance": 55,
   "safeZoneTags": ["recovery", "spawn"],
   "maximumRecentUseAgeSeconds": 5
 }

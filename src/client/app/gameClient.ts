@@ -122,6 +122,22 @@ export class GameClient {
     return { ...this.world.qualityDiagnostics(), fps: Number(this.quality.currentFps.toFixed(2)) };
   }
 
+  /** Client-observed horde replication population for browser qualification. */
+  replicationPopulationDiagnostics(): { near: number; mid: number; far: number; sectors: number; sectorEntities: number } {
+    const latest = this.presenter.latest;
+    if (!latest) return { near: 0, mid: 0, far: 0, sectors: 0, sectorEntities: 0 };
+    const counts = { near: 0, mid: 0, far: 0, sectors: this.latestSectors.length, sectorEntities: 0 };
+    for (const enemy of latest.enemies) {
+      if (!enemy.alive) continue;
+      const distance = Math.hypot(enemy.x - latest.tank.x, enemy.z - latest.tank.z);
+      if (distance <= 52) counts.near++;
+      else if (distance <= 105) counts.mid++;
+      else counts.far++;
+    }
+    counts.sectorEntities = this.latestSectors.reduce((sum, sector) => sum + sector.count, 0);
+    return counts;
+  }
+
   private constructor(deps: {
     container: HTMLElement;
     assets: AssetService;
@@ -435,9 +451,26 @@ export class GameClient {
     ambient: number;
     wave: number;
     boss: number;
+    special: number;
+    global: number;
+    within45: number;
+    within70: number;
+    close: number;
+    ranged: number;
+    specialist: number;
     sectors: number;
+    entityTarget: number;
+    threatTarget: number;
+    spawnIncome: number;
     spawnBudget: number;
+    lastPack: string | null;
+    lastPackSize: number;
+    lastAnchorDistance: number;
     anchorFailures: number;
+    waveActiveEntities: number;
+    waveActiveThreat: number;
+    waveMaximumEntities: number;
+    waveMaximumThreat: number;
     tierCounts: [number, number, number, number];
   } | null {
     const m = this.singlePlayerMatch;
@@ -448,7 +481,7 @@ export class GameClient {
     const runtime =
       horde.currentWaveId !== null ? systems.waves.waves.get(horde.currentWaveId) : undefined;
     const leader = runtime ? m.state.enemies.find((e) => e.id === runtime.leaderId) : undefined;
-    const counts = { ambient: 0, wave: 0, boss: 0 };
+    const counts = { ambient: 0, wave: 0, boss: 0, special: 0 };
     const tierCounts: [number, number, number, number] = [0, 0, 0, 0];
     for (const e of m.state.enemies) {
       if (!e.alive) continue;
@@ -457,6 +490,7 @@ export class GameClient {
       tierCounts[systems.enemies.tierFor(e)]++;
     }
     const sectorTally = systems.hordeSectors.tally();
+    const density = horde.densityTelemetry();
     return {
       phase: stage.phase,
       farmingTimeRemaining: stage.farmingTimeRemaining,
@@ -466,9 +500,26 @@ export class GameClient {
       ambient: counts.ambient + sectorTally.byClass.ambient.entities,
       wave: counts.wave + sectorTally.byClass.wave.entities,
       boss: counts.boss + sectorTally.byClass.boss.entities,
+      special: counts.special + sectorTally.byClass.special.entities,
+      global: density.globalEnemyCount,
+      within45: density.nearbyEnemyCount45,
+      within70: density.nearbyEnemyCount70,
+      close: density.close,
+      ranged: density.ranged,
+      specialist: density.specialist,
       sectors: systems.hordeSectors.sectors.size,
+      entityTarget: horde.currentEntityTarget,
+      threatTarget: horde.currentThreatTarget,
+      spawnIncome: horde.currentSpawnIncome,
       spawnBudget: horde.spawnBudget,
+      lastPack: horde.lastSelectedPack,
+      lastPackSize: horde.lastPackSize,
+      lastAnchorDistance: horde.lastAnchorDistance,
       anchorFailures: horde.anchorFailures,
+      waveActiveEntities: runtime?.activeWaveEntities ?? 0,
+      waveActiveThreat: runtime?.activeWaveThreat ?? 0,
+      waveMaximumEntities: runtime?.maximumActiveWaveEntities ?? 0,
+      waveMaximumThreat: runtime?.maximumActiveWaveThreat ?? 0,
       tierCounts,
     };
   }

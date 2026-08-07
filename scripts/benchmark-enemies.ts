@@ -4,7 +4,7 @@
  *
  * Separates authoritative simulation, enemy AI, client interpolation,
  * replication bandwidth, snapshot size, projectile/XP pressure, memory, and
- * state growth for the fixed 100/250/500/750 population ladder.
+ * state growth for the fixed 100/150/200/300/500/750 population ladder.
  *
  * Usage:
  *   npm run test:horde:benchmark
@@ -18,7 +18,7 @@ import { HordeReplicationTracker } from '../src/shared/net/horde/hordeReplicatio
 import type { EnemyState, MatchState } from '../src/shared/types';
 import type { SpawnOwnership } from '../src/shared/horde/spawnOwnership';
 
-const COUNTS = [100, 250, 500, 750] as const;
+const COUNTS = [100, 150, 200, 300, 500, 750] as const;
 const TICKS = 180;
 const DT = 1 / 30;
 const POLICY = {

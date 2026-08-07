@@ -291,6 +291,7 @@ export class NetworkStatePresenter {
       });
       byPolicy.set(policy.id, group);
     }
+    const animationStartedAt = performance.now();
     const lodTiers = new Map<number, EnemyAnimationLodTier>();
     for (const group of byPolicy.values()) {
       let manager = this.lodManagers.get(group.policy.id);
@@ -368,6 +369,7 @@ export class NetworkStatePresenter {
       if (!seen.has(id)) registry.removeEnemy(id);
     }
     registry.sweepFodder(seen);
+    netcodeMetrics.animationMs = performance.now() - animationStartedAt;
 
     const seenPickups = new Set<number>();
     for (const p of frame.pickups) {

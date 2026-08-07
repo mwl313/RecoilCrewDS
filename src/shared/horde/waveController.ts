@@ -1,5 +1,7 @@
 import type { EntityKilledEvent } from '../damage/damageTypes';
+import { enemyThreat } from '../enemies/monsterCompat';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
+import { PopulationManager } from './populationManager';
 
 export interface WaveOpeningOptions {
   definitionId: string;
@@ -25,6 +27,8 @@ export interface WaveRuntime {
   reinforcementThreatRemaining: number;
   activeWaveThreat: number;
   activeWaveEntities: number;
+  maximumActiveWaveThreat: number;
+  maximumActiveWaveEntities: number;
   reinforcementAccumulator: number;
   state: 'opening' | 'active' | 'leaderDead' | 'purging' | 'complete';
 }
@@ -40,6 +44,7 @@ export class WaveController {
   readonly waves = new Map<number, WaveRuntime>();
   private nextWaveId = 1;
   private readonly rewardFired = new Set<number>();
+  private readonly accountedDeathIds = new Set<number>();
   private packInstanceCounter = 0;
 
   constructor(
@@ -61,6 +66,8 @@ export class WaveController {
       reinforcementThreatRemaining: opts.reinforcementThreat,
       activeWaveThreat: 0,
       activeWaveEntities: 0,
+      maximumActiveWaveThreat: opts.maximumActiveWaveThreat,
+      maximumActiveWaveEntities: opts.maximumActiveWaveEntities,
       reinforcementAccumulator: 0,
       state: 'opening',
     };
@@ -85,9 +92,9 @@ export class WaveController {
         runtime.leaderIds.push(leader.id);
         if (runtime.leaderId === 0) runtime.leaderId = leader.id;
         runtime.activeWaveEntities++;
+        runtime.activeWaveThreat += enemyThreat(def);
       }
     }
-    if (runtime.leaderIds.length > 0) runtime.activeWaveThreat += opts.openingThreat;
     runtime.state = 'active';
     this.emitWaveEvent('waveOpened', runtime);
     return runtime;
@@ -109,6 +116,8 @@ export class WaveController {
     runtime.leaderId = enemyId;
     runtime.leaderIds = [enemyId];
     runtime.defeatedLeaderIds = [];
+    runtime.activeWaveEntities++;
+    runtime.activeWaveThreat += enemyThreat(this.ctx.enemies.defFor(enemy));
   }
 
   /** Spawn a tagged cohort (opening or reinforcement pack). */
@@ -116,7 +125,7 @@ export class WaveController {
     waveId: number,
     enemyId: string,
     count: number,
-    threatCost: number,
+    _threatCost: number,
     positions?: Array<{ x: number; z: number }>,
     formationRole?: string,
   ): boolean {
@@ -124,6 +133,8 @@ export class WaveController {
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     const def = this.ctx.enemies.defById(enemyId);
     if (!def) return false;
+    const actualThreat = enemyThreat(def) * count;
+    if (!this.hasSpawnCapacity(runtime, count, actualThreat)) return false;
     const leader = this.ctx.state.enemies.find((e) => e.id === runtime.leaderId);
     const anchor = leader ?? this.ctx.state.tank;
     const packInstanceId = this.packInstanceCounter++;
@@ -154,7 +165,7 @@ export class WaveController {
       });
     }
     runtime.activeWaveEntities += count;
-    runtime.activeWaveThreat += threatCost;
+    runtime.activeWaveThreat += actualThreat;
     return true;
   }
 
@@ -167,17 +178,21 @@ export class WaveController {
   spawnCohortPack(
     waveId: number,
     entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
-    threatCost: number,
+    _threatCost: number,
     positions?: Array<{ x: number; z: number }>,
   ): boolean {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     const totalCount = entries.reduce((sum, e) => sum + Math.max(0, e.count), 0);
     if (totalCount === 0) return false;
+    let actualThreat = 0;
     for (const entry of entries) {
       if (entry.count < 0) return false;
-      if (!this.ctx.enemies.defById(entry.enemyId)) return false;
+      const def = this.ctx.enemies.defById(entry.enemyId);
+      if (!def) return false;
+      actualThreat += enemyThreat(def) * entry.count;
     }
+    if (!this.hasSpawnCapacity(runtime, totalCount, actualThreat)) return false;
     const leader = this.ctx.state.enemies.find((e) => e.id === runtime.leaderId);
     const anchor = leader ?? this.ctx.state.tank;
     const packInstanceId = this.packInstanceCounter++;
@@ -213,7 +228,7 @@ export class WaveController {
       }
     }
     runtime.activeWaveEntities += totalCount;
-    runtime.activeWaveThreat += threatCost;
+    runtime.activeWaveThreat += actualThreat;
     return true;
   }
 
@@ -228,8 +243,6 @@ export class WaveController {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     if (threatCost > runtime.reinforcementThreatRemaining) return false;
-    const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
-    if (runtime.activeWaveEntities + count > cap) return false;
     const ok = this.spawnCohort(waveId, packEnemyId, count, threatCost, undefined, formationRole);
     if (!ok) return false;
     runtime.reinforcementThreatRemaining -= threatCost;
@@ -249,9 +262,6 @@ export class WaveController {
     const runtime = this.waves.get(waveId);
     if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
     if (threatCost > runtime.reinforcementThreatRemaining) return false;
-    const totalCount = entries.reduce((sum, e) => sum + Math.max(0, e.count), 0);
-    const cap = this.ctx.horde?.resolved.limits.waveSoftEntityCap ?? 200;
-    if (runtime.activeWaveEntities + totalCount > cap) return false;
     const ok = this.spawnCohortPack(waveId, entries, threatCost);
     if (!ok) return false;
     runtime.reinforcementThreatRemaining -= threatCost;
@@ -260,11 +270,19 @@ export class WaveController {
   }
 
   private onKilled(payload: EntityKilledEvent): void {
-    for (const runtime of [...this.waves.values()]) {
-      if (!runtime.leaderIds.includes(payload.enemy.id) || runtime.state === 'complete') continue;
+    const enemy = this.ctx.state.enemies.find((candidate) => candidate.id === payload.enemy.id);
+    const waveId = enemy?.ownership?.waveId;
+    if (waveId === null || waveId === undefined) return;
+    const runtime = this.waves.get(waveId);
+    if (!runtime || runtime.state === 'complete') return;
+    if (!this.accountedDeathIds.has(payload.enemy.id)) {
+      this.accountedDeathIds.add(payload.enemy.id);
+      runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - 1);
+      runtime.activeWaveThreat = Math.max(0, runtime.activeWaveThreat - enemyThreat(this.ctx.enemies.defFor(enemy!)));
+    }
+    if (runtime.leaderIds.includes(payload.enemy.id)) {
       if (!runtime.defeatedLeaderIds.includes(payload.enemy.id)) {
         runtime.defeatedLeaderIds.push(payload.enemy.id);
-        runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - 1);
       }
       if (runtime.defeatedLeaderIds.length === runtime.leaderIds.length) this.finishWave(runtime);
     }
@@ -287,16 +305,22 @@ export class WaveController {
 
   /** Remove only this wave's purgeable cohort (ambient untouched, no hooks). */
   purge(waveId: number): number {
-    this.ctx.hordeSectors?.purgeWave(waveId);
+    const sectors = this.ctx.hordeSectors?.purgeWaveDetailed(waveId) ?? { entities: 0, threat: 0 };
     const removed = this.ctx.enemies.purge((e) => {
       const o = e.ownership;
       return o !== undefined && o.purgeOnLeaderDeath === true && o.waveId === waveId;
     });
     const runtime = this.waves.get(waveId);
     if (runtime) {
-      runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - removed.length);
+      const unaccounted = removed.filter((enemy) => !this.accountedDeathIds.has(enemy.id));
+      const removedThreat = unaccounted.reduce(
+        (sum, enemy) => sum + enemyThreat(this.ctx.enemies.defFor(enemy)),
+        sectors.threat,
+      );
+      runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - unaccounted.length - sectors.entities);
+      runtime.activeWaveThreat = Math.max(0, runtime.activeWaveThreat - removedThreat);
     }
-    return removed.length;
+    return removed.length + sectors.entities;
   }
 
   /** Explicit test/controller purge path with the same reward suppression. */
@@ -308,5 +332,19 @@ export class WaveController {
 
   private emitWaveEvent(type: string, runtime: WaveRuntime, count = 0): void {
     this.ctx.eventBus.emit('waveEvent', { type, waveId: runtime.waveId, leaderId: runtime.leaderId, count });
+  }
+
+  private hasSpawnCapacity(runtime: WaveRuntime, entities: number, threat: number): boolean {
+    if (runtime.activeWaveEntities + entities > runtime.maximumActiveWaveEntities) return false;
+    if (runtime.activeWaveThreat + threat > runtime.maximumActiveWaveThreat) return false;
+    const limits = this.ctx.horde?.resolved.limits;
+    if (!limits) return true;
+    const population = new PopulationManager(this.ctx);
+    const tally = population.refresh();
+    const waveEntities = tally.byClass.wave.entities + tally.byClass.boss.entities;
+    const waveThreat = tally.byClass.wave.threat + tally.byClass.boss.threat;
+    if (waveEntities + entities > limits.waveSoftEntityCap) return false;
+    if (waveThreat + threat > limits.waveSoftThreatCap) return false;
+    return population.hardCapacity(limits, tally, entities, threat);
   }
 }

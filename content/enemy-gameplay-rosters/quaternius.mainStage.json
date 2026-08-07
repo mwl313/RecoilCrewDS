@@ -3,16 +3,16 @@
   "label": "Quaternius Main Stage Gameplay Roster",
   "phaseDurationSeconds": 60,
   "ordinaryMix": {
-    "closeFodder": 0.5,
-    "rangedFodder": 0.3,
-    "specialist": 0.2
+    "closeFodder": 0.65,
+    "rangedFodder": 0.25,
+    "specialist": 0.1
   },
   "featuredWaves": [
     { "waveIndex": 1, "eliteCount": 1 },
     { "waveIndex": 2, "eliteCount": 1 }
   ],
   "maximumSupportedEliteCountPerWave": 2,
-  "bossEscortCount": [4, 6],
+  "bossEscortCount": [8, 10],
   "featuredIdentities": [
     {
       "identityId": "featuredMonster.alienHighDetail",

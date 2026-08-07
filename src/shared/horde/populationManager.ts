@@ -53,8 +53,8 @@ export class PopulationManager {
   /** Ambient spawn capacity: below soft caps, leaving reserves untouched. */
   ambientCapacity(limits: PopulationLimitsDefinition, tally: PopulationTally): { entities: boolean; threat: boolean } {
     return {
-      entities: tally.byClass.ambient.entities + tally.byClass.wave.entities < limits.ambientSoftEntityCap,
-      threat: tally.byClass.ambient.threat + tally.byClass.wave.threat < limits.ambientSoftThreatCap,
+      entities: tally.byClass.ambient.entities < limits.ambientSoftEntityCap,
+      threat: tally.byClass.ambient.threat < limits.ambientSoftThreatCap,
     };
   }
 

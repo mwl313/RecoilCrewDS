@@ -897,6 +897,8 @@ if (TEST_MODE) {
     renderCount: () => game?.world.renderCount ?? 0,
     tactical: () => game?.tacticalDiagnostics() ?? null,
     quality: () => game?.qualityDiagnostics() ?? null,
+    hordeDebug: () => game?.getHordeDebug() ?? null,
+    hordeReplication: () => game?.replicationPopulationDiagnostics() ?? null,
     setApronEnabled: (enabled: boolean) => game?.setApronEnabledForTest(enabled),
     setInputEnabled: (enabled: boolean) => {
       input.setEnabled(enabled);

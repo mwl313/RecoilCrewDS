@@ -669,6 +669,10 @@ export class RoomManager {
       if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
       room.match.state.tank.integrity = room.match.runtime.cfg.tank.maxIntegrity;
       room.match.state.tank.deadT = 0;
+      // Qualification clients intentionally idle through the full horde
+      // timeline. The test-only heal also grants a run-length shield so the
+      // soak measures density instead of terminating on AFK combat damage.
+      room.match.state.tank.shieldedT = Math.max(room.match.state.tank.shieldedT, 600);
       return;
     }
     if (t === 'testImpulseEnemyByDef') {

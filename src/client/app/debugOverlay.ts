@@ -97,10 +97,15 @@ export class DebugOverlay {
       `farming: ${debug.farmingTimeRemaining.toFixed(1)}s`,
       `wave: ${debug.waveId ?? '-'}`,
       `leader: ${debug.leaderHp.toFixed(0)}/${debug.leaderMaxHp.toFixed(0)}`,
-      `ambient: ${debug.ambient} wave: ${debug.wave} boss: ${debug.boss}`,
+      `global: ${debug.global} (45m ${debug.within45} / 70m ${debug.within70})`,
+      `ambient: ${debug.ambient} wave: ${debug.wave} boss: ${debug.boss} special: ${debug.special}`,
+      `roles c/r/s: ${debug.close}/${debug.ranged}/${debug.specialist}`,
       `sectors: ${debug.sectors}`,
-      `budget: ${debug.spawnBudget.toFixed(2)}`,
+      `target e/t: ${debug.entityTarget.toFixed(1)}/${debug.threatTarget.toFixed(1)} income: ${debug.spawnIncome.toFixed(2)}`,
+      `budget: ${debug.spawnBudget.toFixed(2)} last: ${debug.lastPack ?? '-'} x${debug.lastPackSize}`,
+      `anchor distance: ${debug.lastAnchorDistance.toFixed(1)}m`,
       `anchor failures: ${debug.anchorFailures}`,
+      `wave live/cap: ${debug.waveActiveEntities}/${debug.waveMaximumEntities} e ${debug.waveActiveThreat.toFixed(1)}/${debug.waveMaximumThreat.toFixed(1)} t`,
       `tiers: ${debug.tierCounts.join('/')}`,
     ];
     this.panel.textContent = [this.baseText, ...this.hordeLines].join('\n');

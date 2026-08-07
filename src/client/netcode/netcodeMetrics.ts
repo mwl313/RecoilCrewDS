@@ -18,6 +18,7 @@ export interface NetcodeMetricsSnapshot {
   snapshotHandleMs: number;
   interpMs: number;
   worldSyncMs: number;
+  animationMs: number;
   cameraQueryMs: number;
   aimQueryMs: number;
   colliderCandidates: number;
@@ -54,6 +55,7 @@ class NetcodeMetrics {
   snapshotHandleMs = 0;
   interpMs = 0;
   worldSyncMs = 0;
+  animationMs = 0;
   cameraQueryMs = 0;
   aimQueryMs = 0;
   colliderCandidates = 0;
@@ -137,6 +139,7 @@ class NetcodeMetrics {
       snapshotHandleMs: this.snapshotHandleMs,
       interpMs: this.interpMs,
       worldSyncMs: this.worldSyncMs,
+      animationMs: this.animationMs,
       cameraQueryMs: this.cameraQueryMs,
       aimQueryMs: this.aimQueryMs,
       colliderCandidates: this.colliderCandidates,

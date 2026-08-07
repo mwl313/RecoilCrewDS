@@ -103,6 +103,50 @@ describe('WaveController ownership and lifecycle', () => {
     expect(c.spendReinforcement(runtime.waveId, 6, 'enemy.scrapBug', 2)).toBe(false);
   });
 
+  it('stores and enforces authored entity and threat caps', () => {
+    const { m, c, runtime } = makeWave({ maximumActiveWaveEntities: 3 });
+    expect(runtime.maximumActiveWaveEntities).toBe(3);
+    expect(runtime.maximumActiveWaveThreat).toBe(50);
+    expect(c.spendReinforcement(runtime.waveId, 3, 'enemy.scrapBug', 3)).toBe(false);
+    expect(c.spendReinforcement(runtime.waveId, 2, 'enemy.scrapBug', 2)).toBe(true);
+    expect(m.state.enemies.filter((enemy) => enemy.ownership?.waveId === runtime.waveId)).toHaveLength(3);
+
+    const threatLimited = c.openWave({
+      definitionId: 'wave.threat-limited',
+      leaderEnemyId: 'enemy.rammer',
+      openingThreat: 1,
+      reinforcementThreat: 20,
+      reinforcementThreatPerSecond: 1,
+      maximumActiveWaveThreat: 5,
+      maximumActiveWaveEntities: 30,
+    });
+    const initialThreat = threatLimited.activeWaveThreat;
+    threatLimited.maximumActiveWaveThreat = initialThreat + 1;
+    expect(c.spendReinforcement(threatLimited.waveId, 2, 'enemy.scrapBug', 2)).toBe(false);
+  });
+
+  it('decrements ordinary wave live counters exactly once and purge cannot double-decrement', () => {
+    const { m, c, runtime } = makeWave();
+    expect(c.spawnCohort(runtime.waveId, 'enemy.scrapBug', 2, 2)).toBe(true);
+    const cohort = m.state.enemies.filter(
+      (enemy) => enemy.ownership?.waveId === runtime.waveId && enemy.ownership.purgeOnLeaderDeath,
+    );
+    const beforeEntities = runtime.activeWaveEntities;
+    const beforeThreat = runtime.activeWaveThreat;
+    const dead = cohort[0];
+    const deadThreat = m.runtime.systems.enemies.threatFor(dead);
+    m.damageEnemy(dead, 999, 'test');
+    expect(runtime.activeWaveEntities).toBe(beforeEntities - 1);
+    expect(runtime.activeWaveThreat).toBe(beforeThreat - deadThreat);
+    m.runtime.eventBus.emit('entity.killed', { enemy: dead, source: 'test' });
+    m.runtime.eventBus.drain();
+    expect(runtime.activeWaveEntities).toBe(beforeEntities - 1);
+    expect(runtime.activeWaveThreat).toBe(beforeThreat - deadThreat);
+    c.purgeWave(runtime.waveId);
+    expect(runtime.activeWaveEntities).toBe(1);
+    expect(runtime.activeWaveThreat).toBeGreaterThan(0);
+  });
+
   it('keeps a two-elite wave active until every selected leader dies', () => {
     const { m, runtime } = makeWave({
       leaderEnemyIds: ['enemy.rammer', 'enemy.gunTower'],

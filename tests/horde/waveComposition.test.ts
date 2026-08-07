@@ -82,10 +82,10 @@ describe('production wave composition (bug-fix phase 1)', () => {
     const close = slots['selected.phase.closeFodder'];
     const ranged = slots['selected.phase.rangedFodder'];
     const specialist = slots['selected.phase.specialist'];
-    // The two authored packs contribute seven total entities, while their
+    // The two authored packs contribute fourteen total entities, while their
     // identities are allocated against the roster mix accumulated in phase.
     const cohort = countByDefId(m, waveId);
-    expect((cohort.get(close) ?? 0) + (cohort.get(ranged) ?? 0) + (cohort.get(specialist) ?? 0)).toBe(7);
+    expect((cohort.get(close) ?? 0) + (cohort.get(ranged) ?? 0) + (cohort.get(specialist) ?? 0)).toBe(14);
     expect(cohort.get(close)).toBeGreaterThan(0);
     expect(cohort.get(ranged)).toBeGreaterThan(0);
     expect(cohort.get(specialist)).toBeGreaterThan(0);
@@ -101,7 +101,7 @@ describe('production wave composition (bug-fix phase 1)', () => {
     const horde = m.runtime.systems.horde!;
     const waveId = horde.currentWaveId!;
     const before = countByDefId(m, waveId);
-    step(m, 2);
+    step(m, 4);
     const after = countByDefId(m, waveId);
     const slots = m.runtime.systems.monsterSlots!;
     const close = slots['selected.phase.closeFodder'];
