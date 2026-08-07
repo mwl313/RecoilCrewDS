@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Recoil Crew Reward Roulette Preview</title>
+<style>
+:root{
+  --bg:#0d1113;--panel:#121719;--paper:#f1eee3;--muted:#8c9998;
+  --amber:#ffad22;--amber-hot:#ffc04c;--cyan:#3de6ff;--purple:#bd67ff;--gold:#ffd64a;
+  --line:rgba(241,238,227,.14);--cut:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:#080b0d;color:var(--paper);font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+body{background:
+  radial-gradient(circle at 50% 42%,rgba(255,173,34,.09),transparent 32%),
+  linear-gradient(#11181a,#090c0d 62%,#07090a)}
+.world{
+  position:absolute;inset:0;overflow:hidden;
+  background:
+    linear-gradient(115deg,transparent 0 44%,rgba(255,255,255,.025) 44.2% 44.4%,transparent 44.6%),
+    radial-gradient(ellipse at 50% 100%,#222d2c 0 18%,transparent 52%);
+}
+.grid{position:absolute;left:-20%;right:-20%;bottom:-38%;height:75%;transform:perspective(650px) rotateX(62deg);
+background-image:linear-gradient(rgba(255,173,34,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(241,238,227,.045) 1px,transparent 1px);
+background-size:48px 48px;opacity:.8}
+.fake-tank{position:absolute;left:50%;bottom:13%;width:290px;height:96px;transform:translateX(-50%) skewX(-5deg);background:#263033;clip-path:var(--cut);box-shadow:0 28px 70px #000}
+.fake-tank:before{content:"";position:absolute;width:175px;height:44px;left:55px;top:-30px;background:#333e40;clip-path:var(--cut)}
+.fake-tank:after{content:"";position:absolute;width:155px;height:14px;left:185px;top:-20px;background:#424c4d;transform:rotate(-4deg);transform-origin:left center}
+.hud{position:absolute;inset:18px 22px auto;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.16em;color:#9aa8a7}
+.preview-controls{position:fixed;z-index:50;left:18px;bottom:18px;display:flex;gap:8px}
+.preview-controls button{background:#171d1f;color:var(--paper);border:1px solid rgba(255,173,34,.3);padding:9px 14px;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);font-weight:800;letter-spacing:.08em;cursor:pointer}
+.preview-controls button:hover{background:#2a3032}
+.overlay{position:fixed;inset:0;z-index:20;display:none;place-items:center;overflow:hidden}
+.overlay.active{display:grid}
+.scrim{position:absolute;inset:0;background:radial-gradient(circle at 50% 47%,rgba(5,7,8,.22),rgba(5,7,8,.78) 70%);opacity:0;transition:opacity .16s}
+.overlay.active .scrim{opacity:1}
+.burst{position:absolute;width:min(100vmax,1400px);aspect-ratio:1;border-radius:50%;opacity:0;transform:scale(.55) rotate(0deg);
+background:repeating-conic-gradient(from 0deg,rgba(255,173,34,.0) 0deg 5deg,rgba(255,173,34,.19) 5deg 7deg,rgba(241,238,227,.035) 7deg 10deg);
+mask-image:radial-gradient(circle,black 0 17%,rgba(0,0,0,.9) 18% 48%,transparent 72%);
+pointer-events:none}
+.burst.on{animation:burstIn .44s cubic-bezier(.2,.8,.2,1) forwards,burstIdle 9s linear .44s infinite}
+@keyframes burstIn{0%{opacity:0;transform:scale(.42)}65%{opacity:.96;transform:scale(1.06)}100%{opacity:.62;transform:scale(1)}}
+@keyframes burstIdle{to{transform:scale(1) rotate(12deg)}}
+
+.impact-core{position:absolute;left:50%;top:50%;width:28vmin;height:28vmin;transform:translate(-50%,-50%) scale(.02);border-radius:50%;
+background:radial-gradient(circle,rgba(255,255,245,.98) 0 8%,rgba(255,206,89,.95) 10% 24%,rgba(255,173,34,.42) 32%,transparent 70%);
+opacity:0;mix-blend-mode:screen;pointer-events:none;z-index:2}
+.impact-core.fire{animation:coreDetonate .24s cubic-bezier(.12,.7,.18,1) both}
+@keyframes coreDetonate{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.02)}
+  22%{opacity:1}
+  55%{opacity:.98;transform:translate(-50%,-50%) scale(.72)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.65)}
+}
+.shockwave{position:absolute;left:50%;top:50%;width:min(58vmin,620px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.04) rotate(0deg);
+border:3px solid rgba(255,205,91,.88);clip-path:polygon(50% 0,92% 12%,100% 52%,84% 92%,42% 100%,8% 80%,0 37%,18% 7%);
+opacity:0;pointer-events:none;z-index:2}
+.shockwave.fire{animation:shockBlast .52s cubic-bezier(.12,.72,.18,1) both}
+.shockwave-b.fire{animation-delay:.07s;border-width:1px;border-color:rgba(241,238,227,.58)}
+@keyframes shockBlast{
+  0%{opacity:.95;transform:translate(-50%,-50%) scale(.04) rotate(-7deg)}
+  45%{opacity:.72}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.9) rotate(8deg)}
+}
+.speedlines{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;
+background:
+repeating-conic-gradient(from 1deg at 50% 50%,
+transparent 0deg 5.2deg,
+rgba(255,173,34,.0) 5.2deg 5.55deg,
+rgba(255,198,76,.72) 5.55deg 5.8deg,
+transparent 5.8deg 9deg);
+mask-image:radial-gradient(circle at center,transparent 0 12%,#000 19% 57%,transparent 73%)}
+.speedlines.fire{animation:speedlineBlast .34s cubic-bezier(.12,.72,.2,1) both}
+@keyframes speedlineBlast{
+  0%{opacity:0;transform:scale(.16) rotate(-5deg)}
+  24%{opacity:.95}
+  100%{opacity:0;transform:scale(1.34) rotate(2deg)}
+}
+.stage.punch-in{animation:stagePunch .42s cubic-bezier(.12,.86,.2,1) both;transform-origin:50% 50%}
+@keyframes stagePunch{
+  0%{opacity:0;transform:scale(.055)}
+  10%{opacity:1;transform:scale(.12)}
+  38%{transform:scale(.58)}
+  68%{transform:scale(1.19)}
+  84%{transform:scale(.965)}
+  100%{opacity:1;transform:scale(1)}
+}
+.overlay.impact-edge:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:8;opacity:0;
+box-shadow:inset 0 0 90px 18px rgba(255,211,105,.42),inset 0 0 16px 3px rgba(255,255,244,.5);
+animation:edgeImpulse .18s ease-out both}
+@keyframes edgeImpulse{0%{opacity:0}25%{opacity:.85}100%{opacity:0}}
+
+.stage{position:relative;width:min(980px,92vw);min-height:520px;display:grid;align-content:center;justify-items:center;z-index:3}
+.kicker{font-size:10px;font-weight:800;letter-spacing:.22em;color:#cbb98f;margin-bottom:8px}
+.title{font-family:"Arial Narrow",Arial,sans-serif;font-style:italic;font-weight:900;font-size:clamp(46px,6vw,76px);line-height:.82;letter-spacing:-.04em;margin:0;text-shadow:0 4px 0 #000;opacity:0;transform:translateY(-34px) scale(1.22) skewX(-5deg)}
+.title.slam{animation:titleSlam .31s cubic-bezier(.12,.86,.2,1) forwards}
+@keyframes titleSlam{0%{opacity:0;transform:translateY(-34px) scale(1.22) skewX(-5deg)}58%{opacity:1;transform:translateY(6px) scale(.96) skewX(-2deg)}78%{transform:translateY(-2px) scale(1.035) skewX(-1deg)}100%{opacity:1;transform:none}}
+.levelnum{margin-top:8px;color:var(--amber);font-weight:900;font-size:15px;letter-spacing:.22em;opacity:0}
+.levelnum.show{animation:levelPop .22s cubic-bezier(.12,.86,.2,1) forwards}
+@keyframes levelPop{0%{opacity:0;transform:scale(.35) translateY(10px)}65%{opacity:1;transform:scale(1.18) translateY(-2px)}100%{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.cards{display:flex;gap:14px;margin-top:34px;justify-content:center;width:100%}
+.card{--rarity:#9aa3ad;position:relative;width:30%;min-width:220px;max-width:272px;height:318px;background:linear-gradient(145deg,#151b1d,#0a0d0e);
+clip-path:var(--cut);border:1px solid var(--line);opacity:0;transform:translateY(108px) scale(.84);transition:transform .12s ease,filter .12s ease,opacity .18s ease}
+.card:before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:var(--rarity);opacity:.85}
+.card.enter{animation:cardEnter .34s cubic-bezier(.12,.86,.2,1) forwards}
+@keyframes cardEnter{0%{opacity:0;transform:translateY(108px) scale(.84)}68%{opacity:1;transform:translateY(-7px) scale(1.028)}86%{transform:translateY(3px) scale(.99)}100%{opacity:1;transform:none}}
+.card.focus{transform:translateY(-5px);filter:brightness(1.13);outline:2px solid rgba(255,173,34,.8);outline-offset:4px}
+.card.focus:after{content:"// SELECT";position:absolute;right:12px;bottom:10px;color:var(--amber);font-size:10px;font-weight:900;letter-spacing:.18em}
+.hotkey{position:absolute;left:12px;top:12px;width:32px;height:28px;display:grid;place-items:center;background:#202728;border:1px solid #4c5757;font-weight:900;color:var(--paper)}
+.reel{position:absolute;left:18px;right:18px;top:54px;height:112px;overflow:hidden;border-block:1px solid rgba(255,255,255,.08);background:#080a0b}
+.reelstrip{position:absolute;left:0;right:0;top:0;display:grid}
+.symbol{height:112px;display:grid;place-items:center;font-family:"Arial Narrow",Arial,sans-serif;font-style:italic;font-size:23px;font-weight:900;letter-spacing:.03em;color:#c9d0cf}
+.symbol .glyph{font-size:38px;margin-bottom:6px;color:var(--rarity)}
+.card.lock .reelstrip{transform:translateY(0)!important}
+.card.lock .symbol:not(.final){display:none}
+.final{display:none}
+.card.lock .final{display:grid}
+.rarity{position:absolute;left:18px;top:178px;font-size:10px;font-weight:900;letter-spacing:.19em;color:var(--rarity)}
+.name{position:absolute;left:18px;right:18px;top:199px;font-family:"Arial Narrow",Arial,sans-serif;font-style:italic;font-weight:900;font-size:27px;line-height:.95}
+.effect{position:absolute;left:18px;right:18px;top:250px;color:#a8b3b2;font-size:13px;line-height:1.35}
+.card:not(.lock) .rarity,.card:not(.lock) .name,.card:not(.lock) .effect{opacity:0}
+.card.lock .rarity,.card.lock .name,.card.lock .effect{animation:fadeUp .18s ease-out forwards}
+.card.lockhit{animation:lockHit .12s ease-out}
+@keyframes lockHit{0%{transform:translateY(10px) scale(.96)}34%{transform:translateY(-5px) scale(1.08);filter:brightness(1.5)}60%{transform:translateY(-5px) scale(1.08);filter:brightness(1.35)}82%{transform:translateY(2px) scale(.98)}100%{transform:none;filter:none}}
+.card.rare{--rarity:var(--cyan)}.card.epic{--rarity:var(--purple)}.card.legendary{--rarity:var(--gold)}
+.card.chosen{z-index:4;animation:chooseHit .24s cubic-bezier(.18,.8,.2,1) forwards}
+@keyframes chooseHit{45%{transform:scale(1.06);filter:brightness(1.35)}100%{transform:scale(1.025);filter:brightness(1.15)}}
+.card.rejected{pointer-events:none;animation:reject .22s ease-in forwards}
+.card.rejected:nth-child(1){--dx:-54px}.card.rejected:nth-child(2){--dx:0px}.card.rejected:nth-child(3){--dx:54px}
+@keyframes reject{to{opacity:0;transform:translateX(var(--dx)) skewX(-4deg)}}
+.status{margin-top:22px;height:24px;color:#9eb0af;font-size:11px;font-weight:800;letter-spacing:.16em;text-align:center}
+.shards{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.shard{position:absolute;width:5px;height:14px;background:var(--amber);left:50%;top:50%;opacity:0}
+.shard.fly{animation:shardFly .55s cubic-bezier(.15,.65,.25,1) forwards}
+@keyframes shardFly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}}
+.relicplate{--rarity:var(--gold);position:relative;width:min(520px,86vw);height:390px;clip-path:var(--cut);background:linear-gradient(145deg,#171b1c,#080a0b);border:1px solid rgba(255,255,255,.14);opacity:0;transform:scale(.72)}
+.relicplate:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--rarity)}
+.relicplate.enter{animation:relicEnter .38s cubic-bezier(.12,.86,.2,1) forwards}
+@keyframes relicEnter{0%{opacity:0;transform:scale(.72)}68%{opacity:1;transform:scale(1.08)}84%{transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
+.reliccore{position:absolute;left:50%;top:74px;width:118px;height:118px;transform:translateX(-50%);border:2px solid var(--rarity);display:grid;place-items:center;font-size:54px;background:#0b0e0f;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+.reliclabel{position:absolute;top:215px;left:24px;right:24px;text-align:center}
+.relicrarity{font-size:10px;letter-spacing:.2em;font-weight:900;color:var(--rarity)}
+.relicname{font-family:"Arial Narrow",Arial,sans-serif;font-style:italic;font-weight:900;font-size:39px;line-height:1;margin-top:6px}
+.relicdesc{margin:12px auto 0;max-width:390px;color:#9caaa9;font-size:13px;line-height:1.45}
+.relicstack{margin-top:12px;color:var(--amber);font-weight:900;letter-spacing:.12em}
+.continue{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:#d7d1bd;font-size:11px;letter-spacing:.2em;font-weight:900;opacity:0}
+.continue.show{animation:continuePulse 1.2s ease-in-out infinite}
+@keyframes continuePulse{0%,100%{opacity:.5}50%{opacity:1}}
+.spintext{position:absolute;top:220px;left:0;right:0;text-align:center;color:#aab3b2;font-size:14px;font-weight:900;letter-spacing:.16em}
+.legend{position:fixed;right:18px;bottom:18px;color:#6f7d7d;font-size:10px;text-align:right;line-height:1.5}
+@media (prefers-reduced-motion: reduce){
+  .stage.punch-in{animation:reducedStageIn .22s ease-out both!important}
+  .impact-core,.shockwave,.speedlines{display:none!important}
+  .overlay.impact-edge:after{display:none!important}
+}
+@keyframes reducedStageIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media(max-width:760px){.cards{gap:7px}.card{min-width:0;width:32%;height:290px}.name{font-size:19px}.effect{font-size:11px}.stage{width:96vw}.title{font-size:48px}}
+</style>
+</head>
+<body>
+<div class="world">
+  <div class="grid"></div><div class="fake-tank"></div>
+  <div class="hud"><span>DRIVER // LINK READY</span><span>WAVE 02 // 01:34</span><span>SCORE 08,420</span></div>
+</div>
+
+<div id="upgrade" class="overlay">
+  <div class="scrim"></div><div class="burst"></div><div class="impact-core"></div><div class="shockwave shockwave-a"></div><div class="shockwave shockwave-b"></div><div class="speedlines"></div><div class="shards"></div>
+  <div class="stage">
+    <div class="kicker">FIELD UPGRADE AVAILABLE</div>
+    <h1 class="title">LEVEL UP</h1>
+    <div class="levelnum">LEVEL 12</div>
+    <div class="cards">
+      <div class="card rare" data-index="0">
+        <div class="hotkey">1</div><div class="reel"><div class="reelstrip"></div></div>
+        <div class="rarity">RARE</div><div class="name">ENGINE OVERDRIVE</div><div class="effect">FORWARD SPEED<br><b style="color:#f1eee3">+18%</b></div>
+      </div>
+      <div class="card" data-index="1">
+        <div class="hotkey">2</div><div class="reel"><div class="reelstrip"></div></div>
+        <div class="rarity">COMMON</div><div class="name">RECOIL SPRINGS</div><div class="effect">CANNON KNOCKBACK<br><b style="color:#f1eee3">+15%</b></div>
+      </div>
+      <div class="card epic" data-index="2">
+        <div class="hotkey">3</div><div class="reel"><div class="reelstrip"></div></div>
+        <div class="rarity">EPIC</div><div class="name">HEAT BAFFLE</div><div class="effect">CANNON COOLDOWN<br><b style="color:#f1eee3">-14%</b></div>
+      </div>
+    </div>
+    <div class="status">ROULETTE INITIALIZING</div>
+  </div>
+</div>
+
+<div id="relic" class="overlay">
+  <div class="scrim"></div><div class="burst"></div><div class="impact-core"></div><div class="shockwave shockwave-a"></div><div class="shockwave shockwave-b"></div><div class="speedlines"></div><div class="shards"></div>
+  <div class="stage">
+    <div class="kicker">RELIC SIGNAL ACQUIRED</div>
+    <div class="relicplate legendary">
+      <div class="reliccore">?</div>
+      <div class="spintext">SCANNING RELIC // ???</div>
+      <div class="reliclabel" style="opacity:0">
+        <div class="relicrarity">LEGENDARY</div>
+        <div class="relicname">PHASE DASH</div>
+        <div class="relicdesc">Become invulnerable during the authoritative Dash window.</div>
+        <div class="relicstack">STACK ×1</div>
+      </div>
+      <div class="continue">CLICK / SPACE TO CONTINUE</div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-controls">
+  <button id="playLevel">PLAY LEVEL UP</button>
+  <button id="playRelic">PLAY RELIC</button>
+  <button id="reset">RESET</button>
+</div>
+<div class="legend">LEVEL: 1/2/3 or click a card after lock<br>RELIC: first click fast-forwards, next click dismisses</div>
+
+<script>
+const $=(q,r=document)=>r.querySelector(q), $$=(q,r=document)=>[...r.querySelectorAll(q)];
+const upgrade=$('#upgrade'), relic=$('#relic');
+let highlighted=1, upgradeReady=false, relicPhase='hidden', timers=[];
+
+
+function fireEntrance(root){
+  const stage=$('.stage',root);
+  stage.classList.remove('punch-in');
+  $('.impact-core',root)?.classList.remove('fire');
+  $$('.shockwave',root).forEach(n=>n.classList.remove('fire'));
+  $('.speedlines',root)?.classList.remove('fire');
+  root.classList.remove('impact-edge');
+  void stage.offsetWidth;
+  stage.classList.add('punch-in');
+  $('.impact-core',root)?.classList.add('fire');
+  $$('.shockwave',root).forEach(n=>n.classList.add('fire'));
+  $('.speedlines',root)?.classList.add('fire');
+  root.classList.add('impact-edge');
+  later(()=>root.classList.remove('impact-edge'),190);
+}
+function microShock(root, color){
+  const core=$('.impact-core',root);
+  if(core){
+    core.style.background=`radial-gradient(circle,rgba(255,255,245,.98) 0 7%,${color||'rgba(255,173,34,.85)'} 12% 25%,transparent 70%)`;
+    core.classList.remove('fire'); void core.offsetWidth; core.classList.add('fire');
+  }
+  const ring=$('.shockwave-a',root);
+  if(ring){ring.classList.remove('fire');void ring.offsetWidth;ring.classList.add('fire')}
+}
+
+function later(fn,ms){const id=setTimeout(fn,ms);timers.push(id);return id}
+function clearTimers(){timers.forEach(clearTimeout);timers=[]}
+function burstNodes(root,count,color){
+  const layer=$('.shards',root); layer.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('i');s.className='shard';
+    if(color)s.style.background=color;
+    const a=(Math.PI*2*i/count)+(Math.random()-.5)*.25;
+    const d=90+Math.random()*230;
+    s.style.setProperty('--x',Math.cos(a)*d+'px');
+    s.style.setProperty('--y',Math.sin(a)*d+'px');
+    s.style.setProperty('--r',(Math.random()*520-260)+'deg');
+    layer.appendChild(s); requestAnimationFrame(()=>s.classList.add('fly'));
+  }
+}
+function hideAll(){
+  clearTimers();
+  [upgrade,relic].forEach(o=>o.classList.remove('active'));
+  $$('.burst').forEach(b=>b.classList.remove('on'));
+  $$('.shards').forEach(s=>s.innerHTML='');
+  upgradeReady=false; relicPhase='hidden';
+}
+
+const reelSymbols=[
+  ['◈','ENGINE'],['▣','ARMOR'],['⌁','RECOIL'],['✦','CRITICAL'],['⬢','DASH'],['▤','COOLDOWN'],['⟡','RANGE']
+];
+
+function buildReels(){
+  $$('.card',upgrade).forEach((card,idx)=>{
+    const strip=$('.reelstrip',card);strip.innerHTML='';
+    for(let i=0;i<9;i++){
+      const s=document.createElement('div');s.className='symbol';
+      const item=reelSymbols[(i+idx*2)%reelSymbols.length];
+      s.innerHTML=`<div><div class="glyph">${item[0]}</div>${item[1]}</div>`;
+      strip.appendChild(s);
+    }
+    const f=document.createElement('div');f.className='symbol final';
+    f.innerHTML=`<div><div class="glyph">${idx===0?'⚙':idx===1?'↯':'▥'}</div>LOCKED</div>`;
+    strip.prepend(f);
+  });
+}
+
+function setHighlight(i){
+  highlighted=Math.max(0,Math.min(2,i));
+  $$('.card',upgrade).forEach((c,j)=>c.classList.toggle('focus',upgradeReady&&j===highlighted));
+}
+
+function playLevel(){
+  hideAll(); buildReels(); upgrade.classList.add('active');
+  fireEntrance(upgrade);
+  $('.burst',upgrade).classList.add('on');
+  $('.title',upgrade).classList.remove('slam'); $('.levelnum',upgrade).classList.remove('show');
+  void $('.title',upgrade).offsetWidth;
+  $('.title',upgrade).classList.add('slam'); later(()=>$('.levelnum',upgrade).classList.add('show'),180);
+  $('.status',upgrade).textContent='ROLLING FIELD UPGRADES';
+  const cards=$$('.card',upgrade);
+  cards.forEach((c,i)=>{
+    c.className='card '+(['rare','','epic'][i])+(i?'':'');
+    c.dataset.index=i;
+    c.classList.remove('lock','focus','chosen','rejected','lockhit');
+    later(()=>c.classList.add('enter'),250+i*45);
+    const strip=$('.reelstrip',c);
+    let y=0, speed=74+i*7;
+    const start=performance.now();
+    function spin(t){
+      if(!upgrade.classList.contains('active')||c.classList.contains('lock'))return;
+      const elapsed=t-start;
+      y=(y+speed)%896;
+      strip.style.transform=`translateY(${-y}px)`;
+      speed=Math.max(22,speed*(elapsed>400?.955:.985));
+      requestAnimationFrame(spin);
+    }
+    requestAnimationFrame(spin);
+    later(()=>{
+      c.classList.add('lock','lockhit');
+      burstNodes(upgrade,6+i*3,i===0?'#3de6ff':i===2?'#bd67ff':'#ffad22');
+      later(()=>c.classList.remove('lockhit'),140);
+    if(i===2) microShock(upgrade, i===2?'rgba(189,103,255,.9)':'rgba(255,173,34,.85)');
+    },930+i*150);
+  });
+  later(()=>{
+    upgradeReady=true; setHighlight(1);
+    $('.status',upgrade).textContent='MOUSE / 1 2 3 // CHOOSE UPGRADE';
+  },1360);
+}
+
+function choose(i){
+  if(!upgradeReady)return;
+  upgradeReady=false; highlighted=i;
+  const cards=$$('.card',upgrade);
+  cards.forEach((c,j)=>{c.classList.remove('focus');c.classList.add(j===i?'chosen':'rejected')});
+  $('.status',upgrade).textContent=`UPGRADE ${i+1} // LOCKED IN`;
+  burstNodes(upgrade,20,getComputedStyle(cards[i]).getPropertyValue('--rarity').trim()||'#ffad22');
+  later(()=>{upgrade.classList.remove('active');$('.burst',upgrade).classList.remove('on')},520);
+}
+
+function revealRelicFinal(){
+  if(relicPhase==='revealed'||relicPhase==='awaiting')return;
+  relicPhase='revealed';
+  const plate=$('.relicplate',relic);
+  $('.reliccore',plate).textContent='◆';
+  $('.spintext',plate).style.display='none';
+  const label=$('.reliclabel',plate);label.style.opacity='1';label.style.animation='fadeUp .22s ease-out forwards';
+  burstNodes(relic,30,'#ffd64a');
+  microShock(relic,'rgba(255,214,74,.95)');
+  later(()=>{relicPhase='awaiting';$('.continue',plate).classList.add('show')},280);
+}
+
+function playRelic(){
+  hideAll(); relic.classList.add('active');fireEntrance(relic);$('.burst',relic).classList.add('on');
+  const plate=$('.relicplate',relic);
+  plate.classList.remove('enter');void plate.offsetWidth;plate.classList.add('enter');
+  $('.reliccore',plate).textContent='?';
+  $('.spintext',plate).style.display='block';
+  $('.reliclabel',plate).style.opacity='0';
+  $('.continue',plate).classList.remove('show');
+  relicPhase='spinning';
+  const states=[['◇','COMMON'],['◈','RARE'],['⬟','EPIC'],['✦','LEGENDARY'],['⬢','RARE'],['◆','EPIC'],['?','???']];
+  let n=0;
+  function tick(){
+    if(relicPhase!=='spinning')return;
+    const st=states[n%states.length];$('.reliccore',plate).textContent=st[0];$('.spintext',plate).textContent=`SCANNING RELIC // ${st[1]}`;
+    n++;
+    const delay=Math.min(170,48+n*11);
+    if(n<10) later(tick,delay); else revealRelicFinal();
+  }
+  later(tick,350);
+}
+function relicContinue(){
+  if(relicPhase==='spinning'){revealRelicFinal();return}
+  if(relicPhase==='revealed')return;
+  if(relicPhase==='awaiting'){
+    relicPhase='exiting';$('.continue',relic).classList.remove('show');
+    $('.relicplate',relic).animate([{transform:'scale(1)',opacity:1},{transform:'scale(.96) translateY(-8px)',opacity:0}],{duration:220,easing:'ease-in',fill:'forwards'});
+    later(()=>{relic.classList.remove('active');$('.burst',relic).classList.remove('on');relicPhase='hidden'},220);
+  }
+}
+
+$('#playLevel').onclick=playLevel;$('#playRelic').onclick=playRelic;$('#reset').onclick=hideAll;
+$$('.card',upgrade).forEach((c,i)=>{c.onclick=()=>choose(i);c.onmouseenter=()=>{if(upgradeReady)setHighlight(i)}})
+relic.addEventListener('mousedown',e=>{if(e.button===0)relicContinue()});
+window.addEventListener('keydown',e=>{
+  if(upgrade.classList.contains('active')){
+    if(['Digit1','Numpad1'].includes(e.code))choose(0);
+    if(['Digit2','Numpad2'].includes(e.code))choose(1);
+    if(['Digit3','Numpad3'].includes(e.code))choose(2);
+    if(e.code==='ArrowLeft'||e.code==='KeyA')setHighlight(highlighted-1);
+    if(e.code==='ArrowRight'||e.code==='KeyD')setHighlight(highlighted+1);
+    if((e.code==='Enter'||e.code==='Space')&&upgradeReady)choose(highlighted);
+  } else if(relic.classList.contains('active')&&(e.code==='Space'||e.code==='Enter')) {
+    e.preventDefault();relicContinue();
+  }
+});
+playLevel();
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+{
+  "id": "tank3",
+  "source": "Quaternius Tank Pack - June 2019 / Tank3.blend",
+  "coordinateConvention": {
+    "right": "+X",
+    "up": "+Y",
+    "forward": "+Z"
+  },
+  "scaleFromSource": 0.25,
+  "rig": {
+    "chassisAsset": "tank3.chassis.glb",
+    "turretAsset": "tank3.turret.glb",
+    "barrelAsset": "tank3.barrel.glb",
+    "turretPivot": [
+      -0.0,
+      1.146526,
+      -0.0
+    ],
+    "barrelPivot": [
+      0.0,
+      0.160565,
+      0.533964
+    ],
+    "muzzleLocal": [
+      -0.000142,
+      0.0,
+      1.298692
+    ],
+    "aimPivotLocal": [
+      -0.0,
+      1.146526,
+      -0.0
+    ],
+    "cameraAnchorLocal": [
+      0.0,
+      1.35,
+      0.0
+    ],
+    "forwardAxis": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "socketBindings": {
+      "turretPivotNode": "turret",
+      "barrelPivotNode": "barrel",
+      "muzzleNode": "muzzle",
+      "cameraAnchorNode": "cameraAnchor"
+    }
+  },
+  "runtime": {
+    "staticChassis": true,
+    "trackArmatureIncluded": false,
+    "trackAnimationSourcePreservedIn": "Tank3.source.blend",
+    "meshObjects": 5,
+    "materials": 5,
+    "triangles": 6544
+  },
+  "exports": [
+    {
+      "file": "tank3.chassis.glb",
+      "bytes": 348976,
+      "nodes": [
+        "Tank3_Chassis",
+        "turret",
+        "chassis_track_right",
+        "chassis_track_left",
+        "chassis_body",
+        "cameraAnchor",
+        "aimPivot"
+      ]
+    },
+    {
+      "file": "tank3.turret.glb",
+      "bytes": 30528,
+      "nodes": [
+        "Tank3_Turret",
+        "turret_mesh",
+        "barrel"
+      ]
+    },
+    {
+      "file": "tank3.barrel.glb",
+      "bytes": 10384,
+      "nodes": [
+        "Tank3_Barrel",
+        "muzzle",
+        "barrel_mesh"
+      ]
+    },
+    {
+      "file": "tank3.full.glb",
+      "bytes": 389396,
+      "nodes": [
+        "Tank3_Chassis",
+        "turret",
+        "Tank3_Turret",
+        "turret_mesh",
+        "barrel",
+        "Tank3_Barrel",
+        "muzzle",
+        "barrel_mesh",
+        "chassis_track_right",
+        "chassis_track_left",
+        "chassis_body",
+        "cameraAnchor",
+        "aimPivot"
+      ]
+    }
+  ]
+}
