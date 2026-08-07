@@ -23,15 +23,18 @@ export class AssetTransformResolver {
       instance.traverse((obj) => {
         const mesh = obj as THREE.Mesh;
         if (!mesh.isMesh) return;
+        const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
         for (const override of materials) {
-          if (override.match && !mesh.name.includes(override.match)) continue;
-          const mat = mesh.material as THREE.MeshStandardMaterial;
-          if (!mat || !mat.isMeshStandardMaterial) continue;
-          if (override.color !== undefined) mat.color.setHex(override.color);
-          if (override.emissive !== undefined) mat.emissive.setHex(override.emissive);
-          if (override.emissiveIntensity !== undefined) mat.emissiveIntensity = override.emissiveIntensity;
-          if (override.roughness !== undefined) mat.roughness = override.roughness;
-          if (override.metalness !== undefined) mat.metalness = override.metalness;
+          for (const material of meshMaterials) {
+            const mat = material as THREE.MeshStandardMaterial;
+            if (!mat?.isMeshStandardMaterial) continue;
+            if (override.match && !mesh.name.includes(override.match) && !mat.name.includes(override.match)) continue;
+            if (override.color !== undefined) mat.color.setHex(override.color);
+            if (override.emissive !== undefined) mat.emissive.setHex(override.emissive);
+            if (override.emissiveIntensity !== undefined) mat.emissiveIntensity = override.emissiveIntensity;
+            if (override.roughness !== undefined) mat.roughness = override.roughness;
+            if (override.metalness !== undefined) mat.metalness = override.metalness;
+          }
         }
       });
     }

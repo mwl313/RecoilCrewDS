@@ -1,3 +1,51 @@
 {
-  "assets": []
+  "assets": [
+    {
+      "id": "playerTank.chassis",
+      "category": "model",
+      "file": "/assets/models/tanks/tank3/tank3.chassis.glb",
+      "materials": [
+        { "match": "Main", "color": 11046485, "roughness": 0.82, "metalness": 0.08 },
+        { "match": "Main_Dark", "color": 4870196, "roughness": 0.86, "metalness": 0.1 },
+        { "match": "Main_Details", "color": 2436143, "roughness": 0.68, "metalness": 0.45 },
+        { "match": "Main_Light", "color": 6124667, "roughness": 0.48, "metalness": 0.65 },
+        { "match": "Wheels", "color": 1514525, "roughness": 0.9, "metalness": 0.05 }
+      ]
+    },
+    {
+      "id": "playerTank.turret",
+      "category": "model",
+      "file": "/assets/models/tanks/tank3/tank3.turret.glb",
+      "materials": [
+        { "match": "Main", "color": 11046485, "roughness": 0.82, "metalness": 0.08 },
+        { "match": "Main_Dark", "color": 4870196, "roughness": 0.86, "metalness": 0.1 },
+        { "match": "Main_Details", "color": 2436143, "roughness": 0.68, "metalness": 0.45 },
+        { "match": "Main_Light", "color": 6124667, "roughness": 0.48, "metalness": 0.65 },
+        { "match": "Wheels", "color": 1514525, "roughness": 0.9, "metalness": 0.05 }
+      ]
+    },
+    {
+      "id": "playerTank.barrel",
+      "category": "model",
+      "file": "/assets/models/tanks/tank3/tank3.barrel.glb",
+      "materials": [
+        { "match": "Main_Light", "color": 6124667, "roughness": 0.48, "metalness": 0.65 }
+      ]
+    },
+    {
+      "id": "scene.menuTank",
+      "category": "model",
+      "file": "/assets/models/tanks/tank3/tank3.full.glb",
+      "transform": {
+        "scale": 0.975
+      },
+      "materials": [
+        { "match": "Main", "color": 11046485, "roughness": 0.82, "metalness": 0.08 },
+        { "match": "Main_Dark", "color": 4870196, "roughness": 0.86, "metalness": 0.1 },
+        { "match": "Main_Details", "color": 2436143, "roughness": 0.68, "metalness": 0.45 },
+        { "match": "Main_Light", "color": 6124667, "roughness": 0.48, "metalness": 0.65 },
+        { "match": "Wheels", "color": 1514525, "roughness": 0.9, "metalness": 0.05 }
+      ]
+    }
+  ]
 }

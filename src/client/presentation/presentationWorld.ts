@@ -20,6 +20,7 @@ export class PresentationWorld {
   private readonly disposables: Array<THREE.Object3D | THREE.Material | THREE.BufferGeometry | THREE.Texture> = [];
   private readonly warnedReserved = new Set<string>();
   private readonly pointerCleanups: Array<() => void> = [];
+  private readonly responsiveLayouts: Array<(width: number) => void> = [];
   private raf = 0;
   private lastT = 0;
   private readonly container: HTMLElement;
@@ -99,11 +100,19 @@ export class PresentationWorld {
     group.position.set(t.position?.[0] ?? 0, t.position?.[1] ?? 0, t.position?.[2] ?? 0);
     group.rotation.set(t.rotation?.[0] ?? 0, t.rotation?.[1] ?? 0, t.rotation?.[2] ?? 0);
     group.scale.set(t.scale?.[0] ?? 1, t.scale?.[1] ?? 1, t.scale?.[2] ?? 1);
+    const authoredPosition = group.position.clone();
+    const authoredScale = group.scale.clone();
+    let resolvedBaseY = authoredPosition.y;
 
     let lookAtTarget: [number, number, number] | null = null;
     let rotateSpeed = 0;
     let floatAmplitude = 0;
     let floatSpeed = 0;
+    let responsiveTransform: {
+      maxWidth: number;
+      position?: [number, number, number];
+      scale?: [number, number, number];
+    } | null = null;
     let dragRotation: {
       dragging: boolean;
       pointerId: number;
@@ -117,6 +126,15 @@ export class PresentationWorld {
       if (component.type === 'model') {
         const model = this.resolveModel(String(props.assetId ?? ''));
         group.add(model);
+        const responsivePosition = readNumberTuple3(props.responsivePosition);
+        const responsiveScale = readNumberTuple3(props.responsiveScale);
+        if (responsivePosition || responsiveScale) {
+          responsiveTransform = {
+            maxWidth: Math.max(1, Number(props.responsiveMaxWidth ?? 720)),
+            ...(responsivePosition ? { position: responsivePosition } : {}),
+            ...(responsiveScale ? { scale: responsiveScale } : {}),
+          };
+        }
       } else if (component.type === 'rotateAnimation') {
         rotateSpeed = Number(props.speed ?? 0);
       } else if (component.type === 'floatAnimation') {
@@ -153,16 +171,29 @@ export class PresentationWorld {
       const target = new THREE.Vector3(...lookAtTarget);
       group.lookAt(target);
     }
+    if (responsiveTransform) {
+      this.responsiveLayouts.push((width) => {
+        const compact = width <= responsiveTransform.maxWidth;
+        const position = compact && responsiveTransform.position
+          ? responsiveTransform.position
+          : [authoredPosition.x, authoredPosition.y, authoredPosition.z] as [number, number, number];
+        const scale = compact && responsiveTransform.scale
+          ? responsiveTransform.scale
+          : [authoredScale.x, authoredScale.y, authoredScale.z] as [number, number, number];
+        group.position.set(...position);
+        group.scale.set(...scale);
+        resolvedBaseY = position[1];
+      });
+    }
     if (dragRotation) this.attachDragRotation(dragRotation);
     if (rotateSpeed !== 0 || floatAmplitude !== 0 || dragRotation) {
-      const baseY = group.position.y;
       const baseRot = group.rotation.y;
       let automaticRotation = 0;
       this.animators.push({
         update: (dt) => {
           if (rotateSpeed !== 0 && !dragRotation?.dragging) automaticRotation += rotateSpeed * dt;
           group.rotation.y = baseRot + automaticRotation + (dragRotation?.offset ?? 0);
-          if (floatAmplitude !== 0) group.position.y = baseY + Math.sin(this.elapsed * floatSpeed) * floatAmplitude;
+          if (floatAmplitude !== 0) group.position.y = resolvedBaseY + Math.sin(this.elapsed * floatSpeed) * floatAmplitude;
         },
       });
     }
@@ -258,6 +289,7 @@ export class PresentationWorld {
     this.renderer.setSize(w, h);
     this.camera.aspect = w / Math.max(1, h);
     this.camera.updateProjectionMatrix();
+    for (const applyLayout of this.responsiveLayouts) applyLayout(w);
   }
 
   start(): void {
@@ -287,6 +319,12 @@ export class PresentationWorld {
     this.animators.length = 0;
     this.warnedReserved.clear();
   }
+}
+
+function readNumberTuple3(value: unknown): [number, number, number] | undefined {
+  if (!Array.isArray(value) || value.length < 3) return undefined;
+  const tuple = value.slice(0, 3).map(Number);
+  return tuple.every(Number.isFinite) ? tuple as [number, number, number] : undefined;
 }
 
 /** Factory used by the flow (returns null to disable 3D backgrounds). */
