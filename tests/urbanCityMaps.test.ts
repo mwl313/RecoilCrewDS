@@ -15,8 +15,8 @@ function roadDegree(cells: ReadonlySet<string>, x: number, z: number): number {
 }
 
 describe.each([
-  ['urban200', 30, 6],
-  ['urban400', 100, 20],
+  ['urban200', 70, 6],
+  ['urban400', 250, 20],
 ] as const)('%s authored city', (prototypeId, minimumBuildings, minimumVehicles) => {
   const layout = createUrbanLayout(prototypeId);
 

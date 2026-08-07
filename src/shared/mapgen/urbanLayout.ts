@@ -72,7 +72,7 @@ const TILE = 8;
 const CITY_SPECS: Record<UrbanPrototypeId, CitySpec> = {
   urban200: {
     size: 200,
-    targetBuildings: 62,
+    targetBuildings: 76,
     targetVehicles: 12,
     paths: [
       [[-96, 8], [-64, 8], [-64, -16], [-16, -16], [-16, 16], [40, 16], [40, 48], [88, 48], [88, 96]],
@@ -96,7 +96,7 @@ const CITY_SPECS: Record<UrbanPrototypeId, CitySpec> = {
   },
   urban400: {
     size: 400,
-    targetBuildings: 210,
+    targetBuildings: 270,
     targetVehicles: 38,
     paths: [
       [[-192, 24], [-152, 24], [-152, -8], [-80, -8], [-80, 16], [-8, 16], [-8, -16], [72, -16], [72, 16], [136, 16], [136, 48], [192, 48]],
@@ -202,7 +202,7 @@ function placeBuildings(id: UrbanPrototypeId, spec: CitySpec, roads: readonly Ur
     if (spec.plazas.some((p) => Math.hypot(x - p.x, z - p.z) < p.radius + Math.max(w, d) / 2)) continue;
     if (spec.landmarks.some((p) => Math.hypot(x - p.x, z - p.z) < 12 + Math.max(w, d) / 2)) continue;
     if (spec.spawnPoints.some((p) => Math.hypot(x - p.x, z - p.z) < 12 + Math.max(w, d) / 2)) continue;
-    if (buildings.some((b) => boxesOverlap(x, z, w, d, b.x, b.z, b.w, b.d, 1.8))) continue;
+    if (buildings.some((b) => boxesOverlap(x, z, w, d, b.x, b.z, b.w, b.d, 0.9))) continue;
     buildings.push({
       id: `urban.building.${buildings.length}`,
       x,
@@ -217,7 +217,58 @@ function placeBuildings(id: UrbanPrototypeId, spec: CitySpec, roads: readonly Ur
       roofDriveable: true,
     });
   }
+  placeBlockInfill(spec, roads, buildings, rng);
   return buildings;
+}
+
+/**
+ * Fill selected block interiors after the street frontage pass. The road and
+ * plaza buffers keep recognizable public space, while the probability gate
+ * intentionally leaves some lots empty instead of paving the whole map.
+ */
+function placeBlockInfill(
+  spec: CitySpec,
+  roads: readonly UrbanVisualPlacement[],
+  buildings: Obstacle[],
+  rng: () => number,
+): void {
+  const half = spec.size / 2;
+  for (let attempt = 0; attempt < spec.targetBuildings * 80 && buildings.length < spec.targetBuildings; attempt++) {
+    if (rng() < 0.28) continue;
+    const x = snap((rng() * 2 - 1) * (half - 9), 2);
+    const z = snap((rng() * 2 - 1) * (half - 9), 2);
+    if (!roads.some((road) => Math.hypot(x - road.x, z - road.z) < 22)) continue;
+    const core = Math.hypot(x, z) < spec.size * 0.24;
+    const inner = Math.hypot(x, z) < spec.size * 0.38;
+    const pool = core ? [2, 3, 4, 4, 5, 5] : inner ? [0, 1, 2, 3, 4, 5] : [0, 0, 1, 1, 2, 3];
+    const model = BUILDING_MODELS[pool[Math.floor(rng() * pool.length)]];
+    const scale = model.scale * (0.88 + rng() * 0.26);
+    const yaw = rng() < 0.5 ? 0 : Math.PI / 2;
+    const rawW = model.nativeW * scale;
+    const rawD = model.nativeD * scale;
+    const w = yaw === 0 ? rawW : rawD;
+    const d = yaw === 0 ? rawD : rawW;
+    const h = model.nativeH * scale;
+    if (Math.abs(x) + w / 2 > half - 2 || Math.abs(z) + d / 2 > half - 2) continue;
+    if (overlapsRoad(x, z, w, d, roads, 1.1)) continue;
+    if (spec.plazas.some((p) => Math.hypot(x - p.x, z - p.z) < p.radius + Math.max(w, d) / 2)) continue;
+    if (spec.landmarks.some((p) => Math.hypot(x - p.x, z - p.z) < 12 + Math.max(w, d) / 2)) continue;
+    if (spec.spawnPoints.some((p) => Math.hypot(x - p.x, z - p.z) < 10 + Math.max(w, d) / 2)) continue;
+    if (buildings.some((b) => boxesOverlap(x, z, w, d, b.x, b.z, b.w, b.d, 1.1))) continue;
+    buildings.push({
+      id: `urban.building.${buildings.length}`,
+      x,
+      z,
+      w,
+      d,
+      h,
+      type: 'urbanBuilding',
+      assetId: model.assetId,
+      yaw,
+      modelScale: scale,
+      roofDriveable: true,
+    });
+  }
 }
 
 function placeVehicles(
