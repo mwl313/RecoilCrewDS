@@ -248,14 +248,14 @@ export class GameClient {
           ? { label: relic.label, description: relic.description, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
           : null;
       },
-      rewardSound: (name, rarity) => {
+      rewardSound: (name, detail) => {
         const sounds = {
           levelImpact: 'rewardLevelImpact', tick: 'rewardTick', cardLock: 'rewardCardLock',
           focus: 'rewardFocus', confirm: 'rewardConfirm', relicLock: 'relicLock', exit: 'rewardExit',
         } as const;
-        gameRef!.audio.play(sounds[name], { kind: rarity });
+        gameRef!.audio.play(sounds[name], { kind: detail?.rarity, charge: detail?.progress });
       },
-      duckLegendary: () => gameRef!.audio.duckForReward({ depth: 0.25, attackMs: 40, holdMs: 90, releaseMs: 450 }),
+      duckLegendary: () => gameRef!.audio.duckForReward({ depth: 0.72, attackMs: 18, holdMs: 82, releaseMs: 520 }),
     });
     game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
       const relic = gameRef!.contentPack?.getRelic(relicId);

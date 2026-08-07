@@ -2,6 +2,7 @@ import type { MatchState } from '../../shared/types';
 import type { ProgressionSelectionState, UpgradeCard } from '../../shared/progression/progressionTypes';
 import type { RewardTimelineSnapshot } from './rewardRevealDirector';
 import { RewardFxLayer } from './rewardFxLayer';
+import { buildRewardReelSymbols, rewardReelFrame } from './rewardReelAnimator';
 
 export type ProgressionRole = 'driver' | 'gunner' | 'single';
 
@@ -16,22 +17,28 @@ export class RewardRevealView {
   readonly selectionHost: HTMLElement;
   readonly relicHost: HTMLElement;
   readonly debugHost: HTMLElement;
-  readonly fx = new RewardFxLayer();
+  readonly fx: RewardFxLayer;
   private cardButtons: HTMLButtonElement[] = [];
+  private cardReels: HTMLElement[] = [];
   private selectionTitle: HTMLElement | null = null;
   private fuse: HTMLElement | null = null;
   private peerStatus: HTMLElement | null = null;
   private continuePrompt: HTMLButtonElement | null = null;
-  private relicStack: HTMLElement | null = null;
+  private relicReel: HTMLElement | null = null;
+  private relicPlate: HTMLElement | null = null;
   private lastLockedCount = 0;
+  private rewardIdentity = '';
 
   constructor(container: HTMLElement, private readonly cb: RewardRevealViewCallbacks) {
+    const reducedMotion = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedFlash = reducedMotion || new URLSearchParams(globalThis.location?.search ?? '').has('reducedFlash');
+    this.fx = new RewardFxLayer(reducedFlash);
     this.root = document.createElement('div');
     this.root.id = 'progression-overlay';
     this.root.className = 'reward-overlay';
+    this.root.classList.toggle('reward-overlay--reduced-flash', reducedFlash);
     this.root.hidden = true;
-    const scrim = document.createElement('div');
-    scrim.className = 'reward-scrim';
+    const scrim = element('div', 'reward-scrim');
     this.selectionHost = document.createElement('section');
     this.selectionHost.id = 'progression-selection-layer';
     this.selectionHost.className = 'reward-layer reward-layer--upgrade';
@@ -55,18 +62,17 @@ export class RewardRevealView {
     const offer = selection.singlePlayerOffer ?? (role === 'driver' ? selection.driverOffer : selection.gunnerOffer) ?? [];
     this.selectionHost.replaceChildren();
     this.cardButtons = [];
+    this.cardReels = [];
     this.lastLockedCount = 0;
-    const stage = document.createElement('div');
-    stage.className = 'reward-stage reward-stage--upgrade';
+    this.rewardIdentity = selection.offerId;
+    const stage = element('div', 'reward-stage reward-stage--upgrade');
     const kicker = element('div', 'reward-kicker', 'FIELD UPGRADE AVAILABLE');
     this.selectionTitle = element('h2', 'reward-title', 'LEVEL UP');
-    const level = element('div', 'reward-level-number', String(selection.level));
-    const bank = document.createElement('div');
-    bank.className = 'reward-card-bank';
-    offer.forEach((card, index) => bank.appendChild(this.buildCard(card, index)));
+    const level = element('div', 'reward-level-number', `LEVEL ${selection.level}`);
+    const bank = element('div', 'reward-card-bank');
+    offer.forEach((card, index) => bank.appendChild(this.buildCard(card, index, selection.offerId)));
     this.peerStatus = role === 'single' ? null : element('div', 'reward-peer-status');
-    this.fuse = document.createElement('div');
-    this.fuse.className = 'reward-auto-fuse';
+    this.fuse = element('div', 'reward-auto-fuse');
     this.fuse.dataset['progressionTimer'] = 'true';
     stage.append(kicker, this.selectionTitle, level, bank);
     if (this.peerStatus) stage.appendChild(this.peerStatus);
@@ -74,7 +80,7 @@ export class RewardRevealView {
     this.selectionHost.appendChild(stage);
   }
 
-  private buildCard(card: UpgradeCard, index: number): HTMLButtonElement {
+  private buildCard(card: UpgradeCard, index: number, identity: string): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'reward-card';
@@ -82,24 +88,26 @@ export class RewardRevealView {
     button.dataset['index'] = String(index);
     button.setAttribute('aria-label', `${index + 1}: ${humanize(card.categoryId)}, ${card.rarity}`);
     const hotkey = element('span', 'reward-card__hotkey', String(index + 1));
-    const reel = document.createElement('div');
-    reel.className = 'reward-card__reel';
-    reel.setAttribute('aria-hidden', 'true');
-    reel.append(
-      element('span', 'reward-card__reel-cell', 'DMG // ARMOR // MOBILITY'),
-      element('span', 'reward-card__reel-cell', 'OUTPUT // CONTROL // CREW'),
-      element('span', 'reward-card__reel-cell', 'SYSTEM // CALIBRATING'),
-    );
-    const content = document.createElement('div');
-    content.className = 'reward-card__content';
+    const reelWindow = element('div', 'reward-card__reel-window');
+    reelWindow.setAttribute('aria-hidden', 'true');
+    const reelTrack = element('div', 'reward-card__reel-track');
+    for (const symbol of buildRewardReelSymbols(identity, index, 'upgrade')) {
+      const cell = element('div', 'reward-card__symbol');
+      cell.append(element('span', 'reward-card__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
+      reelTrack.appendChild(cell);
+    }
+    const finalSymbol = element('div', 'reward-card__lock-symbol');
+    finalSymbol.append(element('span', 'reward-card__symbol-glyph', glyphFor(card.categoryId)), element('span', '', 'LOCKED'));
+    reelWindow.append(reelTrack, finalSymbol);
+    this.cardReels.push(reelTrack);
+    const content = element('div', 'reward-card__content');
     content.append(
       element('div', 'reward-card__rarity', card.rarity.toUpperCase()),
-      element('div', 'reward-card__icon', glyphFor(card.categoryId)),
       element('div', 'reward-card__name', humanize(card.categoryId)),
       element('div', 'reward-card__effect', formatEffects(card)),
       element('div', 'reward-card__focus-rail', '// SELECT'),
     );
-    button.append(hotkey, reel, content);
+    button.append(hotkey, reelWindow, content);
     button.addEventListener('mouseenter', () => this.focusCard(index));
     button.addEventListener('focus', () => this.focusCard(index));
     button.addEventListener('click', () => this.cb.chooseUpgrade(index));
@@ -112,11 +120,18 @@ export class RewardRevealView {
     this.selectionHost.hidden = false;
     this.relicHost.hidden = true;
     for (let index = 0; index < this.cardButtons.length; index++) {
-      this.cardButtons[index].classList.toggle('reward-card--locked', index < timeline.lockedCards);
+      const locked = index < timeline.lockedCards;
+      this.cardButtons[index]!.classList.toggle('reward-card--locked', locked);
+      const frame = rewardReelFrame(timeline.elapsedMs, index, 'upgrade');
+      this.cardReels[index]?.style.setProperty('--reward-reel-y', `${frame.translateY}px`);
+      this.cardReels[index]?.style.setProperty('--reward-reel-velocity', String(frame.velocity));
     }
-    if (timeline.lockedCards > this.lastLockedCount) {
-      const rarity = this.cardButtons[timeline.lockedCards - 1]?.dataset['rarity'] ?? 'common';
-      this.fx.burst(rarity, shardCount(rarity));
+    for (let index = this.lastLockedCount; index < timeline.lockedCards; index++) {
+      const card = this.cardButtons[index];
+      if (!card) continue;
+      restartClass(card, 'reward-card--lock-hit');
+      const rarity = card.dataset['rarity'] ?? 'common';
+      this.fx.burst(rarity, shardCount(rarity), `${this.rewardIdentity}:card:${index}`, card, index === 2 ? 'final-card' : 'card');
     }
     this.lastLockedCount = timeline.lockedCards;
     const selected = localSelection(selection, role);
@@ -124,7 +139,7 @@ export class RewardRevealView {
       this.selectionTitle!.textContent = 'LOCKED IN';
       this.markSelected(selected);
     } else {
-      this.selectionTitle!.textContent = timeline.state === 'selectable' ? 'CHOOSE UPGRADE' : 'LEVEL UP';
+      this.selectionTitle!.textContent = 'LEVEL UP';
     }
     if (this.fuse && selection.expiresAtWallMs !== undefined) {
       const remaining = Math.max(0, selection.expiresAtWallMs - nowMs);
@@ -147,17 +162,23 @@ export class RewardRevealView {
   renderRelic(selection: ProgressionSelectionState, role: ProgressionRole): void {
     const result = selection.relicResult!;
     const info = this.cb.relicInfo?.(result.relicId) ?? null;
+    this.rewardIdentity = `relic:${result.acquisitionSequence}`;
     this.relicHost.replaceChildren();
     this.relicHost.dataset['rarity'] = result.rarity;
-    const stage = document.createElement('div');
-    stage.className = 'reward-stage reward-stage--relic';
+    const stage = element('div', 'reward-stage reward-stage--relic');
     const signal = element('div', 'reward-kicker reward-relic__signal', 'RELIC SIGNAL ACQUIRED');
-    const plate = document.createElement('article');
-    plate.className = 'reward-relic';
-    plate.dataset['rarity'] = result.rarity;
-    const reel = element('div', 'reward-relic__reel', 'RELIC // ???');
-    const icon = document.createElement('div');
-    icon.className = 'reward-relic__icon';
+    this.relicPlate = element('article', 'reward-relic');
+    this.relicPlate.dataset['rarity'] = result.rarity;
+    const reelWindow = element('div', 'reward-relic__reel-window');
+    this.relicReel = element('div', 'reward-relic__reel-track');
+    for (const symbol of buildRewardReelSymbols(this.rewardIdentity, 0, 'relic')) {
+      const cell = element('div', 'reward-relic__symbol');
+      cell.append(element('span', 'reward-relic__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
+      this.relicReel.appendChild(cell);
+    }
+    reelWindow.appendChild(this.relicReel);
+    const final = element('div', 'reward-relic__final');
+    const icon = element('div', 'reward-relic__icon');
     if (info?.iconUrl) {
       const image = document.createElement('img');
       image.src = info.iconUrl;
@@ -167,25 +188,22 @@ export class RewardRevealView {
       icon.textContent = 'RC';
       icon.classList.add('reward-relic__icon--fallback');
     }
-    const final = document.createElement('div');
-    final.className = 'reward-relic__final';
     final.append(
       element('div', 'reward-relic__rarity', result.rarity.toUpperCase()),
       icon,
       element('h2', 'reward-relic__name', info?.label ?? 'UNIDENTIFIED RELIC'),
       element('p', 'reward-relic__description', info?.description ?? ''),
+      element('div', `reward-relic__stack${result.stackCountAfter > 1 ? ' reward-relic__stack--up' : ''}`, result.stackCountAfter > 1
+        ? `STACK UP  ×${result.stackCountAfter - 1} → ×${result.stackCountAfter}`
+        : `STACK ×${result.stackCountAfter}`),
     );
-    this.relicStack = element('div', 'reward-relic__stack', result.stackCountAfter > 1
-      ? `STACK UP  ×${result.stackCountAfter - 1} → ×${result.stackCountAfter}`
-      : `STACK ×${result.stackCountAfter}`);
-    final.appendChild(this.relicStack);
     this.continuePrompt = document.createElement('button');
     this.continuePrompt.type = 'button';
     this.continuePrompt.className = 'reward-continue';
-    this.continuePrompt.textContent = 'CLICK / SPACE TO CONTINUE';
+    this.continuePrompt.textContent = 'INPUT TO FAST-FORWARD';
     this.continuePrompt.addEventListener('click', () => this.cb.continueRelic());
-    plate.append(reel, final, this.continuePrompt);
-    stage.append(signal, plate);
+    this.relicPlate.append(reelWindow, final, this.continuePrompt);
+    stage.append(signal, this.relicPlate);
     if (role !== 'single') stage.appendChild(element('div', 'reward-peer-status reward-peer-status--relic'));
     this.relicHost.appendChild(stage);
   }
@@ -194,10 +212,13 @@ export class RewardRevealView {
     this.relicHost.dataset['phase'] = timeline.state;
     this.relicHost.hidden = false;
     this.selectionHost.hidden = true;
+    const frame = rewardReelFrame(timeline.elapsedMs, 0, 'relic');
+    this.relicReel?.style.setProperty('--reward-reel-y', `${frame.translateY}px`);
+    this.relicReel?.style.setProperty('--reward-reel-velocity', String(frame.velocity));
     this.continuePrompt?.setAttribute('aria-disabled', String(!timeline.continueArmed));
-    if (this.continuePrompt) {
-      this.continuePrompt.textContent = timeline.continueArmed ? 'CLICK / SPACE TO CONTINUE' : 'RELIC LOCKING // INPUT TO FAST-FORWARD';
-    }
+    if (this.continuePrompt) this.continuePrompt.textContent = timeline.continueArmed
+      ? 'CLICK / SPACE TO CONTINUE'
+      : 'INPUT TO FAST-FORWARD';
     const peer = this.relicHost.querySelector<HTMLElement>('.reward-peer-status--relic');
     if (peer && role !== 'single') {
       const mine = role === 'driver' ? selection.driverRelicAcknowledged : selection.gunnerRelicAcknowledged;
@@ -208,6 +229,20 @@ export class RewardRevealView {
       );
       if (mine && theirs) peer.appendChild(element('strong', 'reward-crew-ready', 'CREW READY'));
     }
+  }
+
+  startEntrance(identity: string): void {
+    restartClass(this.root, 'reward-overlay--edge-impact');
+    const host = this.root.dataset['kind'] === 'relic' ? this.relicHost : this.selectionHost;
+    const stage = host.querySelector<HTMLElement>('.reward-stage');
+    if (stage) restartClass(stage, 'reward-stage--enter');
+    this.fx.enter(identity);
+  }
+
+  impactRelic(selection: ProgressionSelectionState): void {
+    const rarity = selection.relicResult?.rarity ?? 'common';
+    if (this.relicPlate) restartClass(this.relicPlate, 'reward-relic--lock-hit');
+    this.fx.burst(rarity, shardCount(rarity, true), this.rewardIdentity, this.relicPlate ?? undefined, 'relic');
   }
 
   showUpgrade(timeline: RewardTimelineSnapshot): void {
@@ -224,6 +259,7 @@ export class RewardRevealView {
 
   hide(): void {
     this.root.hidden = true;
+    this.root.classList.remove('reward-overlay--edge-impact');
     this.selectionHost.hidden = true;
     this.relicHost.hidden = true;
     this.fx.clear();
@@ -258,6 +294,12 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className: strin
   return node;
 }
 
+function restartClass(node: HTMLElement, className: string): void {
+  node.classList.remove(className);
+  void node.offsetWidth;
+  node.classList.add(className);
+}
+
 function statusLine(label: string, status: string): HTMLElement {
   const line = element('span', 'reward-peer-status__line');
   line.append(element('b', '', `${label} // `), document.createTextNode(status));
@@ -277,23 +319,24 @@ function humanize(id: string): string {
 }
 
 function glyphFor(id: string): string {
-  if (/damage|cannon|mg/i.test(id)) return 'DMG';
-  if (/dash|speed|jump/i.test(id)) return 'MOV';
-  if (/integrity|armor|shield/i.test(id)) return 'ARM';
-  return 'SYS';
+  if (/damage|cannon|mg/i.test(id)) return '✦';
+  if (/dash|speed|jump/i.test(id)) return '⬢';
+  if (/integrity|armor|shield/i.test(id)) return '▣';
+  return '◈';
 }
 
 function formatEffects(card: UpgradeCard): string {
   return card.rolledEffects.map((effect) => {
     const label = humanize(effect.statId);
-    if (effect.operation === 'multiply') return `${label}  +${Math.round((effect.value - 1) * 100)}%`;
-    return `${label}  +${effect.value}`;
+    if (effect.operation === 'multiply') return `${label}\n${effect.value < 1 ? '' : '+'}${Math.round((effect.value - 1) * 100)}%`;
+    return `${label}\n+${effect.value}`;
   }).join('\n');
 }
 
-function shardCount(rarity: string): number {
-  if (rarity === 'legendary') return 24;
-  if (rarity === 'epic') return 16;
-  if (rarity === 'rare') return 10;
-  return 6;
+function shardCount(rarity: string, relic = false): number {
+  const boost = relic ? 4 : 0;
+  if (rarity === 'legendary') return 24 + boost;
+  if (rarity === 'epic') return 16 + boost;
+  if (rarity === 'rare') return 10 + boost;
+  return 6 + boost;
 }

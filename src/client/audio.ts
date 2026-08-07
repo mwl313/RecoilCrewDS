@@ -464,17 +464,36 @@ export class AudioManager {
         break;
       }
       case 'rewardLevelImpact': {
-        this.blip(92, t, 0.2, 'sine', 0.36);
-        this.blip(720, t + 0.025, 0.08, 'square', 0.1);
+        this.blip(86, t, 0.28, 'sine', 0.42);
+        this.blip(48, t + 0.018, 0.34, 'sine', 0.24);
+        this.blip(1_180, t + 0.028, 0.055, 'square', 0.09);
+        this.noiseHit(t + 0.018, 2_400, 0.075, 0.13);
         break;
       }
       case 'rewardTick': {
-        this.blip(680, t, 0.025, 'square', 0.055);
+        const progress = Math.max(0, Math.min(1, opts.charge ?? 0));
+        const frequency = 930 - progress * 510;
+        this.blip(frequency, t, 0.018 + progress * 0.022, 'square', 0.045 + progress * 0.025);
+        if (progress > 0.72) this.blip(170 - progress * 55, t, 0.045, 'triangle', 0.035 + progress * 0.025);
         break;
       }
       case 'rewardCardLock': {
-        this.blip(155, t, 0.12, 'triangle', 0.22);
-        this.blip(920, t, 0.04, 'square', 0.08);
+        const rarity = opts.kind ?? 'common';
+        this.noiseHit(t, rarity === 'legendary' ? 1_850 : 1_150, 0.045, rarity === 'common' ? 0.07 : 0.11);
+        if (rarity === 'legendary') {
+          this.blip(48, t, 0.42, 'sine', 0.46);
+          [740, 988, 1_318].forEach((frequency, index) => this.blip(frequency, t + 0.045 + index * 0.055, 0.2, 'sine', 0.09));
+        } else if (rarity === 'epic') {
+          this.blip(74, t, 0.24, 'sine', 0.33);
+          this.blip(660, t + 0.025, 0.14, 'triangle', 0.13);
+          this.blip(990, t + 0.075, 0.16, 'sine', 0.08);
+        } else if (rarity === 'rare') {
+          this.blip(142, t, 0.14, 'triangle', 0.22);
+          this.blip(1_180, t + 0.035, 0.13, 'sine', 0.095);
+        } else {
+          this.blip(165, t, 0.1, 'triangle', 0.19);
+          this.blip(880, t + 0.018, 0.035, 'square', 0.055);
+        }
         break;
       }
       case 'rewardFocus': {
@@ -487,12 +506,16 @@ export class AudioManager {
         break;
       }
       case 'relicLock': {
-        const legendary = opts.kind === 'legendary';
-        this.blip(legendary ? 52 : 84, t, legendary ? 0.5 : 0.28, 'sine', legendary ? 0.52 : 0.34);
-        this.blip(740, t + 0.05, 0.16, 'triangle', 0.14);
-        if (legendary) {
-          this.blip(988, t + 0.12, 0.28, 'sine', 0.1);
-          this.blip(1318, t + 0.2, 0.3, 'sine', 0.08);
+        const rarity = opts.kind ?? 'common';
+        const vacuum = rarity === 'legendary' ? 0.072 : 0;
+        const hitAt = t + vacuum;
+        this.noiseHit(hitAt, rarity === 'legendary' ? 2_800 : 1_650, 0.085, rarity === 'common' ? 0.1 : 0.17);
+        this.blip(rarity === 'legendary' ? 46 : rarity === 'epic' ? 68 : 86, hitAt, rarity === 'legendary' ? 0.56 : 0.32, 'sine', rarity === 'legendary' ? 0.55 : 0.36);
+        this.blip(rarity === 'rare' ? 980 : 740, hitAt + 0.045, 0.18, 'triangle', 0.14);
+        if (rarity === 'epic' || rarity === 'legendary') this.blip(988, hitAt + 0.12, 0.28, 'sine', 0.11);
+        if (rarity === 'legendary') {
+          this.blip(1_318, hitAt + 0.19, 0.3, 'sine', 0.1);
+          this.blip(1_760, hitAt + 0.27, 0.32, 'sine', 0.075);
         }
         break;
       }
@@ -531,6 +554,21 @@ export class AudioManager {
     osc.connect(g).connect(this.master!);
     osc.start(t);
     osc.stop(t + dur + 0.02);
+  }
+
+  private noiseHit(t: number, frequency: number, duration: number, gain: number): void {
+    if (!this.ctx || !this.master || !this.noiseBuf) return;
+    const source = this.ctx.createBufferSource();
+    source.buffer = this.noiseBuf;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = frequency;
+    filter.Q.value = 0.85;
+    const level = this.ctx.createGain();
+    level.gain.setValueAtTime(gain, t);
+    level.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    source.connect(filter).connect(level).connect(this.master);
+    source.start(t, 0, duration + 0.02);
   }
 
   dispose() {

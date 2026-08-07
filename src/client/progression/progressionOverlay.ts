@@ -2,12 +2,18 @@ import type { MatchState } from '../../shared/types';
 import type { ProgressionInputFrame } from '../input';
 import { RewardRevealDirector } from './rewardRevealDirector';
 import { RewardRevealView, type ProgressionRole } from './rewardRevealView';
+import { rewardTickTimes } from './rewardReelAnimator';
+
+export interface RewardSoundDetail {
+  rarity?: string;
+  progress?: number;
+}
 
 export interface ProgressionOverlayCallbacks {
   selectUpgrade(cardIndex: number): void;
   acknowledgeRelic(): void;
   relicInfo?: (relicId: string) => { label: string; description: string; iconId?: string; iconUrl?: string | null } | null;
-  rewardSound?: (name: 'levelImpact' | 'tick' | 'cardLock' | 'focus' | 'confirm' | 'relicLock' | 'exit', rarity?: string) => void;
+  rewardSound?: (name: 'levelImpact' | 'tick' | 'cardLock' | 'focus' | 'confirm' | 'relicLock' | 'exit', detail?: RewardSoundDetail) => void;
   duckLegendary?: () => void;
 }
 
@@ -26,8 +32,9 @@ export class ProgressionOverlay {
   private localRelicAckSent = false;
   private exitUntilMs = 0;
   private nowMs = 0;
-  private lastTickBucket = -1;
+  private lastTickIndex = 0;
   private lastLockedCards = 0;
+  private lastRelicFinalVisible = false;
 
   constructor(container: HTMLElement, private readonly cb: ProgressionOverlayCallbacks) {
     this.view = new RewardRevealView(container, {
@@ -56,8 +63,9 @@ export class ProgressionOverlay {
       this.virtualSelectionX = 0.5;
       this.localSelectionSent = false;
       this.localRelicAckSent = false;
-      this.lastTickBucket = -1;
+      this.lastTickIndex = 0;
       this.lastLockedCards = 0;
+      this.lastRelicFinalVisible = this.timeline.finalVisible;
       if (active.kind === 'upgrade') {
         this.view.renderUpgrade(active, role);
         this.cb.rewardSound?.('levelImpact');
@@ -66,17 +74,15 @@ export class ProgressionOverlay {
       }
     }
     if (active.kind === 'upgrade') {
-      if (this.timeline.state === 'spinning') {
-        const bucket = Math.floor(this.timeline.elapsedMs / 58);
-        if (bucket !== this.lastTickBucket) {
-          this.lastTickBucket = bucket;
-          this.cb.rewardSound?.('tick');
-        }
-      }
+      this.emitReelTick('upgrade');
       if (this.timeline.lockedCards > this.lastLockedCards) {
-        this.lastLockedCards = this.timeline.lockedCards;
         const offer = active.singlePlayerOffer ?? (role === 'driver' ? active.driverOffer : active.gunnerOffer) ?? [];
-        this.cb.rewardSound?.('cardLock', offer[this.timeline.lockedCards - 1]?.rarity);
+        for (let index = this.lastLockedCards; index < this.timeline.lockedCards; index++) {
+          const rarity = offer[index]?.rarity;
+          if (rarity === 'legendary') this.cb.duckLegendary?.();
+          this.cb.rewardSound?.('cardLock', { rarity });
+        }
+        this.lastLockedCards = this.timeline.lockedCards;
       }
       const localSelected = role === 'single'
         ? active.singlePlayerSelection
@@ -93,10 +99,14 @@ export class ProgressionOverlay {
       this.view.showUpgrade(this.timeline);
       this.view.updateUpgrade(active, role, this.timeline, nowMs);
       this.view.focusCard(this.highlightedIndex);
+      if (this.timeline.startedNow) this.view.startEntrance(this.timeline.key);
     } else {
+      this.emitReelTick('relic');
       this.view.showRelic(this.timeline);
       this.view.updateRelic(active, role, this.timeline);
-      if (this.timeline.startedNow && this.timeline.finalVisible) this.cb.rewardSound?.('relicLock', active.relicResult?.rarity);
+      if (!this.lastRelicFinalVisible && this.timeline.finalVisible) this.triggerRelicImpact(active);
+      this.lastRelicFinalVisible = this.timeline.finalVisible;
+      if (this.timeline.startedNow) this.view.startEntrance(this.timeline.key);
     }
   }
 
@@ -146,7 +156,7 @@ export class ProgressionOverlay {
     this.exitUntilMs = this.nowMs + 280;
     this.director.markConfirmed(this.latestRole !== 'single');
     this.view.markSelected(index);
-    this.cb.rewardSound?.('confirm', (active.singlePlayerOffer ?? active.driverOffer ?? active.gunnerOffer)?.[index]?.rarity);
+    this.cb.rewardSound?.('confirm', { rarity: (active.singlePlayerOffer ?? active.driverOffer ?? active.gunnerOffer)?.[index]?.rarity });
     this.cb.selectUpgrade(index);
   }
 
@@ -157,9 +167,8 @@ export class ProgressionOverlay {
       if (this.director.fastForwardRelic(this.nowMs)) {
         this.timeline = this.director.sync(active, this.nowMs);
         this.view.updateRelic(active, this.latestRole, this.timeline);
-        this.view.fx.burst(active.relicResult?.rarity ?? 'common', active.relicResult?.rarity === 'legendary' ? 24 : 14);
-        this.cb.rewardSound?.('relicLock', active.relicResult?.rarity);
-        if (active.relicResult?.rarity === 'legendary') this.cb.duckLegendary?.();
+        this.triggerRelicImpact(active);
+        this.lastRelicFinalVisible = true;
       }
       return;
     }
@@ -167,6 +176,23 @@ export class ProgressionOverlay {
     this.exitUntilMs = this.nowMs + 220;
     this.cb.rewardSound?.('exit');
     this.cb.acknowledgeRelic();
+  }
+
+  private emitReelTick(kind: 'upgrade' | 'relic'): void {
+    const times = rewardTickTimes(kind);
+    let newest = -1;
+    while (this.lastTickIndex < times.length && this.timeline.elapsedMs >= times[this.lastTickIndex]!) {
+      newest = this.lastTickIndex;
+      this.lastTickIndex++;
+    }
+    if (newest >= 0) this.cb.rewardSound?.('tick', { progress: newest / Math.max(1, times.length - 1) });
+  }
+
+  private triggerRelicImpact(selection: NonNullable<MatchState['teamProgression']['activeSelection']>): void {
+    const rarity = selection.relicResult?.rarity ?? 'common';
+    this.view.impactRelic(selection);
+    if (rarity === 'legendary') this.cb.duckLegendary?.();
+    this.cb.rewardSound?.('relicLock', { rarity });
   }
 
   updateDebug(text: string): void {
