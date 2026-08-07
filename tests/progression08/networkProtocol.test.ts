@@ -4,7 +4,7 @@ import { makeMatch } from './helpers';
 
 describe('progression network protocol (progression08)', () => {
   it('protocol version includes authoritative relic chest lifecycle snapshots', () => {
-    expect(PROTOCOL_VERSION).toBe(16);
+    expect(PROTOCOL_VERSION).toBe(17);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'selectUpgrade', offerId: 'x', cardIndex: 0 })).toBe(true);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'skipRelicPresentation', acquisitionSequence: 1 })).toBe(true);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'acknowledgeRelic', acquisitionSequence: 1 })).toBe(true);
@@ -27,6 +27,7 @@ describe('progression network protocol (progression08)', () => {
     expect(serialized.teamProgression.activeSelection.offerId).toBeTruthy();
     expect(serialized.teamProgression.activeSelection.driverSelection).toBeUndefined();
     expect(serialized.teamProgression.relicStacks).toEqual({});
+    expect(serialized.teamProgression.levelUpgradeSummary).toEqual([]);
   });
 
   it('roundtrips every chest lifecycle and a future three-candidate offer', () => {

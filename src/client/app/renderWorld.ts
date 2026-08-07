@@ -7,6 +7,8 @@ import { VfxSystem } from '../vfx';
 import type { AssetService } from '../assets';
 import type { TpsCameraController } from '../tpsCamera';
 import type { ArenaWorld } from '../../shared/sim/arenaWorld';
+import { SkyEnvironment } from '../environment/skyEnvironment';
+import { VisualWorldApron, type ApronQuality } from '../environment/visualWorldApron';
 
 /**
  * RenderWorld owns the renderer, scene graph, post-processing passes, arena
@@ -26,6 +28,8 @@ export class RenderWorld {
   private readonly frameIntervalMs: number[] = [];
   private lastRenderAt = 0;
   private renderPass: RenderPass | null = null;
+  private readonly sky: SkyEnvironment;
+  private apron: VisualWorldApron;
 
   constructor(
     private readonly container: HTMLElement,
@@ -45,21 +49,22 @@ export class RenderWorld {
     this.renderer.domElement.id = 'game-canvas';
     container.appendChild(this.renderer.domElement);
     this.setupScene();
+    this.sky = new SkyEnvironment(this.scene);
     this.arena = new ArenaView(assets, world);
     this.scene.add(this.arena.group);
+    this.apron = new VisualWorldApron(this.scene, assets, world);
     this.vfx = new VfxSystem(this.scene);
     this.setupPost();
     window.addEventListener('resize', this.onResize);
   }
 
   private setupScene(): void {
-    this.scene.background = new THREE.Color(0x53636b);
-    // Keep the whole combat/LOD read range clear; haze begins beyond the
-    // provisional 90 m mid tier and rolls in gradually.
-    this.scene.fog = new THREE.Fog(0x53636b, 115, 190);
-    const hemi = new THREE.HemisphereLight(0xfff5e8, 0x87918d, 1.45);
+    // Clear gameplay silhouettes first, then blend the presentation-only
+    // apron into a warm daylight horizon well beyond authoritative bounds.
+    this.scene.fog = new THREE.Fog(0x9eb7b4, 145, 410);
+    const hemi = new THREE.HemisphereLight(0xeaf7ff, 0x7d7768, 1.55);
     this.scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xffddad, 1.35);
+    const sun = new THREE.DirectionalLight(0xffdfad, 1.42);
     sun.position.set(26, 34, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -70,16 +75,9 @@ export class RenderWorld {
     sun.shadow.camera.far = 120;
     sun.shadow.bias = -0.0006;
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xa7d3dc, 0.85);
+    const fill = new THREE.DirectionalLight(0xa9d9e6, 0.72);
     fill.position.set(-20, 16, -24);
     this.scene.add(fill);
-    const stars = new THREE.Points(
-      new THREE.BufferGeometry().setFromPoints(
-        Array.from({ length: 90 }, () => new THREE.Vector3((Math.random() - 0.5) * 240, 60 + Math.random() * 90, (Math.random() - 0.5) * 240)),
-      ),
-      new THREE.PointsMaterial({ color: 0x9fb6c4, size: 0.7, transparent: true, opacity: 0.5, fog: false }),
-    );
-    this.scene.add(stars);
   }
 
   private setupPost(): void {
@@ -103,10 +101,14 @@ export class RenderWorld {
 
   /** Phase 3: swap the arena view (rematch / reconnect / Single Player reroll). */
   rebuildArena(world: ArenaWorld): void {
+    const apronQuality = this.apron.diagnostics().quality;
+    this.apron.dispose(this.scene);
     this.arena.dispose();
     this.scene.remove(this.arena.group);
     this.arena = new ArenaView(this.assets, world);
     this.scene.add(this.arena.group);
+    this.apron = new VisualWorldApron(this.scene, this.assets, world);
+    this.apron.setQuality(apronQuality);
   }
 
   render(camera: THREE.PerspectiveCamera): void {
@@ -133,6 +135,8 @@ export class RenderWorld {
     estimatedSceneTriangles: number;
     geometries: number;
     textures: number;
+    skySource: 'procedural' | 'authored';
+    apron: ReturnType<VisualWorldApron['diagnostics']>;
   } {
     let estimatedSceneDrawCalls = 0;
     let estimatedSceneTriangles = 0;
@@ -160,6 +164,8 @@ export class RenderWorld {
       estimatedSceneTriangles,
       geometries: this.renderer.info.memory.geometries,
       textures: this.renderer.info.memory.textures,
+      skySource: this.sky.source,
+      apron: this.apron.diagnostics(),
     };
   }
 
@@ -176,6 +182,20 @@ export class RenderWorld {
     if (this.bloom) this.bloom.strength = strength;
   }
 
+  setApronQuality(quality: ApronQuality): void {
+    this.apron.setQuality(quality);
+  }
+
+  setApronEnabled(enabled: boolean): void {
+    this.apron.setEnabled(enabled);
+  }
+
+  resetQualityDiagnostics(): void {
+    this.renderSubmitMs.length = 0;
+    this.frameIntervalMs.length = 0;
+    this.lastRenderAt = 0;
+  }
+
   composerPassCount(): number {
     return this.composer?.passes.length ?? 0;
   }
@@ -189,6 +209,8 @@ export class RenderWorld {
 
   dispose(): void {
     window.removeEventListener('resize', this.onResize);
+    this.apron.dispose(this.scene);
+    this.sky.dispose();
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement === this.container) {
       this.container.removeChild(this.renderer.domElement);

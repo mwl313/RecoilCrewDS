@@ -110,6 +110,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       totalXpCollected: 0,
       pendingLevelUps: 0,
       levelUpOffersCompleted: 0,
+      levelUpgradeSummary: [],
       treasureChestsOpened: 0,
       relicAcquisitionSequence: 0,
       relicStacks: {},

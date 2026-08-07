@@ -76,6 +76,29 @@ afterEach(() => {
 });
 
 describe('InputManager', () => {
+  it('latches Tab once in gameplay without changing context or pointer lock', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    windowTarget.dispatch('keydown', keyEvent('Tab'));
+    windowTarget.dispatch('keydown', { ...keyEvent('Tab'), repeat: true });
+    expect(input.consumeTacticalToggle()).toBe(true);
+    expect(input.consumeTacticalToggle()).toBe(false);
+    expect(input.context()).toBe('gameplay');
+    expect(input.locked).toBe(true);
+    windowTarget.dispatch('keyup', keyEvent('Tab'));
+    windowTarget.dispatch('keydown', keyEvent('Tab'));
+    expect(input.consumeTacticalToggle()).toBe(true);
+  });
+
+  it('does not route Tab into progression contexts', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    input.setContext('progressionUpgrade');
+    windowTarget.dispatch('keydown', keyEvent('Tab'));
+    expect(input.consumeTacticalToggle()).toBe(false);
+  });
+
   it('retains pointer lock while entering and leaving progression contexts', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);

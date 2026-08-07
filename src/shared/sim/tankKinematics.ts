@@ -547,12 +547,7 @@ export function resolveTankFootprint(
   // Arena bounds are axis-aware: generated arenas may be rectangular or
   // offset from the origin, so the clamp must not assume ±(half - 0.5).
   const b = resolveArenaBounds(ground);
-  const clampedX = clamp(t.x, b.minX + 0.5, b.maxX - 0.5);
-  const clampedZ = clamp(t.z, b.minZ + 0.5, b.maxZ - 0.5);
-  if (clampedX !== t.x) t.vx = 0;
-  if (clampedZ !== t.z) t.vz = 0;
-  t.x = clampedX;
-  t.z = clampedZ;
+  applyStableBoundary(t, b, 0.5);
   // Velocity response: remove inward components for each contact.
   for (const hit of hits) {
     const r = applyVelocityResponse(t.vx, t.vz, hit.normalX, hit.normalZ);
@@ -560,6 +555,36 @@ export function resolveTankFootprint(
     t.vz = r.vz;
   }
   return hits;
+}
+
+/**
+ * Continuous safety boundary. Position is clamped, but velocity response is
+ * normal-based so only motion farther out of bounds is removed; inward and
+ * tangential motion survive without a snap/stop cycle.
+ */
+export function applyStableBoundary(
+  t: Pick<TankKinematicState, 'x' | 'z' | 'vx' | 'vz'>,
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+  inset = 0.5,
+): void {
+  const minX = bounds.minX + inset;
+  const maxX = bounds.maxX - inset;
+  const minZ = bounds.minZ + inset;
+  const maxZ = bounds.maxZ - inset;
+  if (t.x < minX) {
+    t.x = minX;
+    ({ vx: t.vx, vz: t.vz } = applyVelocityResponse(t.vx, t.vz, 1, 0));
+  } else if (t.x > maxX) {
+    t.x = maxX;
+    ({ vx: t.vx, vz: t.vz } = applyVelocityResponse(t.vx, t.vz, -1, 0));
+  }
+  if (t.z < minZ) {
+    t.z = minZ;
+    ({ vx: t.vx, vz: t.vz } = applyVelocityResponse(t.vx, t.vz, 0, 1));
+  } else if (t.z > maxZ) {
+    t.z = maxZ;
+    ({ vx: t.vx, vz: t.vz } = applyVelocityResponse(t.vx, t.vz, 0, -1));
+  }
 }
 
 function approach(v: number, target: number, delta: number): number {
