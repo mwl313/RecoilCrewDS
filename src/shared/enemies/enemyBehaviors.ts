@@ -640,7 +640,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const damagePerHit = scaledDps / attack.rate;
         if (s.tank.deadT <= 0) {
           ctx.damage.applyTank(damagePerHit, 'bug');
-          pushEvent(ctx, 'crash', e.x, e.y + 1, e.z, { value: damagePerHit, kind: 'monster' });
+          pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
+            id: e.id,
+            value: damagePerHit,
+            kind: 'monster',
+            tier: def.tier,
+            sizeClass: def.sizeClass,
+            presentationProfileId: def.presentationProfileId,
+            eventSequence: runtime.attackSequence,
+            attackSemantic: 'meleeImpact',
+          });
         }
       });
       if (res === 'done') {
@@ -664,7 +673,15 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
         runtime.attackRuntime = atk;
         e.telegraph = attack.telegraphTime;
-        pushEvent(ctx, 'rammerTelegraph', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
+        pushEvent(ctx, 'enemyTelegraph', e.x, e.y + 1.2, e.z, {
+          id: e.id,
+          kind: 'enemy',
+          tier: def.tier,
+          sizeClass: def.sizeClass,
+          presentationProfileId: def.presentationProfileId,
+          eventSequence: runtime.attackSequence,
+          attackSemantic: 'rangedTelegraph',
+        });
       }
       const res = advanceAttackCycle(atk, s.time, () => {
         e.telegraph = 0;
@@ -698,9 +715,21 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             team: 'enemy',
             ownerEnemyId: e.id,
             visualColor: attack.visualColor,
+            sourceTier: def.tier,
+            sourceSizeClass: def.sizeClass,
+            sourcePresentationProfileId: def.presentationProfileId,
+            sourceAttackSequence: runtime.attackSequence,
           },
         );
-        pushEvent(ctx, 'towerFire', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
+        pushEvent(ctx, 'enemyFire', socket.x, socket.y, socket.z, {
+          id: e.id,
+          kind: 'enemy',
+          tier: def.tier,
+          sizeClass: def.sizeClass,
+          presentationProfileId: def.presentationProfileId,
+          eventSequence: runtime.attackSequence,
+          attackSemantic: 'rangedFire',
+        });
       });
       if (res === 'done') {
         runtime.attackRuntime = undefined;
@@ -744,7 +773,15 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         if (pattern.type === 'ranged') {
           e.telegraph = pattern.telegraphTime;
           const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
-          pushEvent(ctx, 'rammerTelegraph', socket.x, socket.y, socket.z, { id: e.id, kind: 'boss' });
+          pushEvent(ctx, 'bossTelegraph', socket.x, socket.y, socket.z, {
+            id: e.id,
+            kind: 'boss',
+            tier: def.tier,
+            sizeClass: def.sizeClass,
+            presentationProfileId: def.presentationProfileId,
+            eventSequence: runtime.attackSequence,
+            attackSemantic: 'rangedTelegraph',
+          });
         }
       }
       const res = advanceAttackCycle(atk, s.time, () => {
@@ -753,7 +790,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         if (pattern.type === 'melee') {
           if (s.tank.deadT <= 0) {
             ctx.damage.applyTank(pattern.damage, 'bug');
-            pushEvent(ctx, 'crash', e.x, e.y + 1, e.z, { value: pattern.damage, kind: 'boss' });
+            pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
+              id: e.id,
+              value: pattern.damage,
+              kind: 'boss',
+              tier: def.tier,
+              sizeClass: def.sizeClass,
+              presentationProfileId: def.presentationProfileId,
+              eventSequence: runtime.attackSequence,
+              attackSemantic: 'meleeImpact',
+            });
           }
           return;
         }
@@ -786,9 +832,21 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             team: 'enemy',
             ownerEnemyId: e.id,
             visualColor: pattern.visualColor,
+            sourceTier: def.tier,
+            sourceSizeClass: def.sizeClass,
+            sourcePresentationProfileId: def.presentationProfileId,
+            sourceAttackSequence: runtime.attackSequence,
           },
         );
-        pushEvent(ctx, 'towerFire', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });
+        pushEvent(ctx, 'bossFire', socket.x, socket.y, socket.z, {
+          id: e.id,
+          kind: 'boss',
+          tier: def.tier,
+          sizeClass: def.sizeClass,
+          presentationProfileId: def.presentationProfileId,
+          eventSequence: runtime.attackSequence,
+          attackSemantic: 'rangedFire',
+        });
       });
       if (res === 'done') {
         runtime.attackRuntime = undefined;

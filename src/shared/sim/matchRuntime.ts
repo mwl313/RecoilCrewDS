@@ -502,6 +502,7 @@ export class MatchRuntime {
     }
     if (t.shieldedT > 0) t.shieldedT -= dt;
     const speed = Math.hypot(t.vx, t.vz);
+    const landingSpeed = Math.max(0, -t.vy);
     const hits = stepTankKinematics(
       t as unknown as TankKinematicState,
       {
@@ -525,7 +526,15 @@ export class MatchRuntime {
       { dashModel: this.rules.packId === 'legacy' ? 'legacyImpulse' : 'stateful' },
     );
     this.systems.progression.notifyAirborneTick(dt, t.grounded);
-    if (!this.lastGrounded && t.grounded) this.systems.progression.notifyLanded();
+    if (!this.lastGrounded && t.grounded) {
+      this.systems.progression.notifyLanded();
+      if (this.rules.packId !== 'legacy') {
+        this.push('tankLanding', t.x, t.y, t.z, {
+          value: landingSpeed,
+          kind: landingSpeed >= 7.5 ? 'heavy' : 'light',
+        });
+      }
+    }
     this.lastGrounded = t.grounded;
     // Hard obstacle crash damage (crusher/factory/wall) at speed.
     if (speed > 10 && hits.length > 0) {
@@ -535,7 +544,7 @@ export class MatchRuntime {
       });
       if (hardHit) {
         this.damageTank(4, 'crash');
-        this.push('crash', t.x, t.y, t.z, { value: 4 });
+        this.push('crash', t.x, t.y, t.z, this.rules.packId === 'legacy' ? { value: 4 } : { value: 4, kind: 'wall' });
       }
     }
   }
@@ -724,7 +733,21 @@ export class MatchRuntime {
     // Drops react to the kill through the enemy's validated drop table.
     this.systems.drops.resolveFor(e);
     this.systems.pickups.noteKill(s.time, scrap);
-    this.push('kill', e.x, e.y + 1, e.z, { id: e.id, kind: e.type, value: score, label: `+${Math.floor(score * this.state.combo.multiplier)}` });
+    const enemyDef = this.systems.enemies.defFor(e);
+    const audioMetadata = enemyDef.type === 'monster'
+      ? {
+          tier: enemyDef.tier,
+          sizeClass: enemyDef.sizeClass,
+          presentationProfileId: enemyDef.presentationProfileId,
+        }
+      : {};
+    this.push('kill', e.x, e.y + 1, e.z, {
+      id: e.id,
+      kind: e.type,
+      value: score,
+      label: `+${Math.floor(score * this.state.combo.multiplier)}`,
+      ...audioMetadata,
+    });
   }
 
   /** True once a mode references a horde director (Core Loop 06 M3+). */
