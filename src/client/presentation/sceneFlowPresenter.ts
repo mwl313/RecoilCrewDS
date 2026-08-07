@@ -10,6 +10,7 @@ import {
   type AppFlowHandlers,
   type FlowStateId,
   type RematchPayload,
+  type ResultOutcome,
   type ResultsPayload,
 } from './flowTypes';
 import { SceneRuntime, type SceneRuntimeServices } from './sceneRuntime';
@@ -419,8 +420,9 @@ export class SceneFlowPresenter {
     this.themeRoot.dataset.theme = role;
   }
 
-  showResults(results: ResultsPayload, rematch: RematchPayload): void {
+  showResults(results: ResultsPayload, rematch: RematchPayload, outcome: ResultOutcome = 'complete'): void {
     this.setSceneContext('scene.results', {
+      ...resultOutcomeContext(outcome),
       grade: results.grade,
       title: results.title,
       score: results.score.toLocaleString(),
@@ -442,8 +444,9 @@ export class SceneFlowPresenter {
   }
 
   /** Single Player results: local restart, no crew rematch vote. */
-  showSinglePlayerResults(results: ResultsPayload): void {
+  showSinglePlayerResults(results: ResultsPayload, outcome: ResultOutcome = 'complete'): void {
     this.setSceneContext('scene.results', {
+      ...resultOutcomeContext(outcome),
       grade: results.grade,
       title: results.title,
       score: results.score.toLocaleString(),
@@ -591,4 +594,35 @@ export class SceneFlowPresenter {
     this.actions.register('app.returnToMenu', () => ui(() => h().onMainMenu?.()));
     this.actions.register('app.copyRoomCode', () => ui(() => void this.copyRoomCode()));
   }
+}
+
+function resultOutcomeContext(outcome: ResultOutcome): Record<string, unknown> {
+  if (outcome === 'victory') {
+    return {
+      victory: true,
+      defeat: false,
+      outcomeHeading: 'VICTORY',
+      outcomeKicker: 'BOSS NEUTRALIZED // STAGE CLEAR',
+      outcomeCopy: 'The boss is down. Shared chassis survived the full operation.',
+      outcomeState: 'STAGE CLEAR',
+    };
+  }
+  if (outcome === 'defeat') {
+    return {
+      victory: false,
+      defeat: true,
+      outcomeHeading: 'GAME OVER',
+      outcomeKicker: 'CHASSIS LOST // RUN TERMINATED',
+      outcomeCopy: 'Field unit integrity reached zero before the boss was neutralized.',
+      outcomeState: 'CHASSIS OFFLINE',
+    };
+  }
+  return {
+    victory: false,
+    defeat: false,
+    outcomeHeading: 'ROUND COMPLETE',
+    outcomeKicker: 'MISSION REPORT // CLOSED',
+    outcomeCopy: 'Field run logged. Crew performance is ready for review.',
+    outcomeState: 'RUN COMPLETE',
+  };
 }

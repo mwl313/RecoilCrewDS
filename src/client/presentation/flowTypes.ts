@@ -58,6 +58,8 @@ export interface ResultsPayload {
   modifier: string;
 }
 
+export type ResultOutcome = 'victory' | 'defeat' | 'complete';
+
 export interface RematchPayload {
   driver: boolean;
   gunner: boolean;

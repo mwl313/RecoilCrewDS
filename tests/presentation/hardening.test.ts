@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import * as THREE from 'three';
 import { AssetService } from '../../src/client/assets';
+import { AssetTransformResolver } from '../../src/client/assets/assetTransformResolver';
 import { SceneActionRegistry } from '../../src/client/presentation/actionRegistry';
 import { UiComponentRegistry } from '../../src/client/presentation/componentRegistry';
 import { registerDefaultUiComponents } from '../../src/client/presentation/uiComponents';
@@ -332,5 +333,24 @@ describe('Refractor 02 hardening — P1 fixes', () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+
+  it('applies ordered palette overrides to named materials on multi-material GLB meshes', () => {
+    const root = new THREE.Group();
+    const main = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    main.name = 'Main';
+    const dark = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    dark.name = 'Main_Dark';
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(), [main, dark]);
+    mesh.name = 'chassis_body';
+    root.add(mesh);
+
+    new AssetTransformResolver().apply(root, 'playerTank.chassis', undefined, [
+      { match: 'Main', color: 0xa88e55 },
+      { match: 'Main_Dark', color: 0x4a5034 },
+    ]);
+
+    expect(main.color.getHex()).toBe(0xa88e55);
+    expect(dark.color.getHex()).toBe(0x4a5034);
   });
 });

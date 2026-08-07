@@ -1,3 +1,11 @@
+import '@fontsource/barlow/latin-400.css';
+import '@fontsource/barlow/latin-600.css';
+import '@fontsource/barlow/latin-700.css';
+import '@fontsource/barlow-condensed/latin-700-italic.css';
+import '@fontsource/barlow-condensed/latin-800-italic.css';
+import '@fontsource/barlow-condensed/latin-900-italic.css';
+import '@app/client/styles.css';
+import '@app/client/ui/index.css';
 import './styles.css';
 import {
   PRESENTATION_ASSET_CATALOG,
@@ -16,6 +24,7 @@ import { resolvableAssetIds } from '@app/shared/assetCatalog';
 
 const STABLE = new URLSearchParams(location.search).has('stable');
 const preview = document.getElementById('preview') as HTMLElement;
+preview.classList.toggle('stable', STABLE);
 const info = document.getElementById('info') as HTMLElement;
 const controls = document.getElementById('controls') as HTMLElement;
 const tabScene = document.getElementById('tab-scene') as HTMLButtonElement;
@@ -138,6 +147,7 @@ function buildControls(): void {
   sceneSel.addEventListener('change', () => {
     sceneId = sceneSel.value;
     stateId = '';
+    updateStates();
     rebuild();
   });
   addLabel('Scene').appendChild(sceneSel);
@@ -257,7 +267,7 @@ function collectBadBindings(node: { id: string; bindings?: Array<{ source: strin
   for (const b of node.bindings ?? []) {
     if (b.source.startsWith('item.')) continue;
     const allowed = kind === 'scene'
-      ? ['code', 'status', 'copyLabel', 'copyDisabled', 'message', 'value', 'sub', 'score', 'title', 'grade', 'stats', 'driverReady', 'gunnerReady', 'driverState', 'gunnerState', 'readyLabel', 'myRole', 'roomCode', 'myReady', 'modifiers', 'selectedModifier', 'rematchInfo', 'canLeave', 'crewMode', 'singleMode']
+      ? ['code', 'status', 'copyLabel', 'copyDisabled', 'message', 'value', 'sub', 'score', 'title', 'grade', 'victory', 'defeat', 'outcomeHeading', 'outcomeKicker', 'outcomeCopy', 'outcomeState', 'stats', 'driverReady', 'gunnerReady', 'driverState', 'gunnerState', 'readyLabel', 'myRole', 'roomCode', 'myReady', 'modifiers', 'selectedModifier', 'rematchInfo', 'canLeave', 'crewMode', 'singleMode']
       : ['role', 'pointerLocked', 'prompt', 'promptSub', 'crosshairVisible'];
     if (!allowed.includes(b.source) && !b.source.startsWith('connection.') && !b.source.startsWith('match.') && !b.source.startsWith('tank.') && !b.source.startsWith('gunner.') && !b.source.startsWith('objective.') && !b.source.startsWith('pip.') && !b.source.startsWith('combo.') && !b.source.startsWith('session.')) {
       out.push(`${node.id}: ${b.source}`);

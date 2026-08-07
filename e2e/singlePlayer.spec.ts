@@ -12,6 +12,9 @@ test('single player runs a full local round with combined controls and local res
   await page.goto('/?test=1&mode=demo');
   await page.click('#screen-boot');
   await page.click('#screen-main [data-act="single"]');
+  await expect(page.locator('#screen-countdown:not(.hidden)')).toBeVisible();
+  await expect(page.locator('#countdown-n')).toHaveText('3');
+  expect(await page.evaluate(() => (window as unknown as { __recoil: { state(): unknown } }).__recoil.state())).toBeNull();
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
     return s?.phase === 'running';
@@ -60,8 +63,9 @@ test('single player runs a full local round with combined controls and local res
   await page.keyboard.up('Shift');
   await expect(page.locator('#dash-ind')).toBeVisible();
 
-  // Tab/Q are not bound to anything in Single Player (no role swap).
+  // Tab opens the tactical presentation without changing role; Q remains unbound.
   await page.keyboard.press('Tab');
+  await expect(page.locator('#tactical-drawer')).toHaveClass(/is-open/);
   await page.keyboard.press('KeyQ');
   await page.waitForTimeout(300);
 
@@ -75,12 +79,13 @@ test('single player runs a full local round with combined controls and local res
   const grade = await page.textContent('#results-grade');
   expect(grade?.trim() ?? '').toBeTruthy();
   await expect(page.locator('#sp-play-again')).toBeVisible();
-  await expect(page.locator('#mods')).toHaveClass(/hidden/);
+  await expect(page.locator('#results-rematch')).toHaveClass(/hidden/);
   await expect(page.locator('#leave-btn')).toHaveClass(/hidden/);
 
   // PLAY AGAIN restarts a fresh local match (no network involved).
   const oldMatchId = await page.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
   await page.click('#sp-play-again');
+  await expect(page.locator('#screen-countdown:not(.hidden)')).toBeVisible();
   await page.waitForFunction((oldId) => {
     const s = (window as unknown as { __recoil: { state(): { phase: string; matchId: string } | null } }).__recoil.state();
     return s?.phase === 'running' && s.matchId !== oldId;
