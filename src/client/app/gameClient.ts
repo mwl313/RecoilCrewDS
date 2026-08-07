@@ -583,6 +583,7 @@ export class GameClient {
     if (this.session.kind === 'multiplayer' && this.role === 'driver' && (ev.type === 'jump' || ev.type === 'dash')) {
       return;
     }
+    this.presenter.handleEvent(ev);
     this.router.handleEvent(ev);
   }
 

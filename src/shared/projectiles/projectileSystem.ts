@@ -147,7 +147,12 @@ export class ProjectileSystem {
     const combat = sh.combat;
     const radius = combat?.splashRadius ?? w.cannonRadius;
     const dmg = combat?.damage ?? w.cannonDamage;
-    pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: radius, kind: 'cannon', chargeRatio: sh.chargeRatio });
+    pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, {
+      id: sh.id,
+      value: radius,
+      kind: 'cannon',
+      chargeRatio: sh.chargeRatio,
+    });
     const innerRatio = resolver.resolve('weapon.splashInnerRatio');
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
     const outerMult = resolver.resolve('weapon.splashOuterMultiplier');

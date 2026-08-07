@@ -10,6 +10,9 @@ export interface NetcodeMetricsSnapshot {
   inputRate: number;
   actionLatencyMs: number;
   renderDelayMs: number;
+  remoteRenderDelayMs: number;
+  playerCannonExtrapolationMs: number;
+  playerCannonVisualErrorMeters: number;
   snapshotBytes: number;
   parseMs: number;
   snapshotHandleMs: number;
@@ -43,6 +46,9 @@ class NetcodeMetrics {
 
   rttMs = 0;
   renderDelayMs = 0;
+  remoteRenderDelayMs = 0;
+  playerCannonExtrapolationMs = 0;
+  playerCannonVisualErrorMeters = 0;
   snapshotBytes = 0;
   parseMs = 0;
   snapshotHandleMs = 0;
@@ -123,6 +129,9 @@ class NetcodeMetrics {
       inputRate: this.rate(this.inputs),
       actionLatencyMs: this.lastValue(this.actionLatencies),
       renderDelayMs: this.renderDelayMs,
+      remoteRenderDelayMs: this.remoteRenderDelayMs,
+      playerCannonExtrapolationMs: this.playerCannonExtrapolationMs,
+      playerCannonVisualErrorMeters: this.playerCannonVisualErrorMeters,
       snapshotBytes: this.snapshotBytes,
       parseMs: this.parseMs,
       snapshotHandleMs: this.snapshotHandleMs,
@@ -180,7 +189,8 @@ export class F4Overlay {
     const m = netcodeMetrics.snapshot();
     this.panel.textContent = [
       'NETCODE',
-      `rtt: ${m.rttMs.toFixed(0)}ms  delay: ${m.renderDelayMs.toFixed(0)}ms`,
+      `rtt: ${m.rttMs.toFixed(0)}ms  remote delay: ${m.remoteRenderDelayMs.toFixed(0)}ms`,
+      `cannon: +${m.playerCannonExtrapolationMs.toFixed(0)}ms  err: ${m.playerCannonVisualErrorMeters.toFixed(2)}m`,
       `snap: ${m.snapshotRate.toFixed(1)}Hz  jitter: ${m.snapshotJitterMs.toFixed(1)}ms`,
       `input: ${m.inputRate.toFixed(1)}Hz  action: ${m.actionLatencyMs.toFixed(0)}ms`,
       `parse: ${m.parseMs.toFixed(2)}ms  handle: ${m.snapshotHandleMs.toFixed(2)}ms`,
