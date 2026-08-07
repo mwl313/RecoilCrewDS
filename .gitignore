@@ -4,6 +4,7 @@ dist-server/
 dist-maplab/
 dist-presentation-preview/
 dist-enemy-animation-preview/
+dist-relic-chest-preview/
 .env
 .DS_Store
 coverage/
