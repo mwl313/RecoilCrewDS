@@ -12,6 +12,8 @@ import type { TerrainTransition } from '../mapgen/terrainTraversal';
 export interface GroundQuery {
   groundHeightAt(x: number, z: number): number;
   groundNormalAt(x: number, z: number): { nx: number; ny: number; nz: number };
+  /** Semantic authored surface at a point, when terrain needs special traversal behavior. */
+  driveableSurfaceAt?(x: number, z: number): 'bidirectionalVehicleRamp' | undefined;
   ramps: RampDef[];
   half: number;
   /**

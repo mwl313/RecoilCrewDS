@@ -290,7 +290,8 @@ export function stepTankKinematics(
   // arrived from a meaningful uphill slope and the surface ahead becomes
   // flat or descends.
   let crestLaunched = false;
-  if (t.grounded && !jumped) {
+  const onAuthoredDriveableSurface = ground.driveableSurfaceAt?.(t.x, t.z) !== undefined;
+  if (t.grounded && !jumped && !onAuthoredDriveableSurface) {
     const speed = Math.hypot(t.vx, t.vz);
     if (speed >= tankCfg.surfaceLaunchMinSpeed) {
       const dirX = t.vx / speed;

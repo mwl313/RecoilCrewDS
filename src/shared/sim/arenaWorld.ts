@@ -32,7 +32,7 @@ export interface ArenaWorld extends GroundQuery {
     r: number,
     elevation?: number,
   ): { x: number; z: number; contacts: CollisionContact[] };
-  resolveCircle(x: number, z: number, r: number): { x: number; z: number; hit: boolean };
+  resolveCircle(x: number, z: number, r: number, elevation?: number): { x: number; z: number; hit: boolean };
   nearestSpawn(x: number, z: number): { x: number; z: number };
   obstacles: Obstacle[];
   barrels: BarrelProp[];
@@ -80,6 +80,7 @@ export function createGeneratedArenaWorld(
     metadata,
     groundHeightAt: (x, z) => queries.groundHeightAt(x, z),
     groundNormalAt: (x, z) => queries.groundNormalAt(x, z),
+    driveableSurfaceAt: (x, z) => queries.driveableSurfaceAt(x, z),
     queryTerrainTransition: (fromX, fromZ, toX, toZ) => queries.queryTerrainTransition(fromX, fromZ, toX, toZ),
     terrainFlagsAt: (x, z) => queries.terrainFlagsAt(x, z),
     isDriveableAt: (x, z) => queries.isDriveableAt(x, z),
@@ -90,7 +91,7 @@ export function createGeneratedArenaWorld(
     bounds: props.bounds,
     obstacleAt: (x, z, elevation) => queries.obstacleAt(x, z, elevation),
     resolveCircleContacts: (x, z, r, elevation) => queries.resolveCircleContacts(x, z, r, elevation),
-    resolveCircle: (x, z, r) => queries.resolveCircle(x, z, r),
+    resolveCircle: (x, z, r, elevation) => queries.resolveCircle(x, z, r, elevation),
     nearestSpawn: (x, z) => queries.nearestSpawn(x, z),
     obstacles: props.obstacles,
     barrels: props.barrels,

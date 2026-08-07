@@ -54,9 +54,9 @@ const BUILDING_MODELS: readonly BuildingModel[] = [
 ];
 
 const VEHICLES = [
-  { assetId: 'environment.urban.zombie.vehiclePickup', w: 4.2, d: 2.0, h: 1.8 },
-  { assetId: 'environment.urban.zombie.vehicleSports', w: 4.1, d: 1.9, h: 1.4 },
-  { assetId: 'environment.urban.zombie.vehicleTruck', w: 6.2, d: 2.4, h: 2.7 },
+  { assetId: 'environment.urban.zombie.vehiclePickup', length: 5.18, width: 2.312, h: 1.843 },
+  { assetId: 'environment.urban.zombie.vehicleSports', length: 5.655, width: 2.671, h: 1.853 },
+  { assetId: 'environment.urban.zombie.vehicleTruck', length: 5.256, width: 2.709, h: 2.885 },
 ] as const;
 
 const TREES = [
@@ -171,12 +171,92 @@ export function urbanAssetIds(layout: UrbanLayout): string[] {
   ])].sort();
 }
 
-/** Flat ground plus any building roof that an airborne actor lands on. */
+/** Flat ground plus authored driveable urban surfaces. */
 export function urbanSurfaceHeightAt(layout: UrbanLayout, x: number, z: number): number {
   for (const b of layout.buildings) {
     if (Math.abs(x - b.x) <= b.w / 2 && Math.abs(z - b.z) <= b.d / 2) return b.h;
   }
+  for (const vehicle of layout.solidProps) {
+    const height = urbanVehicleRampHeightAt(vehicle, x, z);
+    if (height !== undefined) return height;
+  }
   return 0;
+}
+
+export function urbanDriveableSurfaceAt(
+  layout: UrbanLayout,
+  x: number,
+  z: number,
+): Obstacle['driveableSurface'] | undefined {
+  return layout.solidProps.find((vehicle) => urbanVehicleRampHeightAt(vehicle, x, z) !== undefined)?.driveableSurface;
+}
+
+interface VehicleRampFrame {
+  longitudinal: number;
+  lateral: number;
+  halfLength: number;
+  halfWidth: number;
+  rampRun: number;
+}
+
+function vehicleRampFrame(vehicle: Obstacle, x: number, z: number): VehicleRampFrame | undefined {
+  if (vehicle.driveableSurface !== 'bidirectionalVehicleRamp') return undefined;
+  const yaw = vehicle.yaw ?? 0;
+  const cosine = Math.cos(yaw);
+  const sine = Math.sin(yaw);
+  const dx = x - vehicle.x;
+  const dz = z - vehicle.z;
+  const swapsAxes = Math.abs(sine) > Math.abs(cosine);
+  const length = swapsAxes ? vehicle.w : vehicle.d;
+  const width = swapsAxes ? vehicle.d : vehicle.w;
+  return {
+    longitudinal: sine * dx + cosine * dz,
+    lateral: cosine * dx - sine * dz,
+    halfLength: length / 2,
+    halfWidth: width / 2,
+    rampRun: length * 0.34,
+  };
+}
+
+/**
+ * Samples the custom front/rear vehicle surface. Both bumpers start at street
+ * height, rise linearly to a short full-height deck, and use the exact model
+ * footprint instead of an unrelated authored ramp's dimensions.
+ */
+export function urbanVehicleRampHeightAt(vehicle: Obstacle, x: number, z: number): number | undefined {
+  const frame = vehicleRampFrame(vehicle, x, z);
+  if (!frame) return undefined;
+  const epsilon = 1e-6;
+  if (Math.abs(frame.longitudinal) > frame.halfLength + epsilon || Math.abs(frame.lateral) > frame.halfWidth + epsilon) return undefined;
+  const distanceFromEnd = frame.halfLength - Math.abs(frame.longitudinal);
+  const progress = Math.max(0, Math.min(1, distanceFromEnd / frame.rampRun));
+  return vehicle.h * progress;
+}
+
+/**
+ * Returns true when a circle contact belongs to a legal vehicle-ramp path.
+ * Ground-level entry is accepted only through the front/rear; actors already
+ * supported by the surface remain free on top. Side approaches stay solid.
+ */
+export function urbanVehicleRampAllowsContact(
+  vehicle: Obstacle,
+  x: number,
+  z: number,
+  radius: number,
+  _elevation: number | undefined,
+  _normalX?: number,
+  _normalZ?: number,
+): boolean {
+  const frame = vehicleRampFrame(vehicle, x, z);
+  if (!frame) return false;
+  const epsilon = 1e-6;
+  if (Math.abs(frame.lateral) > frame.halfWidth + 0.05 + epsilon) return false;
+  if (Math.abs(frame.longitudinal) > frame.halfLength + radius + epsilon) return false;
+  // A centered footprint may overlap both the sloped deck and the narrow side
+  // faces at once. The corridor admits those contacts; authoritative terrain
+  // transitions still reject entry from a side because it is a full-height
+  // upward step, while either bumper begins at street height.
+  return true;
 }
 
 function placeBuildings(id: UrbanPrototypeId, spec: CitySpec, roads: readonly UrbanVisualPlacement[]): Obstacle[] {
@@ -300,8 +380,8 @@ function placeVehicles(
     const { road, side } = candidate;
     const horizontal = Math.abs(Math.sin(road.yaw)) > 0.5;
     const yaw = horizontal ? Math.PI / 2 : 0;
-    const w = yaw === 0 ? source.w : source.d;
-    const d = yaw === 0 ? source.d : source.w;
+    const w = yaw === 0 ? source.width : source.length;
+    const d = yaw === 0 ? source.length : source.width;
     const curbOffset = TILE / 2 + (horizontal ? d : w) / 2 + 0.25;
     const x = road.x + (horizontal ? (rng() - 0.5) * 2 : side * curbOffset);
     const z = road.z + (horizontal ? side * curbOffset : (rng() - 0.5) * 2);
@@ -320,6 +400,7 @@ function placeVehicles(
       assetId: source.assetId,
       yaw,
       modelScale: 1,
+      driveableSurface: 'bidirectionalVehicleRamp',
     });
   }
   return props;

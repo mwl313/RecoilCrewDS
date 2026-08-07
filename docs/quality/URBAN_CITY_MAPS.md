@@ -20,7 +20,7 @@ The active mode's `mapProfileId` supplies the default. An explicit `?map=urban20
 - Imported materials use their original source textures. Runtime rendering does not apply material overrides or tint.
 - Every building has an authoritative rectangular wall collider and flat authoritative roof surface. The prototypes intentionally have no rooftop ramps; taller roofs may be unreachable through ordinary driving.
 - Wall collision is elevation-aware: it blocks tanks and monsters at street level, then releases them once they reach rooftop elevation.
-- Parked vehicles are authoritative street-level collision obstacles rather than visual-only decoration.
+- Parked vehicles use bespoke bidirectional driveable surfaces matched to each model's width, length, height, and orientation. Their front and rear rise from street level to a short full-height deck; side approaches remain solid, and these surfaces do not reuse the legacy authored ramp list.
 - Trees are visual-only decorations with no gameplay or camera collision. Deterministic canopy-clearance checks keep them off roads, roofs, buildings, vehicles, spawn areas, and existing street furniture.
 - Road and street-furniture meshes are instanced to keep the 400 m prototype bounded to a small number of draw calls.
 

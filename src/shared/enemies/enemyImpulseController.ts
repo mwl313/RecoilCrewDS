@@ -106,7 +106,7 @@ export class EnemyImpulseController {
       e.z = nz;
       e.impulseVx = blocked ? 0 : ivx;
       e.impulseVz = blocked ? 0 : ivz;
-      const col = this.ctx.world.resolveCircle(e.x, e.z, this.ctx.enemies.radiusFor(e));
+      const col = this.ctx.world.resolveCircle(e.x, e.z, this.ctx.enemies.radiusFor(e), e.y);
       e.x = col.x;
       e.z = col.z;
       return;
@@ -128,7 +128,7 @@ export class EnemyImpulseController {
       e.x = nx;
       e.z = nz;
       e.y = this.ctx.world.groundHeightAt(e.x, e.z);
-      const col = this.ctx.world.resolveCircle(e.x, e.z, this.ctx.enemies.radiusFor(e));
+      const col = this.ctx.world.resolveCircle(e.x, e.z, this.ctx.enemies.radiusFor(e), e.y);
       e.x = col.x;
       e.z = col.z;
     } else {

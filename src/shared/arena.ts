@@ -14,6 +14,8 @@ export interface Obstacle {
   modelScale?: number;
   /** Allows the wall collider to stop ground actors but release actors on the roof. */
   roofDriveable?: boolean;
+  /** Optional authored surface that changes how this obstacle is traversed. */
+  driveableSurface?: 'bidirectionalVehicleRamp';
 }
 
 export interface BarrelProp {

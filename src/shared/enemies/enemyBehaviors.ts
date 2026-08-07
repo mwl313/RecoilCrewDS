@@ -204,7 +204,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       e.z = nz;
       e.y = ctx.world.groundHeightAt(e.x, e.z);
       e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
-      const col = ctx.world.resolveCircle(e.x, e.z, r);
+      const col = ctx.world.resolveCircle(e.x, e.z, r, e.y);
       e.x = col.x;
       e.z = col.z;
     },
@@ -295,7 +295,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             ctx.enemies.sharedDodgeAwarded = true;
             ctx.combo.addDriverContribution(2, 'DODGE');
           }
-          const col = ctx.world.resolveCircle(e.x, e.z, r);
+          const col = ctx.world.resolveCircle(e.x, e.z, r, e.y);
           if (col.hit) {
             e.state = 'recovery';
             e.stateT = 0;
@@ -423,7 +423,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
           e.y = truck.y;
           e.z = truck.z;
           e.yaw = truck.yaw;
-          const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e));
+          const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e), truck.y);
           truck.x = col.x;
           truck.z = col.z;
           return;
@@ -436,7 +436,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       e.y = truck.y;
       e.z = truck.z;
       e.yaw = truck.yaw;
-      const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e));
+      const col = ctx.world.resolveCircle(truck.x, truck.z, ctx.enemies.radiusFor(e), truck.y);
       truck.x = col.x;
       truck.z = col.z;
       if (d < waypointReach) {

@@ -22,7 +22,7 @@ import { resolveSlopeRules } from './profiles';
 import { isCliffWallAt, isDriveableAt, isRequiredTraversalAt, terrainFlagsAt } from './terrainFlags';
 import { queryTerrainTransition, type TerrainTransition } from './terrainTraversal';
 import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
-import { urbanSurfaceHeightAt } from './urbanLayout';
+import { urbanDriveableSurfaceAt, urbanSurfaceHeightAt, urbanVehicleRampAllowsContact } from './urbanLayout';
 
 export interface ArenaProps {
   obstacles: Obstacle[];
@@ -40,9 +40,10 @@ export interface ArenaProps {
 export interface ArenaQueries {
   groundHeightAt(x: number, z: number): number;
   groundNormalAt(x: number, z: number): { nx: number; ny: number; nz: number };
+  driveableSurfaceAt(x: number, z: number): Obstacle['driveableSurface'] | undefined;
   slopeAt(x: number, z: number): number;
   obstacleAt(x: number, z: number, elevation?: number): Obstacle | undefined;
-  resolveCircle(x: number, z: number, r: number): { x: number; z: number; hit: boolean };
+  resolveCircle(x: number, z: number, r: number, elevation?: number): { x: number; z: number; hit: boolean };
   resolveCircleContacts(
     x: number,
     z: number,
@@ -276,6 +277,9 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
   const boundsHalf = () => props.half;
 
   return {
+    driveableSurfaceAt(x: number, z: number) {
+      return arena.urbanLayout ? urbanDriveableSurfaceAt(arena.urbanLayout, x, z) : undefined;
+    },
     groundHeightAt(x: number, z: number): number {
       if (arena.urbanLayout) return urbanSurfaceHeightAt(arena.urbanLayout, x, z);
       return arena.heightfield.heightAt(toLocalX(x), toLocalZ(z));
@@ -334,12 +338,13 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
     obstacleAt(x: number, z: number, elevation?: number): Obstacle | undefined {
       for (const o of props.obstacles) {
         if (o.roofDriveable && elevation !== undefined && elevation >= o.h - 1.25) continue;
+        if (urbanVehicleRampAllowsContact(o, x, z, 0, elevation)) continue;
         if (pointInBox(x, z, o.x, o.z, o.w, o.d)) return o;
       }
       return undefined;
     },
-    resolveCircle(x: number, z: number, r: number) {
-      const res = this.resolveCircleContacts(x, z, r);
+    resolveCircle(x: number, z: number, r: number, elevation?: number) {
+      const res = this.resolveCircleContacts(x, z, r, elevation);
       return { x: res.x, z: res.z, hit: res.contacts.length > 0 };
     },
     resolveCircleContacts(x: number, z: number, r: number, elevation?: number) {
@@ -350,6 +355,7 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
         if (o.roofDriveable && elevation !== undefined && elevation >= o.h - 1.25) continue;
         const res = resolveCircleBox(outX, outZ, r, o.x, o.z, o.w, o.d, o.id);
         if (res.hit) {
+          if (urbanVehicleRampAllowsContact(o, outX, outZ, r, elevation, res.normalX, res.normalZ)) continue;
           outX = res.x;
           outZ = res.z;
           contacts.push(res);

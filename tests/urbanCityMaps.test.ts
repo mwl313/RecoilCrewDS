@@ -1,9 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { BASE_CONFIG, buildMatchConfig } from '../src/shared/config';
 import { resolveClientMapBundle, selectArenaSession } from '../src/shared/mapgen/arenaSession';
-import { createUrbanLayout, urbanSurfaceHeightAt } from '../src/shared/mapgen/urbanLayout';
+import {
+  createUrbanLayout,
+  urbanSurfaceHeightAt,
+  urbanVehicleRampHeightAt,
+} from '../src/shared/mapgen/urbanLayout';
 import { canTraverseGroundStep } from '../src/shared/mapgen/terrainTraversal';
+import { stepTankKinematics, type TankKinematicState } from '../src/shared/sim/tankKinematics';
 
 const TILE = 8;
+const VEHICLE_MODEL_BOUNDS = {
+  'environment.urban.zombie.vehiclePickup': { length: 5.18, width: 2.312, height: 1.843 },
+  'environment.urban.zombie.vehicleSports': { length: 5.655, width: 2.671, height: 1.853 },
+  'environment.urban.zombie.vehicleTruck': { length: 5.256, width: 2.709, height: 2.885 },
+} as const;
 
 function roadDegree(cells: ReadonlySet<string>, x: number, z: number): number {
   return [
@@ -43,6 +54,19 @@ describe.each([
       Math.abs(tree.x - building.x) >= building.w / 2 + 2 || Math.abs(tree.z - building.z) >= building.d / 2 + 2,
     ))).toBe(true);
     expect(layout.solidProps.every((prop) => !prop.id.startsWith('urban.tree.'))).toBe(true);
+  });
+
+  it('matches every parked-vehicle surface to the measured source-model bounds', () => {
+    for (const vehicle of layout.solidProps) {
+      const expected = VEHICLE_MODEL_BOUNDS[vehicle.assetId as keyof typeof VEHICLE_MODEL_BOUNDS];
+      expect(expected).toBeDefined();
+      if (!expected) throw new Error(`missing measured bounds for ${vehicle.assetId}`);
+      const swapsAxes = Math.abs(Math.sin(vehicle.yaw ?? 0)) > Math.abs(Math.cos(vehicle.yaw ?? 0));
+      expect(vehicle.w).toBeCloseTo(swapsAxes ? expected.length : expected.width, 5);
+      expect(vehicle.d).toBeCloseTo(swapsAxes ? expected.width : expected.length, 5);
+      expect(vehicle.h).toBeCloseTo(expected.height, 5);
+      expect(vehicle.driveableSurface).toBe('bidirectionalVehicleRamp');
+    }
   });
 
   it('builds one connected, irregular street graph with corners, junctions, and dead ends', () => {
@@ -88,7 +112,7 @@ describe.each([
   ['map.urban200Prototype', 200],
   ['map.urban400Prototype', 400],
 ] as const)('%s runtime integration', (mapId, size) => {
-  it('selects without fallback and exposes height-aware building and prop collision', () => {
+  it('selects without fallback and exposes height-aware building and vehicle surfaces', () => {
     const { bundle, fallbackBundle } = resolveClientMapBundle(mapId);
     const session = selectArenaSession({ roomCode: 'URBAN-QA', matchIndex: 0, bundle, fallbackBundle });
     const layout = session.arena.urbanLayout!;
@@ -105,7 +129,88 @@ describe.each([
     expect(session.world.groundHeightAt(building.x, building.z)).toBeCloseTo(building.h, 4);
 
     const parkedVehicle = session.world.obstacles.find((o) => o.type === 'urbanProp')!;
-    expect(session.world.resolveCircleContacts(parkedVehicle.x, parkedVehicle.z, 1, 0).contacts.length).toBeGreaterThan(0);
+    expect(parkedVehicle.driveableSurface).toBe('bidirectionalVehicleRamp');
+    const yaw = parkedVehicle.yaw ?? 0;
+    const longitudinal = { x: Math.sin(yaw), z: Math.cos(yaw) };
+    const lateral = { x: Math.cos(yaw), z: -Math.sin(yaw) };
+    const swapsAxes = Math.abs(Math.sin(yaw)) > Math.abs(Math.cos(yaw));
+    const length = swapsAxes ? parkedVehicle.w : parkedVehicle.d;
+    const width = swapsAxes ? parkedVehicle.d : parkedVehicle.w;
+    const point = (along: number, across: number) => ({
+      x: parkedVehicle.x + longitudinal.x * along + lateral.x * across,
+      z: parkedVehicle.z + longitudinal.z * along + lateral.z * across,
+    });
+    const frontEdge = point(length / 2, 0);
+    const frontSlope = point(length * 0.25, 0);
+    const rearSlope = point(-length * 0.25, 0);
+    const frontOutside = point(length / 2 + 0.2, 0);
+    const frontInside = point(length / 2 - 0.2, 0);
+    const rearOutside = point(-length / 2 - 0.2, 0);
+    const rearInside = point(-length / 2 + 0.2, 0);
+    const sideOutside = point(0, width / 2 + 0.2);
+    const sideInside = point(0, width / 2 - 0.2);
+    const sideEdgeInside = point(0, width / 2 - 0.01);
+    const sideEdgeOutside = point(0, width / 2 + 0.01);
+
+    expect(urbanVehicleRampHeightAt(parkedVehicle, frontEdge.x, frontEdge.z)).toBeCloseTo(0, 5);
+    expect(urbanVehicleRampHeightAt(parkedVehicle, frontSlope.x, frontSlope.z)).toBeCloseTo(
+      urbanVehicleRampHeightAt(parkedVehicle, rearSlope.x, rearSlope.z)!,
+      5,
+    );
+    expect(session.world.groundHeightAt(parkedVehicle.x, parkedVehicle.z)).toBeCloseTo(parkedVehicle.h, 5);
+    expect(session.world.groundHeightAt(sideEdgeInside.x, sideEdgeInside.z)).toBeCloseTo(parkedVehicle.h, 5);
+    expect(session.world.groundHeightAt(sideEdgeOutside.x, sideEdgeOutside.z)).toBe(0);
+
+    expect(session.world.resolveCircleContacts(frontOutside.x, frontOutside.z, 0.5, 0).contacts).toHaveLength(0);
+    expect(session.world.resolveCircleContacts(sideOutside.x, sideOutside.z, 0.5, 0).contacts.length).toBeGreaterThan(0);
+    expect(session.world.resolveCircleContacts(parkedVehicle.x, parkedVehicle.z, 0.5, parkedVehicle.h).contacts).toHaveLength(0);
+    expect(canTraverseGroundStep(session.world.queryTerrainTransition!(frontOutside.x, frontOutside.z, frontInside.x, frontInside.z)!)).toBe(true);
+    expect(canTraverseGroundStep(session.world.queryTerrainTransition!(rearOutside.x, rearOutside.z, rearInside.x, rearInside.z)!)).toBe(true);
+    expect(canTraverseGroundStep(session.world.queryTerrainTransition!(sideOutside.x, sideOutside.z, sideInside.x, sideInside.z)!)).toBe(false);
+
+    const driveAcross = (direction: -1 | 1) => {
+      const start = point(-direction * (length / 2 + 2.5), 0);
+      const dirX = longitudinal.x * direction;
+      const dirZ = longitudinal.z * direction;
+      const tank: TankKinematicState = {
+        x: start.x,
+        y: 0,
+        z: start.z,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        yaw: Math.atan2(dirX, dirZ),
+        yawVel: 0,
+        pitch: 0,
+        roll: 0,
+        grounded: true,
+        dashCooldown: 0,
+        dashPresentationT: 0,
+        dashDamageT: 0,
+        drift: false,
+        landingGripT: 0,
+      };
+      let maxHeight = 0;
+      let crossedCenter = false;
+      for (let tick = 0; tick < 150; tick++) {
+        stepTankKinematics(
+          tank,
+          { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false },
+          BASE_CONFIG,
+          buildMatchConfig('none'),
+          1 / 60,
+          undefined,
+          session.world,
+        );
+        maxHeight = Math.max(maxHeight, tank.y);
+        const along = (tank.x - parkedVehicle.x) * longitudinal.x + (tank.z - parkedVehicle.z) * longitudinal.z;
+        if (along * direction > 0.25) crossedCenter = true;
+      }
+      expect(crossedCenter).toBe(true);
+      expect(maxHeight).toBeGreaterThan(parkedVehicle.h * 0.65);
+    };
+    driveAcross(1);
+    driveAcross(-1);
 
     const directWallStep = session.world.queryTerrainTransition!(
       building.x - building.w / 2 - 0.2,
