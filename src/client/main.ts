@@ -41,11 +41,11 @@ import { PlayerSettingsController } from './settings/playerSettingsController';
 import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
 import {
   resolveSelectedMonsterRun,
-  resolveSelectedPreloadAssetIds,
 } from '../shared/monsters/monsterPreload';
 import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNormalization';
 import { urbanAssetIds } from '../shared/mapgen/urbanLayout';
 import { netcodeMetrics } from './netcode/netcodeMetrics';
+import { resolveGameplayPreloadAssetIds } from './assets/gameplayPreload';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -303,13 +303,18 @@ net.onMessage = (msg) => {
           }
           const reconnectConfig = latestRunConfig?.matchId === reconnectMatchId ? latestRunConfig : null;
           void (async () => {
-            if (reconnectConfig?.run) {
+            if (reconnectConfig) {
               const loaded = assets ?? (await assetsPromise);
-              await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, reconnectConfig.run));
+              assets = loaded;
+              await loaded.preloadModels(resolveGameplayPreloadAssetIds(
+                CLIENT_CONTENT_PACK,
+                reconnectConfig.modeId,
+                reconnectConfig.run,
+              ));
               lastPreloadedMatchId = reconnectMatchId ?? '';
             }
             await resumeOnline(msg.arena as ArenaMetadata, phase === 'results', reconnectMatchId);
-          })();
+          })().catch(showGameStartupError);
         }
         break;
       }
@@ -360,28 +365,25 @@ net.onMessage = (msg) => {
         showProtocolError(compat.reason ?? 'incompatible build');
         return;
       }
-      // The server waits for assetReady before starting the countdown.
-      // Preload exactly the selected run; a null run (Demo) is ready
-      // immediately. Errors never stall a crew — the server also has an
-      // explicit readiness timeout.
+      // The server waits for assetReady before starting the countdown. A fresh
+      // client must have both the selected monsters and the selected mode's
+      // lazy environment models before acknowledging readiness.
       void (async () => {
-        try {
-          if (config.run) {
-            const loaded = assets ?? (await assetsPromise);
-            await loaded.preloadModels(resolveSelectedPreloadAssetIds(CLIENT_CONTENT_PACK, config.run));
-          }
-        } catch (error) {
-          console.warn('[runConfig] asset preload failed; proceeding anyway', error);
-        } finally {
-          lastPreloadedMatchId = config.matchId;
-          net.send({
-            t: 'assetReady',
-            matchId: config.matchId,
-            contentHash: CLIENT_CONTENT_PACK.hash,
-            definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
-          });
-        }
-      })();
+        const loaded = assets ?? (await assetsPromise);
+        assets = loaded;
+        await loaded.preloadModels(resolveGameplayPreloadAssetIds(
+          CLIENT_CONTENT_PACK,
+          config.modeId,
+          config.run,
+        ));
+        lastPreloadedMatchId = config.matchId;
+        net.send({
+          t: 'assetReady',
+          matchId: config.matchId,
+          contentHash: CLIENT_CONTENT_PACK.hash,
+          definitionOrderHash: ENEMY_DEFINITION_ORDER_HASH,
+        });
+      })().catch(showGameStartupError);
       break;
     }
     case 'start':
@@ -399,18 +401,19 @@ net.onMessage = (msg) => {
           break;
         }
       }
-      if (msg.arena) {
-        void startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined);
-      } else {
-        void startOnline(role, null, msg.matchId as string | undefined);
-      }
-      hud.hideCountdown();
+      if (mapGateFailed) break;
+      void (msg.arena
+        ? startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined)
+        : startOnline(role, null, msg.matchId as string | undefined))
+        .then(() => hud.hideCountdown())
+        .catch(showGameStartupError);
       break;
     case 'snapshot': {
       const meta = msg.arena as ArenaMetadata | undefined;
       if (meta && !mapGateFailed) {
         if (!arenaSession) {
-          void resumeOnline(meta, false, (msg.state as MatchState | undefined)?.matchId);
+          void resumeOnline(meta, false, (msg.state as MatchState | undefined)?.matchId)
+            .catch(showGameStartupError);
         } else if (meta.arenaChecksum !== arenaSession.metadata.arenaChecksum) {
           showMapError('checksum');
         }
@@ -593,6 +596,16 @@ function showProtocolError(reason: string): void {
   mapGateFailed = true;
 }
 
+/** Keep initialization failures visible instead of leaving an orphaned black canvas. */
+function showGameStartupError(error: unknown): void {
+  console.error('[game-startup] unable to initialize the match', error);
+  teardownGame();
+  document.getElementById('game-canvas')?.remove();
+  hud.showError('Unable to initialize game assets. Reload and try again.');
+  flow = 'error';
+  mapGateFailed = true;
+}
+
 async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: string): Promise<void> {
   if (arenaSession && arenaSession.metadata.arenaChecksum === meta.arenaChecksum) {
     // Same active map: resume the existing game.
@@ -612,6 +625,7 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
     return;
   }
   arenaSession = session;
+  await preloadArenaAssets(session.world);
   if (game) {
     game.applyArenaSession(session);
   }
@@ -621,7 +635,9 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
 
 async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string): Promise<void> {
   sessionKind = 'multiplayer';
-  if (!game) game = await createGame(world ?? arenaSession?.world ?? createStaticArenaWorld());
+  const selectedWorld = world ?? arenaSession?.world ?? createStaticArenaWorld();
+  await preloadArenaAssets(selectedWorld);
+  if (!game) game = await createGame(selectedWorld);
   if (matchId && matchId !== lastPreloadedMatchId) {
     const config = latestRunConfig?.matchId === matchId ? latestRunConfig : null;
     await game.preloadMonsterRun(CLIENT_CONTENT_PACK, config?.run ?? null);
@@ -690,6 +706,15 @@ async function createGame(world: ArenaWorld): Promise<GameClient> {
   const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined, world);
   created.onHudEvent = (ev) => hud.onEvent(ev as never);
   return created;
+}
+
+/** ArenaView performs synchronous model lookup, so all lazy map models must exist first. */
+async function preloadArenaAssets(world: ArenaWorld): Promise<void> {
+  const layout = world.arena?.urbanLayout;
+  if (!layout) return;
+  const loaded = assets ?? (await assetsPromise);
+  assets = loaded;
+  await loaded.preloadModels(urbanAssetIds(layout));
 }
 
 function attachGameCallbacks(g: GameClient) {
