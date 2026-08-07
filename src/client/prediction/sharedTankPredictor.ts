@@ -44,6 +44,8 @@ function emptyState(): TankKinematicState {
     landingGripT: 0,
     dashState: 'inactive', dashStateT: 0, dashDirectionX: 0, dashDirectionZ: 1,
     dashPeakSpeed: 0, dashSpeed: 0, dashSteeringMultiplier: 1,
+    airJumpsRemaining: 0, airJumpCapacity: 0,
+    airDashReuseRemaining: 0, airDashReuseCapacity: 0,
   };
 }
 
@@ -65,6 +67,10 @@ function fromTank(t: TankState): TankKinematicState {
     drift: t.drift,
     landingGripT: t.landingGripT ?? 0,
     prevOnRamp: t.prevOnRamp ?? false,
+    airJumpsRemaining: t.airJumpsRemaining ?? 0,
+    airJumpCapacity: t.airJumpCapacity ?? 0,
+    airDashReuseRemaining: t.airDashReuseRemaining ?? 0,
+    airDashReuseCapacity: t.airDashReuseCapacity ?? 0,
   };
 }
 
@@ -159,6 +165,8 @@ export class SharedTankPredictor {
     this.display = copyToDisplay(this.predicted);
     this.pendingInputs = [];
     this.pendingImpulses = [];
+    this.lastRelayInput = null;
+    this.lastImpulseSeq = 0;
     this.opLog = [];
     this.acc = 0;
     this.hasReconciled = true;
@@ -307,6 +315,7 @@ export class SharedTankPredictor {
       this.display = copyToDisplay(base);
       this.pendingInputs = [];
       this.pendingImpulses = [];
+      this.lastRelayInput = null;
       this.acc = 0;
       return;
     }
@@ -345,9 +354,11 @@ export class SharedTankPredictor {
       this.display = copyToDisplay(base);
     }
     opts.onCorrection?.(divergence);
-    this.pendingInputs = [];
-    this.pendingImpulses = [];
-    this.lastRelayInput = null;
+    // A snapshot can only retire operations the server explicitly
+    // acknowledged. Preserve the rest so a later snapshot with the same ack
+    // can rebuild prediction from authority without dropping movement/recoil.
+    this.pendingInputs = remainingInputs;
+    this.pendingImpulses = remainingImpulses;
   }
 
   smooth(dt: number): void {
@@ -383,6 +394,10 @@ export class SharedTankPredictor {
     d.dashPeakSpeed = p.dashPeakSpeed;
     d.dashSpeed = p.dashSpeed;
     d.dashSteeringMultiplier = p.dashSteeringMultiplier;
+    d.airJumpsRemaining = p.airJumpsRemaining;
+    d.airJumpCapacity = p.airJumpCapacity;
+    d.airDashReuseRemaining = p.airDashReuseRemaining;
+    d.airDashReuseCapacity = p.airDashReuseCapacity;
     d.drift = p.drift;
   }
 }

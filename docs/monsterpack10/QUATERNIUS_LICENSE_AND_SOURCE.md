@@ -10,8 +10,8 @@
 - Download date: not recorded in the local files
 - Original folder: `C:\Users\임민우\Desktop\Assets\Ultimate monster pack`
 - Included local GLBs: 45
-- Processing date (UTC): 2026-08-04T19:21:46.501069+00:00
-- Pipeline version: `1.1.0`
+- Processing date (UTC): 2026-08-07T01:06:57.625881+00:00
+- Pipeline version: `1.1.1-color-fidelity`
 
 The official page advertises 50 animated models. This local download contains 45 GLBs; only those 45 verified files were processed.
 The original folder is treated as read-only input.

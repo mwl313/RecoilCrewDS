@@ -80,23 +80,18 @@ export class AssetInstanceFactory {
     materials?: ManifestAssetEntry['materials'];
   } | undefined {
     const project = this.projectDefs.get(id);
+    const entry = this.metadata.get(id);
     let asset = this.models.getModelAssetSync(id);
-    let transform: ManifestAssetEntry['transform'] | undefined;
-    let materials: ManifestAssetEntry['materials'] | undefined;
+    let transform = entry?.transform ?? toManifestTransform(project?.defaultTransform);
+    let materials = entry?.materials ?? toManifestMaterials(project?.materialOverrides);
     // Catalog-driven placeholder policy: a project model without a file (or
     // whose file is not preloaded) resolves to its registered fallback
     // prototype, with the project's own transform/material metadata applied.
     if (!asset && project?.fallbackAssetId) {
       asset = this.models.getModelAssetSync(project.fallbackAssetId);
-      transform = toManifestTransform(project.defaultTransform);
-      materials = toManifestMaterials(project.materialOverrides);
     }
     if (!asset) return undefined;
-    const entry = this.metadata.get(id);
-    if (project) {
-      if (!transform) transform = entry?.transform;
-      if (!materials) materials = entry?.materials;
-    } else {
+    if (!project) {
       transform = entry?.transform;
       materials = entry?.materials;
     }

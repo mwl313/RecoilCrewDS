@@ -120,6 +120,32 @@ describe('trajectory reticle projection', () => {
     expect(r.worldPoint.z).toBeLessThanOrEqual(9);
   });
 
+  it('marks a blocker containing the muzzle instead of projecting to the sky', () => {
+    const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
+    const query = buildCameraCollisionIndex([boxCollider([-2, 0, 2.7], [2, 4, 3.2])]);
+    const r = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0 },
+      { x: 0, y: 2, z: 3.1 },
+      query,
+    );
+    expect(r.blocked).toBe(true);
+    expect(r.worldPoint.z).toBeLessThanOrEqual(3.21);
+  });
+
+  it('honors a sub-metre desired range instead of using the 90-metre fallback', () => {
+    const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
+    const r = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0 },
+      { x: 0, y: 0.75, z: 3.1 },
+    );
+    expect(r.worldPoint.z).toBeGreaterThanOrEqual(3);
+    expect(r.worldPoint.z).toBeLessThan(3.2);
+  });
+
   it('accounts for cannon gravity instead of projecting a straight ray', () => {
     const cam = cameraAt([0, 2.5, -6], [0, 2, 45]);
     const noGravity = project(
@@ -152,6 +178,7 @@ describe('trajectory reticle projection', () => {
     // Terrain is the intended impact surface for recoil shots, not a
     // near-cover obstruction state.
     expect(result.blocked).toBe(false);
+    expect(result.verticalLocked).toBe(true);
     expect(result.worldPoint.y).toBeCloseTo(0.05, 6);
     expect(Math.hypot(result.worldPoint.x, result.worldPoint.z)).toBeLessThan(1.1);
   });
@@ -167,7 +194,14 @@ describe('trajectory reticle projection', () => {
 
   it('reuses a caller-provided result object without allocation churn', () => {
     const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
-    const out: TrajectoryReticleResult = { x: -1, y: -1, visible: false, blocked: false, worldPoint: { x: 0, y: 0, z: 0 } };
+    const out: TrajectoryReticleResult = {
+      x: -1,
+      y: -1,
+      visible: false,
+      blocked: false,
+      verticalLocked: false,
+      worldPoint: { x: 0, y: 0, z: 0 },
+    };
     const r = project(cam, { x: 0, y: 0, z: 0, yaw: 0 }, { yaw: 0, pitch: 0 }, { x: 0, y: 2, z: 20 }, null, out);
     expect(r).toBe(out);
     expect(out.visible).toBe(true);

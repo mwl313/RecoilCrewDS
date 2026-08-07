@@ -1,54 +1,34 @@
-# Monster Pack 10 — Quaternius Horde-Ready Import
+# Ultimate Monster Pack — Horde Ready
 
-This directory documents the native Recoil Crew import of the standalone
-**Ultimate monster pack - Horde Ready** (90 processed GLBs: 45 hero, 15
-common-near, 15 common-far, 15 aggregate).
+A standalone, reproducible Blender processing workspace for the 45 verified Quaternius Ultimate Monsters GLBs.
+The original source directory remains read-only; all generated assets and evidence live beneath this folder.
 
-## Where the ZIP belongs
+## Delivered library
 
-```text
-<RecoilCrewRoot>/local-imports/monsterpack09/Ultimate monster pack - Horde Ready.zip
+- 45 normalized, skinned hero variants
+- 15 one-material skinned common-near variants
+- 15 one-material rigid common-far variants
+- 15 very-low-poly rigid aggregate variants
+- 90 / 90 generated variants pass machine validation
+- 0 / 90 variants have recorded visual acceptance
+- 45 source models catalogued across four broad rig families
+
+## Important files
+
+- `manifests/monster_catalog.json`: source measurements, classifications, semantic animation maps, and runtime records
+- `manifests/runtime_variants.json`: output hashes, measured complexity, validation, review, and performance guidance
+- `reports/FINAL_DELIVERY_REPORT.md`: complete accepted/rejected/hash handoff
+- `previews/monster_pack_horde_ready_overview.blend`: human-review overview scene
+- `scripts/run_pipeline.ps1`: resumable batch runner
+
+## Re-run
+
+From `C:\Users\임민우\Desktop\Assets`:
+
+```powershell
+.\Ultimate monster pack - Horde Ready\scripts\run_pipeline.ps1 -Mode validate
+.\Ultimate monster pack - Horde Ready\scripts\run_pipeline.ps1 -Mode render-previews
 ```
 
-`local-imports/` and the disposable staging directory
-`build/monsterpack10-import/` are git-ignored.
-
-## Re-import
-
-```bash
-npm run import:monsterpack -- --dry-run
-npm run import:monsterpack
-npm run validate:monsterpack-import
-```
-
-The importer:
-
-- verifies the ZIP and all 90 recorded SHA-256 hashes;
-- extracts only into ignored staging;
-- copies accepted GLBs into `public/assets/models/enemies/quaternius/`;
-- archives source manifests/reports/license under `docs/monsterpack10/`;
-- regenerates native content (asset catalog, animation/presentation
-  profiles, art roster, scale/socket mappings, native index);
-- maintains `generated/IMPORT_OWNERSHIP.json` for stale-file cleanup.
-
-## What is generated vs runtime
-
-- **Generated native content**: `content/assets/project.json` entries,
-  `content/enemy-animation-profiles/quaternius/*`,
-  `content/enemy-presentation-profiles/quaternius/*`,
-  `content/enemy-art-rosters/*`.
-- **Runtime**: GLBs under `public/assets/models/enemies/quaternius/`.
-- **Source evidence (immutable)**: `docs/monsterpack10/source-manifests/`
-  and `docs/monsterpack10/source-reports/`.
-- **Generated docs**: `docs/monsterpack10/generated/*.json`.
-
-## Validation
-
-```bash
-npm run validate:monsterpack-import
-npm run test:monsterpack-import
-npm run validate:enemy-animations
-```
-
-See `IMPORT_REPORT.md` for the latest run and `PERFORMANCE_REPORT.md` for
-browser benchmark results.
+Verified source: `C:\Users\임민우\Desktop\Assets\Ultimate monster pack`
+Output root: `C:\Users\임민우\Desktop\Recoil Crew DS-quality-improvement\build\monsterpack10-import\Ultimate monster pack - Horde Ready`

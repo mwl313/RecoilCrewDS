@@ -1,5 +1,13 @@
 # Monster Presentation Audit
 
+## Milestone record
+
+- Branch: `quality-improvement`
+- Starting SHA: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
+- Ending implementation SHA at final qualification: `a28da4a`
+- Browser/device: Chrome 151, Windows, 1280×720, NVIDIA GeForce RTX 4060 Ti through ANGLE D3D11.
+- Recommendation: retain the shared material/lighting policy and three-tier motion system; do not add blanket emissive, unlit materials, or skeletal far hordes.
+
 ## Scope and evidence
 
 Phase B audited the production monster pipeline and the common near/mid/far presentation paths. The reusable comparison route is:
@@ -28,7 +36,7 @@ The required audit order produced the following result.
 
 | Stage | Finding | Resolution |
 | --- | --- | --- |
-| Source base color/texture | Mushnub, Wizard common, and high-detail Demon use vertex colors rather than base-color textures. Their source colors are intact. | Preserve vertex colors and source material color; no texture repainting. |
+| Source base color/texture | The original GLBs use multiple material base colors. Pipeline `1.1.0` baked those already-linear colors through Blender's `color_srgb` setter, applying a second conversion and reducing median luminance to about 17% of the original. The earlier audit compared processed GLBs without the originals and incorrectly described their colors as intact. | Pipeline `1.1.1-color-fidelity` writes through the linear `color` accessor. All 45 hero palettes now retain 99.30–100.49% source luminance and are protected by an original-source baseline gate. |
 | Texture color space | Representative monsters have no base-color texture. The shared policy now explicitly marks any base-color/emissive texture as sRGB for custom-loader safety. | `SRGBColorSpace` for color data only. |
 | Renderer output | Production already used sRGB output. | Retained. |
 | Tone mapping | Production already used ACES Filmic. | Retained. |
@@ -41,7 +49,7 @@ The required audit order produced the following result.
 | Vertex colors | Present and enabled on audited Quaternius sources. | Preserved; never replaced or disabled. |
 | Roughness/metallic/AO | Audited sources were metalness 0 and roughness about 0.72. AO intensity defaulted to 1.0. | Shared bounds: metalness ≤ 0.08, roughness ≥ 0.68, AO intensity ≤ 0.5. |
 
-No source texture or vertex color was manually brightened. The correction is a common, auditable presentation policy.
+No source texture or vertex color is manually brightened. The Blender bake now preserves the original linear palette, while the runtime correction remains a common, auditable presentation policy.
 
 ## Material acceptance
 
@@ -121,3 +129,7 @@ PASS
 npm run build:client
 PASS
 ```
+
+Final qualification also passed `npm run validate:enemy-animations` (73 presentation profiles, 70 animation profiles, 0 errors/warnings), the 11-file / 38-test Monster Pack import suite, the real browser Monster Pack rendering benchmark, the 15-file / 95-test animation suite, and all 50 repository E2E cases across bounded groups. Human review covered the unlit/neutral/production comparison, far-motion gallery, upright Elite Demon, ordinary/elite/boss screenshots, airborne reconstruction, and refreshed boss/reconnect evidence.
+
+Known asset limitations remain explicit: placeholder custom Beast/Spider/Witch families use procedural fallbacks, many far Quaternius assets are rigid by design and depend on the mixer-free motion envelope, and no second physical GPU class was available for visual/performance verification.

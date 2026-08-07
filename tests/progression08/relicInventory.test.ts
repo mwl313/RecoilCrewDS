@@ -6,7 +6,7 @@ import { makeMatch } from './helpers';
 const def = CLIENT_CONTENT_PACK.getProgressionDefinition('progression.mainStage');
 
 describe('relic inventory (progression08)', () => {
-  it('stacks add, capability granted once, unique duplicates convert to 250 XP', () => {
+  it('stacks add, capability grants once, and defensive unique re-add is a no-op', () => {
     const m = makeMatch();
     const inventory = new RelicInventory(m.state, def, (id, source) => m.systems.capabilities.grant(id, source));
     const roadkill = CLIENT_CONTENT_PACK.getRelic('relic.roadkill');
@@ -21,8 +21,8 @@ describe('relic inventory (progression08)', () => {
     const phoenix = CLIENT_CONTENT_PACK.getRelic('relic.phoenix_core');
     inventory.add(phoenix);
     const dup = inventory.add(phoenix);
-    expect(dup.duplicateConverted).toBe(true);
-    expect(dup.replacementXp).toBe(250);
+    expect(dup.duplicateConverted).toBe(false);
+    expect(dup.replacementXp).toBe(0);
     expect(inventory.getStack('relic.phoenix_core')).toBe(1);
   });
 

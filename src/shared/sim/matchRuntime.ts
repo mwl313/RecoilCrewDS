@@ -72,6 +72,10 @@ function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
     shieldedT: rules.config.tank.shieldTime,
     deadT: 0,
     grounded: true,
+    airJumpsRemaining: 0,
+    airJumpCapacity: 0,
+    airDashReuseRemaining: 0,
+    airDashReuseCapacity: 0,
     drift: false,
     landingGripT: 0,
   };
@@ -109,6 +113,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       treasureChestsOpened: 0,
       relicAcquisitionSequence: 0,
       relicStacks: {},
+      relicAcquisitionOrder: [],
       activeSelection: null,
       lastRelicResult: null,
       pendingRelicResults: [],
@@ -421,8 +426,12 @@ export class MatchRuntime {
     // are skipped entirely; the wall-clock selection timeout drives resume.
     if (
       this.systems.progression.isEnabled &&
-      (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicSelection')
+      (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicOpening' || this.state.matchFlow === 'relicSelection')
     ) {
+      // Reward input is a hard ownership boundary. Clearing here prevents a
+      // held MG/charge/driver edge from surviving the pause and firing on the
+      // first resumed simulation tick, including stale network frames.
+      this.clearInputs();
       return;
     }
     const dt = this.systems.round.advance(dtRaw);
@@ -436,6 +445,7 @@ export class MatchRuntime {
       s.matchFlow = this.systems.stage.state.phase === 'clear' ? 'clear' : 'gameOver';
       this.results = this.results ?? this.mode.computeResults();
     }
+    this.systems.statusEffects.update(dt);
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.stepTank(dt);
@@ -457,6 +467,7 @@ export class MatchRuntime {
     }
     this.mode.stepAssistance();
     this.mode.stepCombo(dt);
+    this.systems.progression.step(dt);
     this.stepBarrels(dt);
     if (!this.stageEnforced) {
       this.results = this.mode.checkCompletion() ?? this.results;
@@ -550,6 +561,10 @@ export class MatchRuntime {
     t.dashSpeed = 0;
     t.dashSteeringMultiplier = 1;
     t.landingGripT = 0;
+    t.airJumpsRemaining = Math.max(0, Math.floor(this.cfg.tank.extraJumps));
+    t.airJumpCapacity = t.airJumpsRemaining;
+    t.airDashReuseRemaining = Math.max(0, Math.min(1, Math.floor(this.cfg.tank.airDashCharges)));
+    t.airDashReuseCapacity = t.airDashReuseRemaining;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
     t.integrity = this.cfg.tank.maxIntegrity;
@@ -587,6 +602,19 @@ export class MatchRuntime {
 
   skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
     return this.systems.progression.skipProgressionRelic(acquisitionSequence, nowMs);
+  }
+
+  acknowledgeProgressionRelic(
+    role: 'driver' | 'gunner' | 'single',
+    acquisitionSequence: number,
+    requiredRoles: Array<'driver' | 'gunner' | 'single'>,
+    nowMs: number,
+  ): { accepted: boolean; reason?: string; waitingFor?: Array<'driver' | 'gunner' | 'single'> } {
+    return this.systems.progression.acknowledgeProgressionRelic(role, acquisitionSequence, requiredRoles, nowMs);
+  }
+
+  refreshProgressionRelicGate(requiredRoles: Array<'driver' | 'gunner' | 'single'>, nowMs: number): boolean {
+    return this.systems.progression.refreshRelicAcknowledgementGate(requiredRoles, nowMs);
   }
 
   damageTank(amount: number, source: string) {

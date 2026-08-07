@@ -352,6 +352,7 @@ export class ReferenceValidator {
       this.ref(issues, def.relicPoolId, this.registries.relicPools, file, 'relicPoolId');
       this.ref(issues, def.multiplayerPolicyId, this.registries.progressionModePolicies, file, 'multiplayerPolicyId');
       this.ref(issues, def.singlePlayerPolicyId, this.registries.progressionModePolicies, file, 'singlePlayerPolicyId');
+      this.ref(issues, def.relicChestSpawnPolicyId, this.registries.relicChestSpawnPolicies, file, 'relicChestSpawnPolicyId');
     }
     for (const table of this.registries.upgradeRarityTables.all()) {
       const file = this.fileOf(table.id, this.registries.upgradeRarityTables);

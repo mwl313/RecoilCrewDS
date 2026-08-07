@@ -3,28 +3,30 @@
   "builtins": [],
   "project": [
     {
-      "id": "texture.environment.sparseGrass.baseColor",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp"
-    },
-    {
-      "id": "texture.environment.sparseGrass.normal",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png"
-    },
-    {
-      "id": "texture.environment.sparseGrass.roughness",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_roughness_2k.png"
-    },
-    {
-      "id": "texture.environment.sparseGrass.mask",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
+      "id": "custom.item.relicChest",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/items/relic-chest/relic-chest.glb",
+      "defaultTransform": {
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 0],
+        "scale": [2, 2, 2]
+      },
+      "collider": {
+        "radius": 1
+      },
+      "sockets": [
+        {
+          "id": "GlowOrigin",
+          "position": [0, 0.405, -0.015]
+        },
+        {
+          "id": "RewardAnchor",
+          "position": [0, 0.385, -0.015]
+        }
+      ],
+      "tags": ["item", "relic", "chest", "articulated", "presentation"],
+      "optional": true
     },
     {
       "id": "custom.enemy.beast.boss",
@@ -1533,6 +1535,180 @@
       "optional": true
     },
     {
+      "id": "environment.urban.ultimate.oneStory.yellow",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/one-story.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.twoStoryCenter.red",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-center.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.twoStoryWide.blue",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-wide.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.street4Way",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-4way.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "intersection",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetLights",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/streetlights.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraight",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraightCrack1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack1.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraightCrack2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack2.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetT",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-t.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "junction",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetTurn",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-turn.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "corner",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficCone1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-1.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficCone2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-2.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficLight1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-1.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficLight2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-2.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
       "id": "scene.menuTank",
       "kind": "model",
       "namespace": "scene",
@@ -1566,28 +1742,28 @@
       "optional": false
     },
     {
-      "id": "environment.urban.ultimate.oneStory.yellow",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.baseColor",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/one-story.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp"
     },
     {
-      "id": "environment.urban.ultimate.twoStoryWide.blue",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.mask",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-wide.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
     },
     {
-      "id": "environment.urban.ultimate.twoStoryCenter.red",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.normal",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-center.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png"
+    },
+    {
+      "id": "texture.environment.sparseGrass.roughness",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_roughness_2k.png"
     },
     {
       "id": "environment.urban.ultimate.threeStorySmall.light",
@@ -1635,94 +1811,6 @@
       "namespace": "environment",
       "file": "/assets/models/environment/urban/nature-pack/common-tree-3.glb",
       "tags": ["urban", "tree", "decoration", "ultimate-nature-pack", "common-tree"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraight",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraightCrack1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack1.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraightCrack2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack2.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetTurn",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-turn.gltf",
-      "tags": ["urban", "road", "corner", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetT",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-t.gltf",
-      "tags": ["urban", "road", "junction", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.street4Way",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-4way.gltf",
-      "tags": ["urban", "road", "intersection", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetLights",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/streetlights.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficLight1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-1.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficLight2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-2.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficCone1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-1.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficCone2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-2.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
       "optional": true
     },
     {
@@ -1780,6 +1868,202 @@
       "file": "/assets/models/environment/urban/zombie-kit/watertower.gltf",
       "tags": ["urban", "landmark", "zombie-apocalypse-kit"],
       "optional": true
+    },
+    {
+      "id": "relic.aerialMaster",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/aerial-master.png",
+      "tags": ["relic", "gunner", "airborne", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.airMaster",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/air-master.png",
+      "tags": ["relic", "driver", "air", "dash", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.apexPredator",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/apex-predator.png",
+      "tags": ["relic", "crew", "elite", "boss", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.armorShred",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/armor-shred.png",
+      "tags": ["relic", "gunner", "debuff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.bulletTime",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/bullet-time.png",
+      "tags": ["relic", "driver", "cooldown", "air", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.coveringFire",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/covering-fire.png",
+      "tags": ["relic", "gunner", "machine-gun", "debuff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.dashRefund",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/dash-refund.png",
+      "tags": ["relic", "driver", "dash", "cooldown", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.deathMark",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/death-mark.png",
+      "tags": ["relic", "gunner", "kill", "explosion", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.doubleJump",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/double-jump.png",
+      "tags": ["relic", "driver", "jump", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.friendlyShield",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/friendly-shield.png",
+      "tags": ["relic", "crew", "shield", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.glassCannon",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/glass-cannon.png",
+      "tags": ["relic", "crew", "damage", "tradeoff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.groundPound",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/ground-pound.png",
+      "tags": ["relic", "driver", "landing", "area", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.hePayload",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/he-payload.png",
+      "tags": ["relic", "gunner", "cannon", "explosive", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.heartyTank",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/hearty-tank.png",
+      "tags": ["relic", "driver", "integrity", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.heatSink",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/heat-sink.png",
+      "tags": ["relic", "gunner", "machine-gun", "cannon", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.ironWill",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/iron-will.png",
+      "tags": ["relic", "driver", "integrity", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.lastResort",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/last-resort.png",
+      "tags": ["relic", "driver", "integrity", "tradeoff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.magnetCore",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/magnet-core.png",
+      "tags": ["relic", "crew", "xp", "magnet", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.momentumShield",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/momentum-shield.png",
+      "tags": ["relic", "driver", "speed", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.phaseDash",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/phase-dash.png",
+      "tags": ["relic", "driver", "dash", "invulnerable", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.phoenixCore",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/phoenix-core.png",
+      "tags": ["relic", "driver", "revive", "fire", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.rapidReload",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/rapid-reload.png",
+      "tags": ["relic", "gunner", "cannon", "cooldown", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.roadkill",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/roadkill.png",
+      "tags": ["relic", "driver", "speed", "contact", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.safeHaven",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/safe-haven.png",
+      "tags": ["relic", "crew", "healing", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.twinShell",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/twin-shell.png",
+      "tags": ["relic", "gunner", "cannon", "double-shot", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.unstoppable",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/unstoppable.png",
+      "tags": ["relic", "driver", "dash", "speed", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.vampireRounds",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/vampire-rounds.png",
+      "tags": ["relic", "gunner", "cannon", "healing", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.xpSurge",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/xp-surge.png",
+      "tags": ["relic", "crew", "xp", "icon", "free-icon-pack-v3.1"]
     }
   ]
 }

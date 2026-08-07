@@ -26,7 +26,7 @@ import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } f
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
 import { computeWeaponMountWorldPose, resolveTerrainSafeMuzzle } from '../../shared/vehicle/tankRigGeometry';
-import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
+import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
@@ -36,6 +36,13 @@ import {
   resolveSelectedPreloadAssetIds,
 } from '../../shared/monsters/monsterPreload';
 import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
+import { interpolateSinglePlayerTank } from '../prediction/singlePlayerTankInterpolator';
+import { RelicChestWorldRenderer } from '../relics/relicChestWorldRenderer';
+import { RELIC_CHEST_ASSET_ID } from '../relics/relicChestPresentation';
+import { RelicInventoryRail } from '../progression/relicInventoryRail';
+import { ProgressionInputContext } from '../progression/progressionInputContext';
+
+const SINGLE_PLAYER_STEP = 1 / 30;
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -66,6 +73,9 @@ export class GameClient {
   private running = false;
   private slowMo = 0;
   private singlePlayerAcc = 0;
+  private singlePlayerPreviousTank: TankState | null = null;
+  /** Last valid rendered chassis anchor; camera input still advances without a fresh frame. */
+  private lastCameraTank: TankState | null = null;
   private singlePlayerResultsShown = false;
   private contentPack: ContentPack | null = null;
   private secondaryDown = false;
@@ -79,9 +89,13 @@ export class GameClient {
   private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
   private inputSendT = 0;
   suppressAutoInput = false;
+  private suppressPresentationFramesForTest = false;
   private progressionOverlay: ProgressionOverlay | null = null;
+  private readonly progressionInput: ProgressionInputContext;
+  private relicInventoryRail: RelicInventoryRail | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
+  private relicChestRenderer: RelicChestWorldRenderer | null = null;
   private latestSectors: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
@@ -98,6 +112,10 @@ export class GameClient {
       fog.near = sizeMeters * 1.25;
       fog.far = sizeMeters * 2.4;
     }
+  }
+
+  qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> {
+    return this.world.qualityDiagnostics();
   }
 
   private constructor(deps: {
@@ -127,6 +145,7 @@ export class GameClient {
     this.tankRig = deps.tankRig;
     this.audio = deps.audio;
     this.input = deps.input;
+    this.progressionInput = new ProgressionInputContext(deps.input);
     this.arenaWorld = deps.arenaWorld;
     this.aggregateSectors = new AggregateSectorRenderer(
       deps.world.scene,
@@ -205,15 +224,9 @@ export class GameClient {
       assets,
       registry,
       tankRig,
-      cameras,
       prediction,
-      colliders: () => renderWorld.arena.colliders,
-      cameraQuery: () => renderWorld.arena.cameraQuery,
-      groundHeightAt: (x, z) => prediction.groundHeightAt(x, z),
-      input,
       audio,
       onTankRig: (block) => gameRef?.applyTankRigBlock(block),
-      onTrajectoryReticle: (result) => gameRef?.onTrajectoryReticle?.(result),
       session: () => gameRef!.session,
       role: () => gameRef!.role,
       singlePlayerMatch: () => gameRef!.singlePlayerMatch,
@@ -228,11 +241,28 @@ export class GameClient {
     gameRef = game;
     game.progressionOverlay = new ProgressionOverlay(container, {
       selectUpgrade: (index) => gameRef!.submitUpgrade(index),
-      skipRelicPresentation: () => gameRef!.skipRelicPresentation(),
+      acknowledgeRelic: () => gameRef!.acknowledgeRelicPresentation(),
       relicInfo: (relicId) => {
         const relic = gameRef!.contentPack?.getRelic(relicId);
-        return relic ? { label: relic.label, description: relic.description } : null;
+        return relic
+          ? { label: relic.label, description: relic.description, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+          : null;
       },
+      rewardSound: (name, detail) => {
+        const sounds = {
+          levelImpact: 'rewardLevelImpact', tick: 'rewardTick', cardLock: 'rewardCardLock',
+          focus: 'rewardFocus', confirm: 'rewardConfirm', relicLock: 'relicLock', exit: 'rewardExit',
+        } as const;
+        gameRef!.audio.play(sounds[name], { kind: detail?.rarity, charge: detail?.progress });
+      },
+      duckLegendary: () => gameRef!.audio.duckForReward({ depth: 0.72, attackMs: 18, holdMs: 82, releaseMs: 520 }),
+      rewardImpact: (intensity) => gameRef!.cameras.addImpulse(intensity),
+    });
+    game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
+      const relic = gameRef!.contentPack?.getRelic(relicId);
+      return relic
+        ? { label: relic.label, rarity: relic.rarity, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+        : null;
     });
     game.f4 = new F4Overlay();
     game.onReadyHook = onReady;
@@ -291,8 +321,16 @@ export class GameClient {
    * never preloaded here.
    */
   async preloadMonsterRun(pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
-    if (!run) return;
-    await this.assets.preloadModels(resolveSelectedPreloadAssetIds(pack, run));
+    this.contentPack = pack;
+    const preloadIds = run ? resolveSelectedPreloadAssetIds(pack, run) : [];
+    await this.assets.preloadModels([...preloadIds, RELIC_CHEST_ASSET_ID]);
+    const progression = pack.getProgressionDefinition('progression.mainStage');
+    this.relicChestRenderer?.dispose();
+    this.relicChestRenderer = new RelicChestWorldRenderer(
+      this.world.scene,
+      this.assets,
+      pack.getRelicChestSpawnPolicy(progression.relicChestSpawnPolicyId),
+    );
   }
 
   /**
@@ -314,6 +352,7 @@ export class GameClient {
       );
       this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
       this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
+      this.resetSinglePlayerRenderPose();
     }
   }
 
@@ -481,6 +520,9 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.reset();
     this.singlePlayerAcc = 0;
+    this.resetSinglePlayerRenderPose();
+    this.lastCameraTank = this.singlePlayerMatch ? { ...this.singlePlayerMatch.state.tank } : null;
+    this.cameras.resetTransientState();
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
@@ -490,6 +532,12 @@ export class GameClient {
     this.chargeHoldStart = 0;
     this.chargeHoldActive = false;
     this.chargeSoundStarted = false;
+  }
+
+  private resetSinglePlayerRenderPose(): void {
+    this.singlePlayerPreviousTank = this.singlePlayerMatch
+      ? { ...this.singlePlayerMatch.state.tank }
+      : null;
   }
 
   setSnapshot(msg: {
@@ -557,7 +605,7 @@ export class GameClient {
       secondary: this.mouseDown('secondary'),
     });
     this.singlePlayerAcc += dt;
-    const step = 1 / 30;
+    const step = SINGLE_PLAYER_STEP;
     let guard = 0;
     while (this.singlePlayerAcc >= step && guard++ < 6) {
       this.singlePlayerAcc -= step;
@@ -568,6 +616,7 @@ export class GameClient {
       m.setDriverInput({ ...frame });
       // The frame is created; clear the latches so holding never repeats.
       this.input.clearDriverEdges();
+      this.singlePlayerPreviousTank = { ...m.state.tank };
       m.step(step);
       for (const ev of m.takeEvents()) {
         this.router.handleEvent(ev);
@@ -592,6 +641,8 @@ export class GameClient {
     this.slowMo = Math.max(0, this.slowMo - dtRaw);
     this.cameras.tickShake(dtRaw);
 
+    this.syncProgressionInputContext();
+
     this.lastPredictInput = this.sampleDriverInput();
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
       this.stepSinglePlayer(dtRaw);
@@ -599,14 +650,21 @@ export class GameClient {
     }
     if (this.session.networked) this.presenter.advanceRenderClock(dtRaw);
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.checkProgressionTimeout(performance.now());
+      this.singlePlayerMatch.checkProgressionTimeout(Date.now());
     }
     this.presenter.computeRemote();
+    // Single Player may enter progression during the simulation step above;
+    // close the input boundary before camera/weapon presentation this frame.
+    this.syncProgressionInputContext();
     let renderTank: TankState | null = null;
-    const frame = this.presenter.remoteFrame;
+    const frame = this.suppressPresentationFramesForTest ? null : this.presenter.remoteFrame;
     if (frame) {
       if (this.session.kind === 'singlePlayer') {
-        renderTank = frame.tank;
+        renderTank = interpolateSinglePlayerTank(
+          this.singlePlayerPreviousTank,
+          frame.tank,
+          this.singlePlayerAcc / SINGLE_PLAYER_STEP,
+        );
       } else {
         if (this.prediction.isPredictionDisabled()) {
           // Wrong-ground / pathological divergence fallback: render the
@@ -623,12 +681,16 @@ export class GameClient {
         }
       }
     }
+    if (renderTank) this.lastCameraTank = { ...renderTank };
+    this.updateCameraAndAim(renderTank ?? this.lastCameraTank, dtRaw);
     if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
     if (this.presenter.latest) {
-      this.onFrame?.(this.presenter.latest);
-      this.updateProgressionOverlay();
       const latest = this.presenter.latest;
+      this.onFrame?.(latest);
+      this.updateProgressionOverlay();
+      this.relicInventoryRail?.update(latest);
       this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
+      this.relicChestRenderer?.sync(latest.chests, latest.time, Date.now(), dtRaw);
     }
 
     this.pollGunnerActions();
@@ -663,6 +725,67 @@ export class GameClient {
     this.renderFrame();
   };
 
+  /**
+   * RAF owns pointer deltas, camera pose, world aim, and reticle projection.
+   * A skipped network/simulation frame therefore cannot batch mouse input or
+   * interrupt local camera motion; the last rendered tank is a stable anchor.
+   */
+  private updateCameraAndAim(renderTank: TankState | null, dtRaw: number): void {
+    const mouse = this.input.consumeMouse();
+    if (!this.inputEnabled) return;
+    if (!renderTank) {
+      this.cameras.applyMouseDelta(mouse);
+      return;
+    }
+
+    const pos = new THREE.Vector3(renderTank.x, renderTank.y, renderTank.z);
+    const speedRatio = Math.min(1, Math.hypot(renderTank.vx, renderTank.vz) / 18);
+    const cameraQuery = this.world.arena.cameraQuery;
+    this.cameras.update(
+      dtRaw,
+      pos,
+      renderTank.yaw,
+      this.session.kind === 'singlePlayer' || this.role === 'driver' ? speedRatio : 0,
+      cameraQuery,
+      mouse,
+    );
+
+    if (this.session.kind !== 'singlePlayer' && this.role !== 'gunner') return;
+
+    const groundHeightAt = (x: number, z: number) => this.prediction.groundHeightAt(x, z);
+    const aim = this.cameras.computeAim(this.cameras.activeCam.camera, cameraQuery, groundHeightAt);
+    const limits = this.prediction.turretPitchLimits();
+    const solved = this.cameras.resolveWeaponAim(
+      { x: renderTank.x, y: renderTank.y, z: renderTank.z, yaw: renderTank.yaw },
+      this.tankRig.rigDefinition,
+      aim,
+      limits,
+    );
+    const worldYaw = renderTank.yaw + solved.desiredYawLocal;
+    this.prediction.updateTurretTarget(worldYaw, solved.desiredPitch, renderTank.yaw, dtRaw);
+    const predictedTurret = this.prediction.getTurretSpaces();
+    const weapon = this.prediction.movementRules()?.weapon;
+    this.onTrajectoryReticle?.(
+      projectTrajectoryReticle({
+        camera: this.cameras.activeCam.camera,
+        renderWidth: this.world.renderer.domElement.clientWidth || window.innerWidth,
+        renderHeight: this.world.renderer.domElement.clientHeight || window.innerHeight,
+        tank: { x: renderTank.x, y: renderTank.y, z: renderTank.z, yaw: renderTank.yaw },
+        turretLocalYaw: predictedTurret.predictedYawLocal,
+        turretPitch: predictedTurret.predictedPitch,
+        rig: this.tankRig.rigDefinition,
+        cameraQuery,
+        groundHeightAt,
+        projectile: {
+          speed: weapon?.cannonSpeed ?? BASE_CONFIG.weapons.cannonSpeed,
+          gravity: weapon?.cannonGravity ?? BASE_CONFIG.weapons.cannonGravity,
+          life: weapon?.cannonLife ?? BASE_CONFIG.weapons.cannonLife,
+        },
+        desiredPoint: aim,
+      }),
+    );
+  }
+
   private renderFrame(): void {
     this.cameras.applyShake();
     const renderT0 = performance.now();
@@ -671,7 +794,7 @@ export class GameClient {
   }
 
   private sendInputs(): void {
-    if (!this.onSendInput || this.suppressAutoInput) return;
+    if (!this.onSendInput || this.suppressAutoInput || this.progressionInput.active()) return;
     if (this.role === 'driver') {
       // Re-sample at send time: a key pressed since the frame sample must
       // still land in this sequenced frame (never lost between sends).
@@ -694,7 +817,7 @@ export class GameClient {
   }
 
   private sampleDriverInput(): { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } {
-    if (!this.inputEnabled) return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
+    if (!this.inputEnabled || this.progressionInput.active()) return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     return {
       throttle: this.keyAxis('forward') - this.keyAxis('back'),
       steer: this.keyAxis('right') - this.keyAxis('left'),
@@ -767,6 +890,7 @@ export class GameClient {
   }
 
   applySinglePlayerWeapons(dt: number): void {
+    if (this.progressionInput.active()) return;
     const m = this.singlePlayerMatch!;
     const state = m.state;
     if (state.tank.deadT > 0) return;
@@ -810,6 +934,11 @@ export class GameClient {
     }
   }
 
+  /** Test hook for proving RAF camera ownership through missing presentation frames. */
+  setPresentationFramesSuppressedForTest(suppressed: boolean): void {
+    this.suppressPresentationFramesForTest = suppressed;
+  }
+
   getCanvas(): HTMLCanvasElement {
     return this.world.renderer.domElement;
   }
@@ -835,7 +964,7 @@ export class GameClient {
    * between 50 ms send frames.
    */
   private pollGunnerActions(): void {
-    if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
+    if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput || this.progressionInput.active()) return;
     const latest = this.presenter.latest;
     const mg = this.mouseDown('primary');
     const secondary = this.mouseDown('secondary');
@@ -937,16 +1066,48 @@ export class GameClient {
     }
   }
 
-  /** Request skip/acknowledgement of the shared relic reveal (idempotent). */
-  skipRelicPresentation(): void {
+  /** Acknowledge the shared relic reveal (idempotent per connected player). */
+  acknowledgeRelicPresentation(): void {
     const latest = this.presenter.latest;
     const selection = latest?.teamProgression.activeSelection;
     if (!selection || selection.kind !== 'relic' || latest?.matchFlow !== 'relicSelection') return;
     const acquisitionSequence = selection.relicResult?.acquisitionSequence ?? 0;
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.skipProgressionRelic(acquisitionSequence, performance.now());
+      this.singlePlayerMatch.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], Date.now());
     } else if (this.onSendInput) {
-      this.onSendInput({ t: 'skipRelicPresentation', acquisitionSequence });
+      this.onSendInput({ t: 'acknowledgeRelic', acquisitionSequence });
+    }
+  }
+
+  /** Legacy automation facade retained while tests migrate to acknowledge. */
+  skipRelicPresentation(): void {
+    this.acknowledgeRelicPresentation();
+  }
+
+  private syncProgressionInputContext(): void {
+    const latest = this.presenter.latest;
+    const selection = latest?.teamProgression.activeSelection;
+    const previousActive = this.progressionInput.active();
+    if (latest?.matchFlow === 'upgradeSelection' && selection?.kind === 'upgrade') {
+      this.progressionInput.sync('upgrade', selection.offerId);
+    } else if (latest?.matchFlow === 'relicOpening') {
+      const chest = latest.chests.find((entry) => entry.lifecycle === 'opening');
+      this.progressionInput.sync('relic', `opening:${chest?.id ?? 'unknown'}`);
+      // Opening has no UI action; discard click/Space edges so they cannot
+      // skip the newly-created reveal on the following frame.
+      this.input.consumeProgressionInput();
+    } else if (latest?.matchFlow === 'relicSelection' && selection?.kind === 'relic') {
+      this.progressionInput.sync('relic', String(selection.relicResult?.acquisitionSequence ?? selection.offerId));
+    } else {
+      this.progressionInput.sync('none');
+    }
+    if (!previousActive && this.progressionInput.active()) {
+      this.mgDown = false;
+      this.secondaryDown = false;
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+      this.input.clearDriverEdges();
+      this.stopChargeSound();
     }
   }
 
@@ -954,7 +1115,8 @@ export class GameClient {
     const latest = this.presenter.latest;
     if (!latest || !this.progressionOverlay) return;
     const role = this.session.kind === 'singlePlayer' ? 'single' : this.role;
-    this.progressionOverlay.update(latest, role, performance.now());
+    this.progressionOverlay.update(latest, role, Date.now());
+    this.progressionOverlay.handleInput(this.input.consumeProgressionInput());
     let debug = '';
     try {
       const dbg = this.singlePlayerMatch
@@ -1026,6 +1188,10 @@ export class GameClient {
     this.registry.reset();
     this.progressionOverlay?.dispose();
     this.progressionOverlay = null;
+    this.relicInventoryRail?.dispose();
+    this.relicInventoryRail = null;
+    this.relicChestRenderer?.dispose();
+    this.relicChestRenderer = null;
     this.world.dispose();
   }
 }

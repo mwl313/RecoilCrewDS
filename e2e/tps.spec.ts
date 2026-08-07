@@ -1,4 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  TPS_CAMERA_CONTROL_MAX_PITCH,
+  mapLookPitchToBoomPitch,
+} from '../src/client/tpsCamera';
 
 async function enter(page: Page) {
   await page.goto('/?test=1');
@@ -45,7 +49,17 @@ function cameraState(page: Page) {
 }
 
 function turretSpaces(page: Page) {
-  return page.evaluate(() => (window as unknown as { __recoil: { turretSpaces(): { desiredYawLocal: number; predictedYawLocal: number; authoritativeYawLocal: number } } }).__recoil.turretSpaces());
+  return page.evaluate(() => (window as unknown as {
+    __recoil: {
+      turretSpaces(): {
+        desiredYawLocal: number;
+        predictedYawLocal: number;
+        authoritativeYawLocal: number;
+        desiredPitch: number;
+        predictedPitch: number;
+      };
+    };
+  }).__recoil.turretSpaces());
 }
 
 test('Driver mouse right looks right and mouse up looks up (non-inverted)', async ({ browser }) => {
@@ -83,8 +97,188 @@ test('Gunner mouse uses the same non-inverted directions', async ({ browser }) =
   });
   await b.waitForTimeout(100);
   expect((await cameraState(b)).yaw - y0).toBeGreaterThan(0.2);
+
+  await b.evaluate(() => {
+    const canvas = document.querySelector('canvas#game-canvas');
+    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: 20_000 }));
+  });
+  await b.waitForFunction((limit) => {
+    const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
+    return Math.abs(state.pitch + limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
+  const lockedCamera = await cameraState(b);
+  const lockedTurret = await turretSpaces(b);
+  expect(lockedTurret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
+  expect(lockedTurret.predictedPitch).toBeCloseTo(-Math.PI / 2, 4);
+
+  await b.evaluate(() => {
+    const canvas = document.querySelector('canvas#game-canvas');
+    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 1000, movementY: 0 }));
+  });
+  await b.waitForTimeout(100);
+  expect((await cameraState(b)).yaw).toBeCloseTo(lockedCamera.yaw, 6);
   await ctxA.close();
   await ctxB.close();
+});
+
+test('Single Player vertical lock keeps the camera and turret stable at both poles', async ({ page }) => {
+  await enter(page);
+  await page.click('#screen-main [data-act="single"]');
+  await page.waitForFunction(
+    () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running',
+    undefined,
+    { timeout: 20000 },
+  );
+  await lockPointer(page);
+
+  const move = (x: number, y: number) => page.evaluate(({ x, y }) => {
+    const canvas = document.querySelector('canvas#game-canvas');
+    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: x, movementY: y }));
+  }, { x, y });
+  const fullState = () => page.evaluate(() => {
+    const api = (window as unknown as {
+      __recoil: {
+        cameraState(): {
+          yaw: number;
+          pitch: number;
+          follow: { boomPitch: number; lookPitch: number; cameraUpdateCount: number };
+          aim: {
+            resolvedWorldYaw: number;
+            resolvedPitch: number;
+            horizontalRatio: number;
+            poleActive: boolean;
+            verticalLocked: boolean;
+          };
+        };
+        turretSpaces(): { desiredYawLocal: number; desiredPitch: number; predictedPitch: number };
+      };
+    }).__recoil;
+    return { camera: api.cameraState(), turret: api.turretSpaces() };
+  });
+
+  await move(0, 20_000);
+  await page.waitForFunction((limit) => {
+    const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
+    return Math.abs(state.pitch + limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
+  const down = await fullState();
+  expect(down.camera.pitch).toBeCloseTo(-TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(down.camera.follow.lookPitch).toBeCloseTo(-TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(down.camera.follow.boomPitch).toBeCloseTo(
+    mapLookPitchToBoomPitch(-TPS_CAMERA_CONTROL_MAX_PITCH),
+    4,
+  );
+  expect(down.turret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
+  expect(down.turret.predictedPitch).toBeCloseTo(-Math.PI / 2, 4);
+  expect(down.camera.aim.poleActive).toBe(true);
+  expect(down.camera.aim.verticalLocked).toBe(true);
+
+  const yawBefore = down.camera.yaw;
+  const updatesBefore = down.camera.follow.cameraUpdateCount;
+  await move(-900, 0);
+  await page.waitForTimeout(100);
+  const rotated = await fullState();
+  expect(Math.abs(rotated.camera.yaw - yawBefore)).toBeLessThan(1e-6);
+  expect(rotated.camera.follow.cameraUpdateCount).toBeGreaterThan(updatesBefore);
+  expect(rotated.camera.aim.resolvedWorldYaw).toBeCloseTo(down.camera.aim.resolvedWorldYaw, 6);
+  expect(rotated.turret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
+
+  await move(0, -40_000);
+  await page.waitForFunction((limit) => {
+    const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
+    return Math.abs(state.pitch - limit) < 1e-5;
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
+  const up = await fullState();
+  expect(up.camera.pitch).toBeCloseTo(TPS_CAMERA_CONTROL_MAX_PITCH, 5);
+  expect(up.camera.follow.boomPitch).toBeCloseTo(
+    mapLookPitchToBoomPitch(TPS_CAMERA_CONTROL_MAX_PITCH),
+    4,
+  );
+  expect(up.turret.desiredPitch).toBeCloseTo(Math.PI / 2, 4);
+  expect(up.turret.predictedPitch).toBeCloseTo(Math.PI / 2, 4);
+
+  const reticle = await page.locator('#crosshair').boundingBox();
+  expect(reticle).not.toBeNull();
+  expect(Number.isFinite(reticle!.x + reticle!.y)).toBe(true);
+  await expect(page.locator('#crosshair')).toHaveClass(/vertical-lock/);
+});
+
+test('camera and terrain aim queries stay bounded across gameplay RAFs', async ({ page }) => {
+  await enter(page);
+  await page.click('#screen-main [data-act="single"]');
+  await page.waitForFunction(
+    () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running',
+    undefined,
+    { timeout: 20000 },
+  );
+  const samples = await page.evaluate(async () => {
+    const api = (window as unknown as {
+      __recoil: { netcodeMetrics(): { cameraQueryMs: number; aimQueryMs: number } };
+    }).__recoil;
+    const camera: number[] = [];
+    const aim: number[] = [];
+    await new Promise<void>((resolve) => {
+      let frames = 0;
+      const sample = () => {
+        const metrics = api.netcodeMetrics();
+        camera.push(metrics.cameraQueryMs);
+        aim.push(metrics.aimQueryMs);
+        if (++frames >= 120) resolve();
+        else requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    const percentile95 = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length * 0.95)];
+    return {
+      cameraMax: Math.max(...camera),
+      cameraP95: percentile95(camera),
+      aimMax: Math.max(...aim),
+      aimP95: percentile95(aim),
+    };
+  });
+  console.log(`[camera-perf] camera p95=${samples.cameraP95.toFixed(3)}ms max=${samples.cameraMax.toFixed(3)}ms; aim p95=${samples.aimP95.toFixed(3)}ms max=${samples.aimMax.toFixed(3)}ms`);
+  expect(samples.cameraP95).toBeLessThan(8);
+  expect(samples.aimP95).toBeLessThan(8);
+});
+
+test('mouse input remains per-RAF while presentation frames are missing', async ({ page }) => {
+  await enter(page);
+  await page.click('#screen-main [data-act="single"]');
+  await page.waitForFunction(
+    () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running',
+    undefined,
+    { timeout: 20000 },
+  );
+  await lockPointer(page);
+  const before = await page.evaluate(() => {
+    const api = (window as unknown as {
+      __recoil: { cameraState(): { yaw: number; follow: { cameraUpdateCount: number } }; suppressPresentationFrames(v: boolean): void };
+    }).__recoil;
+    api.suppressPresentationFrames(true);
+    return api.cameraState();
+  });
+  await page.evaluate(() => {
+    document.querySelector('canvas#game-canvas')?.dispatchEvent(
+      new MouseEvent('mousemove', { movementX: 320, movementY: 0 }),
+    );
+  });
+  await page.waitForTimeout(120);
+  const during = await page.evaluate(() => {
+    const api = (window as unknown as {
+      __recoil: {
+        cameraState(): { yaw: number; follow: { cameraUpdateCount: number } };
+        inputState(): { pointer: { accumulatedDx: number; accumulatedDy: number } };
+        suppressPresentationFrames(v: boolean): void;
+      };
+    }).__recoil;
+    const result = { camera: api.cameraState(), input: api.inputState() };
+    api.suppressPresentationFrames(false);
+    return result;
+  });
+  expect(during.camera.follow.cameraUpdateCount).toBeGreaterThan(before.follow.cameraUpdateCount);
+  expect(during.camera.yaw - before.yaw).toBeCloseTo(-320 * 0.0024, 3);
+  expect(during.input.pointer.accumulatedDx).toBe(0);
+  expect(during.input.pointer.accumulatedDy).toBe(0);
 });
 
 test('Driver A/D are chassis-left/right forward and reverse, independent of camera', async ({ browser }) => {

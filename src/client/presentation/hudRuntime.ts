@@ -80,11 +80,12 @@ export class HudRuntime {
   }
 
   /** Move the viewport-level gameplay reticle to the predicted shell point. */
-  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean): void {
+  setTrajectoryReticle(x: number, y: number, visible: boolean, blocked: boolean, verticalLocked = false): void {
     const crosshair = this.runtime.getNode('crosshair')?.element;
     if (!crosshair) return;
     crosshair.classList.add('reticle');
     crosshair.classList.toggle('blocked', blocked);
+    crosshair.classList.toggle('vertical-lock', verticalLocked);
     if (!visible || !Number.isFinite(x) || !Number.isFinite(y)) {
       crosshair.style.visibility = 'hidden';
       return;

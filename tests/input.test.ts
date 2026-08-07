@@ -76,6 +76,70 @@ afterEach(() => {
 });
 
 describe('InputManager', () => {
+  it('retains pointer lock while entering and leaving progression contexts', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    input.setContext('progressionUpgrade');
+    expect(input.locked).toBe(true);
+    expect(documentTarget.pointerLockElement).not.toBeNull();
+    input.setContext('gameplay');
+    expect(input.locked).toBe(true);
+  });
+
+  it('maps 1/2/3, arrows, A-D, Enter and Space to reward-only edges', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    input.setContext('progressionUpgrade');
+    windowTarget.dispatch('keydown', keyEvent('Digit1'));
+    windowTarget.dispatch('keydown', keyEvent('Numpad2'));
+    windowTarget.dispatch('keydown', keyEvent('Digit3'));
+    windowTarget.dispatch('keydown', keyEvent('ArrowLeft'));
+    windowTarget.dispatch('keydown', keyEvent('KeyD'));
+    windowTarget.dispatch('keydown', keyEvent('Enter'));
+    expect(input.consumeProgressionInput().actions).toEqual([
+      { kind: 'direct', index: 0 }, { kind: 'direct', index: 1 }, { kind: 'direct', index: 2 },
+      { kind: 'move', direction: -1 }, { kind: 'move', direction: 1 }, { kind: 'confirm' },
+    ]);
+    expect(input.key('left')).toBe(false);
+    expect(input.edge('jump')).toBe(false);
+  });
+
+  it('routes locked relative mouse and left click to progression without gameplay leakage', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    input.setContext('progressionUpgrade');
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 120, movementY: -90 }));
+    canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
+    expect(input.consumeProgressionInput()).toEqual({ dx: 120, actions: [{ kind: 'confirm' }] });
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.button('primary')).toBe(false);
+  });
+
+  it('does not acquire pointer lock from an unlocked progression click', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    input.setContext('progressionUpgrade');
+    canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
+    expect(canvas.requestPointerLockCalls).toBe(0);
+    expect(input.consumeProgressionInput().actions).toEqual([{ kind: 'confirm' }]);
+  });
+
+  it('clears selection click, mouse delta, and relic Space before gameplay resumes', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    input.setContext('progressionRelic');
+    windowTarget.dispatch('keydown', keyEvent('Space'));
+    canvas.dispatch('mousedown', mouseEvent({ button: 0 }));
+    input.setContext('gameplay');
+    expect(input.consumeProgressionInput()).toEqual({ dx: 0, actions: [] });
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.edge('jump')).toBe(false);
+    expect(input.button('primary')).toBe(false);
+  });
+
   it('maps keyboard events to semantic key names', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);
@@ -201,6 +265,36 @@ describe('InputManager', () => {
     const second = input.consumeMouse();
     expect(second.dx).toBe(0);
     expect(second.dy).toBe(0);
+  });
+
+  it('preserves a large finite flick without capping or smoothing', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 1800, movementY: -950 }));
+    expect(input.consumeMouse()).toEqual({ dx: 1800, dy: -950 });
+  });
+
+  it('rejects non-finite mouse movement and exposes the rejection', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: Number.NaN, movementY: 5 }));
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 4, movementY: Number.POSITIVE_INFINITY }));
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.debugState().pointer.rejectedEvents).toBe(2);
+  });
+
+  it('zeros accumulated deltas on pointer-lock loss and reacquisition', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 80, movementY: -40 }));
+    documentTarget.exitPointerLock();
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    canvas.requestPointerLock();
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.button('primary')).toBe(false);
   });
 
   it('records mouse buttons only while pointer is locked', () => {

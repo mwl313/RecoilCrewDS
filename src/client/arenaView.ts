@@ -317,6 +317,22 @@ export class ArenaView {
     }
   }
 
+  private buildUrbanRoadRamp(ramp: import('../shared/arena').RampDef): THREE.Object3D {
+    const group = new THREE.Group();
+    const road = this.assets.model(ramp.assetId!);
+    const slopeLength = Math.hypot(ramp.d, ramp.rise);
+    road.scale.set(ramp.w / 8, 1, slopeLength / 8);
+    road.rotation.x = -Math.atan2(ramp.rise, ramp.d);
+    road.traverse((o) => {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    group.add(road);
+    group.position.set(ramp.x, ramp.baseY + ramp.rise / 2 + 0.02, ramp.z);
+    group.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+    return group;
+  }
+
   private buildObstacle(o: Obstacle) {
     const { x, z, w, d, h } = o;
     let mesh: THREE.Object3D;
@@ -450,7 +466,12 @@ class BoxAround extends THREE.Box3 {
   }
 }
 
-export function rayAabbT(origin: THREE.Vector3, dir: THREE.Vector3, box: THREE.Box3): number | null {
+export function rayAabbT(
+  origin: THREE.Vector3,
+  dir: THREE.Vector3,
+  box: THREE.Box3,
+  exitWhenInside = false,
+): number | null {
   let tmin = 0;
   let tmax = 1e9;
   for (let i = 0; i < 3; i++) {
@@ -469,7 +490,8 @@ export function rayAabbT(origin: THREE.Vector3, dir: THREE.Vector3, box: THREE.B
     tmax = Math.min(tmax, t2);
     if (tmin > tmax) return null;
   }
-  return tmin > 0 ? tmin : null;
+  if (tmin > 0) return tmin;
+  return exitWhenInside && tmax > 0 ? tmax : null;
 }
 
 export function cameraRayHit(colliders: Collider[], origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): number {

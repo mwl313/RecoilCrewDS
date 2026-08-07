@@ -24,6 +24,8 @@ export interface TrajectoryReticleResult {
   y: number;
   visible: boolean;
   blocked: boolean;
+  /** Cannon is in the exact vertical assist detent. */
+  verticalLocked: boolean;
   worldPoint: Vec3;
 }
 
@@ -48,6 +50,7 @@ export interface TrajectoryReticleInput {
 const FALLBACK_RANGE = 90;
 const OFFSCREEN_MARGIN = 1.2;
 const TRAJECTORY_STEP = 1 / 60;
+const COLLIDER_HIT_EPSILON = 1e-4;
 
 const scratchOrigin = new THREE.Vector3();
 const scratchDir = new THREE.Vector3();
@@ -65,11 +68,14 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
     y: 0,
     visible: false,
     blocked: false,
+    verticalLocked: false,
     worldPoint: { x: 0, y: 0, z: 0 },
   };
+  out.verticalLocked = Math.abs(Math.abs(input.turretPitch) - Math.PI / 2) < 1e-4;
   if (input.renderWidth <= 0 || input.renderHeight <= 0) {
     out.visible = false;
     out.blocked = false;
+    out.verticalLocked = false;
     return out;
   }
   const mount = computeWeaponMountWorldPose(input.tank, { yaw: input.turretLocalYaw, pitch: input.turretPitch }, input.rig);
@@ -89,7 +95,7 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
   let range = FALLBACK_RANGE;
   const aimDelta = scratchAimDelta.set(input.desiredPoint.x - origin.x, input.desiredPoint.y - origin.y, input.desiredPoint.z - origin.z);
   const desiredRange = aimDelta.dot(dir);
-  if (Number.isFinite(desiredRange) && desiredRange > 1) range = desiredRange;
+  if (Number.isFinite(desiredRange) && desiredRange > COLLIDER_HIT_EPSILON) range = desiredRange;
   const speed = Math.max(0.001, input.projectile.speed);
   const gravity = Math.max(0, input.projectile.gravity);
   const duration = Math.min(Math.max(TRAJECTORY_STEP, input.projectile.life), range / speed);
@@ -108,8 +114,12 @@ export function projectTrajectoryReticle(input: TrajectoryReticleInput): Traject
       const candidates = input.cameraQuery.query(scratchQueryCenter, segmentLength + 1);
       let nearest = segmentLength;
       for (const candidate of candidates) {
-        const hit = rayAabbT(world, segment, candidate.box);
-        if (hit !== null && hit > 0.01 && hit < nearest) nearest = hit;
+        if (candidate.box.containsPoint(world)) {
+          nearest = 0;
+          break;
+        }
+        const hit = rayAabbT(world, segment, candidate.box, true);
+        if (hit !== null && hit > COLLIDER_HIT_EPSILON && hit < nearest) nearest = hit;
       }
       if (nearest < segmentLength) {
         world.addScaledVector(segment, nearest);

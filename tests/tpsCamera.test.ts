@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import {
   TpsCameraController,
+  TPS_CAMERA_CONTROL_MAX_PITCH,
+  TPS_CAMERA_CONTROL_MIN_PITCH,
+  TPS_CAMERA_YAW_ATTENUATION_END_PITCH,
+  cameraPoleYawInputScale,
   computeWorldAim,
   localYawToWorld,
+  mapLookPitchToBoomPitch,
   worldYawToLocal,
   type TpsCameraTuning,
 } from '../src/client/tpsCamera';
@@ -20,11 +25,14 @@ const TUNING: TpsCameraTuning = {
   anchorHeight: 1.35,
   minPitch: (-35 * Math.PI) / 180,
   maxPitch: (55 * Math.PI) / 180,
+  boomPoleStartPitch: (50 * Math.PI) / 180,
+  boomMaxPitch: (65 * Math.PI) / 180,
   sensitivityX: 0.0024,
   sensitivityY: 0.0022,
   invertMouseX: false,
   invertMouseY: false,
   collisionPullInSeconds: 0.02,
+  collisionMaxPullInSpeed: 32,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
   horizontalFollowSeconds: 0.16,
@@ -73,6 +81,24 @@ describe('TPS camera direction conventions', () => {
     expect(cam.pitch).toBeCloseTo(TUNING.minPitch);
   });
 
+  it('smoothly removes horizontal camera spin at a vertical lock', () => {
+    const cam = new TpsCameraController({
+      ...TUNING,
+      minPitch: TPS_CAMERA_CONTROL_MIN_PITCH,
+      maxPitch: TPS_CAMERA_CONTROL_MAX_PITCH,
+    });
+    cam.pitch = -70 * Math.PI / 180;
+    cam.applyMouseDelta(100, 0);
+    expect(cam.yaw).toBeCloseTo(-100 * TUNING.sensitivityX, 6);
+
+    const yawBeforeLock = cam.yaw;
+    cam.pitch = -TPS_CAMERA_YAW_ATTENUATION_END_PITCH;
+    cam.applyMouseDelta(1000, 0);
+    expect(cameraPoleYawInputScale(cam.pitch)).toBe(0);
+    expect(cam.getInputDiagnostics().yawScale).toBe(0);
+    expect(cam.yaw).toBe(yawBeforeLock);
+  });
+
   it('gunner tuning can aim near-vertical for cannon takeoffs', () => {
     const gunner = new TpsCameraController({
       ...TUNING,
@@ -85,22 +111,79 @@ describe('TPS camera direction conventions', () => {
     expect(gunner.pitch).toBeCloseTo(Math.PI / 2, 6);
   });
 
-  it('single player and multiplayer Gunner share the full vertical aim range', () => {
+  it('Single Player, Driver, and Gunner share identical camera controls and placement', () => {
     const cm = new CameraManager();
-    expect(cm.gunnerCam.minPitch).toBeCloseTo(-Math.PI / 2, 6);
-    expect(cm.gunnerCam.maxPitch).toBeCloseTo(Math.PI / 2, 6);
-    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
-    cm.setSinglePlayerMode(true);
-    expect(cm.driverCam.minPitch).toBeCloseTo(cm.gunnerCam.minPitch, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo(cm.gunnerCam.maxPitch, 6);
-    cm.setSinglePlayerMode(false);
-    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
+    const follow = new THREE.Vector3(4, 2, -3);
+
+    for (const singlePlayer of [true, false]) {
+      cm.setSinglePlayerMode(singlePlayer);
+      expect(cm.driverCam.minPitch).toBeCloseTo(TPS_CAMERA_CONTROL_MIN_PITCH, 6);
+      expect(cm.driverCam.maxPitch).toBeCloseTo(TPS_CAMERA_CONTROL_MAX_PITCH, 6);
+      expect(cm.gunnerCam.minPitch).toBeCloseTo(cm.driverCam.minPitch, 6);
+      expect(cm.gunnerCam.maxPitch).toBeCloseTo(cm.driverCam.maxPitch, 6);
+    }
+
+    for (const camera of [cm.driverCam, cm.gunnerCam]) {
+      camera.setFollowPose(follow, 0.4);
+      camera.applyMouseDelta(90, -35);
+      camera.update(1 / 60, [], 0.7);
+    }
+
+    expect(cm.driverCam.yaw).toBeCloseTo(cm.gunnerCam.yaw, 9);
+    expect(cm.driverCam.pitch).toBeCloseTo(cm.gunnerCam.pitch, 9);
+    expect(cm.driverCam.camera.fov).toBeCloseTo(cm.gunnerCam.camera.fov, 9);
+    expect(cm.driverCam.camera.position.distanceTo(cm.gunnerCam.camera.position)).toBeLessThan(1e-9);
+    expect(cm.driverCam.camera.quaternion.angleTo(cm.gunnerCam.camera.quaternion)).toBeLessThan(1e-9);
+  });
+
+  it('uses continuous deterministic shake instead of random frame displacement', () => {
+    const a = new CameraManager();
+    const b = new CameraManager();
+    const follow = new THREE.Vector3(0, 0, 0);
+    a.addImpulse(1.6);
+    b.addImpulse(1.6);
+    let last = new THREE.Vector3();
+    let maxStep = 0;
+    for (let i = 0; i < 30; i++) {
+      for (const camera of [a, b]) {
+        camera.tickShake(1 / 60);
+        camera.update(1 / 60, follow, 0, 0, [], { dx: 0, dy: 0 });
+        camera.applyShake();
+      }
+      expect(a.activeCam.camera.position.distanceTo(b.activeCam.camera.position)).toBeLessThan(1e-9);
+      if (i > 0) maxStep = Math.max(maxStep, last.distanceTo(a.activeCam.camera.position));
+      last = a.activeCam.camera.position.clone();
+    }
+    expect(maxStep).toBeLessThan(0.25);
   });
 });
 
 describe('TPS camera rig placement', () => {
+  it('maps the physical boom continuously and monotonically away from the look pole', () => {
+    let previous = mapLookPitchToBoomPitch(0);
+    for (let degree = 0.1; degree <= 90; degree += 0.1) {
+      const current = mapLookPitchToBoomPitch(degree * Math.PI / 180);
+      expect(current).toBeGreaterThanOrEqual(previous - 1e-9);
+      expect(current - previous).toBeLessThan(0.003);
+      previous = current;
+    }
+    expect(mapLookPitchToBoomPitch(45 * Math.PI / 180)).toBeCloseTo(45 * Math.PI / 180, 8);
+    expect(mapLookPitchToBoomPitch(Math.PI / 2)).toBeCloseTo(65 * Math.PI / 180, 8);
+    expect(mapLookPitchToBoomPitch(-Math.PI / 2)).toBeCloseTo(-65 * Math.PI / 180, 8);
+  });
+
+  it('keeps exact vertical look direction while the physical boom remains pole-safe', () => {
+    const cam = new TpsCameraController({ ...TUNING, minPitch: -Math.PI / 2, maxPitch: Math.PI / 2 });
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.pitch = -Math.PI / 2;
+    cam.update(1 / 60, []);
+    const direction = new THREE.Vector3();
+    cam.camera.getWorldDirection(direction);
+    expect(direction.y).toBeCloseTo(-1, 8);
+    expect(cam.getFollowDiagnostics().boomPitch).toBeCloseTo(-65 * Math.PI / 180, 8);
+    expect(cam.camera.position.distanceTo(new THREE.Vector3(0, 1.35, 0))).toBeGreaterThan(1);
+  });
+
   it('places the camera behind the chassis and looks along view-forward', () => {
     const cam = new TpsCameraController(TUNING);
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
@@ -134,8 +217,52 @@ describe('TPS camera rig placement', () => {
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
     const colliders = [box(-5, 0, -4, 5, 4, -1)];
     cam.update(1 / 30, colliders);
-    expect(cam.camera.position.z).toBeGreaterThan(-2.0);
-    expect(cam.camera.position.z).toBeLessThan(-0.8);
+    const expandedWall = colliders[0].box.clone().expandByScalar(TUNING.cameraRadius);
+    expect(expandedWall.containsPoint(cam.camera.position)).toBe(false);
+    expect(cam.camera.position.z).toBeGreaterThan(expandedWall.max.z);
+    expect(cam.camera.position.z).toBeLessThan(0);
+  });
+
+  it('bounds one-frame boom pull-in when a collider enters the camera path', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    const before = cam.getFollowDiagnostics().distance;
+    cam.update(1 / 60, [box(-5, 0, -4, 5, 4, -1)]);
+    const after = cam.getFollowDiagnostics().distance;
+    expect(before - after).toBeGreaterThan(0);
+    expect(before - after).toBeLessThanOrEqual(TUNING.collisionMaxPullInSpeed / 60 + 1e-6);
+  });
+
+  it('bypasses pull-in damping only when it would leave the camera embedded', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    const yawBefore = cam.yaw;
+    const pitchBefore = cam.pitch;
+    const solid = box(-5, 0, -6, 5, 5, -1);
+
+    cam.update(1 / 60, [solid]);
+
+    const expandedSolid = solid.box.clone().expandByScalar(TUNING.cameraRadius);
+    expect(expandedSolid.containsPoint(cam.camera.position)).toBe(false);
+    expect(cam.getFollowDiagnostics().distance).toBeLessThan(TUNING.minimumDistance);
+    expect(cam.yaw).toBe(yawBefore);
+    expect(cam.pitch).toBe(pitchBefore);
+  });
+
+  it('uses normal outward damping after an emergency collision correction', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.update(1 / 60, [box(-5, 0, -6, 5, 5, -1)]);
+    const blockedDistance = cam.getFollowDiagnostics().distance;
+
+    cam.update(1 / 60, []);
+    const releasedDistance = cam.getFollowDiagnostics().distance;
+
+    expect(releasedDistance).toBeGreaterThan(blockedDistance);
+    expect(releasedDistance).toBeLessThan(TUNING.distance);
   });
 
   it('never places the camera below the floor, even at maximum upward pitch', () => {
@@ -232,6 +359,26 @@ describe('TPS camera rig placement', () => {
     expect(Math.abs(diagnostics.verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
     expect(Number.isFinite(cam.camera.position.length())).toBe(true);
   });
+
+  it('keeps the default camera rigidly attached in the ground plane', () => {
+    const cam = new TpsCameraController();
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.setFollowPose(new THREE.Vector3(1.2, 0, 2.4), 0);
+    cam.update(1 / 60, []);
+    expect(cam.getFollowDiagnostics().horizontalLag).toBe(0);
+  });
+
+  it('resets follow state across a teleport instead of flying through the arena', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.setFollowPose(new THREE.Vector3(40, 25, -30), 0);
+    cam.update(1 / 60, []);
+    const diagnostics = cam.getFollowDiagnostics();
+    expect(diagnostics.horizontalLag).toBe(0);
+    expect(diagnostics.verticalLag).toBe(0);
+  });
 });
 
 describe('gunner world aim and turret conversion', () => {
@@ -239,9 +386,66 @@ describe('gunner world aim and turret conversion', () => {
     const cam = new TpsCameraController(TUNING);
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
     cam.update(1 / 30, []);
-    const aim = computeWorldAim(cam.camera, [], 0);
+    const aim = computeWorldAim(cam.camera, [], () => 0);
     expect(aim.z).toBeGreaterThan(0);
     expect(aim.x).toBeCloseTo(cam.camera.position.x, 3);
+  });
+
+  it('uses the nearest actual terrain hit on flat and sloped ground', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 8, 0);
+    camera.lookAt(0, 0, 12);
+    camera.updateMatrixWorld(true);
+    const flat = computeWorldAim(camera, [], () => 0).clone();
+    expect(flat.y).toBeCloseTo(0, 5);
+    const slopeHeight = (_x: number, z: number) => z * 0.25;
+    const slope = computeWorldAim(camera, [], slopeHeight);
+    expect(slope.y).toBeCloseTo(slopeHeight(slope.x, slope.z), 5);
+    expect(slope.distanceTo(camera.position)).toBeLessThan(flat.distanceTo(camera.position));
+  });
+
+  it('orders collider and terrain hits by nearest positive distance', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 6, 0);
+    camera.lookAt(0, 0, 20);
+    camera.updateMatrixWorld(true);
+    const wall = [box(-2, 0, 4, 2, 8, 5)];
+    const diagnostics = { distance: 0, hitKind: 'range' as const, terrainMarchSteps: 0, terrainRefinementSteps: 0 };
+    const wallHit = computeWorldAim(camera, wall, () => 0, diagnostics).clone();
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(wallHit.z).toBeCloseTo(4, 2);
+    const roofBeforeWall = (x: number, z: number) => Math.abs(x) < 3 && z > 2.5 ? 5.5 : 0;
+    const terrainHit = computeWorldAim(camera, wall, roofBeforeWall, diagnostics);
+    expect(diagnostics.hitKind).toBe('terrain');
+    expect(terrainHit.z).toBeLessThan(wallHit.z);
+    expect(diagnostics.terrainMarchSteps).toBeLessThanOrEqual(64);
+    expect(diagnostics.terrainRefinementSteps).toBeLessThanOrEqual(10);
+  });
+
+  it('keeps a fully blocked close aim ray on the blocker instead of the range fallback', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 2, 0);
+    camera.lookAt(0, 2, 10);
+    camera.updateMatrixWorld(true);
+    const diagnostics = { distance: 0, hitKind: 'range' as const, terrainMarchSteps: 0, terrainRefinementSteps: 0 };
+
+    const nearHit = computeWorldAim(
+      camera,
+      [box(-2, 0, 0.05, 2, 4, 0.1)],
+      () => 0,
+      diagnostics,
+    ).clone();
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(nearHit.z).toBeCloseTo(0.05, 5);
+
+    const insideExit = computeWorldAim(
+      camera,
+      [box(-2, 0, -0.1, 2, 4, 0.1)],
+      () => 0,
+      diagnostics,
+    );
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(insideExit.z).toBeCloseTo(0.1, 5);
   });
 
   it('converts world yaw to chassis-local yaw and back (single chassis application)', () => {

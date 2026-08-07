@@ -77,6 +77,20 @@ describe('AssetService', () => {
     }
   });
 
+  it('applies catalog default transforms to file-backed project models', async () => {
+    const calls = [{ url: '/assets/models/items/relic-chest/relic-chest.glb' }];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => ({ ok: false })) as unknown as typeof fetch;
+    try {
+      const assets = await AssetService.load({ gltfLoaderFactory: fakeLoaderFactory(calls) });
+      await assets.preloadModels(['custom.item.relicChest']);
+      const chest = assets.model('custom.item.relicChest');
+      expect(chest.scale.toArray()).toEqual([2, 2, 2]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it('routes VFX/audio/UI themes/icons/camera impulses through presentation definitions', async () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () => ({ ok: false })) as unknown as typeof fetch;

@@ -19,24 +19,52 @@ export interface CameraCollisionQuery {
 
 const CAMERA_RADIUS = 0.3;
 const CELL = 16;
+const CLIFF_JOIN_TOLERANCE = 0.25;
+
+type CliffAxis = 'x' | 'z';
+
+/**
+ * Only long, axis-aligned cliff boxes are safe to merge. Near-square boxes
+ * usually represent diagonal/corner segments; folding those into a run would
+ * fill the empty inside of an L-shaped cliff with one large invisible AABB.
+ */
+function cliffAxis(box: THREE.Box3): CliffAxis | null {
+  const spanX = box.max.x - box.min.x;
+  const spanZ = box.max.z - box.min.z;
+  if (spanX > spanZ * 1.2) return 'x';
+  if (spanZ > spanX * 1.2) return 'z';
+  return null;
+}
+
+function close(a: number, b: number): boolean {
+  return Math.abs(a - b) <= CLIFF_JOIN_TOLERANCE;
+}
+
+function gapAlong(aMin: number, aMax: number, bMin: number, bMax: number): number {
+  return Math.max(0, Math.max(aMin, bMin) - Math.min(aMax, bMax));
+}
 
 export function expandCollider(c: Collider): THREE.Box3 {
   return c.box.clone().expandByScalar(CAMERA_RADIUS + 0.01);
 }
 
-/** Greedy merge of adjacent cliff boxes into longer camera proxies. */
+/** Merge only collinear cliff boxes into longer camera proxies. */
 export function mergeCliffProxies(cliffBoxes: Collider[]): Collider[] {
   const merged: Collider[] = [];
   for (const c of cliffBoxes) {
     const box = c.box.clone();
+    const axis = cliffAxis(box);
     let absorbed = false;
-    for (const m of merged) {
+    if (axis) for (const m of merged) {
+      if (cliffAxis(m.box) !== axis) continue;
       const yOverlap = box.min.y < m.box.max.y + 0.25 && box.max.y > m.box.min.y - 0.25;
-      const xGap = Math.max(0, Math.max(box.min.x, m.box.min.x) - Math.min(box.max.x, m.box.max.x));
-      const zGap = Math.max(0, Math.max(box.min.z, m.box.min.z) - Math.min(box.max.z, m.box.max.z));
-      const xOverlap = box.min.x < m.box.max.x && box.max.x > m.box.min.x;
-      const zOverlap = box.min.z < m.box.max.z && box.max.z > m.box.min.z;
-      if (yOverlap && ((xOverlap && zGap <= 0.25) || (zOverlap && xGap <= 0.25))) {
+      const sameBand = axis === 'x'
+        ? close(box.min.z, m.box.min.z) && close(box.max.z, m.box.max.z)
+        : close(box.min.x, m.box.min.x) && close(box.max.x, m.box.max.x);
+      const runGap = axis === 'x'
+        ? gapAlong(box.min.x, box.max.x, m.box.min.x, m.box.max.x)
+        : gapAlong(box.min.z, box.max.z, m.box.min.z, m.box.max.z);
+      if (yOverlap && sameBand && runGap <= CLIFF_JOIN_TOLERANCE) {
         m.box.min.min(box.min);
         m.box.max.max(box.max);
         absorbed = true;

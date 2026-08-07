@@ -30,7 +30,7 @@ describe('authoritative upgrade selection and pause (progression08)', () => {
     const m = makeMatch();
     m.systems.progression.addXp(20);
     const active = m.state.teamProgression.activeSelection!;
-    expect(m.checkProgressionTimeout(active.expiresAtWallMs + 10_000)).toBe(true);
+    expect(m.checkProgressionTimeout(active.expiresAtWallMs! + 10_000)).toBe(true);
     expect(m.state.teamProgression.activeSelection).toBeNull();
     expect(m.state.matchFlow).toBe('playing');
   });

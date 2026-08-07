@@ -4,5 +4,5 @@
   "description": "Prototype tuning only; final curve will be set after enemy design and population density are finished.",
   "thresholds": [20, 45, 75, 110, 150, 195, 245, 300],
   "overflowRule": "repeatLastDelta",
-  "maximumLevel": 10
+  "maximumLevel": 99
 }

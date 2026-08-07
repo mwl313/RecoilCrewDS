@@ -1,7 +1,7 @@
 import type { MatchRules } from '../rules/matchRules';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState, MatchState } from '../types';
-import type { ProgressionRewardEvent, ProgressionXpSource, RelicRollResult, TreasureChestState, UpgradeCard } from './progressionTypes';
+import type { ProgressionRewardEvent, ProgressionSelectionState, ProgressionXpSource, RelicRewardOffer, RelicRollResult, TreasureChestSource, TreasureChestState, UpgradeCard } from './progressionTypes';
 import type { SelectionRole } from './upgradeSelectionController';
 import { ProgressionRng } from './progressionRng';
 import { TeamExperienceSystem } from './teamExperienceSystem';
@@ -16,6 +16,12 @@ import { createProgressionTelemetry, type ProgressionTelemetry } from './progres
 import type { DamageSource } from '../damage/damageTypes';
 import { hash32 } from '../mapgen/seed';
 import type { LevelCurveDefinition, ProgressionDefinition } from '../content/schemas/progression';
+import type { RelicChestSpawnPolicyDefinition } from '../content/schemas/progression';
+import { RelicChestSpawnDirector } from './relicChestSpawnDirector';
+import { resolveRelicEffectParameters } from './relicEffectParameters';
+import { isCannonSelfDamage, isGunnerWeaponDamage } from '../damage/damageTypes';
+import { isWaveLeader, normalizedEnemyClass } from '../enemies/enemyClassification';
+import type { StageEvent } from '../stage/stageTypes';
 
 export interface ProgressionDebugState {
   flow: string;
@@ -34,6 +40,21 @@ export interface ProgressionDebugState {
   relicStacks: Record<string, number>;
   damageModifiers: RelicDamageModifiers;
   roadkill: { capability: boolean; speed: number; maxSpeed: number; ratio: number; threshold: number; lastDamage: number };
+  capabilitySources: Record<string, string[]>;
+  movement: {
+    grounded: boolean;
+    extraJumpsRemaining: number;
+    airDashReuseRemaining: number;
+    dashState: string;
+    phaseDashInvulnerable: boolean;
+  };
+  triggers: {
+    phoenixConsumed: boolean;
+    safeHavenLastWaveId: number | null;
+    activeEnemyDebuffs: number;
+    aerialMasterEligible: boolean;
+  };
+  lastRelicResult: { acquisitionSequence: number; relicId: string; duplicateConverted: boolean; replacementXp: number } | null;
 }
 
 /**
@@ -51,13 +72,23 @@ export class ProgressionSystem {
   private readonly inventory: RelicInventory;
   private readonly projector: RelicStatProjector;
   private readonly selection: UpgradeSelectionController;
-  private phaseDashUntil = -1;
+  private readonly chestPolicy: RelicChestSpawnPolicyDefinition | null;
+  private readonly chestSpawnDirector: RelicChestSpawnDirector | null;
+  private readonly worldChestSpawningEnabled: boolean;
+  private enemyChestRandom: () => number;
+  private periodicSpawnRemaining = 0;
+  private mapChestsSpawned = 0;
+  private terminalTelemetryCaptured = false;
+  private readonly clearedWaveTriggerIds = new Set<number>();
+  private readonly leaderChestRewardedWaveIds = new Set<number>();
+  private lastSafeHavenWaveId: number | null = null;
   private lastRoadkill: { speed: number; maxSpeed: number; ratio: number; damage: number } = { speed: 0, maxSpeed: 0, ratio: 0, damage: 0 };
 
   constructor(private readonly ctx: SystemContext) {
     const s = ctx.state;
     const rules = ctx.rules;
     this.rng = new ProgressionRng(hash32('progression', s.matchId));
+    this.enemyChestRandom = this.rng.stream('progression.enemyChestDrop');
     const curve = rules.levelCurveContent;
     const def = rules.progressionContent;
     const xpMult = () => {
@@ -76,6 +107,23 @@ export class ProgressionSystem {
     this.inventory = new RelicInventory(s, def ?? emptyDefinition(), (capabilityId, sourceId) =>
       ctx.capabilities.grant(capabilityId, sourceId),
     );
+    this.chestPolicy = rules.relicChestSpawnPolicy;
+    this.worldChestSpawningEnabled =
+      ctx.world.metadata !== null &&
+      (rules.modeId === 'mode.mainStage' || rules.modeId === 'mode.singlePlayerMainStage');
+    this.chestSpawnDirector = this.chestPolicy
+      ? new RelicChestSpawnDirector(
+          ctx.world,
+          this.chestPolicy,
+          this.rng.stream('progression.chestPlacement.initial'),
+          this.rng.stream('progression.chestPlacement.periodic'),
+          this.rng.stream('progression.chestPlacement.enemyDrop'),
+          {
+            attempt: () => this.telemetry.mapSpawnAttempts++,
+            failure: () => this.telemetry.mapSpawnCandidateFailures++,
+          },
+        )
+      : null;
     this.projector = new RelicStatProjector(rules, rules.relicsById, rules.relicEffectTemplatesById);
     const policy = this.modePolicy();
     this.selection = new UpgradeSelectionController(
@@ -88,7 +136,14 @@ export class ProgressionSystem {
       ctx.eventBus.subscribe('entity.killed', (payload) => this.onEntityKilled(payload as { enemy: { id: number; x: number; y: number; z: number }; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('damage.applied', (payload) => this.onDamageApplied(payload as { targetId: number | string; targetKind: string; amount: number; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('waveEvent', (payload) => this.onWaveEvent(payload as { type: string; waveId: number }));
+      ctx.eventBus.subscribe('stageEvent', (payload) => this.onStageEvent(payload as StageEvent));
+      if (this.worldChestSpawningEnabled) this.initializeMapChests();
     }
+  }
+
+  /** Deterministic reward-roll injection for focused tests only. */
+  setEnemyChestRandomForTest(random: () => number): void {
+    this.enemyChestRandom = random;
   }
 
   get isEnabled(): boolean {
@@ -114,7 +169,7 @@ export class ProgressionSystem {
 
   /**
    * Authoritative internal XP grant. Every XP source (shards, leader/elite,
-   * boss, unique duplicate conversion, direct rewards) routes through here:
+   * boss, and direct rewards) routes through here:
    * multiplier policy, team XP, telemetry, event emission, level-up
    * queueing, and a single serialized flow advance.
    */
@@ -162,6 +217,7 @@ export class ProgressionSystem {
       kind: 'upgrade',
       level: s.teamProgression.level,
       expiresAtWallMs: nowMs + (policy?.selectionTimeoutSeconds ?? 10) * 1000,
+      offerStartedAtWallMs: nowMs,
       driverOffer: roleSeparated ? driverOffer : undefined,
       gunnerOffer: roleSeparated ? gunnerOffer : undefined,
       singlePlayerOffer: roleSeparated ? undefined : singleOffer,
@@ -175,6 +231,7 @@ export class ProgressionSystem {
   submitSelection(role: SelectionRole, offerId: string, cardIndex: number): { accepted: boolean; reason?: string } {
     const s = this.ctx.state;
     if (s.matchFlow === 'clear' || s.matchFlow === 'gameOver' || s.phase === 'results') {
+      this.captureTerminalChestTelemetry();
       return { accepted: false, reason: 'terminal' };
     }
     const active = s.teamProgression.activeSelection;
@@ -192,11 +249,19 @@ export class ProgressionSystem {
     const s = this.ctx.state;
     if (!this.isEnabled) return false;
     if (s.matchFlow === 'clear' || s.matchFlow === 'gameOver' || s.phase === 'results') {
+      this.captureTerminalChestTelemetry();
       // Terminal wins: cancel unshown presentation and queued reveals; a
       // stale selection must never resurrect play.
       s.teamProgression.activeSelection = null;
       s.teamProgression.pendingRelicResults = [];
       return false;
+    }
+    if (s.matchFlow === 'relicOpening') {
+      const chest = s.chests
+        .filter((candidate) => candidate.lifecycle === 'opening')
+        .sort((a, b) => a.id - b.id)[0];
+      if (!chest || nowMs < (chest.fullyOpenAtWallMs ?? Number.POSITIVE_INFINITY)) return false;
+      return this.resolveChestOffer(chest, nowMs) !== null;
     }
     const active = s.teamProgression.activeSelection;
     if (!active || active.resolved) return false;
@@ -207,8 +272,9 @@ export class ProgressionSystem {
       return true;
     }
     if (active.kind === 'relic') {
-      if (nowMs < (active.revealDeadlineWallMs ?? active.expiresAtWallMs)) return false;
-      return this.resolveRelicReveal(nowMs);
+      // Relic reveal has no normal deadline. It resolves only through the
+      // explicit connected-player acknowledgement gate or terminal cleanup.
+      return false;
     }
     return false;
   }
@@ -255,7 +321,7 @@ export class ProgressionSystem {
     s.matchFlow = 'playing';
     if (s.teamProgression.pendingRelicResults.length > 0) {
       const next = s.teamProgression.pendingRelicResults.shift()!;
-      this.beginRelicReveal(next, nowMs);
+      this.beginRelicReveal(next, nowMs, undefined, undefined);
       return;
     }
     if (s.teamProgression.pendingLevelUps > 0) {
@@ -263,28 +329,139 @@ export class ProgressionSystem {
     }
   }
 
+  // ------------------------------------------------------ chest director
+  private initializeMapChests(): void {
+    if (!this.chestPolicy || !this.chestSpawnDirector) return;
+    const spawn = this.ctx.world.spawnPoints[0] ?? { x: this.ctx.state.tank.x, z: this.ctx.state.tank.z };
+    const placements = this.chestSpawnDirector.initialPlacements(spawn);
+    for (const placement of placements) {
+      this.createChest('mapStart', placement.x, placement.z, placement.y - 0.4);
+      this.telemetry.initialMapChestsSpawned++;
+    }
+    this.mapChestsSpawned = placements.length;
+    this.periodicSpawnRemaining = this.nextPeriodicDelay();
+    this.updateActiveChestPeak();
+  }
+
+  /** Active-simulation chest lifecycle. Paused frames never call this. */
+  step(dt: number): void {
+    if (!this.isEnabled || !this.chestPolicy || dt <= 0) return;
+    const s = this.ctx.state;
+    this.registry.prune(s.time);
+    if (s.matchFlow === 'clear' || s.matchFlow === 'gameOver' || s.phase === 'results') {
+      this.captureTerminalChestTelemetry();
+      return;
+    }
+
+    for (const chest of s.chests) {
+      if (chest.lifecycle === 'spawning' && s.time >= chest.claimableAtGameTime) {
+        chest.lifecycle = 'closed';
+      } else if (
+        chest.lifecycle === 'open' &&
+        chest.fullyOpenStartedAtGameTime !== undefined &&
+        s.time - chest.fullyOpenStartedAtGameTime >= this.chestPolicy.minimumFullyOpenLifetimeSeconds
+      ) {
+        chest.lifecycle = 'despawning';
+        chest.despawnStartedAtGameTime = s.time;
+      }
+    }
+
+    s.chests = s.chests.filter((chest) => {
+      if (chest.lifecycle !== 'despawning' || chest.despawnStartedAtGameTime === undefined) return true;
+      return s.time - chest.despawnStartedAtGameTime < this.chestPolicy!.despawnAnimationSeconds;
+    });
+
+    if (s.matchFlow !== 'playing') return;
+    if (this.worldChestSpawningEnabled) this.stepPeriodicSpawning(dt);
+    const claimable = s.chests
+      .filter((chest) => chest.lifecycle === 'closed')
+      .map((chest) => ({ chest, distance: Math.hypot(chest.x - s.tank.x, chest.z - s.tank.z) }))
+      .filter((candidate) => candidate.distance <= this.chestPolicy!.claimRadius)
+      .sort((a, b) => a.distance - b.distance || a.chest.id - b.chest.id);
+    if (claimable[0]) this.claimChest(claimable[0].chest, Date.now());
+    this.updateActiveChestPeak();
+  }
+
+  private stepPeriodicSpawning(dt: number): void {
+    if (!this.chestPolicy?.periodic.enabled || !this.chestSpawnDirector) return;
+    this.periodicSpawnRemaining -= dt;
+    if (this.periodicSpawnRemaining > 0) return;
+    const s = this.ctx.state;
+    const activeMapChests = s.chests.filter((chest) => chest.source === 'mapStart' || chest.source === 'mapPeriodic').length;
+    if (
+      activeMapChests >= this.chestPolicy.periodic.maximumActiveMapChests ||
+      this.mapChestsSpawned >= this.chestPolicy.periodic.maximumMapChestsSpawnedPerMatch
+    ) {
+      this.periodicSpawnRemaining = 1;
+      return;
+    }
+    const placement = this.chestSpawnDirector.periodicPlacement(s.tank, s.chests);
+    if (!placement) {
+      this.periodicSpawnRemaining = 1;
+      return;
+    }
+    this.createChest('mapPeriodic', placement.x, placement.z, placement.y - 0.4);
+    this.mapChestsSpawned++;
+    this.telemetry.periodicMapChestsSpawned++;
+    this.periodicSpawnRemaining = this.nextPeriodicDelay();
+  }
+
+  private nextPeriodicDelay(): number {
+    if (!this.chestPolicy) return Number.POSITIVE_INFINITY;
+    const periodic = this.chestPolicy.periodic;
+    return periodic.intervalSeconds + (this.rng.stream('progression.chestPeriodicTiming')() * 2 - 1) * periodic.intervalJitterSeconds;
+  }
+
+  private updateActiveChestPeak(): void {
+    this.telemetry.activeChestPeak = Math.max(this.telemetry.activeChestPeak, this.ctx.state.chests.length);
+  }
+
+  private captureTerminalChestTelemetry(): void {
+    if (this.terminalTelemetryCaptured) return;
+    this.terminalTelemetryCaptured = true;
+    this.telemetry.unopenedChestsAtEnd = this.ctx.state.chests.filter((chest) => !chest.rewardResolved).length;
+  }
+
   // ------------------------------------------------------------- chests
-  spawnChest(source: 'map' | 'enemyDrop' | 'waveClear', x: number, z: number): TreasureChestState {
+  spawnChest(source: TreasureChestSource | 'map', x: number, z: number): TreasureChestState {
+    const normalizedSource: TreasureChestSource = source === 'map' ? 'mapStart' : source;
     if (!this.isEnabled) {
       // Disabled modes never register an active progression chest; the
       // detached object lets callers keep their API shape safely.
-      return this.chests.makeChest(this.ctx.state.nextChestId++, source, x, z, this.ctx.world.groundHeightAt(x, z));
+      return this.chests.makeChest(this.ctx.state.nextChestId++, normalizedSource, x, z, this.ctx.world.groundHeightAt(x, z));
     }
+    return this.createChest(normalizedSource, x, z, this.ctx.world.groundHeightAt(x, z));
+  }
+
+  private createChest(source: TreasureChestSource, x: number, z: number, groundY: number): TreasureChestState {
     const s = this.ctx.state;
-    const chest = this.chests.makeChest(s.nextChestId++, source, x, z, this.ctx.world.groundHeightAt(x, z));
+    const chest = this.chests.makeChest(
+      s.nextChestId++,
+      source,
+      x,
+      z,
+      groundY,
+      s.time,
+      this.chestPolicy?.spawnAnimationSeconds ?? 0,
+    );
     s.chests.push(chest);
+    this.updateActiveChestPeak();
     return chest;
   }
 
-  openChest(chestId: number, nowMs: number): RelicRollResult | null {
+  openChest(chestId: number, nowMs: number): RelicRewardOffer | null {
     const s = this.ctx.state;
     if (!this.isEnabled) return null;
-    const chest = s.chests.find((c) => c.id === chestId && !c.opened);
+    const chest = s.chests.find((candidate) => candidate.id === chestId && candidate.lifecycle === 'closed');
     if (!chest || s.matchFlow !== 'playing') return null;
     if (s.teamProgression.activeSelection && !s.teamProgression.activeSelection.resolved) return null;
+    return this.claimChest(chest, nowMs);
+  }
 
-    // Capture first/later BEFORE consuming the chest so the first open
-    // always rolls the Epic/Legendary table.
+  private claimChest(chest: TreasureChestState, nowMs: number): RelicRewardOffer | null {
+    const s = this.ctx.state;
+    if (chest.lifecycle !== 'closed' || chest.rewardOffer || chest.rewardResolved) return null;
+
     const isFirstChest = s.teamProgression.treasureChestsOpened === 0;
     const rarity = this.chests.rollRarityFor(
       isFirstChest,
@@ -295,54 +472,90 @@ export class ProgressionSystem {
     const pool = this.ctx.rules.relicPoolIds
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
-    const candidates = pool.filter((r) => r.rarity === rarity);
-    const pickPool = candidates.length > 0 ? candidates : pool;
+    const eligible = pool.filter((relic) => relic.stackPolicy !== 'unique' || !this.inventory.has(relic.id));
+    const candidates = eligible.filter((relic) => relic.rarity === rarity);
+    // Deterministic rarity fallback: preserve the rolled rarity whenever it
+    // has an eligible candidate, otherwise draw only from remaining eligible
+    // content in canonical pool order. Owned uniques never re-enter.
+    const pickPool = candidates.length > 0 ? candidates : eligible;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
+    const offer: RelicRewardOffer = {
+      offerId: `relic-offer-${s.matchId}-${chest.id}`,
+      chestId: chest.id,
+      candidates: [{ relicId: relic.id, rarity }],
+      selectionMode: 'automaticSingle',
+      selectedIndex: 0,
+      resolved: false,
+    };
+    chest.rewardOffer = offer;
+    chest.rewardOfferId = offer.offerId;
+    chest.lifecycle = 'opening';
+    chest.openingStartedAtWallMs = nowMs;
+    chest.fullyOpenAtWallMs = nowMs + (this.chestPolicy?.openAnimationSeconds ?? 0.65) * 1000;
+    s.matchFlow = 'relicOpening';
+    this.telemetry.chestsClaimed++;
+    if (this.telemetry.timeToFirstChestClaim === null) this.telemetry.timeToFirstChestClaim = s.time;
+    return offer;
+  }
 
-    // Atomic consume: only after rarity + relic selection succeeded.
+  private resolveChestOffer(chest: TreasureChestState, nowMs: number): RelicRollResult | null {
+    const s = this.ctx.state;
+    const offer = chest.rewardOffer;
+    if (!offer || offer.resolved || chest.rewardResolved) return null;
+    const selectedIndex = offer.selectedIndex ?? 0;
+    const candidate = offer.candidates[selectedIndex];
+    if (!candidate) return null;
+    const relic = this.ctx.rules.relicsById.get(candidate.relicId);
+    if (!relic) return null;
+
+    offer.selectedIndex = selectedIndex;
+    offer.resolved = true;
+    chest.rewardResolved = true;
     this.chests.open(chest);
     const acquisitionSequence = ++s.teamProgression.relicAcquisitionSequence;
     const acquire = this.inventory.add(relic);
     const roll: RelicRollResult = {
       acquisitionSequence,
       relicId: relic.id,
-      rarity,
+      rarity: candidate.rarity,
       duplicateConverted: acquire.duplicateConverted,
       replacementXp: acquire.replacementXp,
       stackCountAfter: acquire.stackCount,
     };
     s.teamProgression.lastRelicResult = roll;
+    this.telemetry.relicsAcquired++;
+    this.telemetry.rarityDistribution[candidate.rarity] = (this.telemetry.rarityDistribution[candidate.rarity] ?? 0) + 1;
     this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
-    if (!acquire.duplicateConverted) {
-      this.projector.reproject(s.teamProgression);
-      if (acquire.capabilityGranted) {
-        this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
-      }
+    this.projector.reproject(s.teamProgression);
+    if (acquire.capabilityGranted) {
+      this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
     }
-    this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity, duplicateConverted: acquire.duplicateConverted });
-    if (s.teamProgression.activeSelection && !s.teamProgression.activeSelection.resolved) {
-      s.teamProgression.pendingRelicResults.push(roll);
-    } else {
-      this.beginRelicReveal(roll, nowMs);
-    }
-    if (acquire.duplicateConverted) {
-      this.grantXp(acquire.replacementXp, 'duplicateRelic', { x: chest.x, y: chest.y, z: chest.z });
-    }
+    this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: candidate.rarity, duplicateConverted: acquire.duplicateConverted });
+    this.beginRelicReveal(roll, nowMs, chest, offer);
     return roll;
   }
 
   /** Start the authoritative shared relic reveal (result is already fixed). */
-  private beginRelicReveal(result: RelicRollResult, nowMs: number): void {
+  private beginRelicReveal(
+    result: RelicRollResult,
+    nowMs: number,
+    chest?: TreasureChestState,
+    offer?: RelicRewardOffer,
+  ): void {
     const s = this.ctx.state;
-    const policy = this.modePolicy();
-    const revealSeconds = policy?.selectionTimeoutSeconds ?? 10;
+    if (chest) chest.lifecycle = 'revealing';
     s.teamProgression.activeSelection = {
       offerId: `reveal-${result.acquisitionSequence}`,
       kind: 'relic',
       level: s.teamProgression.level,
-      expiresAtWallMs: nowMs + revealSeconds * 1000,
-      revealDeadlineWallMs: nowMs + revealSeconds * 1000,
+      revealStartedAtWallMs: nowMs,
+      continueAllowedAtWallMs: nowMs + (this.chestPolicy?.relicRevealMinimumSkipSeconds ?? 0.35) * 1000,
+      singlePlayerRelicAcknowledged: false,
+      driverRelicAcknowledged: false,
+      gunnerRelicAcknowledged: false,
+      chestId: chest?.id,
+      relicOffer: offer,
       relicResult: result,
       resolved: false,
       applied: true,
@@ -355,11 +568,13 @@ export class ProgressionSystem {
     });
   }
 
-  /**
-   * Idempotent skip/acknowledgement of the active relic reveal. Either
-   * player may skip; the result is never rerolled or re-applied.
-   */
-  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+  /** Idempotent acknowledgement of the predetermined active relic result. */
+  acknowledgeProgressionRelic(
+    role: SelectionRole,
+    acquisitionSequence: number,
+    requiredRoles: SelectionRole[],
+    nowMs: number,
+  ): { accepted: boolean; reason?: string; waitingFor?: SelectionRole[] } {
     if (!this.isEnabled) return { accepted: false, reason: 'disabled' };
     const active = this.ctx.state.teamProgression.activeSelection;
     if (!active || active.kind !== 'relic') return { accepted: false, reason: 'no_active_reveal' };
@@ -367,7 +582,27 @@ export class ProgressionSystem {
     if (active.relicResult?.acquisitionSequence !== acquisitionSequence) {
       return { accepted: false, reason: 'sequence_mismatch' };
     }
+    if (nowMs < (active.continueAllowedAtWallMs ?? 0)) {
+      return { accepted: false, reason: 'minimum_delay' };
+    }
+    setRelicAcknowledged(active, role);
+    const required = [...new Set(requiredRoles)];
+    const waitingFor = required.filter((requiredRole) => !isRelicAcknowledged(active, requiredRole));
+    if (waitingFor.length > 0) return { accepted: true, waitingFor };
     return this.resolveRelicReveal(nowMs) ? { accepted: true } : { accepted: false, reason: 'terminal' };
+  }
+
+  refreshRelicAcknowledgementGate(requiredRoles: SelectionRole[], nowMs: number): boolean {
+    const active = this.ctx.state.teamProgression.activeSelection;
+    if (!active || active.kind !== 'relic' || active.resolved) return false;
+    const required = [...new Set(requiredRoles)];
+    if (required.length === 0 || required.some((role) => !isRelicAcknowledged(active, role))) return false;
+    return this.resolveRelicReveal(nowMs);
+  }
+
+  /** Backwards-compatible Single Player/test facade. */
+  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+    return this.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], nowMs);
   }
 
   private resolveRelicReveal(nowMs: number): boolean {
@@ -380,6 +615,11 @@ export class ProgressionSystem {
       return false;
     }
     active.resolved = true;
+    const chest = active.chestId === undefined ? undefined : s.chests.find((candidate) => candidate.id === active.chestId);
+    if (chest && (chest.lifecycle === 'revealing' || chest.lifecycle === 'opening')) {
+      chest.lifecycle = 'open';
+      chest.fullyOpenStartedAtGameTime = s.time;
+    }
     this.ctx.eventBus.emit('progressionEvent', {
       type: 'relicRevealResolved',
       acquisitionSequence: active.relicResult?.acquisitionSequence,
@@ -394,68 +634,87 @@ export class ProgressionSystem {
     if (!this.isEnabled) return;
     const s = this.ctx.state;
     const enemy = s.enemies.find((e) => e.id === payload.enemy.id);
+    if (!enemy || enemy.rewardResolved || enemy.monster?.chestRewardResolved) return;
+    enemy.rewardResolved = true;
     const monster = enemy?.monster;
+    if (monster) monster.chestRewardResolved = true;
+    const ownership = enemy.ownership;
+    const rewardClass = normalizedEnemyClass(enemy);
+    const isBoss = rewardClass === 'boss';
+    const isLeader = !isBoss && isWaveLeader(enemy);
+
     if (monster) {
       if (!monster.xpAwarded) {
         monster.xpAwarded = true;
         const rewardsDef = this.ctx.rules.enemyXpRewards.get('enemyXpRewards.mainStage');
-        const range = rewardsDef?.visualShardCounts[monster.rewardClass] ?? [1, 1];
+        const range = rewardsDef?.visualShardCounts[rewardClass] ?? [1, 1];
         const count = range[0] + (enemy!.id % (range[1] - range[0] + 1));
         this.spawnXpBundle(monster.resolvedRewardXp, count, payload.enemy.x, payload.enemy.z);
-        this.ctx.eventBus.emit('progressionEvent', {
-          type: 'reward',
-          payload: {
-            kind: 'enemyKilled',
-            enemyId: payload.enemy.id,
-            enemyDefinitionId: enemy?.defId,
-            populationClass: monster.rewardClass === 'elite' ? 'special' : monster.rewardClass,
-            damageSource: payload.source,
-          } satisfies ProgressionRewardEvent,
-        });
       }
-      this.dispatchTrigger({ type: 'enemyKilled', enemyId: payload.enemy.id, source: payload.source, weaponId: payload.weaponId });
-      return;
+    } else {
+      const def = this.ctx.rules.progressionContent!;
+      const xp = def.enemyXpRewards[rewardClass] ?? def.enemyXpRewards.ambient;
+      if (isLeader) {
+        this.grantXp(def.enemyXpRewards.elite, 'waveLeader', payload.enemy);
+      } else if (isBoss) {
+        this.grantXp(def.enemyXpRewards.boss, 'boss', payload.enemy);
+      } else {
+        this.spawnXpShard(xp, payload.enemy.x, payload.enemy.z);
+      }
     }
-    const ownership = enemy?.ownership;
-    const cls = ownership?.populationClass ?? 'ambient';
-    const def = this.ctx.rules.progressionContent!;
-    const xp =
-      cls === 'special'
-        ? def.enemyXpRewards.elite
-        : def.enemyXpRewards[cls] ?? def.enemyXpRewards.ambient;
-    const isLeader = ownership?.leaderId === payload.enemy.id;
-    const isBoss = cls === 'boss';
-    if (isLeader && !isBoss) {
-      this.grantXp(def.enemyXpRewards.elite, 'waveLeader', { x: payload.enemy.x, y: payload.enemy.y, z: payload.enemy.z });
-      this.spawnChest('waveClear', payload.enemy.x, payload.enemy.z);
+
+    if (isLeader && this.chestPolicy?.enemyDropRates.leaderGuaranteed) {
+      const waveId = ownership?.waveId ?? -payload.enemy.id;
+      const runtime = waveId >= 0 ? this.ctx.waves.waves.get(waveId) : undefined;
+      const finalLeader = !runtime || runtime.state === 'complete';
+      if (finalLeader && !this.leaderChestRewardedWaveIds.has(waveId)) {
+        if (this.spawnRewardChest('waveClear', payload.enemy.x, payload.enemy.z, true)) {
+          this.leaderChestRewardedWaveIds.add(waveId);
+          this.telemetry.leaderChestsSpawned++;
+        }
+      }
       this.ctx.eventBus.emit('progressionEvent', {
         type: 'reward',
-        payload: { kind: 'waveLeaderKilled', waveId: ownership.waveId ?? undefined, leaderEnemyId: payload.enemy.id } satisfies ProgressionRewardEvent,
+        payload: { kind: 'waveLeaderKilled', waveId: ownership?.waveId ?? undefined, leaderEnemyId: payload.enemy.id } satisfies ProgressionRewardEvent,
       });
     } else if (isBoss) {
-      this.grantXp(def.enemyXpRewards.boss, 'boss', { x: payload.enemy.x, y: payload.enemy.y, z: payload.enemy.z });
+      this.resolveRandomEnemyChest(rewardClass, payload.enemy.x, payload.enemy.z);
       this.ctx.eventBus.emit('progressionEvent', {
         type: 'reward',
         payload: { kind: 'bossKilled', bossEnemyId: payload.enemy.id } satisfies ProgressionRewardEvent,
       });
     } else {
-      this.spawnXpShard(xp, payload.enemy.x, payload.enemy.z);
-      if (this.rng.stream('progression.enemyChestDrop')() < def.enemyChestDropChance) {
-        this.spawnChest('enemyDrop', payload.enemy.x, payload.enemy.z);
-      }
+      this.resolveRandomEnemyChest(rewardClass, payload.enemy.x, payload.enemy.z);
       this.ctx.eventBus.emit('progressionEvent', {
         type: 'reward',
         payload: {
           kind: 'enemyKilled',
           enemyId: payload.enemy.id,
           enemyDefinitionId: enemy?.defId,
-          populationClass: cls,
+          populationClass: rewardClass === 'elite' ? 'special' : rewardClass,
           waveId: ownership?.waveId ?? undefined,
           damageSource: payload.source,
         } satisfies ProgressionRewardEvent,
       });
     }
     this.dispatchTrigger({ type: 'enemyKilled', enemyId: payload.enemy.id, source: payload.source, weaponId: payload.weaponId });
+    this.registry.removeEnemy(payload.enemy.id);
+  }
+
+  private resolveRandomEnemyChest(rewardClass: 'ambient' | 'wave' | 'elite' | 'boss', x: number, z: number): void {
+    const rates = this.chestPolicy?.enemyDropRates;
+    if (!rates) return;
+    this.telemetry.enemyChestRollsByClass[rewardClass] = (this.telemetry.enemyChestRollsByClass[rewardClass] ?? 0) + 1;
+    if (this.enemyChestRandom() >= rates[rewardClass]) return;
+    if (!this.spawnRewardChest('enemyDrop', x, z)) return;
+    this.telemetry.enemyChestDropsByClass[rewardClass] = (this.telemetry.enemyChestDropsByClass[rewardClass] ?? 0) + 1;
+    this.telemetry.enemyDropChestsSpawned++;
+  }
+
+  private spawnRewardChest(source: 'enemyDrop' | 'waveClear', x: number, z: number, guaranteed = false): TreasureChestState | null {
+    const placement = this.chestSpawnDirector?.enemyDropPlacement({ x, z }, this.ctx.state.chests, guaranteed);
+    if (!placement) return null;
+    return this.createChest(source, placement.x, placement.z, placement.y - 0.4);
   }
 
   private spawnXpShard(value: number, x: number, z: number): void {
@@ -477,13 +736,13 @@ export class ProgressionSystem {
     }
   }
 
-  private onDamageApplied(payload: { targetId: number | string; targetKind: string; source: DamageSource; weaponId?: string }): void {
+  private onDamageApplied(payload: { targetId: number | string; targetKind: string; amount: number; source: DamageSource; weaponId?: string }): void {
     if (!this.isEnabled) return;
     this.dispatchTrigger({
       type: 'damageApplied',
       targetId: payload.targetId,
       targetKind: payload.targetKind,
-      amount: 0,
+      amount: payload.amount,
       source: payload.source,
       weaponId: payload.weaponId,
     });
@@ -491,9 +750,20 @@ export class ProgressionSystem {
 
   private onWaveEvent(payload: { type: string; waveId: number }): void {
     if (!this.isEnabled) return;
-    if (payload.type !== 'wavePurged') return;
-    this.dispatchTrigger({ type: 'waveCleared', waveId: payload.waveId });
-    this.telemetry.levelsPerStage += 0;
+    // Purge is cleanup, not a semantic wave-clear relic trigger.
+    void payload;
+  }
+
+  private onStageEvent(payload: StageEvent): void {
+    if (!this.isEnabled || payload.type !== 'waveCleared' || payload.waveId === undefined) return;
+    this.dispatchWaveCleared(payload.waveId);
+  }
+
+  private dispatchWaveCleared(waveId: number): void {
+    if (this.clearedWaveTriggerIds.has(waveId)) return;
+    this.clearedWaveTriggerIds.add(waveId);
+    if (this.inventory.has('relic.safe_haven')) this.lastSafeHavenWaveId = waveId;
+    this.dispatchTrigger({ type: 'waveCleared', waveId });
   }
 
   // ---------------------------------------------------------- triggers
@@ -509,7 +779,7 @@ export class ProgressionSystem {
         if (!template) continue;
         const handler = this.registry.resolve(template.effectType);
         if (!handler) continue;
-        handler.handle(event, this.ctx, relic, stacks, { ...(template.parameters ?? {}), ...(effect.parameters ?? {}) }, this.telemetry);
+        handler.handle(event, this.ctx, relic, stacks, resolveRelicEffectParameters(template, effect), this.telemetry);
       }
     }
   }
@@ -521,9 +791,6 @@ export class ProgressionSystem {
 
   notifyDash(): void {
     if (!this.isEnabled) return;
-    if (this.inventory.has('relic.phase_dash')) {
-      this.phaseDashUntil = this.ctx.state.time + this.ctx.rules.config.tank.dashPresentationSeconds;
-    }
   }
 
   notifyDashHit(enemyId: number): void {
@@ -548,48 +815,53 @@ export class ProgressionSystem {
 
   notifyWaveCleared(waveId: number): void {
     if (!this.isEnabled) return;
-    this.dispatchTrigger({ type: 'waveCleared', waveId });
+    this.dispatchWaveCleared(waveId);
+  }
+
+  notifyCannonHit(enemyId: number): void {
+    if (!this.isEnabled) return;
+    this.dispatchTrigger({ type: 'cannonHit', enemyId });
   }
 
   // ------------------------------------------------------------ damage
-  modifyEnemyDamage(amount: number, source: DamageSource, ctx2: { airborne: boolean; enemy: EnemyState }): number {
+  modifyEnemyDamage(amount: number, source: DamageSource, ctx2: { enemy: EnemyState; weaponId?: string }): number {
     if (!this.isEnabled) return amount;
     const m = this.projector.reproject(this.ctx.state.teamProgression);
     let multiplier = 1 + m.outgoingPercent / 100;
-    if (ctx2.airborne) multiplier *= 1 + m.airbornePercent / 100;
-    const ownership = ctx2.enemy.ownership;
-    const cls = ownership?.populationClass;
-    const isEliteOrBoss =
-      cls === 'boss' || (cls === 'wave' && ownership !== undefined && ownership.leaderId === ctx2.enemy.id);
+    if (!this.ctx.state.tank.grounded && isGunnerWeaponDamage(source)) {
+      multiplier *= 1 + m.airbornePercent / 100;
+    }
+    const cls = normalizedEnemyClass(ctx2.enemy);
+    const isEliteOrBoss = cls === 'elite' || cls === 'boss' || isWaveLeader(ctx2.enemy);
     if (isEliteOrBoss) multiplier *= 1 + m.eliteBossPercent / 100;
     if (this.ctx.state.tank.integrity / Math.max(1, this.ctx.rules.resolver.resolve('tank.maxIntegrity')) <= 0.3) {
       multiplier *= 1 + m.lastResortPercent / 100;
     }
     const debuff = this.registry.debuffFor(ctx2.enemy.id, this.ctx.state.time);
     multiplier *= 1 + debuff.vulnPercent / 100;
-    void source;
+    void ctx2.weaponId;
     return amount * multiplier;
   }
 
   modifyTankDamage(amount: number, source: DamageSource): number {
     if (!this.isEnabled) return amount;
     const t = this.ctx.state.tank;
-    if (this.phaseDashUntil > this.ctx.state.time) return 0;
+    if (this.inventory.has('relic.phase_dash') && t.dashState !== undefined && t.dashState !== 'inactive') return 0;
     const m = this.projector.reproject(this.ctx.state.teamProgression);
-    let multiplier = 1 + m.incomingPercent / 100;
-    if (source === 'cannon') multiplier *= 1 + m.cannonSelfPercent / 100;
+    let multiplier = Math.max(0, 1 - m.incomingPercent / 100);
+    if (isCannonSelfDamage(source)) multiplier *= Math.max(0, 1 - m.cannonSelfPercent / 100);
     const speed = Math.hypot(t.vx, t.vz);
     const maxSpeed = this.ctx.rules.resolver.resolve('tank.forwardSpeed');
-    if (speed >= maxSpeed) multiplier *= 1 + m.momentumPercent / 100;
+    if (speed >= maxSpeed) multiplier *= Math.max(0, 1 - m.momentumPercent / 100);
     const ratio = t.integrity / Math.max(1, this.ctx.rules.resolver.resolve('tank.maxIntegrity'));
-    if (ratio <= 0.5) multiplier *= 1 + m.ironWillPercent / 100;
+    if (ratio <= 0.5) multiplier *= Math.max(0, 1 - m.ironWillPercent / 100);
     return Math.max(0, amount * multiplier);
   }
 
   enemySpeedMultiplier(e: EnemyState): number {
     if (!this.isEnabled) return 1;
     const d = this.registry.debuffFor(e.id, this.ctx.state.time);
-    return 1 - d.speedPercent / 100;
+    return Math.max(0, 1 - d.speedPercent / 100);
   }
 
   // --------------------------------------------------------- roadkill
@@ -599,9 +871,10 @@ export class ProgressionSystem {
     if (!relic) return null;
     const stacks = this.inventory.getStack('relic.roadkill');
     if (stacks <= 0) return null;
-    const template = relic.effects.find((e) => e.templateId === 'relicEffect.roadkill');
-    const params = template?.parameters as Record<string, unknown> | undefined;
-    if (!params) return null;
+    const effect = relic.effects.find((e) => e.templateId === 'relicEffect.roadkill');
+    const template = effect ? this.ctx.rules.relicEffectTemplatesById.get(effect.templateId) : undefined;
+    if (!effect || !template) return null;
+    const params = resolveRelicEffectParameters(template, effect);
     return {
       capability: 'tank.roadkillContact',
       stacks,
@@ -628,7 +901,9 @@ export class ProgressionSystem {
     if (!this.isEnabled) return 1;
     const relic = this.ctx.rules.relicsById.get('relic.twin_shell');
     if (!relic || this.inventory.getStack('relic.twin_shell') <= 0) return 1;
-    const params = relic.effects.find((e) => e.templateId === 'relicEffect.twinShell')?.parameters as Record<string, unknown> | undefined;
+    const effect = relic.effects.find((e) => e.templateId === 'relicEffect.twinShell');
+    const template = effect ? this.ctx.rules.relicEffectTemplatesById.get(effect.templateId) : undefined;
+    const params = effect && template ? resolveRelicEffectParameters(template, effect) : undefined;
     return (params?.cooldownMultiplier as number) ?? 1;
   }
 
@@ -659,7 +934,7 @@ export class ProgressionSystem {
       driverReady: s.teamProgression.activeSelection?.driverSelection !== undefined,
       gunnerReady: s.teamProgression.activeSelection?.gunnerSelection !== undefined,
       timeoutMs: s.teamProgression.activeSelection
-        ? Math.max(0, s.teamProgression.activeSelection.expiresAtWallMs - Date.now())
+        ? Math.max(0, (s.teamProgression.activeSelection.expiresAtWallMs ?? Date.now()) - Date.now())
         : 0,
       chestsOpened: s.teamProgression.treasureChestsOpened,
       relicStacks: { ...s.teamProgression.relicStacks },
@@ -672,12 +947,46 @@ export class ProgressionSystem {
         threshold: roadkill?.minimumSpeedRatio ?? 1,
         lastDamage: this.lastRoadkill.damage,
       },
+      capabilitySources: this.ctx.capabilities.debugSources(),
+      movement: {
+        grounded: t.grounded,
+        extraJumpsRemaining: t.airJumpsRemaining ?? 0,
+        airDashReuseRemaining: t.airDashReuseRemaining ?? 0,
+        dashState: t.dashState ?? 'inactive',
+        phaseDashInvulnerable: this.inventory.has('relic.phase_dash') && t.dashState !== undefined && t.dashState !== 'inactive',
+      },
+      triggers: {
+        phoenixConsumed: this.registry.wasConsumed('relic.phoenix_core'),
+        safeHavenLastWaveId: this.lastSafeHavenWaveId,
+        activeEnemyDebuffs: this.registry.size(),
+        aerialMasterEligible: this.inventory.has('relic.aerial_master') && !t.grounded,
+      },
+      lastRelicResult: s.teamProgression.lastRelicResult
+        ? {
+            acquisitionSequence: s.teamProgression.lastRelicResult.acquisitionSequence,
+            relicId: s.teamProgression.lastRelicResult.relicId,
+            duplicateConverted: s.teamProgression.lastRelicResult.duplicateConverted,
+            replacementXp: s.teamProgression.lastRelicResult.replacementXp,
+          }
+        : null,
     };
   }
 }
 
 function emptyCurve(): LevelCurveDefinition {
   return { id: 'levelCurve.empty', label: 'Empty', thresholds: [20], overflowRule: 'cap' as const, behaviors: [] };
+}
+
+function setRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): void {
+  if (role === 'single') active.singlePlayerRelicAcknowledged = true;
+  else if (role === 'driver') active.driverRelicAcknowledged = true;
+  else active.gunnerRelicAcknowledged = true;
+}
+
+function isRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): boolean {
+  if (role === 'single') return active.singlePlayerRelicAcknowledged === true;
+  if (role === 'driver') return active.driverRelicAcknowledged === true;
+  return active.gunnerRelicAcknowledged === true;
 }
 
 function emptyDefinition(): ProgressionDefinition {
@@ -694,8 +1003,8 @@ function emptyDefinition(): ProgressionDefinition {
     relicPoolId: 'relicPool.empty',
     multiplayerPolicyId: 'progressionMode.multiplayer',
     singlePlayerPolicyId: 'progressionMode.singlePlayer',
+    relicChestSpawnPolicyId: 'relicChestSpawn.empty',
     enemyXpRewards: { ambient: 0, wave: 0, elite: 0, boss: 0 },
-    enemyChestDropChance: 0,
     duplicateUniqueRelicXp: 0,
   };
 }

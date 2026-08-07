@@ -34,6 +34,10 @@ export interface RampDef {
   dirZ: number;
   rise: number;
   baseY: number;
+  /** Optional rendered asset for an authored ramp. */
+  assetId?: string;
+  /** Building associated with an authored roof ramp. */
+  urbanRoofBuildingId?: string;
 }
 
 export const ARENA = {

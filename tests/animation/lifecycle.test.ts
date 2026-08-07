@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { AssetService } from '../../src/client/assets';
 import { EntityViewFactory } from '../../src/client/app/entityViewFactory';
@@ -87,6 +87,20 @@ describe('animation lifecycle cleanup (animation07 M12)', () => {
     registry.removeEnemy(1);
     expect(animationTelemetry.liveMixers).toBe(0);
     expect(registry.enemyRigs.size).toBe(0);
+  });
+
+  it('enemy removal disposes per-instance skeleton GPU resources', async () => {
+    const { registry } = await makeRegistry();
+    const rig = registry.createEnemy(enemy(2, 'enemyPresentation.witch.common'));
+    let skeleton: THREE.Skeleton | null = null;
+    rig.model.traverse((object) => {
+      const mesh = object as THREE.SkinnedMesh;
+      if (mesh.isSkinnedMesh) skeleton = mesh.skeleton;
+    });
+    expect(skeleton).not.toBeNull();
+    const dispose = vi.spyOn(skeleton!, 'dispose');
+    registry.removeEnemy(2);
+    expect(dispose).toHaveBeenCalledTimes(1);
   });
 
   it('wave purge / cohort removal cleans every animated rig', async () => {

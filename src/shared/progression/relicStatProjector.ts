@@ -5,6 +5,7 @@ import type {
 import type { MatchRules } from '../rules/matchRules';
 import { statModifier } from '../stats/statModifier';
 import type { TeamProgressionState } from './progressionTypes';
+import { resolveRelicEffectParameters } from './relicEffectParameters';
 
 export interface RelicDamageModifiers {
   incomingPercent: number;
@@ -38,7 +39,7 @@ export class RelicStatProjector {
     const key = JSON.stringify(state.relicStacks);
     if (key === this.lastKey) return this.lastModifiers;
     this.lastKey = key;
-    this.rules.removeModifiersBySource('progression:relic');
+    this.rules.removeModifiersBySourcePrefix('progression:relic:');
 
     const damage: RelicDamageModifiers = {
       incomingPercent: 0,
@@ -58,7 +59,7 @@ export class RelicStatProjector {
       for (const effect of relic.effects) {
         const template = this.templatesById.get(effect.templateId);
         if (!template) continue;
-        const params = (effect.parameters ?? template.parameters ?? {}) as Record<string, number | string | undefined>;
+        const params = resolveRelicEffectParameters(template, effect) as Record<string, number | string | undefined>;
         this.projectTemplate(relic, template.effectType, params, stacks, damage);
       }
     }
@@ -120,7 +121,10 @@ export class RelicStatProjector {
       case 'extraJumps':
       case 'airDashCharges': {
         const statId = effectType === 'extraJumps' ? 'tank.extraJumps' : effectType === 'airDashCharges' ? 'tank.airDashCharges' : stat('statId');
-        const flat = num(effectType === 'extraJumps' || effectType === 'airDashCharges' ? 'countPerStack' : 'flatPerStack') * stacks;
+        const amount = num(effectType === 'extraJumps' || effectType === 'airDashCharges' ? 'countPerStack' : 'flatPerStack');
+        // AIR MASTER grants one reusable airborne Dash capability. Its air
+        // control stacks, but the capability charge itself does not.
+        const flat = effectType === 'airDashCharges' ? amount : amount * stacks;
         this.rules.addModifier(
           statModifier(`relic.${relic.id}.${statId}`, statId, 'add', flat, {
             source,
@@ -192,6 +196,16 @@ export class RelicStatProjector {
 
   reset(): void {
     this.lastKey = '';
-    this.rules.removeModifiersBySource('progression:relic');
+    this.lastModifiers = {
+      incomingPercent: 0,
+      outgoingPercent: 0,
+      cannonSelfPercent: 0,
+      airbornePercent: 0,
+      eliteBossPercent: 0,
+      momentumPercent: 0,
+      ironWillPercent: 0,
+      lastResortPercent: 0,
+    };
+    this.rules.removeModifiersBySourcePrefix('progression:relic:');
   }
 }
