@@ -244,6 +244,7 @@ describe('recoil parity (unbraced)', () => {
     expect(m.state.turret.pitch).toBeCloseTo(-Math.PI / 2, 9);
     expect(m.state.tank.vy).toBeGreaterThan(BASE_CONFIG.tank.recoilImpulse * 0.8);
     expect(shot?.y).toBeGreaterThanOrEqual(0.08);
+    expect(impact?.id).toBeTypeOf('number');
     expect(Math.hypot((impact?.x ?? 99) - m.state.tank.x, (impact?.z ?? 99) - m.state.tank.z)).toBeLessThan(1);
     expect(m.state.shells).toHaveLength(0);
   });

@@ -21,6 +21,11 @@ import { EntityViewFactory } from './entityViewFactory';
 import { applyDistantEnemyPose } from '../animation/distantEnemyMotion';
 import type { EnemyAnimationPresentationState } from '../animation/enemyAnimationStateResolver';
 import type { InputContext, ProgressionInputFrame } from '../input';
+import { BASE_CONFIG } from '../../shared/config';
+import {
+  isPlayerCannonShell,
+  PlayerCannonProjectilePresenter,
+} from '../prediction/projectilePresenter';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -63,6 +68,10 @@ export class NetworkStatePresenter {
   private renderClockStarted = false;
   private lastRenderTank: TankState | null = null;
   private readonly remote = new RemoteEntityInterpolator();
+  private readonly playerCannonProjectiles = new PlayerCannonProjectilePresenter();
+  private latestSnapshotServerTime = 0;
+  private latestSnapshotReceivedAtMs = 0;
+  private cannonGravity = BASE_CONFIG.weapons.cannonGravity;
   private readonly frame: RemoteFrame = {
     enemies: [],
     pickups: [],
@@ -101,16 +110,26 @@ export class NetworkStatePresenter {
     outboundBuffered?: number;
   }): void {
     const t0 = performance.now();
+    if (msg.seq <= this.snapBuffer.latestSeq) return;
     this.latest = msg.state;
     this.snapBuffer.push(msg);
+    this.latestSnapshotServerTime = msg.serverTime;
+    this.latestSnapshotReceivedAtMs = t0;
+    this.cannonGravity = msg.movement?.weapon?.cannonGravity ?? this.cannonGravity;
+    if (this.deps.session().kind === 'multiplayer') {
+      const estimatedServerNowAtReceipt = msg.serverTime + Math.max(0, netcodeMetrics.rttMs) / 2000;
+      this.playerCannonProjectiles.updateSnapshot(
+        msg.state.shells,
+        msg.serverTime,
+        estimatedServerNowAtReceipt,
+        this.cannonGravity,
+      );
+    }
     netcodeMetrics.serverTick = msg.serverTick ?? 0;
     netcodeMetrics.serverTickDurationMs = msg.tickDurationMs ?? 0;
     netcodeMetrics.serverDroppedMs = msg.droppedTimeMs ?? 0;
     netcodeMetrics.serverDriftMs = msg.driftMs ?? 0;
     netcodeMetrics.outboundBuffered = msg.outboundBuffered ?? 0;
-    if (msg.serverTime !== undefined) {
-      netcodeMetrics.renderDelayMs = Math.max(0, this.renderTime - msg.serverTime) * 1000;
-    }
     if (this.deps.session().networked) {
       this.deps.prediction.applyMovementRules(msg.movement, msg.movementRulesRevision, msg.state.modifier);
       const block = msg.movement?.tankRig;
@@ -123,6 +142,7 @@ export class NetworkStatePresenter {
       this.renderClockStarted = true;
       this.renderTime = msg.serverTime - 0.1;
     }
+    this.updatePresentationMetrics(msg.serverTime);
     this.deps.prediction.reconcile(msg.state, msg.lastProcessedDriverInputSeq, {
       impulseAckSeq: msg.lastImpulseSeq,
       opLog: msg.opLog,
@@ -132,7 +152,18 @@ export class NetworkStatePresenter {
   }
 
   handleEvent(ev: SimEvent): void {
-    void ev;
+    if (
+      this.deps.session().kind === 'multiplayer'
+      && ev.type === 'enemyExplosion'
+      && ev.kind === 'cannon'
+      && ev.id !== undefined
+    ) {
+      this.playerCannonProjectiles.markImpacted(
+        ev.id,
+        Math.max(ev.t, this.estimatedServerNow()),
+      );
+      this.deps.registry.removeShell(ev.id);
+    }
   }
 
   /** Exact tank impulse → both predictors apply immediately (once). */
@@ -154,6 +185,7 @@ export class NetworkStatePresenter {
     if (latestEnv && this.renderTime > latestEnv.serverTime - 0.02) {
       this.renderTime = latestEnv.serverTime - 0.02;
     }
+    this.updatePresentationMetrics(this.estimatedServerNow());
   }
 
   /** Fill the reusable remote frame (no whole MatchState allocation). */
@@ -178,6 +210,22 @@ export class NetworkStatePresenter {
     } else if (this.latest) {
       this.remote.fillFromDiscrete(this.frame, this.latest);
       this.remoteFrame = this.frame;
+    }
+    if (this.deps.session().kind === 'multiplayer' && this.remoteFrame) {
+      const shells = this.remoteFrame.shells;
+      let write = 0;
+      for (let read = 0; read < shells.length; read++) {
+        const shell = shells[read];
+        if (!isPlayerCannonShell(shell)) shells[write++] = shell;
+      }
+      shells.length = write;
+      const playerCannonShells = this.playerCannonProjectiles.sample(
+        this.estimatedServerNow(),
+        this.cannonGravity,
+      );
+      for (const shell of playerCannonShells) shells.push(shell);
+      netcodeMetrics.playerCannonExtrapolationMs = this.playerCannonProjectiles.extrapolationSeconds * 1000;
+      netcodeMetrics.playerCannonVisualErrorMeters = this.playerCannonProjectiles.visualErrorMeters;
     }
     netcodeMetrics.interpMs = performance.now() - t0;
   }
@@ -395,11 +443,30 @@ export class NetworkStatePresenter {
     this.latest = null;
     this.remoteFrame = null;
     this.remote.reset();
+    this.playerCannonProjectiles.reset();
     this.renderClockStarted = false;
     this.renderTime = 0;
+    this.latestSnapshotServerTime = 0;
+    this.latestSnapshotReceivedAtMs = 0;
+    this.cannonGravity = BASE_CONFIG.weapons.cannonGravity;
+    netcodeMetrics.playerCannonExtrapolationMs = 0;
+    netcodeMetrics.playerCannonVisualErrorMeters = 0;
     this.lastRenderTank = null;
     this.lodManagers.clear();
     this.midAccumulators.clear();
+  }
+
+  private estimatedServerNow(nowMs = performance.now()): number {
+    if (!this.renderClockStarted) return this.latestSnapshotServerTime;
+    return this.latestSnapshotServerTime
+      + Math.max(0, netcodeMetrics.rttMs) / 2000
+      + Math.max(0, nowMs - this.latestSnapshotReceivedAtMs) / 1000;
+  }
+
+  private updatePresentationMetrics(estimatedServerNow: number): void {
+    const delayMs = presentationDelayMs(estimatedServerNow, this.renderTime);
+    netcodeMetrics.renderDelayMs = delayMs;
+    netcodeMetrics.remoteRenderDelayMs = delayMs;
   }
 
   /** Reduced-rate mid semantic evaluation; mixer interpolation stays 60 Hz. */
@@ -421,6 +488,10 @@ export class NetworkStatePresenter {
     this.midAccumulators.set(enemyId, acc % interval);
     return true;
   }
+}
+
+export function presentationDelayMs(estimatedServerNow: number, renderTime: number): number {
+  return Math.max(0, estimatedServerNow - renderTime) * 1000;
 }
 
 function isAttackingEnemyState(e: EnemyState): boolean {

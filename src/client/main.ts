@@ -500,6 +500,7 @@ net.onMessage = (msg) => {
       break;
     case 'pong':
       pingMs = Date.now() - lastPingSent;
+      netcodeMetrics.rttMs = pingMs;
       break;
   }
 };
