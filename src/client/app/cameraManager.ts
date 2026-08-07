@@ -18,8 +18,21 @@ import {
   type TpsWeaponAimState,
 } from '../aim/tpsWeaponAimResolver';
 
-const DRIVER_MIN_PITCH = (-35 * Math.PI) / 180;
-const DRIVER_MAX_PITCH = (55 * Math.PI) / 180;
+/**
+ * One gameplay camera for every mode and role. Keeping the shared values in
+ * one object prevents Single Player, Driver, and Gunner controls from drifting
+ * apart as the camera is tuned.
+ */
+export const SHARED_GAMEPLAY_CAMERA_TUNING: Partial<TpsCameraTuning> = {
+  fov: 70,
+  distance: 5.2,
+  shoulderOffset: 0.9,
+  shoulderHeight: 0.55,
+  verticalArm: 0.65,
+  speedFovBonus: 5.5,
+  minPitch: VERTICAL_AIM_MIN_PITCH,
+  maxPitch: VERTICAL_AIM_MAX_PITCH,
+};
 
 /** Driver/Gunner TPS rigs + camera impulses; TPS math stays in tpsCamera. */
 export class CameraManager {
@@ -41,26 +54,8 @@ export class CameraManager {
   };
 
   constructor() {
-    const driverTuning: Partial<TpsCameraTuning> = {
-      fov: 70,
-      distance: 5.2,
-      shoulderOffset: 0.65,
-      speedFovBonus: 5.5,
-    };
-    const gunnerTuning: Partial<TpsCameraTuning> = {
-      fov: 68,
-      distance: 4.4,
-      shoulderOffset: 0.55,
-      shoulderHeight: 0.3,
-      verticalArm: 0.55,
-      speedFovBonus: 0,
-      // Multiplayer Gunner and Single Player share the same full vertical
-      // range. Online Driver retains a narrower driving camera.
-      minPitch: VERTICAL_AIM_MIN_PITCH,
-      maxPitch: VERTICAL_AIM_MAX_PITCH,
-    };
-    this.driverCam = new TpsCameraController(driverTuning);
-    this.gunnerCam = new TpsCameraController(gunnerTuning);
+    this.driverCam = new TpsCameraController(SHARED_GAMEPLAY_CAMERA_TUNING);
+    this.gunnerCam = new TpsCameraController(SHARED_GAMEPLAY_CAMERA_TUNING);
     this.activeCam = this.driverCam;
   }
 
@@ -68,12 +63,10 @@ export class CameraManager {
     this.activeCam = role === 'driver' ? this.driverCam : this.gunnerCam;
   }
 
-  /** Single Player uses the exact same pitch range as the online Gunner. */
-  setSinglePlayerMode(singlePlayer: boolean): void {
-    this.driverCam.setPitchLimits(
-      singlePlayer ? VERTICAL_AIM_MIN_PITCH : DRIVER_MIN_PITCH,
-      singlePlayer ? VERTICAL_AIM_MAX_PITCH : DRIVER_MAX_PITCH,
-    );
+  /** Preserve camera-control parity regardless of which game mode is entered. */
+  setSinglePlayerMode(_singlePlayer: boolean): void {
+    this.driverCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
+    this.gunnerCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
   }
 
   resize(aspect: number): void {

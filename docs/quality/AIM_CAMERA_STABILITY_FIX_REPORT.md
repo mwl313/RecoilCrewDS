@@ -123,7 +123,11 @@ The test-only missing-frame switch proved that camera update count advances, the
 
 ## Weapon and reticle invariants
 
-- Single Player and multiplayer Gunner retain identical exact `±π/2` pitch limits.
+- Single Player, multiplayer Driver, and multiplayer Gunner use the same camera
+  controls and geometry: 70° base FOV, 5.2 m boom, 0.9 m right-shoulder
+  offset, 0.55 m shoulder height, identical speed FOV, sensitivity, and exact
+  `±π/2` pitch limits. The higher/right placement keeps the barrel and turret
+  from sitting directly over the forward sightline without changing aim math.
 - Local predicted turret response remains `instant`.
 - Server input cadence and snapshot rates were not changed.
 - Chassis yaw is applied exactly once.

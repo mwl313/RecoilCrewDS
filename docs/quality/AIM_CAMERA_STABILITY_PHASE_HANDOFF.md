@@ -59,7 +59,8 @@ Implementation and qualification are complete in the `quality-improvement` workt
 
 - [x] Exact straight-down cannon pitch works.
 - [x] Exact straight-up cannon pitch works.
-- [x] Single Player and multiplayer Gunner share the same range/path.
+- [x] Single Player, multiplayer Driver, and multiplayer Gunner share the same
+      camera controls, geometry, sensitivity, FOV behavior, and full range/path.
 - [x] Local predicted turret remains instant.
 - [x] Terrain-safe downward muzzle direction is preserved.
 - [x] Truthful predicted-projectile reticle remains on-screen and finite.

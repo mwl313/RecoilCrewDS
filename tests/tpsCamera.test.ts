@@ -89,18 +89,29 @@ describe('TPS camera direction conventions', () => {
     expect(gunner.pitch).toBeCloseTo(Math.PI / 2, 6);
   });
 
-  it('single player and multiplayer Gunner share the full vertical aim range', () => {
+  it('Single Player, Driver, and Gunner share identical camera controls and placement', () => {
     const cm = new CameraManager();
-    expect(cm.gunnerCam.minPitch).toBeCloseTo(-Math.PI / 2, 6);
-    expect(cm.gunnerCam.maxPitch).toBeCloseTo(Math.PI / 2, 6);
-    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
-    cm.setSinglePlayerMode(true);
-    expect(cm.driverCam.minPitch).toBeCloseTo(cm.gunnerCam.minPitch, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo(cm.gunnerCam.maxPitch, 6);
-    cm.setSinglePlayerMode(false);
-    expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
-    expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
+    const follow = new THREE.Vector3(4, 2, -3);
+
+    for (const singlePlayer of [true, false]) {
+      cm.setSinglePlayerMode(singlePlayer);
+      expect(cm.driverCam.minPitch).toBeCloseTo(-Math.PI / 2, 6);
+      expect(cm.driverCam.maxPitch).toBeCloseTo(Math.PI / 2, 6);
+      expect(cm.gunnerCam.minPitch).toBeCloseTo(cm.driverCam.minPitch, 6);
+      expect(cm.gunnerCam.maxPitch).toBeCloseTo(cm.driverCam.maxPitch, 6);
+    }
+
+    for (const camera of [cm.driverCam, cm.gunnerCam]) {
+      camera.setFollowPose(follow, 0.4);
+      camera.applyMouseDelta(90, -35);
+      camera.update(1 / 60, [], 0.7);
+    }
+
+    expect(cm.driverCam.yaw).toBeCloseTo(cm.gunnerCam.yaw, 9);
+    expect(cm.driverCam.pitch).toBeCloseTo(cm.gunnerCam.pitch, 9);
+    expect(cm.driverCam.camera.fov).toBeCloseTo(cm.gunnerCam.camera.fov, 9);
+    expect(cm.driverCam.camera.position.distanceTo(cm.gunnerCam.camera.position)).toBeLessThan(1e-9);
+    expect(cm.driverCam.camera.quaternion.angleTo(cm.gunnerCam.camera.quaternion)).toBeLessThan(1e-9);
   });
 
   it('uses continuous deterministic shake instead of random frame displacement', () => {
