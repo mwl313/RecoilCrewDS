@@ -37,6 +37,9 @@ import {
 } from '../../shared/monsters/monsterPreload';
 import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
 import { interpolateSinglePlayerTank } from '../prediction/singlePlayerTankInterpolator';
+import { RelicChestWorldRenderer } from '../relics/relicChestWorldRenderer';
+import { RELIC_CHEST_ASSET_ID } from '../relics/relicChestPresentation';
+import { RelicInventoryRail } from '../progression/relicInventoryRail';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -87,8 +90,10 @@ export class GameClient {
   suppressAutoInput = false;
   private suppressPresentationFramesForTest = false;
   private progressionOverlay: ProgressionOverlay | null = null;
+  private relicInventoryRail: RelicInventoryRail | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
+  private relicChestRenderer: RelicChestWorldRenderer | null = null;
   private latestSectors: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
@@ -236,8 +241,16 @@ export class GameClient {
       skipRelicPresentation: () => gameRef!.skipRelicPresentation(),
       relicInfo: (relicId) => {
         const relic = gameRef!.contentPack?.getRelic(relicId);
-        return relic ? { label: relic.label, description: relic.description } : null;
+        return relic
+          ? { label: relic.label, description: relic.description, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+          : null;
       },
+    });
+    game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
+      const relic = gameRef!.contentPack?.getRelic(relicId);
+      return relic
+        ? { label: relic.label, rarity: relic.rarity, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+        : null;
     });
     game.f4 = new F4Overlay();
     game.onReadyHook = onReady;
@@ -296,8 +309,16 @@ export class GameClient {
    * never preloaded here.
    */
   async preloadMonsterRun(pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
-    if (!run) return;
-    await this.assets.preloadModels(resolveSelectedPreloadAssetIds(pack, run));
+    this.contentPack = pack;
+    const preloadIds = run ? resolveSelectedPreloadAssetIds(pack, run) : [];
+    await this.assets.preloadModels([...preloadIds, RELIC_CHEST_ASSET_ID]);
+    const progression = pack.getProgressionDefinition('progression.mainStage');
+    this.relicChestRenderer?.dispose();
+    this.relicChestRenderer = new RelicChestWorldRenderer(
+      this.world.scene,
+      this.assets,
+      pack.getRelicChestSpawnPolicy(progression.relicChestSpawnPolicyId),
+    );
   }
 
   /**
@@ -615,7 +636,7 @@ export class GameClient {
     }
     if (this.session.networked) this.presenter.advanceRenderClock(dtRaw);
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.checkProgressionTimeout(performance.now());
+      this.singlePlayerMatch.checkProgressionTimeout(Date.now());
     }
     this.presenter.computeRemote();
     let renderTank: TankState | null = null;
@@ -647,10 +668,12 @@ export class GameClient {
     this.updateCameraAndAim(renderTank ?? this.lastCameraTank, dtRaw);
     if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
     if (this.presenter.latest) {
-      this.onFrame?.(this.presenter.latest);
-      this.updateProgressionOverlay();
       const latest = this.presenter.latest;
+      this.onFrame?.(latest);
+      this.updateProgressionOverlay();
+      this.relicInventoryRail?.update(latest);
       this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
+      this.relicChestRenderer?.sync(latest.chests, latest.time, Date.now(), dtRaw);
     }
 
     this.pollGunnerActions();
@@ -1032,7 +1055,7 @@ export class GameClient {
     if (!selection || selection.kind !== 'relic' || latest?.matchFlow !== 'relicSelection') return;
     const acquisitionSequence = selection.relicResult?.acquisitionSequence ?? 0;
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.skipProgressionRelic(acquisitionSequence, performance.now());
+      this.singlePlayerMatch.skipProgressionRelic(acquisitionSequence, Date.now());
     } else if (this.onSendInput) {
       this.onSendInput({ t: 'skipRelicPresentation', acquisitionSequence });
     }
@@ -1042,7 +1065,7 @@ export class GameClient {
     const latest = this.presenter.latest;
     if (!latest || !this.progressionOverlay) return;
     const role = this.session.kind === 'singlePlayer' ? 'single' : this.role;
-    this.progressionOverlay.update(latest, role, performance.now());
+    this.progressionOverlay.update(latest, role, Date.now());
     let debug = '';
     try {
       const dbg = this.singlePlayerMatch
@@ -1114,6 +1137,10 @@ export class GameClient {
     this.registry.reset();
     this.progressionOverlay?.dispose();
     this.progressionOverlay = null;
+    this.relicInventoryRail?.dispose();
+    this.relicInventoryRail = null;
+    this.relicChestRenderer?.dispose();
+    this.relicChestRenderer = null;
     this.world.dispose();
   }
 }
