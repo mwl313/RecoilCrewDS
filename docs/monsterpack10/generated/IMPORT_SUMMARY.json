@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "importedAtUtc": "2026-08-05T01:13:16.590Z",
+  "importedAtUtc": "2026-08-07T01:07:10.970Z",
   "zip": {
     "path": "local-imports\\monsterpack09\\Ultimate monster pack - Horde Ready.zip",
     "sha256": "cd7d01bae2f6f7177570dbbc8960e7bfe59b0bce5d09ca9fb5f98ac7688132f8",
@@ -22,5 +22,5 @@
   "commonPresentationProfiles": 15,
   "rosterId": "enemyArtRoster.quaternius.integrationPreview",
   "preloadAssetIds": 23,
-  "filesWritten": 143
+  "filesWritten": 233
 }

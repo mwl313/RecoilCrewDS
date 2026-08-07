@@ -3,30 +3,6 @@
   "builtins": [],
   "project": [
     {
-      "id": "texture.environment.sparseGrass.baseColor",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp"
-    },
-    {
-      "id": "texture.environment.sparseGrass.normal",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png"
-    },
-    {
-      "id": "texture.environment.sparseGrass.roughness",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_roughness_2k.png"
-    },
-    {
-      "id": "texture.environment.sparseGrass.mask",
-      "kind": "texture",
-      "namespace": "environment",
-      "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
-    },
-    {
       "id": "custom.enemy.beast.boss",
       "kind": "model",
       "namespace": "custom",
@@ -1533,6 +1509,180 @@
       "optional": true
     },
     {
+      "id": "environment.urban.ultimate.oneStory.yellow",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/one-story.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.twoStoryCenter.red",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-center.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.twoStoryWide.blue",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-wide.glb",
+      "tags": [
+        "urban",
+        "building",
+        "ultimate-building-pack",
+        "flat-roof"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.street4Way",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-4way.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "intersection",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetLights",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/streetlights.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraight",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraightCrack1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack1.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetStraightCrack2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack2.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetT",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-t.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "junction",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.streetTurn",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/street-turn.gltf",
+      "tags": [
+        "urban",
+        "road",
+        "corner",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficCone1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-1.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficCone2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-2.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficLight1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-1.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trafficLight2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-2.gltf",
+      "tags": [
+        "urban",
+        "street-furniture",
+        "zombie-apocalypse-kit"
+      ],
+      "optional": true
+    },
+    {
       "id": "scene.menuTank",
       "kind": "model",
       "namespace": "scene",
@@ -1566,28 +1716,28 @@
       "optional": false
     },
     {
-      "id": "environment.urban.ultimate.oneStory.yellow",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.baseColor",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/one-story.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_basecolor_2k.webp"
     },
     {
-      "id": "environment.urban.ultimate.twoStoryWide.blue",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.mask",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-wide.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
     },
     {
-      "id": "environment.urban.ultimate.twoStoryCenter.red",
-      "kind": "model",
+      "id": "texture.environment.sparseGrass.normal",
+      "kind": "texture",
       "namespace": "environment",
-      "file": "/assets/models/environment/urban/ultimate-buildings/two-story-center.glb",
-      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof"],
-      "optional": true
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_normal_gl_2k.png"
+    },
+    {
+      "id": "texture.environment.sparseGrass.roughness",
+      "kind": "texture",
+      "namespace": "environment",
+      "file": "/assets/textures/environment/sparse-grass/sparse_grass_roughness_2k.png"
     },
     {
       "id": "environment.urban.ultimate.threeStorySmall.light",
@@ -1635,94 +1785,6 @@
       "namespace": "environment",
       "file": "/assets/models/environment/urban/nature-pack/common-tree-3.glb",
       "tags": ["urban", "tree", "decoration", "ultimate-nature-pack", "common-tree"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraight",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraightCrack1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack1.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetStraightCrack2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-straight-crack2.gltf",
-      "tags": ["urban", "road", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetTurn",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-turn.gltf",
-      "tags": ["urban", "road", "corner", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetT",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-t.gltf",
-      "tags": ["urban", "road", "junction", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.street4Way",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/street-4way.gltf",
-      "tags": ["urban", "road", "intersection", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.streetLights",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/streetlights.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficLight1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-1.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficLight2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficlight-2.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficCone1",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-1.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
-      "optional": true
-    },
-    {
-      "id": "environment.urban.zombie.trafficCone2",
-      "kind": "model",
-      "namespace": "environment",
-      "file": "/assets/models/environment/urban/zombie-kit/trafficcone-2.gltf",
-      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
       "optional": true
     },
     {

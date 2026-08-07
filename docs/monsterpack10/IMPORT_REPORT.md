@@ -1,6 +1,6 @@
 # Monster Pack 10 — Import Report
 
-Imported at 2026-08-05T01:13:16.591Z (elapsed 0.33s).
+Imported at 2026-08-07T01:07:10.972Z (elapsed 0.49s).
 
 ## ZIP
 
@@ -20,7 +20,7 @@ Imported at 2026-08-05T01:13:16.591Z (elapsed 0.33s).
 
 ## Writes
 
-- Runtime GLB copies/replacements: 0
+- Runtime GLB copies/replacements: 90
 - Stale managed removals: 0
 - Source evidence archived: 1 README + 1 license + 7 manifests + 8 reports
 - Native content: 90 asset entries, 45 hero + 15 common animation profiles, 45 hero + 15 common presentation profiles, 1 art roster
@@ -33,16 +33,3 @@ npm run import:monsterpack -- --dry-run
 npm run import:monsterpack
 npm run validate:monsterpack-import
 ```
-
-## Final verification (2026-08-05)
-
-- `npm run validate:monsterpack-import` — PASS (90/90 hashes, 90/90 GLB
-  introspections, 90 byte-identical destination files, 0 stale).
-- `npm run test:monsterpack-import` — 10 files / 37 tests PASS.
-- `npm run validate:enemy-animations` — PASS, 0 errors / 0 warnings,
-  102 info (all 60 Quaternius profiles validated against all 90 GLBs).
-- `npm run test:monsterpack-rendering` — PASS; 7 scenarios recorded in
-  `build/monsterpack10-import/BENCHMARK_RESULTS.json`; summary in
-  `PERFORMANCE_REPORT.md`.
-- `npx tsc --noEmit` — PASS.
-- `npm run build` — PASS.

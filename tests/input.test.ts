@@ -203,6 +203,36 @@ describe('InputManager', () => {
     expect(second.dy).toBe(0);
   });
 
+  it('preserves a large finite flick without capping or smoothing', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 1800, movementY: -950 }));
+    expect(input.consumeMouse()).toEqual({ dx: 1800, dy: -950 });
+  });
+
+  it('rejects non-finite mouse movement and exposes the rejection', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: Number.NaN, movementY: 5 }));
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 4, movementY: Number.POSITIVE_INFINITY }));
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.debugState().pointer.rejectedEvents).toBe(2);
+  });
+
+  it('zeros accumulated deltas on pointer-lock loss and reacquisition', () => {
+    const input = new InputManager();
+    input.attach(canvas as unknown as HTMLElement);
+    canvas.requestPointerLock();
+    canvas.dispatch('mousemove', mouseEvent({ movementX: 80, movementY: -40 }));
+    documentTarget.exitPointerLock();
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    canvas.requestPointerLock();
+    expect(input.consumeMouse()).toEqual({ dx: 0, dy: 0 });
+    expect(input.button('primary')).toBe(false);
+  });
+
   it('records mouse buttons only while pointer is locked', () => {
     const input = new InputManager();
     input.attach(canvas as unknown as HTMLElement);

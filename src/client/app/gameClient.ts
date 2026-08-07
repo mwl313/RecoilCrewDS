@@ -26,7 +26,7 @@ import { MULTIPLAYER_SESSION, SINGLE_PLAYER_SESSION, type GameSessionContext } f
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
 import { getMuzzleWorld } from '../assets';
 import { computeWeaponMountWorldPose, resolveTerrainSafeMuzzle } from '../../shared/vehicle/tankRigGeometry';
-import type { TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
+import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 import { ProgressionOverlay } from '../progression/progressionOverlay';
 import { AggregateSectorRenderer, type AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { resolveEnemyPresentation } from '../animation/enemyPresentationResolver';
@@ -70,6 +70,8 @@ export class GameClient {
   private slowMo = 0;
   private singlePlayerAcc = 0;
   private singlePlayerPreviousTank: TankState | null = null;
+  /** Last valid rendered chassis anchor; camera input still advances without a fresh frame. */
+  private lastCameraTank: TankState | null = null;
   private singlePlayerResultsShown = false;
   private contentPack: ContentPack | null = null;
   private secondaryDown = false;
@@ -83,6 +85,7 @@ export class GameClient {
   private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
   private inputSendT = 0;
   suppressAutoInput = false;
+  private suppressPresentationFramesForTest = false;
   private progressionOverlay: ProgressionOverlay | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
@@ -213,15 +216,9 @@ export class GameClient {
       assets,
       registry,
       tankRig,
-      cameras,
       prediction,
-      colliders: () => renderWorld.arena.colliders,
-      cameraQuery: () => renderWorld.arena.cameraQuery,
-      groundHeightAt: (x, z) => prediction.groundHeightAt(x, z),
-      input,
       audio,
       onTankRig: (block) => gameRef?.applyTankRigBlock(block),
-      onTrajectoryReticle: (result) => gameRef?.onTrajectoryReticle?.(result),
       session: () => gameRef!.session,
       role: () => gameRef!.role,
       singlePlayerMatch: () => gameRef!.singlePlayerMatch,
@@ -491,6 +488,8 @@ export class GameClient {
     this.xpShards.reset();
     this.singlePlayerAcc = 0;
     this.resetSinglePlayerRenderPose();
+    this.lastCameraTank = this.singlePlayerMatch ? { ...this.singlePlayerMatch.state.tank } : null;
+    this.cameras.resetTransientState();
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
@@ -620,7 +619,7 @@ export class GameClient {
     }
     this.presenter.computeRemote();
     let renderTank: TankState | null = null;
-    const frame = this.presenter.remoteFrame;
+    const frame = this.suppressPresentationFramesForTest ? null : this.presenter.remoteFrame;
     if (frame) {
       if (this.session.kind === 'singlePlayer') {
         renderTank = interpolateSinglePlayerTank(
@@ -644,6 +643,8 @@ export class GameClient {
         }
       }
     }
+    if (renderTank) this.lastCameraTank = { ...renderTank };
+    this.updateCameraAndAim(renderTank ?? this.lastCameraTank, dtRaw);
     if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
     if (this.presenter.latest) {
       this.onFrame?.(this.presenter.latest);
@@ -683,6 +684,67 @@ export class GameClient {
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
     this.renderFrame();
   };
+
+  /**
+   * RAF owns pointer deltas, camera pose, world aim, and reticle projection.
+   * A skipped network/simulation frame therefore cannot batch mouse input or
+   * interrupt local camera motion; the last rendered tank is a stable anchor.
+   */
+  private updateCameraAndAim(renderTank: TankState | null, dtRaw: number): void {
+    const mouse = this.input.consumeMouse();
+    if (!this.inputEnabled) return;
+    if (!renderTank) {
+      this.cameras.applyMouseDelta(mouse);
+      return;
+    }
+
+    const pos = new THREE.Vector3(renderTank.x, renderTank.y, renderTank.z);
+    const speedRatio = Math.min(1, Math.hypot(renderTank.vx, renderTank.vz) / 18);
+    const cameraQuery = this.world.arena.cameraQuery;
+    this.cameras.update(
+      dtRaw,
+      pos,
+      renderTank.yaw,
+      this.session.kind === 'singlePlayer' || this.role === 'driver' ? speedRatio : 0,
+      cameraQuery,
+      mouse,
+    );
+
+    if (this.session.kind !== 'singlePlayer' && this.role !== 'gunner') return;
+
+    const groundHeightAt = (x: number, z: number) => this.prediction.groundHeightAt(x, z);
+    const aim = this.cameras.computeAim(this.cameras.activeCam.camera, cameraQuery, groundHeightAt);
+    const limits = this.prediction.turretPitchLimits();
+    const solved = this.cameras.resolveWeaponAim(
+      { x: renderTank.x, y: renderTank.y, z: renderTank.z, yaw: renderTank.yaw },
+      this.tankRig.rigDefinition,
+      aim,
+      limits,
+    );
+    const worldYaw = renderTank.yaw + solved.desiredYawLocal;
+    this.prediction.updateTurretTarget(worldYaw, solved.desiredPitch, renderTank.yaw, dtRaw);
+    const predictedTurret = this.prediction.getTurretSpaces();
+    const weapon = this.prediction.movementRules()?.weapon;
+    this.onTrajectoryReticle?.(
+      projectTrajectoryReticle({
+        camera: this.cameras.activeCam.camera,
+        renderWidth: this.world.renderer.domElement.clientWidth || window.innerWidth,
+        renderHeight: this.world.renderer.domElement.clientHeight || window.innerHeight,
+        tank: { x: renderTank.x, y: renderTank.y, z: renderTank.z, yaw: renderTank.yaw },
+        turretLocalYaw: predictedTurret.predictedYawLocal,
+        turretPitch: predictedTurret.predictedPitch,
+        rig: this.tankRig.rigDefinition,
+        cameraQuery,
+        groundHeightAt,
+        projectile: {
+          speed: weapon?.cannonSpeed ?? BASE_CONFIG.weapons.cannonSpeed,
+          gravity: weapon?.cannonGravity ?? BASE_CONFIG.weapons.cannonGravity,
+          life: weapon?.cannonLife ?? BASE_CONFIG.weapons.cannonLife,
+        },
+        desiredPoint: aim,
+      }),
+    );
+  }
 
   private renderFrame(): void {
     this.cameras.applyShake();
@@ -829,6 +891,11 @@ export class GameClient {
       this.chargeHoldStart = 0;
       this.stopChargeSound();
     }
+  }
+
+  /** Test hook for proving RAF camera ownership through missing presentation frames. */
+  setPresentationFramesSuppressedForTest(suppressed: boolean): void {
+    this.suppressPresentationFramesForTest = suppressed;
   }
 
   getCanvas(): HTMLCanvasElement {

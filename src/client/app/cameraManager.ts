@@ -1,15 +1,38 @@
 import * as THREE from 'three';
 import { clamp } from '../../shared/math';
-import { TpsCameraController, computeWorldAim, type TpsCameraTuning } from '../tpsCamera';
-import type { Collider } from '../arenaView';
-import type { CameraCollisionSource } from '../tpsCamera';
-import type { CameraCollisionQuery } from '../cameraCollision';
+import {
+  TpsCameraController,
+  computeWorldAim,
+  type CameraCollisionSource,
+  type TpsCameraTuning,
+  type WorldAimDiagnostics,
+} from '../tpsCamera';
 import type { MatchState, Role, TankState } from '../../shared/types';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
 import { VERTICAL_AIM_MAX_PITCH, VERTICAL_AIM_MIN_PITCH } from '../../shared/vehicle/tankRigTypes';
+import type { GroundHeightAt, PitchLimits, TankPose, TankRigDefinition, Vec3 } from '../../shared/vehicle/tankRigGeometry';
+import {
+  resolveTpsWeaponAim,
+  type TpsWeaponAimDiagnostics,
+  type TpsWeaponAimResult,
+  type TpsWeaponAimState,
+} from '../aim/tpsWeaponAimResolver';
 
-const DRIVER_MIN_PITCH = (-35 * Math.PI) / 180;
-const DRIVER_MAX_PITCH = (55 * Math.PI) / 180;
+/**
+ * One gameplay camera for every mode and role. Keeping the shared values in
+ * one object prevents Single Player, Driver, and Gunner controls from drifting
+ * apart as the camera is tuned.
+ */
+export const SHARED_GAMEPLAY_CAMERA_TUNING: Partial<TpsCameraTuning> = {
+  fov: 70,
+  distance: 5.2,
+  shoulderOffset: 0.9,
+  shoulderHeight: 0.55,
+  verticalArm: 0.65,
+  speedFovBonus: 5.5,
+  minPitch: VERTICAL_AIM_MIN_PITCH,
+  maxPitch: VERTICAL_AIM_MAX_PITCH,
+};
 
 /** Driver/Gunner TPS rigs + camera impulses; TPS math stays in tpsCamera. */
 export class CameraManager {
@@ -20,28 +43,19 @@ export class CameraManager {
   private shakeTime = 0;
   private lastRenderYaw = 0;
   private overviewSize = 0;
+  private readonly driverAimState: TpsWeaponAimState = { poleActive: false };
+  private readonly gunnerAimState: TpsWeaponAimState = { poleActive: false };
+  private lastAimDiagnostics: TpsWeaponAimDiagnostics | null = null;
+  private readonly worldAimDiagnostics: WorldAimDiagnostics = {
+    distance: 0,
+    hitKind: 'range',
+    terrainMarchSteps: 0,
+    terrainRefinementSteps: 0,
+  };
 
   constructor() {
-    const driverTuning: Partial<TpsCameraTuning> = {
-      fov: 70,
-      distance: 5.2,
-      shoulderOffset: 0.65,
-      speedFovBonus: 5.5,
-    };
-    const gunnerTuning: Partial<TpsCameraTuning> = {
-      fov: 68,
-      distance: 4.4,
-      shoulderOffset: 0.55,
-      shoulderHeight: 0.3,
-      verticalArm: 0.55,
-      speedFovBonus: 0,
-      // Multiplayer Gunner and Single Player share the same full vertical
-      // range. Online Driver retains a narrower driving camera.
-      minPitch: VERTICAL_AIM_MIN_PITCH,
-      maxPitch: VERTICAL_AIM_MAX_PITCH,
-    };
-    this.driverCam = new TpsCameraController(driverTuning);
-    this.gunnerCam = new TpsCameraController(gunnerTuning);
+    this.driverCam = new TpsCameraController(SHARED_GAMEPLAY_CAMERA_TUNING);
+    this.gunnerCam = new TpsCameraController(SHARED_GAMEPLAY_CAMERA_TUNING);
     this.activeCam = this.driverCam;
   }
 
@@ -49,12 +63,10 @@ export class CameraManager {
     this.activeCam = role === 'driver' ? this.driverCam : this.gunnerCam;
   }
 
-  /** Single Player uses the exact same pitch range as the online Gunner. */
-  setSinglePlayerMode(singlePlayer: boolean): void {
-    this.driverCam.setPitchLimits(
-      singlePlayer ? VERTICAL_AIM_MIN_PITCH : DRIVER_MIN_PITCH,
-      singlePlayer ? VERTICAL_AIM_MAX_PITCH : DRIVER_MAX_PITCH,
-    );
+  /** Preserve camera-control parity regardless of which game mode is entered. */
+  setSinglePlayerMode(_singlePlayer: boolean): void {
+    this.driverCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
+    this.gunnerCam.setPitchLimits(VERTICAL_AIM_MIN_PITCH, VERTICAL_AIM_MAX_PITCH);
   }
 
   resize(aspect: number): void {
@@ -88,11 +100,30 @@ export class CameraManager {
     return {
       yaw: this.activeCam.yaw,
       pitch: this.activeCam.pitch,
+      position: {
+        x: this.activeCam.camera.position.x,
+        y: this.activeCam.camera.position.y,
+        z: this.activeCam.camera.position.z,
+      },
       recentering: this.activeCam.recentering,
       recenterTargetYaw: (this.activeCam as unknown as { recenterTargetYaw?: number }).recenterTargetYaw,
       lastRenderYaw: this.lastRenderYaw,
       follow: this.activeCam.getFollowDiagnostics(),
+      input: this.activeCam.getInputDiagnostics(),
+      aim: this.lastAimDiagnostics,
+      worldAim: { ...this.worldAimDiagnostics },
     };
+  }
+
+  /** Mouse intent is owned by RAF even when no fresh simulation frame exists. */
+  applyMouseDelta(mouse: { dx: number; dy: number }): void {
+    this.activeCam.applyMouseDelta(mouse.dx, mouse.dy);
+  }
+
+  resetTransientState(): void {
+    this.driverAimState.poleActive = false;
+    this.gunnerAimState.poleActive = false;
+    this.lastAimDiagnostics = null;
   }
 
   /** Apply mouse deltas + follow pose + collision update for the active rig. */
@@ -105,24 +136,47 @@ export class CameraManager {
     mouse: { dx: number; dy: number },
   ): void {
     this.lastRenderYaw = chassisYaw;
+    this.activeCam.applyMouseDelta(mouse.dx, mouse.dy);
     if (this.overviewSize > 0) {
       const distance = this.overviewSize * 0.72;
       this.activeCam.camera.position.set(distance, this.overviewSize * 0.92, distance);
       this.activeCam.camera.lookAt(0, 0, 0);
       return;
     }
-    this.activeCam.applyMouseDelta(mouse.dx, mouse.dy);
     this.activeCam.setFollowPose(pos, chassisYaw);
     const t0 = performance.now();
     this.activeCam.update(dt, colliders ?? [], speedRatio);
     netcodeMetrics.cameraQueryMs = performance.now() - t0;
   }
 
-  computeAim(camera: THREE.PerspectiveCamera, colliders: CameraCollisionSource | null, groundY: number): { x: number; y: number; z: number } {
+  computeAim(
+    camera: THREE.PerspectiveCamera,
+    colliders: CameraCollisionSource | null,
+    groundHeightAt: GroundHeightAt,
+  ): Vec3 {
     const t0 = performance.now();
-    const aim = computeWorldAim(camera, colliders ?? [], groundY);
+    const aim = computeWorldAim(camera, colliders ?? [], groundHeightAt, this.worldAimDiagnostics);
     netcodeMetrics.aimQueryMs = performance.now() - t0;
     return { x: aim.x, y: aim.y, z: aim.z };
+  }
+
+  resolveWeaponAim(
+    tank: TankPose,
+    rig: TankRigDefinition,
+    worldTarget: Vec3,
+    limits: PitchLimits,
+  ): TpsWeaponAimResult {
+    const state = this.activeCam === this.gunnerCam ? this.gunnerAimState : this.driverAimState;
+    const result = resolveTpsWeaponAim({
+      tank,
+      rig,
+      worldTarget,
+      cameraYaw: this.activeCam.yaw,
+      cameraPitch: this.activeCam.pitch,
+      limits,
+    }, state);
+    this.lastAimDiagnostics = result.diagnostics;
+    return result;
   }
 
   /** Continuous, non-accumulating camera shake applied during render. */
