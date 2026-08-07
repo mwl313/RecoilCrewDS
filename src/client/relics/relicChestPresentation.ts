@@ -83,6 +83,7 @@ export class RelicChestPresentation {
   private pulseTime = 0;
   private chestGlowOpacity = 0.08;
   private chestGlowPhase = 0;
+  private effectOpacity = 1;
   private diagnostics: RelicChestDiagnostics;
 
   constructor(root: THREE.Object3D, options: RelicChestPresentationOptions = {}) {
@@ -216,6 +217,12 @@ export class RelicChestPresentation {
     this.diagnostics = { ...this.diagnostics, raysVisible: visible };
   }
 
+  setEffectOpacity(value: number): void {
+    this.effectOpacity = THREE.MathUtils.clamp(Number.isFinite(value) ? value : 1, 0, 1);
+    this.applyProgress(this.progress);
+    this.applyChestPulse();
+  }
+
   getOpenProgress(): number {
     return this.progress;
   }
@@ -253,7 +260,7 @@ export class RelicChestPresentation {
 
     this.lid.rotation.x = this.closedLidRotationX + this.openAngleRadians * lidProgress;
 
-    this.coreMaterial.uniforms.opacity.value = THREE.MathUtils.lerp(0.08, 0.34, glowProgress);
+    this.coreMaterial.uniforms.opacity.value = THREE.MathUtils.lerp(0.08, 0.34, glowProgress) * this.effectOpacity;
     const coreScale = THREE.MathUtils.lerp(0.18, 0.36, glowProgress);
     this.coreGlow.scale.set(coreScale * 1.5, coreScale, 1);
 
@@ -268,7 +275,7 @@ export class RelicChestPresentation {
       );
       group.quaternion.setFromUnitVectors(UP, this.workingRayDirection);
       group.scale.set(width, length, 1);
-      material.uniforms.opacity.value = rayOpacity * seed.opacity * 0.72;
+      material.uniforms.opacity.value = rayOpacity * seed.opacity * 0.72 * this.effectOpacity;
       material.uniforms.taper.value = THREE.MathUtils.lerp(0.76, 0.5, glowProgress);
     });
 
@@ -292,7 +299,7 @@ export class RelicChestPresentation {
     const wave = 0.5 - 0.5 * Math.cos(this.chestGlowPhase * Math.PI * 2);
     const easedWave = smootherstep(wave);
     this.chestGlowOpacity = THREE.MathUtils.lerp(0.03, 0.576, easedWave);
-    this.chestAuraMaterial.opacity = this.chestGlowOpacity;
+    this.chestAuraMaterial.opacity = this.chestGlowOpacity * this.effectOpacity;
     const auraScale = THREE.MathUtils.lerp(1, 1.18, easedWave);
     this.chestAura.scale.set(1.42 * auraScale, 1.08 * auraScale, 1);
   }

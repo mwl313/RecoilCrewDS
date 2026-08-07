@@ -3,16 +3,31 @@ import type { TreasureChestState } from '../../shared/progression/progressionTyp
 import type { AssetService } from '../assets';
 import {
   RELIC_CHEST_ASSET_ID,
+  RELIC_CHEST_OPEN_DURATION_SECONDS,
   RelicChestPresentation,
 } from './relicChestPresentation';
 import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.generated';
 import { TREASURE_CHEST_STATE_GROUND_OFFSET } from '../../shared/progression/treasureChestGeometry';
+
+export const RELIC_CHEST_OPEN_LIFETIME_SECONDS = 2;
+export const RELIC_CHEST_DESPAWN_DURATION_SECONDS = 0.45;
+
+interface MaterialBaseline {
+  material: THREE.Material;
+  opacity: number;
+  transparent: boolean;
+  depthWrite: boolean;
+}
 
 export interface RelicChestRig {
   root: THREE.Object3D;
   presentation: RelicChestPresentation;
   beacon: THREE.Group;
   opened: boolean;
+  openedElapsed: number;
+  baseScale: THREE.Vector3;
+  materials: MaterialBaseline[];
+  despawned: boolean;
 }
 
 /**
@@ -39,6 +54,7 @@ export class RelicChestRenderer {
       seen.add(chest.id);
       let rig = this.rigs.get(chest.id);
       if (!rig) rig = this.create(chest);
+      if (rig.despawned) continue;
 
       rig.root.position.set(
         chest.x,
@@ -47,11 +63,16 @@ export class RelicChestRenderer {
       );
       if (chest.opened && !rig.opened) {
         rig.opened = true;
+        rig.openedElapsed = 0;
         rig.presentation.open();
       }
       rig.beacon.visible = !chest.opened;
       rig.beacon.rotation.y += dt * 1.8;
       rig.presentation.update(dt);
+      if (rig.opened) {
+        rig.openedElapsed += Math.max(0, dt);
+        this.applyDespawn(rig);
+      }
     }
 
     for (const id of [...this.rigs.keys()]) {
@@ -68,18 +89,31 @@ export class RelicChestRenderer {
   }
 
   private create(chest: TreasureChestState): RelicChestRig {
-    const root = this.assets.createModelInstance(RELIC_CHEST_ASSET_ID).root;
+    const root = this.assets.createModelInstance(RELIC_CHEST_ASSET_ID, { cloneMaterials: true }).root;
     root.name = `TreasureChest.${chest.id}`;
     root.userData.treasureChestId = chest.id;
     root.userData.collider = {
       shape: 'sphere',
       radius: this.collisionRadius,
     };
+    const materials: MaterialBaseline[] = [];
+    const materialSet = new Set<THREE.Material>();
     root.traverse((node) => {
       const mesh = node as THREE.Mesh;
       if (!mesh.isMesh) return;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const material of meshMaterials) {
+        if (materialSet.has(material)) continue;
+        materialSet.add(material);
+        materials.push({
+          material,
+          opacity: material.opacity,
+          transparent: material.transparent,
+          depthWrite: material.depthWrite,
+        });
+      }
     });
 
     const presentation = new RelicChestPresentation(root);
@@ -87,7 +121,16 @@ export class RelicChestRenderer {
     const beacon = createChestBeacon();
     beacon.visible = !chest.opened;
     root.add(beacon);
-    const rig: RelicChestRig = { root, presentation, beacon, opened: chest.opened };
+    const rig: RelicChestRig = {
+      root,
+      presentation,
+      beacon,
+      opened: chest.opened,
+      openedElapsed: chest.opened ? RELIC_CHEST_OPEN_DURATION_SECONDS : 0,
+      baseScale: root.scale.clone(),
+      materials,
+      despawned: false,
+    };
     this.rigs.set(chest.id, rig);
     this.scene.add(root);
     return rig;
@@ -96,6 +139,33 @@ export class RelicChestRenderer {
   private remove(id: number): void {
     const rig = this.rigs.get(id);
     if (!rig) return;
+    if (!rig.despawned) this.disposeVisual(rig);
+    this.rigs.delete(id);
+  }
+
+  private applyDespawn(rig: RelicChestRig): void {
+    const despawnStartsAt = RELIC_CHEST_OPEN_DURATION_SECONDS + RELIC_CHEST_OPEN_LIFETIME_SECONDS;
+    const progress = clamp01(
+      (rig.openedElapsed - despawnStartsAt) / RELIC_CHEST_DESPAWN_DURATION_SECONDS,
+    );
+    const eased = smootherstep(progress);
+    const opacity = 1 - eased;
+    rig.root.scale.copy(rig.baseScale).multiplyScalar(THREE.MathUtils.lerp(1, 0.001, eased));
+    rig.presentation.setEffectOpacity(opacity);
+    this.applyMaterialOpacity(rig.materials, opacity);
+    if (progress >= 1) this.disposeVisual(rig);
+  }
+
+  private applyMaterialOpacity(materials: readonly MaterialBaseline[], multiplier: number): void {
+    for (const baseline of materials) {
+      baseline.material.opacity = baseline.opacity * multiplier;
+      baseline.material.transparent = multiplier < 0.999 ? true : baseline.transparent;
+      baseline.material.depthWrite = multiplier < 0.999 ? false : baseline.depthWrite;
+      baseline.material.needsUpdate = true;
+    }
+  }
+
+  private disposeVisual(rig: RelicChestRig): void {
     rig.presentation.dispose();
     rig.beacon.traverse((node) => {
       const mesh = node as THREE.Mesh;
@@ -104,9 +174,19 @@ export class RelicChestRenderer {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       for (const material of materials) material.dispose();
     });
+    for (const baseline of rig.materials) baseline.material.dispose();
+    rig.root.visible = false;
     this.scene.remove(rig.root);
-    this.rigs.delete(id);
+    rig.despawned = true;
   }
+}
+
+function clamp01(value: number): number {
+  return THREE.MathUtils.clamp(Number.isFinite(value) ? value : 0, 0, 1);
+}
+
+function smootherstep(value: number): number {
+  return value * value * value * (value * (value * 6 - 15) + 10);
 }
 
 function createChestBeacon(): THREE.Group {

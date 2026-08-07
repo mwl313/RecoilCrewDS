@@ -137,6 +137,22 @@ describe('RelicChestPresentation', () => {
     expect(root.getObjectByName('RelicChestPulsingAura')?.visible).toBe(true);
     presentation.dispose();
   });
+
+  it('fades only the separate gold effect layers for world despawn', () => {
+    const { presentation, root, chestMaterial } = fixture();
+    presentation.setOpenProgress(1);
+    presentation.setEffectOpacity(0);
+
+    const core = root.getObjectByName('RelicChestCoreGlow') as THREE.Mesh;
+    const aura = root.getObjectByName('RelicChestPulsingAura') as THREE.Sprite;
+    const ray = root.getObjectByName('RelicChestRay1') as THREE.Group;
+    expect((core.material as THREE.ShaderMaterial).uniforms.opacity.value).toBe(0);
+    expect(aura.material.opacity).toBe(0);
+    expect(((ray.children[0] as THREE.Mesh).material as THREE.ShaderMaterial).uniforms.opacity.value).toBe(0);
+    expect(chestMaterial.color.getHex()).toBe(0x5e3024);
+    expect(chestMaterial.emissive.getHex()).toBe(0x000000);
+    presentation.dispose();
+  });
 });
 
 function fixture(closedRotation = 0): {

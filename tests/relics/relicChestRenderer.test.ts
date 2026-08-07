@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import type { AssetService } from '../../src/client/assets';
 import {
+  RELIC_CHEST_DESPAWN_DURATION_SECONDS,
+  RELIC_CHEST_OPEN_LIFETIME_SECONDS,
   RelicChestRenderer,
 } from '../../src/client/relics/relicChestRenderer';
+import { RELIC_CHEST_OPEN_DURATION_SECONDS } from '../../src/client/relics/relicChestPresentation';
 import type { TreasureChestState } from '../../src/shared/progression/progressionTypes';
 import { TREASURE_CHEST_STATE_GROUND_OFFSET } from '../../src/shared/progression/treasureChestGeometry';
 
@@ -27,13 +30,38 @@ describe('RelicChestRenderer', () => {
     renderer.dispose();
   });
 
-  it('animates an authoritative open and removes stale chest views', () => {
+  it('uses the dedicated fade-shrink despawn after the open lifetime', () => {
     const scene = new THREE.Scene();
     const renderer = new RelicChestRenderer(scene, fakeAssets());
     renderer.update([chest()], 0.1);
     renderer.update([chest({ opened: true })], 0.325);
-    expect(renderer.rigs.get(1)?.presentation.getOpenProgress()).toBeCloseTo(0.5);
-    expect(renderer.rigs.get(1)?.beacon.visible).toBe(false);
+    const rig = renderer.rigs.get(1)!;
+    expect(rig.presentation.getOpenProgress()).toBeCloseTo(0.5);
+    expect(rig.beacon.visible).toBe(false);
+
+    renderer.update([chest({ opened: true })], RELIC_CHEST_OPEN_DURATION_SECONDS - 0.325);
+    renderer.update(
+      [chest({ opened: true })],
+      RELIC_CHEST_OPEN_LIFETIME_SECONDS + RELIC_CHEST_DESPAWN_DURATION_SECONDS / 2,
+    );
+    const material = (rig.root.getObjectByName('ChestBody') as THREE.Mesh).material as THREE.Material;
+    expect(rig.root.scale.x).toBeCloseTo(1.001, 3);
+    expect(material.opacity).toBeCloseTo(0.5, 5);
+    expect(material.transparent).toBe(true);
+    expect(material.depthWrite).toBe(false);
+
+    renderer.update([chest({ opened: true })], RELIC_CHEST_DESPAWN_DURATION_SECONDS / 2);
+    expect(rig.despawned).toBe(true);
+    expect(rig.root.visible).toBe(false);
+    expect(scene.getObjectByName('TreasureChest.1')).toBeUndefined();
+
+    renderer.dispose();
+  });
+
+  it('removes stale chest views', () => {
+    const scene = new THREE.Scene();
+    const renderer = new RelicChestRenderer(scene, fakeAssets());
+    renderer.update([chest()], 0.1);
 
     renderer.update([], 1 / 60);
     expect(renderer.rigs.size).toBe(0);
@@ -68,7 +96,14 @@ function fakeAssets(): AssetService {
       glow.name = 'GlowOrigin';
       const reward = new THREE.Group();
       reward.name = 'RewardAnchor';
-      base.add(glow, reward);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x6f452b,
+        roughness: 0.81,
+        metalness: 0.17,
+      });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 0.7), material);
+      body.name = 'ChestBody';
+      base.add(body, glow, reward);
       chestRoot.add(base, lid);
       root.add(chestRoot);
       return { root };
