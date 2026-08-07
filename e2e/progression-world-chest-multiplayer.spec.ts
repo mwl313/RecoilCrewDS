@@ -33,6 +33,10 @@ test('two production clients and a reconnect share the same ten world chests', a
   const context = await browser.newContext();
   const driver = await context.newPage();
   const gunner = await context.newPage();
+  const startupErrors: string[] = [];
+  for (const [role, page] of [['driver', driver], ['gunner', gunner]] as const) {
+    page.on('pageerror', (error) => startupErrors.push(`${role}: ${error.message}`));
+  }
 
   await enterMenu(driver);
   await driver.click('#screen-main [data-act="multiplayer"]');
@@ -55,6 +59,11 @@ test('two production clients and a reconnect share the same ten world chests', a
   );
   await driver.click('#lobby-ready');
   await gunner.click('#lobby-ready');
+
+  for (const page of [driver, gunner]) {
+    await expect(page.locator('#game-canvas')).toBeVisible({ timeout: 45_000 });
+  }
+  expect(startupErrors).toEqual([]);
 
   const driverChests = await waitForTenChests(driver);
   const gunnerChests = await waitForTenChests(gunner);
