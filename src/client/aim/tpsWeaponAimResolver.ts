@@ -9,7 +9,11 @@ import {
 } from '../../shared/vehicle/tankRigGeometry';
 
 const DIRECTION_EPSILON = 1e-8;
-const MIN_PARALLAX_FORWARD_DISTANCE = 0.35;
+
+export const TPS_PARALLAX_SAFETY = {
+  softStart: (10 * Math.PI) / 180,
+  asymptoticLimit: (14 * Math.PI) / 180,
+} as const;
 
 export const TPS_VERTICAL_AIM_ASSIST = {
   pitchStartPitch: (70 * Math.PI) / 180,
@@ -41,6 +45,9 @@ export interface TpsWeaponAimDiagnostics {
   horizontalRatio: number;
   cameraHorizontalRatio: number;
   conditioningRatio: number;
+  parallaxDivergence: number;
+  parallaxOutputDivergence: number;
+  parallaxLimited: boolean;
   pitchAssistWeight: number;
   poleBlendWeight: number;
   poleActive: boolean;
@@ -67,6 +74,13 @@ function smoothstep01(value: number): number {
   return t * t * (3 - 2 * t);
 }
 
+function compressParallaxDivergence(divergence: number): number {
+  if (divergence <= TPS_PARALLAX_SAFETY.softStart) return divergence;
+  const span = TPS_PARALLAX_SAFETY.asymptoticLimit - TPS_PARALLAX_SAFETY.softStart;
+  return TPS_PARALLAX_SAFETY.softStart
+    + span * (1 - Math.exp(-(divergence - TPS_PARALLAX_SAFETY.softStart) / span));
+}
+
 /**
  * Resolve ordinary over-the-shoulder parallax, then enter an angular vertical
  * assist before the camera reaches its visual pole. Pitch and shortest-path
@@ -83,9 +97,6 @@ export function resolveTpsWeaponAim(
   const dz = input.worldTarget.z - pivot.z;
   const horizontalDistance = Math.hypot(dx, dz);
   const targetDistance = Math.hypot(dx, dy, dz);
-  const forwardDistance = dx * Math.sin(input.cameraYaw) + dz * Math.cos(input.cameraYaw);
-  const useBlockedAimFallback = targetDistance <= DIRECTION_EPSILON
-    || forwardDistance <= MIN_PARALLAX_FORWARD_DISTANCE;
   const horizontalRatio = targetDistance > DIRECTION_EPSILON
     ? horizontalDistance / targetDistance
     : 0;
@@ -97,16 +108,27 @@ export function resolveTpsWeaponAim(
   const cameraHorizontalRatio = Math.abs(Math.cos(input.cameraPitch));
   const conditioningRatio = Math.min(horizontalRatio, cameraHorizontalRatio);
 
-  // When close cover leaves the camera target at or behind the turret pivot,
-  // parallax geometry becomes ill-conditioned and can send the barrel toward
-  // a pole. Preserve the player's angular intent until the target is a usable
-  // distance in front of the tank; the trajectory reticle still marks cover.
-  const worldPitch = !useBlockedAimFallback
+  const rawWorldPitch = targetDistance > DIRECTION_EPSILON
     ? Math.atan2(dy, horizontalDistance)
     : input.cameraPitch;
-  const worldYaw = !useBlockedAimFallback && horizontalDistance > DIRECTION_EPSILON
+  const rawWorldYaw = horizontalDistance > DIRECTION_EPSILON
     ? Math.atan2(dx, dz)
     : input.cameraYaw;
+  const pitchDelta = rawWorldPitch - input.cameraPitch;
+  const yawDelta = angleLerp(input.cameraYaw, rawWorldYaw, 1) - input.cameraYaw;
+  // Approximate the local angular cone. Yaw loses physical significance near
+  // a vertical pole, so weight it by the camera's horizontal component.
+  const weightedYawDelta = yawDelta * Math.abs(Math.cos(input.cameraPitch));
+  const parallaxDivergence = Math.hypot(pitchDelta, weightedYawDelta);
+  const parallaxOutputDivergence = compressParallaxDivergence(parallaxDivergence);
+  const parallaxScale = parallaxDivergence > DIRECTION_EPSILON
+    ? parallaxOutputDivergence / parallaxDivergence
+    : 1;
+  // Normal terrain following is byte-for-byte equivalent below 10°. Beyond
+  // that, close-wall parallax is compressed continuously toward a 14° cone
+  // rather than snapping to a separate aiming mode.
+  const worldPitch = input.cameraPitch + pitchDelta * parallaxScale;
+  const worldYaw = wrapAngle(input.cameraYaw + yawDelta * parallaxScale);
   const absoluteCameraPitch = Math.abs(input.cameraPitch);
   const pitchAssistT = (
     absoluteCameraPitch - TPS_VERTICAL_AIM_ASSIST.pitchStartPitch
@@ -160,6 +182,9 @@ export function resolveTpsWeaponAim(
       horizontalRatio,
       cameraHorizontalRatio,
       conditioningRatio,
+      parallaxDivergence,
+      parallaxOutputDivergence,
+      parallaxLimited: parallaxScale < 1 - 1e-8,
       pitchAssistWeight,
       poleBlendWeight,
       poleActive: state.poleActive,

@@ -47,6 +47,9 @@ lock. The current pole-control amendment remains uncommitted until requested.
 - [x] Binary refinement is bounded to 10 samples.
 - [x] Closest positive terrain/collider ordering is tested.
 - [x] Flat, slope, raised surface/roof, and transition cases pass.
+- [x] Terrain parallax is unchanged through 10° of camera divergence.
+- [x] Larger close-cover divergence compresses continuously toward 14°.
+- [x] No hard near-wall aim-mode switch or temporal barrel smoothing is used.
 
 ### Input ownership
 
