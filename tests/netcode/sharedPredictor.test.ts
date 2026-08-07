@@ -88,8 +88,29 @@ describe('shared tank predictor', () => {
     // Replay order: input op 1 first (drives vz ~0.47), then impulse +3.
     expect(predictor.predicted.vz).toBeCloseTo(3.4667, 3);
     expect(predictor.predicted.z).toBeGreaterThan(0);
+    expect(predictor.pendingCount).toBe(1);
+    expect(predictor.pendingImpulseCount).toBe(1);
+
+    // A second stale snapshot rebuilds to the same result; it must not forget
+    // or double-apply operations that remain unacknowledged.
+    predictor.reconcile(tank(), 0, { impulseAckSeq: 0 });
+    expect(predictor.predicted.vz).toBeCloseTo(3.4667, 3);
+    expect(predictor.pendingCount).toBe(1);
+    expect(predictor.pendingImpulseCount).toBe(1);
+
+    predictor.reconcile(tank(), 1, { impulseAckSeq: 1 });
     expect(predictor.pendingCount).toBe(0);
     expect(predictor.pendingImpulseCount).toBe(0);
+  });
+
+  it('Gunner keeps sampling the latest relayed held input after reconcile', () => {
+    const predictor = new SharedTankPredictor(BASE_CONFIG, 'none', ground(200), 'gunner');
+    predictor.pushRelayInput(1, FORWARD);
+    predictor.reconcile(tank(), 1);
+
+    predictor.sampleRelayed(1 / 30);
+
+    expect(predictor.predicted.z).toBeGreaterThan(0);
   });
 
   it('reconnect/arena reset clears queues', () => {

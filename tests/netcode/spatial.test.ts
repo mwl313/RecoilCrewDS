@@ -78,4 +78,23 @@ describe('cliff proxy merge', () => {
     const merged = mergeCliffProxies(cliffs);
     expect(merged.length).toBe(2);
   });
+
+  it('does not fill the empty inside of an L-shaped cliff', () => {
+    const cliffs: Collider[] = [
+      box(0, 10, 0, 1, 'cliff', 8),
+      box(9, 10, 0, 10, 'cliff', 8),
+    ];
+    const merged = mergeCliffProxies(cliffs);
+    expect(merged).toHaveLength(2);
+    const falseInterior = new THREE.Vector3(4, 2, 6);
+    expect(merged.some((proxy) => proxy.box.containsPoint(falseInterior))).toBe(false);
+  });
+
+  it('keeps diagonal or corner-like cliff boxes separate', () => {
+    const cliffs: Collider[] = [
+      box(0, 3, 0, 3, 'cliff', 8),
+      box(2.8, 5.8, 2.8, 5.8, 'cliff', 8),
+    ];
+    expect(mergeCliffProxies(cliffs)).toHaveLength(2);
+  });
 });

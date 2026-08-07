@@ -27,6 +27,24 @@
       "file": "/assets/textures/environment/sparse-grass/sparse_grass_mask_1k.png"
     },
     {
+      "id": "custom.item.relicChest",
+      "kind": "model",
+      "namespace": "custom",
+      "file": "/assets/models/items/relic-chest/relic-chest.glb",
+      "sockets": [
+        {
+          "id": "GlowOrigin",
+          "position": [0, 0.405, -0.015]
+        },
+        {
+          "id": "RewardAnchor",
+          "position": [0, 0.385, -0.015]
+        }
+      ],
+      "tags": ["item", "relic", "chest", "articulated", "presentation"],
+      "optional": true
+    },
+    {
       "id": "custom.enemy.beast.boss",
       "kind": "model",
       "namespace": "custom",

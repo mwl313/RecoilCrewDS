@@ -159,6 +159,8 @@ export class SharedTankPredictor {
     this.display = copyToDisplay(this.predicted);
     this.pendingInputs = [];
     this.pendingImpulses = [];
+    this.lastRelayInput = null;
+    this.lastImpulseSeq = 0;
     this.opLog = [];
     this.acc = 0;
     this.hasReconciled = true;
@@ -307,6 +309,7 @@ export class SharedTankPredictor {
       this.display = copyToDisplay(base);
       this.pendingInputs = [];
       this.pendingImpulses = [];
+      this.lastRelayInput = null;
       this.acc = 0;
       return;
     }
@@ -345,9 +348,11 @@ export class SharedTankPredictor {
       this.display = copyToDisplay(base);
     }
     opts.onCorrection?.(divergence);
-    this.pendingInputs = [];
-    this.pendingImpulses = [];
-    this.lastRelayInput = null;
+    // A snapshot can only retire operations the server explicitly
+    // acknowledged. Preserve the rest so a later snapshot with the same ack
+    // can rebuild prediction from authority without dropping movement/recoil.
+    this.pendingInputs = remainingInputs;
+    this.pendingImpulses = remainingImpulses;
   }
 
   smooth(dt: number): void {

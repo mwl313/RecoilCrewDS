@@ -17,5 +17,5 @@
     },
     "types": ["node"]
   },
-  "include": ["src", "tests", "tools/maplab/src", "tools/enemy-animation-preview/src", "scripts", "vite.config.ts", "playwright.config.ts", "e2e"]
+  "include": ["src", "tests", "tools/maplab/src", "tools/enemy-animation-preview/src", "tools/relic-chest-preview/src", "scripts", "vite.config.ts", "playwright.config.ts", "e2e"]
 }

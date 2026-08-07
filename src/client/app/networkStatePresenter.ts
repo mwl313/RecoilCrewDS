@@ -380,7 +380,10 @@ export class NetworkStatePresenter {
     if (deps.session().kind === 'singlePlayer' || deps.role() === 'gunner') {
       const groundY = renderTank.y;
       const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
-      const chassisYaw = deps.session().kind === 'singlePlayer' ? frame.tank.yaw : yaw;
+      // Tank, camera, and turret aim must share the same rendered chassis pose.
+      // Using the raw 30 Hz Single Player yaw here reintroduced a one-tick
+      // mismatch even after smoothing the visible tank and camera anchor.
+      const chassisYaw = yaw;
       const limits = deps.prediction.turretPitchLimits();
       const targetSolved = solveTurretAim(
         { x: pos.x, y: pos.y, z: pos.z, yaw },

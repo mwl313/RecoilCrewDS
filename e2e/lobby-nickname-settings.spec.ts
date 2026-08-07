@@ -8,7 +8,7 @@ async function boot(page: import('@playwright/test').Page): Promise<void> {
 
 test('nickname settings: randomize/cancel/save and persistence', async ({ page }) => {
   await boot(page);
-  const initial = (await page.locator('#main-playing-as').textContent())!.replace('PLAYING AS: ', '');
+  const initial = (await page.locator('#main-playing-as').textContent())!.replace('CURRENT NICKNAME: ', '');
   expect(initial).toMatch(/^[A-Za-z]+[0-9]{2}$/);
 
   await page.click('#main-settings');
@@ -21,19 +21,19 @@ test('nickname settings: randomize/cancel/save and persistence', async ({ page }
   expect(randomized).not.toBe(initial);
   await page.click('#settings-cancel');
   await expect(page.locator('#screen-main')).toBeVisible();
-  expect((await page.locator('#main-playing-as').textContent())!.replace('PLAYING AS: ', '')).toBe(initial);
+  expect((await page.locator('#main-playing-as').textContent())!.replace('CURRENT NICKNAME: ', '')).toBe(initial);
 
   await page.click('#main-settings');
   await page.fill('#nickname-input', '  Custom  Name  ');
   await page.click('#settings-save');
   await expect(page.locator('#screen-main')).toBeVisible();
-  expect(await page.locator('#main-playing-as').textContent()).toBe('PLAYING AS: Custom Name');
+  expect(await page.locator('#main-playing-as').textContent()).toBe('CURRENT NICKNAME: Custom Name');
 
   // Reload: the saved nickname persists.
   await page.reload();
   await page.click('#screen-boot');
   await expect(page.locator('#screen-main')).toBeVisible();
-  expect(await page.locator('#main-playing-as').textContent()).toBe('PLAYING AS: Custom Name');
+  expect(await page.locator('#main-playing-as').textContent()).toBe('CURRENT NICKNAME: Custom Name');
 });
 
 test('invalid nickname shows an error and does not save', async ({ page }) => {

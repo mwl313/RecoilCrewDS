@@ -117,16 +117,20 @@ export class ArenaView {
 
     // Ramps.
     for (const ramp of this.world.ramps) {
-      const model = this.assets.model('arena.ramp');
-      model.scale.set(ramp.w, ramp.rise, ramp.d);
-      model.position.set(ramp.x, ramp.baseY, ramp.z);
-      model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+      const model = ramp.assetId
+        ? this.buildUrbanRoadRamp(ramp)
+        : this.assets.model('arena.ramp');
+      if (!ramp.assetId) {
+        model.scale.set(ramp.w, ramp.rise, ramp.d);
+        model.position.set(ramp.x, ramp.baseY, ramp.z);
+        model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+      }
       model.traverse((o) => {
         o.castShadow = true;
         o.receiveShadow = true;
       });
       this.group.add(model);
-      this.disposables.push(model);
+      if (!ramp.assetId) this.disposables.push(model);
       this.colliders.push({
         box: new THREE.Box3(
           new THREE.Vector3(ramp.x - ramp.w / 2, 0, ramp.z - ramp.d / 2),
@@ -315,6 +319,22 @@ export class ArenaView {
         this.group.add(mesh);
       });
     }
+  }
+
+  private buildUrbanRoadRamp(ramp: import('../shared/arena').RampDef): THREE.Object3D {
+    const group = new THREE.Group();
+    const road = this.assets.model(ramp.assetId!);
+    const slopeLength = Math.hypot(ramp.d, ramp.rise);
+    road.scale.set(ramp.w / 8, 1, slopeLength / 8);
+    road.rotation.x = -Math.atan2(ramp.rise, ramp.d);
+    road.traverse((o) => {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    group.add(road);
+    group.position.set(ramp.x, ramp.baseY + ramp.rise / 2 + 0.02, ramp.z);
+    group.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+    return group;
   }
 
   private buildObstacle(o: Obstacle) {

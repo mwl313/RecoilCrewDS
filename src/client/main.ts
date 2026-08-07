@@ -112,6 +112,14 @@ hud.bind({
   onBoot: () => {
     audio.unlock();
     hud.onUiSound = () => audio.play('ui');
+    // A mid-round rejoin can finish while the title-exit choreography is
+    // still pending. Never let that delayed callback reopen the menu over an
+    // already-active game/HUD.
+    if (flow === 'game') {
+      hud.setGameScreen(true);
+      return;
+    }
+    if (flow === 'results') return;
     hud.setMainMenuNickname(playerSettings.currentNickname);
     hud.showScreen('main');
     flow = 'main';
@@ -659,6 +667,11 @@ async function startSinglePlayer(): Promise<void> {
   game.suppressAutoInput = TEST_MODE;
   if (TEST_MODE && params.get('urbanView') === 'overview' && session.arena?.urbanLayout) {
     game.setUrbanOverview(session.arena.widthMeters);
+  }
+  if (TEST_MODE && params.has('qualityMetrics')) {
+    window.setInterval(() => {
+      if (game) document.body.dataset.qualityMetrics = JSON.stringify(game.qualityDiagnostics());
+    }, 250);
   }
   hud.setTheme('singlePlayer');
   hud.setGameScreen(true);
