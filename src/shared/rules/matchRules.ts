@@ -31,6 +31,7 @@ import type {
   LevelCurveDefinition,
   ProgressionDefinition,
   ProgressionModePolicyDefinition,
+  RelicChestSpawnPolicyDefinition,
   RelicDefinition,
   RelicEffectTemplateDefinition,
   TreasureRarityTableDefinition,
@@ -63,6 +64,7 @@ export interface MatchRulesProgressionContent {
   upgradeCategories: Map<string, UpgradeCategoryDefinition>;
   multiplayerPolicy: ProgressionModePolicyDefinition;
   singlePlayerPolicy: ProgressionModePolicyDefinition;
+  relicChestSpawnPolicy: RelicChestSpawnPolicyDefinition;
 }
 
 export class MatchRules {
@@ -107,6 +109,7 @@ export class MatchRules {
   readonly upgradeCategories: ReadonlyMap<string, UpgradeCategoryDefinition>;
   readonly multiplayerProgressionPolicy: ProgressionModePolicyDefinition | null;
   readonly singlePlayerProgressionPolicy: ProgressionModePolicyDefinition | null;
+  readonly relicChestSpawnPolicy: RelicChestSpawnPolicyDefinition | null;
 
   private readonly baseConfig: GameConfig;
   private readonly baseMatchConfig: MatchConfig;
@@ -178,6 +181,7 @@ export class MatchRules {
     this.upgradeCategories = deepFreeze(new Map(options.progression?.upgradeCategories ?? []));
     this.multiplayerProgressionPolicy = options.progression?.multiplayerPolicy ?? null;
     this.singlePlayerProgressionPolicy = options.progression?.singlePlayerPolicy ?? null;
+    this.relicChestSpawnPolicy = options.progression?.relicChestSpawnPolicy ?? null;
 
     const blocks = baseStatBlocksFromConfig(options.baseConfig, options.baseMatchConfig);
     blocks.weapon = { ...blocks.weapon, ...options.bundle.weaponStatBlocks };
@@ -349,6 +353,10 @@ export class MatchRules {
     this.resolver.removeModifiersBySource(source);
   }
 
+  removeModifiersBySourcePrefix(prefix: string): void {
+    this.resolver.removeModifiersBySourcePrefix(prefix);
+  }
+
   clearModifiers(): void {
     this.resolver.clearModifiers();
   }
@@ -481,6 +489,7 @@ function buildProgressionContent(pack: ContentPack): MatchRulesProgressionConten
     upgradeCategories,
     multiplayerPolicy: pack.getProgressionModePolicy(content.multiplayerPolicyId),
     singlePlayerPolicy: pack.getProgressionModePolicy(content.singlePlayerPolicyId),
+    relicChestSpawnPolicy: pack.getRelicChestSpawnPolicy(content.relicChestSpawnPolicyId),
   };
 }
 

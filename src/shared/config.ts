@@ -33,6 +33,8 @@ export interface GameConfig {
     gravity: number;
     /** Approximate vertical rise in world metres for a grounded jump. */
     jumpHeight: number;
+    /** Additional authoritative airborne jumps granted by relics. */
+    extraJumps: number;
     /** Launch speed used by ramp launches (preserved legacy ramp behavior). */
     rampLaunchSpeed: number;
     /** Minimum horizontal speed for a natural surface crest launch (m/s). */
@@ -73,6 +75,8 @@ export interface GameConfig {
     dashCooldown: number;
     /** Dash strength multiplier while airborne (0 disables air dash). */
     dashAirMultiplier: number;
+    /** One-time airborne Dash cooldown bypass capability (0 or 1). */
+    airDashCharges: number;
     /** Post-dash horizontal speed cap (preserves direction). */
     dashMaxHorizontalSpeed: number;
     /** Presentation window after an accepted dash (seconds). */
@@ -212,6 +216,7 @@ export const BASE_CONFIG: GameConfig = {
     landingGripMultiplier: 0.35,
     gravity: 13.5,
     jumpHeight: 3.0,
+    extraJumps: 0,
     rampLaunchSpeed: 6.5,
     surfaceLaunchMinSpeed: 7.0,
     surfaceLaunchLookBehind: 2.0,
@@ -232,6 +237,7 @@ export const BASE_CONFIG: GameConfig = {
     dashRecoveryStartRatio: 0.28,
     dashCooldown: 0.8,
     dashAirMultiplier: 0.8,
+    airDashCharges: 0,
     dashMaxHorizontalSpeed: 42.0,
     dashPresentationSeconds: 0.18,
     contactDamage: 0,

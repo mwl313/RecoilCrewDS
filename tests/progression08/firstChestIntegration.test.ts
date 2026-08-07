@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { makeMatch, spawnEnemy, killEnemy, resolveAllOffers } from './helpers';
+import { makeMatch, spawnEnemy, killEnemy, resolveAllOffers, revealChest, completeRelicReveal } from './helpers';
 
-const SOURCES = ['map', 'enemyDrop', 'waveClear'] as const;
+const SOURCES = ['mapStart', 'enemyDrop', 'waveClear'] as const;
 
 describe('first chest integration (progression08 hardening)', () => {
   it('first real open for every chest source is Epic/Legendary only', () => {
     for (const source of SOURCES) {
       const m = makeMatch('mode.singlePlayerScoreAttack', `first-${source}`);
       const chest = m.systems.progression.spawnChest(source, 3, 3);
-      const result = m.openProgressionChest(chest.id, 0);
+      const result = revealChest(m, chest, 1000);
       expect(result).not.toBeNull();
       expect(['epic', 'legendary']).toContain(result!.rarity);
       expect(m.state.teamProgression.treasureChestsOpened).toBe(1);
@@ -34,7 +34,7 @@ describe('first chest integration (progression08 hardening)', () => {
     // the guaranteed chest opens after the pending selection resolves.
     resolveAllOffers(m);
     expect(m.state.matchFlow).toBe('playing');
-    const result = m.openProgressionChest(waveChests[0].id, 0);
+    const result = revealChest(m, waveChests[0], 1000);
     expect(result).not.toBeNull();
     expect(['epic', 'legendary']).toContain(result!.rarity);
   });
@@ -42,12 +42,12 @@ describe('first chest integration (progression08 hardening)', () => {
   it('later chests use the normal table and first-chest status is consumed exactly once', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'later-chests');
     const first = m.systems.progression.spawnChest('map', 3, 3);
-    const r1 = m.openProgressionChest(first.id, 0);
+    const r1 = revealChest(m, first, 1000);
     expect(['epic', 'legendary']).toContain(r1!.rarity);
-    m.skipProgressionRelic(r1!.acquisitionSequence, 1);
+    completeRelicReveal(m);
 
     const second = m.systems.progression.spawnChest('enemyDrop', 4, 4);
-    const r2 = m.openProgressionChest(second.id, 0);
+    const r2 = revealChest(m, second, 5000);
     expect(r2).not.toBeNull();
     expect(m.state.teamProgression.treasureChestsOpened).toBe(2);
     expect(m.state.teamProgression.relicAcquisitionSequence).toBe(2);
@@ -60,11 +60,11 @@ describe('first chest integration (progression08 hardening)', () => {
     for (let i = 0; i < 30; i++) {
       const m = makeMatch('mode.singlePlayerScoreAttack', `distribution-${i}`);
       const a = m.systems.progression.spawnChest('map', 3, 3);
-      const ra = m.openProgressionChest(a.id, 0)!;
+      const ra = revealChest(m, a, 1000);
       firstRarities.add(ra.rarity);
-      m.skipProgressionRelic(ra.acquisitionSequence, 1);
+      completeRelicReveal(m);
       const b = m.systems.progression.spawnChest('map', 4, 4);
-      laterRarities.add(m.openProgressionChest(b.id, 0)!.rarity);
+      laterRarities.add(revealChest(m, b, 5000).rarity);
     }
     expect([...firstRarities].every((r) => r === 'epic' || r === 'legendary')).toBe(true);
     // The normal table (C55/R30/E13/L2) must eventually surface common/rare;
@@ -80,7 +80,7 @@ describe('first chest integration (progression08 hardening)', () => {
     expect(chest.opened).toBe(false);
     expect(m.state.teamProgression.treasureChestsOpened).toBe(0);
 
-    const result = m.openProgressionChest(chest.id, 0);
+    const result = revealChest(m, chest, 1000);
     expect(result).not.toBeNull();
     expect(chest.opened).toBe(true);
     expect(m.openProgressionChest(chest.id, 0)).toBeNull();
@@ -92,8 +92,8 @@ describe('first chest integration (progression08 hardening)', () => {
     const b = makeMatch('mode.singlePlayerScoreAttack', 'seed-determinism');
     const ca = a.systems.progression.spawnChest('map', 1, 1);
     const cb = b.systems.progression.spawnChest('map', 1, 1);
-    const ra = a.openProgressionChest(ca.id, 0);
-    const rb = b.openProgressionChest(cb.id, 0);
+    const ra = revealChest(a, ca, 1000);
+    const rb = revealChest(b, cb, 1000);
     expect(ra?.relicId).toBe(rb?.relicId);
     expect(ra?.acquisitionSequence).toBe(rb?.acquisitionSequence);
   });

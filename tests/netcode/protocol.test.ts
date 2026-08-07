@@ -28,7 +28,7 @@ describe('typed protocol', () => {
   });
 
   it('rejects old protocol versions against the current server', () => {
-    expect(PROTOCOL_VERSION).toBe(13);
+    expect(PROTOCOL_VERSION).toBe(15);
     const result = checkProtocolCompatibility({
       clientProtocol: PROTOCOL_VERSION - 1,
       clientContentHash: 'a',

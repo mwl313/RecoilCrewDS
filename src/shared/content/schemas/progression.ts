@@ -331,6 +331,64 @@ export const progressionModePolicySchema = z
   })
   .strict();
 
+export const relicChestSpawnPolicySchema = z
+  .object({
+    ...commonDefinition,
+    id: z.string().regex(/^relicChestSpawn\./, 'relic chest spawn policy id must start with relicChestSpawn.'),
+    initialMapChestCount: z.number().int().nonnegative(),
+    initialDiscoveryChest: z
+      .object({
+        enabled: z.boolean(),
+        minimumDistanceFromTankSpawn: nonNegativeNumber,
+        maximumDistanceFromTankSpawn: positiveNumber,
+      })
+      .strict(),
+    initialMinimumChestSpacing: positiveNumber,
+    periodic: z
+      .object({
+        enabled: z.boolean(),
+        intervalSeconds: positiveNumber,
+        intervalJitterSeconds: nonNegativeNumber,
+        minimumDistanceFromCurrentTank: nonNegativeNumber,
+        maximumActiveMapChests: z.number().int().positive(),
+        maximumMapChestsSpawnedPerMatch: z.number().int().positive(),
+      })
+      .strict(),
+    enemyDropRates: z
+      .object({
+        ambient: probability,
+        wave: probability,
+        elite: probability,
+        boss: probability,
+        leaderGuaranteed: z.boolean(),
+      })
+      .strict(),
+    spawnAnimationSeconds: positiveNumber,
+    claimRadius: positiveNumber,
+    openAnimationSeconds: positiveNumber,
+    relicRevealSeconds: positiveNumber,
+    relicRevealMinimumSkipSeconds: nonNegativeNumber,
+    minimumFullyOpenLifetimeSeconds: nonNegativeNumber,
+    despawnAnimationSeconds: positiveNumber,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.initialDiscoveryChest.maximumDistanceFromTankSpawn < value.initialDiscoveryChest.minimumDistanceFromTankSpawn) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['initialDiscoveryChest', 'maximumDistanceFromTankSpawn'],
+        message: 'maximum discovery distance must be >= minimum distance',
+      });
+    }
+    if (value.periodic.intervalJitterSeconds > value.periodic.intervalSeconds) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['periodic', 'intervalJitterSeconds'],
+        message: 'periodic jitter must not exceed the base interval',
+      });
+    }
+  });
+
 export const progressionDefinitionSchema = z
   .object({
     ...commonDefinition,
@@ -344,6 +402,7 @@ export const progressionDefinitionSchema = z
     relicPoolId: z.string().regex(/^relicPool\./),
     multiplayerPolicyId: z.string().regex(/^progressionMode\./),
     singlePlayerPolicyId: z.string().regex(/^progressionMode\./),
+    relicChestSpawnPolicyId: z.string().regex(/^relicChestSpawn\./),
     enemyXpRewards: z
       .object({
         ambient: positiveNumber,
@@ -352,7 +411,6 @@ export const progressionDefinitionSchema = z
         boss: positiveNumber,
       })
       .strict(),
-    enemyChestDropChance: probability,
     duplicateUniqueRelicXp: positiveNumber,
   })
   .strict();
@@ -368,4 +426,5 @@ export type RelicEffectTemplateDefinition = z.infer<typeof relicEffectTemplateSc
 export type RelicDefinition = z.infer<typeof relicSchema>;
 export type RelicPoolDefinition = z.infer<typeof relicPoolSchema>;
 export type ProgressionModePolicyDefinition = z.infer<typeof progressionModePolicySchema>;
+export type RelicChestSpawnPolicyDefinition = z.infer<typeof relicChestSpawnPolicySchema>;
 export type ProgressionDefinition = z.infer<typeof progressionDefinitionSchema>;

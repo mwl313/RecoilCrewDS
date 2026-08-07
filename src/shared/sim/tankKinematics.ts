@@ -32,6 +32,10 @@ export interface TankKinematicState {
   pitch: number;
   roll: number;
   grounded: boolean;
+  airJumpsRemaining?: number;
+  airJumpCapacity?: number;
+  airDashReuseRemaining?: number;
+  airDashReuseCapacity?: number;
   /** Authoritative time until the next dash may be accepted (seconds). */
   dashCooldown: number;
   /** Short presentation window after an accepted dash (seconds). */
@@ -125,6 +129,7 @@ export function stepTankKinematics(
 ): CollisionHit[] {
   const tankCfg = cfg.tank;
   normalizeDashState(t);
+  syncAirborneRelicCharges(t, tankCfg);
   const legacyImpulseDash = options.dashModel === 'legacyImpulse';
   if (legacyImpulseDash) {
     // The deterministic Phase-0 Demo is a frozen compatibility contract.
@@ -154,8 +159,11 @@ export function stepTankKinematics(
   // Jump edge: grounded-only, before normal gravity integration. Launch
   // velocity derives identically on server, predictor, and Single Player from the
   // same resolved gravity and designer-facing jumpHeight.
-  const jumped = inp.jumpPressed && t.grounded && tankCfg.jumpHeight > 0;
+  const groundedJump = inp.jumpPressed && t.grounded && tankCfg.jumpHeight > 0;
+  const airborneJump = inp.jumpPressed && !t.grounded && t.airJumpsRemaining! > 0 && tankCfg.jumpHeight > 0;
+  const jumped = groundedJump || airborneJump;
   if (jumped) {
+    if (airborneJump) t.airJumpsRemaining = Math.max(0, t.airJumpsRemaining! - 1);
     t.vy = Math.max(t.vy, Math.sqrt(2 * mcfg.gravity * tankCfg.jumpHeight));
     t.grounded = false;
     callbacks?.onJump?.();
@@ -199,7 +207,10 @@ export function stepTankKinematics(
   // 4. Dash edge: enter a temporary authoritative movement state. Capture
   // chassis forward only at the accepted edge; camera, turret, and current
   // velocity direction cannot affect the burst direction.
-  if (inp.dashPressed && t.dashCooldown <= 0) {
+  const ordinaryDashReady = t.dashCooldown <= 0;
+  const airborneDashReuse = !t.grounded && !ordinaryDashReady && t.airDashReuseRemaining! > 0;
+  if (inp.dashPressed && (ordinaryDashReady || airborneDashReuse)) {
+    if (airborneDashReuse) t.airDashReuseRemaining = Math.max(0, t.airDashReuseRemaining! - 1);
     if (legacyImpulseDash) {
       const strength = tankCfg.dashImpulse * (t.grounded ? 1 : tankCfg.dashAirMultiplier);
       if (strength > 0) {
@@ -330,7 +341,10 @@ export function stepTankKinematics(
     t.y = h;
     t.vy = 0;
     t.grounded = true;
-    if (!wasGrounded) t.landingGripT = tankCfg.landingGripSeconds;
+    if (!wasGrounded) {
+      t.landingGripT = tankCfg.landingGripSeconds;
+      refillAirborneRelicCharges(t, tankCfg);
+    }
   } else {
     t.vy -= mcfg.gravity * dt;
     t.grounded = false;
@@ -376,6 +390,39 @@ export function stepTankKinematics(
   // state exists anymore).
   t.drift = t.grounded && Math.abs(inp.steer) > 0.4 && Math.abs(newFwd) > 6;
   return hits;
+}
+
+function syncAirborneRelicCharges(t: TankKinematicState, cfg: GameConfig['tank']): void {
+  const jumpCapacity = Math.max(0, Math.floor(cfg.extraJumps));
+  const previousJumpCapacity = Math.max(0, Math.floor(finiteOr(t.airJumpCapacity, 0)));
+  t.airJumpsRemaining = Math.max(0, Math.floor(finiteOr(t.airJumpsRemaining, 0)));
+  if (t.grounded) t.airJumpsRemaining = jumpCapacity;
+  else if (jumpCapacity > previousJumpCapacity) {
+    // Acquiring DOUBLE JUMP while airborne grants only the newly added
+    // deterministic charge; landing refills the complete capacity.
+    t.airJumpsRemaining += jumpCapacity - previousJumpCapacity;
+  }
+  t.airJumpsRemaining = Math.min(t.airJumpsRemaining, jumpCapacity);
+  t.airJumpCapacity = jumpCapacity;
+
+  // AIR MASTER is a capability: its air-control percentage stacks, while
+  // its one airborne Dash cooldown bypass remains capped at one.
+  const dashCapacity = Math.max(0, Math.min(1, Math.floor(cfg.airDashCharges)));
+  const previousDashCapacity = Math.max(0, Math.min(1, Math.floor(finiteOr(t.airDashReuseCapacity, 0))));
+  t.airDashReuseRemaining = Math.max(0, Math.floor(finiteOr(t.airDashReuseRemaining, 0)));
+  if (t.grounded) t.airDashReuseRemaining = dashCapacity;
+  else if (dashCapacity > previousDashCapacity) {
+    t.airDashReuseRemaining += dashCapacity - previousDashCapacity;
+  }
+  t.airDashReuseRemaining = Math.min(t.airDashReuseRemaining, dashCapacity);
+  t.airDashReuseCapacity = dashCapacity;
+}
+
+function refillAirborneRelicCharges(t: TankKinematicState, cfg: GameConfig['tank']): void {
+  t.airJumpsRemaining = Math.max(0, Math.floor(cfg.extraJumps));
+  t.airJumpCapacity = t.airJumpsRemaining;
+  t.airDashReuseRemaining = Math.max(0, Math.min(1, Math.floor(cfg.airDashCharges)));
+  t.airDashReuseCapacity = t.airDashReuseRemaining;
 }
 
 function normalizeDashState(t: TankKinematicState): void {

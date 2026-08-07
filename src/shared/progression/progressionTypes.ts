@@ -1,7 +1,7 @@
 import type { UpgradeRarity } from '../content/schemas/progression';
 import type { EnemyActionCue } from '../animation/enemyActionCue';
 
-export type MatchFlowState = 'playing' | 'upgradeSelection' | 'relicSelection' | 'clear' | 'gameOver';
+export type MatchFlowState = 'playing' | 'upgradeSelection' | 'relicOpening' | 'relicSelection' | 'clear' | 'gameOver';
 
 export interface TeamProgressionState {
   level: number;
@@ -14,6 +14,8 @@ export interface TeamProgressionState {
   /** Monotonic match-scoped sequence; every resolved chest increments it. */
   relicAcquisitionSequence: number;
   relicStacks: Record<string, number>;
+  /** Stable first-acquisition order used by the persistent HUD rail. */
+  relicAcquisitionOrder?: string[];
   activeSelection: ProgressionSelectionState | null;
   lastRelicResult: RelicRollResult | null;
   /** Chest results that could not start a reveal immediately (serialized). */
@@ -48,6 +50,9 @@ export interface ProgressionSelectionState {
   resolved: boolean;
   /** Relic reveal fields (kind === 'relic'). */
   revealDeadlineWallMs?: number;
+  revealMinimumSkipAtWallMs?: number;
+  chestId?: number;
+  relicOffer?: RelicRewardOffer;
   applied?: boolean;
 }
 
@@ -60,7 +65,24 @@ export interface RelicRollResult {
   stackCountAfter: number;
 }
 
-export type TreasureChestSource = 'map' | 'enemyDrop' | 'waveClear';
+export type RelicOfferMode = 'automaticSingle' | 'chooseOne';
+
+export interface RelicCandidateResult {
+  relicId: string;
+  rarity: UpgradeRarity;
+}
+
+export interface RelicRewardOffer {
+  offerId: string;
+  chestId: number;
+  candidates: RelicCandidateResult[];
+  selectionMode: RelicOfferMode;
+  selectedIndex: number | null;
+  resolved: boolean;
+}
+
+export type TreasureChestSource = 'mapStart' | 'mapPeriodic' | 'enemyDrop' | 'waveClear';
+export type TreasureChestLifecycle = 'spawning' | 'closed' | 'opening' | 'revealing' | 'open' | 'despawning';
 
 export type ProgressionXpSource =
   | 'shard'
@@ -76,7 +98,18 @@ export interface TreasureChestState {
   x: number;
   y: number;
   z: number;
-  opened: boolean;
+  lifecycle: TreasureChestLifecycle;
+  spawnStartedAtGameTime: number;
+  claimableAtGameTime: number;
+  openingStartedAtWallMs?: number;
+  fullyOpenAtWallMs?: number;
+  rewardOffer?: RelicRewardOffer;
+  rewardOfferId?: string;
+  rewardResolved?: boolean;
+  fullyOpenStartedAtGameTime?: number;
+  despawnStartedAtGameTime?: number;
+  /** Temporary compatibility for older snapshots/tests. */
+  opened?: boolean;
 }
 
 export interface RelicAcquireResult {

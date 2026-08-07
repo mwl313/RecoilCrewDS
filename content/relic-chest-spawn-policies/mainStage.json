@@ -1,0 +1,34 @@
+{
+  "id": "relicChestSpawn.mainStage",
+  "label": "Main Stage Relic Chest Spawning",
+  "description": "Authoritative map, enemy-drop, lifecycle, and reveal tuning for relic chests.",
+  "initialMapChestCount": 10,
+  "initialDiscoveryChest": {
+    "enabled": true,
+    "minimumDistanceFromTankSpawn": 25,
+    "maximumDistanceFromTankSpawn": 55
+  },
+  "initialMinimumChestSpacing": 28,
+  "periodic": {
+    "enabled": true,
+    "intervalSeconds": 20,
+    "intervalJitterSeconds": 4,
+    "minimumDistanceFromCurrentTank": 35,
+    "maximumActiveMapChests": 14,
+    "maximumMapChestsSpawnedPerMatch": 20
+  },
+  "enemyDropRates": {
+    "ambient": 0.01,
+    "wave": 0.02,
+    "elite": 0.08,
+    "boss": 0,
+    "leaderGuaranteed": true
+  },
+  "spawnAnimationSeconds": 0.5,
+  "claimRadius": 2.6,
+  "openAnimationSeconds": 0.65,
+  "relicRevealSeconds": 2,
+  "relicRevealMinimumSkipSeconds": 0.35,
+  "minimumFullyOpenLifetimeSeconds": 2,
+  "despawnAnimationSeconds": 0.45
+}

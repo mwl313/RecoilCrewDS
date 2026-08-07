@@ -11,12 +11,12 @@
   "relicPoolId": "relicPool.main",
   "multiplayerPolicyId": "progressionMode.multiplayer",
   "singlePlayerPolicyId": "progressionMode.singlePlayer",
+  "relicChestSpawnPolicyId": "relicChestSpawn.mainStage",
   "enemyXpRewards": {
     "ambient": 1,
     "wave": 2,
     "elite": 40,
     "boss": 150
   },
-  "enemyChestDropChance": 0.015,
   "duplicateUniqueRelicXp": 250
 }

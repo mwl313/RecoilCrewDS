@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ContentLoader } from '../../src/shared/content/contentLoader';
 import { MatchRuntime } from '../../src/shared/sim/matchRuntime';
-import { makeMatch, spawnEnemy, killEnemy, resolveAllOffers, step } from './helpers';
+import { makeMatch, spawnEnemy, killEnemy, resolveAllOffers, step, revealChest, completeRelicReveal } from './helpers';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CONTENT_ROOT = path.join(ROOT, 'content');
@@ -139,14 +139,14 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     const m = MatchRuntime.fromContentPack(pack, 'duplicate-xp', 'none', 'mode.singlePlayerScoreAttack');
     const before = m.state.teamProgression.totalXpCollected;
     const c1 = m.systems.progression.spawnChest('map', 3, 3);
-    const r1 = m.openProgressionChest(c1.id, 0);
+    const r1 = revealChest(m, c1, 1000);
     expect(r1?.duplicateConverted).toBe(false);
-    m.skipProgressionRelic(r1!.acquisitionSequence, 1);
+    completeRelicReveal(m);
     const c2 = m.systems.progression.spawnChest('map', 4, 4);
-    const r2 = m.openProgressionChest(c2.id, 0);
+    const r2 = revealChest(m, c2, 5000);
     expect(r2?.duplicateConverted).toBe(true);
     expect(r2?.replacementXp).toBe(250);
-    m.skipProgressionRelic(r2!.acquisitionSequence, 2);
+    completeRelicReveal(m);
     // Single-player XP multiplier 2: 250 × 2 = 500 granted once.
     expect(m.state.teamProgression.totalXpCollected - before).toBe(500);
   });

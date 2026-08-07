@@ -30,11 +30,15 @@ export class RelicInventory {
         relicId: relic.id,
         stackCount: current,
         duplicateConverted: true,
-        replacementXp: this.definition.duplicateUniqueRelicXp,
+        replacementXp: relic.duplicateReplacement?.amount ?? this.definition.duplicateUniqueRelicXp,
         capabilityGranted: false,
       };
     }
     stacks[relic.id] = current + 1;
+    const acquisitionOrder = this.state.teamProgression.relicAcquisitionOrder ??= [];
+    if (current === 0 && !acquisitionOrder.includes(relic.id)) {
+      acquisitionOrder.push(relic.id);
+    }
     let capabilityGranted = false;
     if (relic.capabilityId && current === 0) {
       this.grantCapability(relic.capabilityId, `relic:${relic.id}`);

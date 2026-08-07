@@ -5,7 +5,7 @@ export interface ProgressionOverlayCallbacks {
   selectUpgrade(cardIndex: number): void;
   skipRelicPresentation(): void;
   /** Content labels/descriptions when available; raw ids are the fallback. */
-  relicInfo?: (relicId: string) => { label: string; description: string } | null;
+  relicInfo?: (relicId: string) => { label: string; description: string; iconId?: string; iconUrl?: string | null } | null;
 }
 
 /**
@@ -29,6 +29,7 @@ export class ProgressionOverlay {
   private readyElement: HTMLElement | null = null;
   private cardButtons: HTMLButtonElement[] = [];
   private relicTimerElement: HTMLElement | null = null;
+  private relicSkipButton: HTMLButtonElement | null = null;
   private lastRelicKey = '';
   private relicToastUntil = 0;
   private selectionVisible = false;
@@ -200,7 +201,11 @@ export class ProgressionOverlay {
       this.relicHost.style.display = 'grid';
       if (this.relicTimerElement) {
         const remaining = Math.max(0, (reveal.revealDeadlineWallMs ?? reveal.expiresAtWallMs) - nowMs);
-        this.relicTimerElement.textContent = `auto-complete ${Math.ceil(remaining / 1000)}s`;
+        const skipRemaining = Math.max(0, (reveal.revealMinimumSkipAtWallMs ?? nowMs) - nowMs);
+        this.relicTimerElement.textContent = skipRemaining > 0
+          ? `skip available ${(skipRemaining / 1000).toFixed(1)}s · auto ${Math.ceil(remaining / 1000)}s`
+          : `skip ready · auto ${Math.ceil(remaining / 1000)}s`;
+        if (this.relicSkipButton) this.relicSkipButton.disabled = skipRemaining > 0;
       }
       this.relicVisible = true;
       return;
@@ -228,22 +233,42 @@ export class ProgressionOverlay {
     const result = selection.relicResult!;
     this.relicHost.textContent = '';
     this.relicTimerElement = null;
+    this.relicSkipButton = null;
+    const rarityColor: Record<string, string> = {
+      common: '#9aa3ad',
+      rare: '#4db8ff',
+      epic: '#c06bff',
+      legendary: '#ffc94d',
+    };
+    const color = rarityColor[result.rarity] ?? rarityColor.common;
     const panel = document.createElement('div');
     panel.style.cssText =
-      'text-align:center;max-width:520px;padding:26px 34px;border:2px solid #c06bff;' +
-      'border-radius:14px;background:rgba(20,16,30,0.96);';
+      `text-align:center;max-width:520px;padding:26px 34px;border:2px solid ${color};` +
+      'clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);' +
+      'background:linear-gradient(145deg,rgba(20,23,24,.98),rgba(7,9,10,.98));';
     const title = document.createElement('h2');
     title.textContent = 'RELIC ACQUIRED';
     title.style.cssText = 'margin:0 0 12px;letter-spacing:.14em;color:#ffc94d;';
     panel.appendChild(title);
     const info = this.cb.relicInfo?.(result.relicId) ?? null;
+    const icon = document.createElement('div');
+    icon.className = 'relic-reveal-icon';
+    if (info?.iconUrl) {
+      const image = document.createElement('img');
+      image.src = info.iconUrl;
+      image.alt = '';
+      icon.appendChild(image);
+    } else {
+      icon.classList.add('relic-reveal-icon--fallback');
+    }
+    panel.appendChild(icon);
     const name = document.createElement('div');
-    name.textContent = info?.label ?? result.relicId;
+    name.textContent = info?.label ?? 'UNIDENTIFIED RELIC';
     name.style.cssText = 'font-size:22px;font-weight:700;color:#ffe9a8;margin-bottom:6px;';
     panel.appendChild(name);
     const rarity = document.createElement('div');
     rarity.textContent = result.rarity.toUpperCase();
-    rarity.style.cssText = 'color:#c06bff;font-weight:700;letter-spacing:.1em;margin-bottom:10px;';
+    rarity.style.cssText = `color:${color};font-weight:700;letter-spacing:.1em;margin-bottom:10px;`;
     panel.appendChild(rarity);
     if (info?.description) {
       const desc = document.createElement('div');
@@ -261,10 +286,11 @@ export class ProgressionOverlay {
     skip.dataset['act'] = 'skip-relic';
     skip.textContent = 'SKIP';
     skip.style.cssText =
-      'padding:8px 22px;border:1px solid #4db8ff;border-radius:8px;background:rgba(24,42,54,0.9);' +
+      'padding:8px 22px;border:1px solid #4db8ff;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);background:rgba(24,42,54,0.9);' +
       'color:#bfe9ff;cursor:pointer;font-weight:700;';
     skip.addEventListener('click', () => this.cb.skipRelicPresentation());
     panel.appendChild(skip);
+    this.relicSkipButton = skip;
     this.relicTimerElement = document.createElement('div');
     this.relicTimerElement.dataset['relicTimer'] = 'true';
     this.relicTimerElement.style.cssText = 'margin-top:12px;color:#7fc9d8;font-size:12px;';
@@ -275,6 +301,7 @@ export class ProgressionOverlay {
   private renderRelicToast(result: NonNullable<MatchState['teamProgression']['lastRelicResult']>): void {
     this.relicHost.textContent = '';
     this.relicTimerElement = null;
+    this.relicSkipButton = null;
     const toast = document.createElement('div');
     toast.style.cssText =
       'position:absolute;top:18%;left:50%;transform:translateX(-50%);' +
@@ -282,8 +309,8 @@ export class ProgressionOverlay {
       'background:rgba(24,30,20,0.96);font-weight:700;color:#ffe9a8;';
     const info = this.cb.relicInfo?.(result.relicId) ?? null;
     toast.textContent = result.duplicateConverted
-      ? `${info?.label ?? result.relicId} DUPLICATE → +${result.replacementXp} XP`
-      : `${info?.label ?? result.relicId} (${result.rarity.toUpperCase()}) ×${result.stackCountAfter}`;
+      ? `${info?.label ?? 'UNIDENTIFIED RELIC'} DUPLICATE → +${result.replacementXp} XP`
+      : `${info?.label ?? 'UNIDENTIFIED RELIC'} (${result.rarity.toUpperCase()}) ×${result.stackCountAfter}`;
     this.relicHost.appendChild(toast);
   }
 
