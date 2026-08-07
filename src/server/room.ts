@@ -165,6 +165,13 @@ function stageViewFor(match: Match) {
   return stageViewForMatch(match.runtime);
 }
 
+function connectedProgressionRoles(room: Room): Role[] {
+  const roles: Role[] = [];
+  if (room.driver?.socket) roles.push('driver');
+  if (room.gunner?.socket) roles.push('gunner');
+  return roles;
+}
+
 function sanitizeDriver(raw: unknown): DriverInput | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
@@ -488,6 +495,7 @@ export class RoomManager {
     client.socket = null;
     client.disconnectedAt = this.now();
     client.graceLeft = GAME.reconnectGrace;
+    room.match?.refreshProgressionRelicGate(connectedProgressionRoles(room), this.now());
     room.roleSwap = null;
     this.cancelCountdown(room, 'disconnect');
     room.lobbyRevision++;
@@ -589,12 +597,15 @@ export class RoomManager {
       room.match.submitProgressionSelection(client.role, offerId, cardIndex);
       return;
     }
-    if (t === 'skipRelicPresentation') {
+    if (t === 'acknowledgeRelic' || t === 'skipRelicPresentation') {
       if (room.phase !== 'running' || !room.match || !client.role) return;
       const acquisitionSequence = typeof raw.acquisitionSequence === 'number' ? raw.acquisitionSequence : -1;
-      // Either player may skip the shared reveal; the command is idempotent
-      // on the authority and can never alter the predetermined result.
-      room.match.skipProgressionRelic(acquisitionSequence, this.now());
+      room.match.acknowledgeProgressionRelic(
+        client.role,
+        acquisitionSequence,
+        connectedProgressionRoles(room),
+        this.now(),
+      );
       return;
     }
     if (t === 'rematch') {
@@ -808,6 +819,7 @@ export class RoomManager {
             else if (client.role === 'gunner') room.match.clearGunnerInput();
           }
         }
+        room.match.refreshProgressionRelicGate(connectedProgressionRoles(room), now);
         room.match.checkProgressionTimeout(now);
         room.simTick++;
         room.match.step(dt);

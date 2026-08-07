@@ -4,5 +4,6 @@
 @import './scenes.css';
 @import './lobby.css';
 @import './hud.css';
+@import './progression-reveal.css';
 @import './responsive.css';
 @import './accessibility.css';

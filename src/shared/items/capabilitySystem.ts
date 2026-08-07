@@ -22,6 +22,13 @@ export class CapabilitySystem {
     return this.byCapability.has(id);
   }
 
+  /** Read-only diagnostics for authoritative capability ownership. */
+  debugSources(): Record<string, string[]> {
+    return Object.fromEntries(
+      [...this.byCapability.entries()].map(([capabilityId, sources]) => [capabilityId, [...sources.keys()].sort()]),
+    );
+  }
+
   grant(id: string, sourceId: string): void {
     let sources = this.byCapability.get(id);
     if (!sources) {

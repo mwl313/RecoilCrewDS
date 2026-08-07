@@ -5,7 +5,6 @@ import type {
 import type { TreasureChestState, TreasureChestSource } from './progressionTypes';
 import { rollWeighted } from './progressionRng';
 import type { UpgradeRarity } from '../content/schemas/progression';
-import { TREASURE_CHEST_STATE_GROUND_OFFSET } from './treasureChestGeometry';
 
 const RARITY_ORDER: UpgradeRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
@@ -56,7 +55,26 @@ export class TreasureChestSystem {
     this.incrementOpened();
   }
 
-  makeChest(id: number, source: TreasureChestSource, x: number, z: number, groundY: number): TreasureChestState {
-    return { id, source, x, y: groundY + TREASURE_CHEST_STATE_GROUND_OFFSET, z, opened: false };
+  makeChest(
+    id: number,
+    source: TreasureChestSource,
+    x: number,
+    z: number,
+    groundY: number,
+    spawnStartedAtGameTime = 0,
+    spawnAnimationSeconds = 0,
+  ): TreasureChestState {
+    return {
+      id,
+      source,
+      x,
+      y: groundY + 0.4,
+      z,
+      lifecycle: spawnAnimationSeconds > 0 ? 'spawning' : 'closed',
+      spawnStartedAtGameTime,
+      claimableAtGameTime: spawnStartedAtGameTime + spawnAnimationSeconds,
+      rewardResolved: false,
+      opened: false,
+    };
   }
 }

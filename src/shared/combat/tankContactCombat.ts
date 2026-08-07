@@ -93,7 +93,11 @@ export class TankContactCombat {
             const coefficient =
               roadkill.baseDamageCoefficient +
               roadkill.coefficientPerAdditionalStack * (roadkill.stacks - 1);
-            const damage = Math.max(1, Math.round(tankCfg.dashContactDamage * speedRatio * coefficient));
+            // ROADKILL uses the authored contact-damage baseline as its own
+            // coefficient base. Relic modifiers that explicitly say "Dash
+            // damage" (UNSTOPPABLE) must not leak into non-Dash contact.
+            const roadkillBaseDamage = this.ctx.rules.resolver.getBase('tank.dashContactDamage');
+            const damage = Math.max(1, Math.round(roadkillBaseDamage * speedRatio * coefficient));
             const result = this.ctx.damage.applyEnemy(e, damage, 'roadkill');
             this.ctx.progression?.recordRoadkill(speed, maxSpeed, damage);
             if (result.killed) this.ctx.progression?.recordRoadkillKill();

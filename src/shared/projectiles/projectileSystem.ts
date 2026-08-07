@@ -152,15 +152,18 @@ export class ProjectileSystem {
     const innerMult = resolver.resolve('weapon.splashInnerMultiplier');
     const outerMult = resolver.resolve('weapon.splashOuterMultiplier');
     const splashNearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, radius + 4);
+    let firstHitEnemyId: number | null = null;
     for (const e of splashNearby) {
       if (!e.alive) continue;
       const d = dist(sh.x, sh.z, e.x, e.z);
       const rr = this.ctx.enemies.radiusFor(e);
       if (d < radius + rr) {
         const falloff = d < radius * innerRatio ? innerMult : outerMult;
-        this.ctx.damage.applyEnemy(e, dmg * falloff, 'cannon');
+        this.ctx.damage.applyEnemy(e, dmg * falloff, 'cannon', sh.weaponId);
+        if (firstHitEnemyId === null) firstHitEnemyId = e.id;
       }
     }
+    if (firstHitEnemyId !== null) this.ctx.progression?.notifyCannonHit(firstHitEnemyId);
     for (const b of s.barrels) {
       if (b.exploded) continue;
       const d = dist(sh.x, sh.z, b.x, b.z);

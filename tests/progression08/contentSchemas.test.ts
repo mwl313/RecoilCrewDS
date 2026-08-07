@@ -1,5 +1,8 @@
 ﻿import { describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { CLIENT_CONTENT_PACK } from '../../src/generated/contentPack.generated';
+import { PRESENTATION_ASSET_CATALOG } from '../../src/generated/presentationContent.generated';
 import { RELIC_EFFECT_TYPES } from '../../src/shared/content/schemas/progression';
 
 const RELIC_IDS = [
@@ -22,6 +25,22 @@ describe('progression content schemas (progression08)', () => {
       expect(relic.effects.length).toBeGreaterThan(0);
     }
     expect(CLIENT_CONTENT_PACK.ids('relics').length).toBe(28);
+  });
+
+  it('maps every relic to one unique, packaged HUD icon', () => {
+    const relicIconIds = RELIC_IDS
+      .map((id) => CLIENT_CONTENT_PACK.getRelic(id).iconId)
+      .sort((a, b) => a.localeCompare(b));
+    const catalogIcons = PRESENTATION_ASSET_CATALOG.project
+      .filter((asset) => asset.kind === 'image' && asset.tags?.includes('relic'))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    expect(new Set(relicIconIds).size).toBe(RELIC_IDS.length);
+    expect(catalogIcons.map((asset) => asset.id)).toEqual(relicIconIds);
+    for (const asset of catalogIcons) {
+      expect(asset.file).toMatch(/^\/assets\/images\/relics\/[a-z0-9-]+\.png$/);
+      expect(existsSync(resolve(process.cwd(), `public${asset.file}`)), asset.id).toBe(true);
+    }
   });
 
   it('registers 18 upgrade categories (10 driver + 8 gunner)', () => {
@@ -79,7 +98,5 @@ describe('progression content schemas (progression08)', () => {
     expect(def.enemyXpRewards.ambient).toBe(1);
     expect(def.enemyXpRewards.elite).toBe(40);
     expect(def.enemyXpRewards.boss).toBe(150);
-    expect(def.mapChestCount).toBe(3);
-    expect(def.mapChestMinSpawnDistance).toBe(12);
   });
 });

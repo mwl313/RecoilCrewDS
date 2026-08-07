@@ -32,8 +32,8 @@ export class DamageSystem {
         : 1;
     const modified =
       this.ctx.progression?.modifyEnemyDamage(amount, source, {
-        airborne: enemy.impulseGrounded === false,
         enemy,
+        weaponId,
       }) ?? amount;
     e.hp -= modified * this.ctx.enemies.damageMultiplier(enemy, source);
     e.hp -= modified * (rearBonus - 1);

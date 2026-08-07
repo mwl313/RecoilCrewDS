@@ -43,6 +43,7 @@ test('first chest is Epic/Legendary only; second uses the normal table', async (
     return s.teamProgression.activeSelection?.relicResult?.rarity;
   });
   expect(['epic', 'legendary']).toContain(first);
+  await page.waitForTimeout(1_850);
   await page.evaluate(() =>
     (window as unknown as { __recoil: { progression: { skipRelic(): void } } }).__recoil.progression.skipRelic(),
   );

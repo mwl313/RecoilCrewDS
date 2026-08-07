@@ -1,0 +1,359 @@
+.reward-overlay {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--ui-paper);
+  font-family: var(--ui-body);
+  pointer-events: none;
+}
+
+.reward-overlay[hidden],
+.reward-layer[hidden],
+.reward-shard[hidden] { display: none !important; }
+
+.reward-scrim {
+  position: absolute;
+  z-index: -4;
+  inset: 0;
+  background: radial-gradient(circle at 50% 47%, rgba(5,7,8,.2) 0 24%, rgba(5,7,8,.82) 76%);
+  animation: reward-scrim-in 160ms ease-out both;
+}
+
+.reward-fx-layer,
+.reward-shard-layer,
+.reward-burst,
+.reward-ring,
+.reward-impact-core,
+.reward-shockwave,
+.reward-speedlines { position: absolute; pointer-events: none; }
+
+.reward-fx-layer { z-index: -2; inset: 0; overflow: hidden; }
+.reward-burst {
+  left: 50%;
+  top: 50%;
+  width: min(110vmax, 1400px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.42);
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0 5deg,
+    rgba(255,173,34,.34) 5deg 7deg,
+    rgba(241,238,227,.075) 7deg 9deg,
+    transparent 9deg 12deg
+  );
+  mask-image: radial-gradient(circle, #000 0 17%, rgba(0,0,0,.94) 20% 49%, transparent 72%);
+}
+.reward-fx-layer--entrance .reward-burst {
+  animation: reward-burst-impact 440ms cubic-bezier(.2,.8,.2,1) forwards,
+    reward-burst-idle 9s linear 440ms infinite;
+}
+
+.reward-impact-core {
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  width: 30vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%,-50%) scale(.02);
+  background: radial-gradient(circle, rgba(255,255,245,.98) 0 8%, rgba(255,206,89,.95) 10% 24%, rgba(255,173,34,.44) 32%, transparent 70%);
+  mix-blend-mode: screen;
+}
+.reward-fx-layer--entrance .reward-impact-core,
+.reward-fx-layer--impact .reward-impact-core { animation: reward-core-detonate 240ms cubic-bezier(.12,.7,.18,1) both; }
+.reward-fx-layer[data-rarity='rare'] .reward-impact-core { background: radial-gradient(circle, rgba(245,255,255,.96) 0 7%, rgba(61,230,255,.9) 12% 25%, transparent 70%); }
+.reward-fx-layer[data-rarity='epic'] .reward-impact-core { background: radial-gradient(circle, rgba(255,250,255,.98) 0 7%, rgba(189,103,255,.92) 12% 26%, transparent 70%); }
+.reward-fx-layer[data-rarity='legendary'] .reward-impact-core { width: 38vmin; background: radial-gradient(circle, #fffef2 0 9%, #ffd64a 13% 29%, rgba(255,173,34,.45) 38%, transparent 72%); }
+
+.reward-shockwave {
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  width: min(58vmin, 620px);
+  aspect-ratio: 1;
+  border: 3px solid rgba(255,205,91,.88);
+  opacity: 0;
+  transform: translate(-50%,-50%) scale(.04) rotate(-7deg);
+  clip-path: polygon(50% 0,92% 12%,100% 52%,84% 92%,42% 100%,8% 80%,0 37%,18% 7%);
+}
+.reward-shockwave--b { border-width: 1px; border-color: rgba(241,238,227,.62); }
+.reward-fx-layer--entrance .reward-shockwave,
+.reward-fx-layer--impact .reward-shockwave { animation: reward-shock-blast 520ms cubic-bezier(.12,.72,.18,1) both; }
+.reward-fx-layer--entrance .reward-shockwave--b,
+.reward-fx-layer--impact .reward-shockwave--b { animation-delay: 70ms; }
+.reward-fx-layer[data-rarity='rare'] .reward-shockwave--a { border-color: rgba(61,230,255,.9); }
+.reward-fx-layer[data-rarity='epic'] .reward-shockwave { border-color: rgba(189,103,255,.88); }
+.reward-fx-layer[data-rarity='legendary'] .reward-shockwave--a { border-width: 4px; border-color: rgba(255,214,74,.98); }
+
+.reward-speedlines {
+  z-index: 2;
+  inset: 0;
+  opacity: 0;
+  background: repeating-conic-gradient(from 1deg at 50% 50%, transparent 0 5.2deg, rgba(255,198,76,.78) 5.55deg 5.8deg, transparent 5.8deg 9deg);
+  mask-image: radial-gradient(circle at center, transparent 0 12%, #000 19% 57%, transparent 73%);
+}
+.reward-fx-layer--entrance .reward-speedlines { animation: reward-speedline-blast 340ms cubic-bezier(.12,.72,.2,1) both; }
+.reward-fx-layer--impact[data-emphasis='final-card'] .reward-speedlines,
+.reward-fx-layer--impact[data-emphasis='relic'] .reward-speedlines { animation: reward-speedline-micro 260ms cubic-bezier(.12,.72,.2,1) both; }
+
+.reward-ring {
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: min(66vw, 820px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255,173,34,.13);
+  opacity: 0;
+  transform: translate(-50%,-50%);
+  clip-path: polygon(50% 0,98% 20%,100% 72%,70% 100%,18% 94%,0 45%,22% 4%);
+}
+.reward-fx-layer--entrance .reward-ring { animation: reward-ring-enter 680ms ease-out both; }
+
+.reward-shard-layer { z-index: 7; inset: 0; overflow: hidden; }
+.reward-shard {
+  position: absolute;
+  width: var(--shard-w, 5px);
+  height: var(--shard-h, 14px);
+  margin: calc(var(--shard-h, 14px) / -2) 0 0 calc(var(--shard-w, 5px) / -2);
+  background: var(--ui-amber);
+  opacity: 0;
+}
+.reward-shard[data-tone='paper'] { background: var(--ui-paper); }
+.reward-fx-layer[data-rarity='rare'] .reward-shard[data-tone='rarity'] { background: #3de6ff; }
+.reward-fx-layer[data-rarity='epic'] .reward-shard[data-tone='rarity'] { background: #bd67ff; }
+.reward-fx-layer[data-rarity='legendary'] .reward-shard[data-tone='rarity'] { background: #ffd64a; }
+.reward-shard--active { animation: reward-shard-flight 550ms cubic-bezier(.15,.65,.25,1) var(--shard-delay,0ms) both; }
+
+.reward-overlay--edge-impact::after {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  content: '';
+  opacity: 0;
+  box-shadow: inset 0 0 90px 18px rgba(255,211,105,.42), inset 0 0 16px 3px rgba(255,255,244,.48);
+  pointer-events: none;
+  animation: reward-edge-impulse 180ms ease-out both;
+}
+
+.reward-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right));
+  pointer-events: auto;
+}
+.reward-stage {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  width: min(92vw,980px);
+  min-height: 520px;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+.reward-stage--enter { animation: reward-stage-punch 420ms cubic-bezier(.12,.86,.2,1) both; }
+.reward-kicker { margin-bottom: 8px; color: #cbb98f; font-size: 10px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; opacity: 0; }
+.reward-stage--enter .reward-kicker { animation: reward-fade-up 180ms ease-out 120ms both; }
+.reward-title {
+  margin: 0;
+  font: italic 900 clamp(46px,6vw,76px)/.83 var(--ui-display);
+  letter-spacing: -.04em;
+  text-transform: uppercase;
+  text-shadow: 0 5px 0 #000;
+  opacity: 0;
+  transform: translateY(-34px) scale(1.22) skewX(-5deg);
+}
+.reward-stage--enter .reward-title { animation: reward-title-slam 310ms cubic-bezier(.12,.86,.2,1) 70ms both; }
+.reward-level-number { margin-top: 8px; color: var(--ui-amber); font: italic 900 15px/1 var(--ui-display); letter-spacing: .22em; opacity: 0; }
+.reward-stage--enter .reward-level-number { animation: reward-level-pop 220ms cubic-bezier(.12,.86,.2,1) 180ms both; }
+
+.reward-card-bank { display: flex; width: 100%; justify-content: center; gap: 14px; margin-top: 34px; }
+.reward-card {
+  --rarity: #9aa3ad;
+  position: relative;
+  width: 30%;
+  min-width: 220px;
+  max-width: 272px;
+  height: 318px;
+  padding: 0;
+  overflow: hidden;
+  color: var(--ui-paper);
+  border: 1px solid var(--ui-line);
+  border-radius: 0;
+  background: linear-gradient(145deg,#151b1d,#0a0d0e);
+  clip-path: var(--ui-cut-lg);
+  cursor: pointer;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(108px) scale(.84);
+  transition: transform 120ms ease, filter 120ms ease, opacity 180ms ease, outline-color 120ms ease;
+}
+.reward-stage--enter .reward-card { animation: reward-card-enter 340ms cubic-bezier(.12,.86,.2,1) 220ms forwards; }
+.reward-stage--enter .reward-card:nth-child(2) { animation-delay: 265ms; }
+.reward-stage--enter .reward-card:nth-child(3) { animation-delay: 310ms; }
+.reward-card[data-rarity='rare'] { --rarity: #3de6ff; }
+.reward-card[data-rarity='epic'] { --rarity: #bd67ff; }
+.reward-card[data-rarity='legendary'] { --rarity: #ffd64a; }
+.reward-card::before { position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 4px; content: ''; background: var(--rarity); opacity: .88; }
+.reward-card::after { position: absolute; z-index: 4; inset: 0; content: ''; background: linear-gradient(105deg,transparent 20%,color-mix(in srgb,var(--rarity) 42%,transparent) 48%,transparent 76%); opacity: 0; transform: translateX(-110%); pointer-events: none; }
+.reward-card--locked::after { animation: reward-rarity-sweep 310ms ease-out both; }
+.reward-card__hotkey { position: absolute; z-index: 6; left: 12px; top: 12px; display: grid; width: 32px; height: 28px; place-items: center; color: var(--ui-paper); border: 1px solid #4c5757; background: #202728; font: italic 900 18px/1 var(--ui-display); }
+.reward-card__reel-window { position: absolute; left: 18px; right: 18px; top: 54px; height: 112px; overflow: hidden; border-block: 1px solid rgba(255,255,255,.08); background: #080a0b; }
+.reward-card__reel-track { position: absolute; left: 0; right: 0; top: 0; transform: translateY(var(--reward-reel-y,0)); will-change: transform; }
+.reward-card__symbol,
+.reward-card__lock-symbol { display: grid; height: 112px; place-items: center; align-content: center; color: #c9d0cf; font: italic 900 23px/1 var(--ui-display); letter-spacing: .03em; text-align: center; }
+.reward-card__symbol-glyph { display: block; margin-bottom: 7px; color: var(--rarity); font-size: 38px; line-height: 1; }
+.reward-card__lock-symbol { position: absolute; inset: 0; display: none; }
+.reward-card__content { position: absolute; left: 18px; right: 18px; top: 178px; bottom: 13px; opacity: 0; }
+.reward-card__rarity { color: var(--rarity); font-size: 10px; font-weight: 900; letter-spacing: .19em; }
+.reward-card__name { margin-top: 8px; font: italic 900 27px/.95 var(--ui-display); letter-spacing: -.015em; }
+.reward-card__effect { margin-top: 13px; color: #a8b3b2; white-space: pre-line; font-size: 12px; font-weight: 700; line-height: 1.35; }
+.reward-card__focus-rail { position: absolute; right: 0; bottom: 0; color: var(--ui-amber); font: italic 900 10px/1 var(--ui-display); letter-spacing: .18em; opacity: 0; }
+.reward-card--locked .reward-card__reel-track { visibility: hidden; }
+.reward-card--locked .reward-card__lock-symbol { display: grid; }
+.reward-card--locked { opacity: 1; transform: none; }
+.reward-card--locked .reward-card__content { opacity: 1; animation: reward-fade-up 180ms ease-out both; }
+.reward-card--lock-hit { animation: reward-card-lock-hit 140ms ease-out both !important; }
+.reward-layer--upgrade[data-phase='selectable'] .reward-card--focused:not(:disabled) { z-index: 6; outline: 2px solid rgba(255,173,34,.8); outline-offset: 4px; transform: translateY(-5px); filter: brightness(1.13); }
+.reward-layer--upgrade[data-phase='selectable'] .reward-card--focused:not(:disabled) .reward-card__focus-rail { opacity: 1; }
+.reward-card--selected { z-index: 7; opacity: 1; animation: reward-chosen 240ms cubic-bezier(.18,.8,.2,1) forwards !important; }
+.reward-card--rejected { pointer-events: none; animation: reward-rejected 220ms ease-in forwards !important; }
+.reward-card--rejected:nth-child(1) { --reject-x: -54px; }
+.reward-card--rejected:nth-child(2) { --reject-x: 0px; }
+.reward-card--rejected:nth-child(3) { --reject-x: 54px; }
+
+.reward-auto-fuse { position: relative; width: min(820px,86vw); height: 17px; margin: 15px auto 0; color: var(--ui-muted); font: italic 800 10px/1 var(--ui-display); letter-spacing: .14em; }
+.reward-auto-fuse::after { position: absolute; left: 0; bottom: 0; width: calc(var(--reward-fuse,1) * 100%); height: 2px; content: ''; background: var(--ui-amber); transition: width 100ms linear; }
+.reward-peer-status { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px 22px; margin-top: 17px; color: var(--ui-muted); font: 800 10px/1 var(--ui-body); letter-spacing: .12em; }
+.reward-peer-status__line b { color: var(--ui-paper); }
+.reward-crew-ready { flex-basis: 100%; color: var(--ui-success); font: italic 900 19px/1 var(--ui-display); }
+
+.reward-stage--relic { width: min(92vw,620px); }
+.reward-relic__signal { margin-bottom: 12px; }
+.reward-relic { --rarity: #9aa3ad; position: relative; width: min(520px,86vw); height: 390px; overflow: hidden; border: 1px solid var(--ui-line); border-radius: 0; background: linear-gradient(145deg,#171b1c,#080a0b); clip-path: var(--ui-cut-lg); opacity: 0; transform: scale(.82); }
+.reward-stage--enter .reward-relic { animation: reward-relic-housing-in 320ms cubic-bezier(.12,.86,.2,1) 175ms both; }
+.reward-relic[data-rarity='rare'] { --rarity: #3de6ff; }
+.reward-relic[data-rarity='epic'] { --rarity: #bd67ff; }
+.reward-relic[data-rarity='legendary'] { --rarity: #ffd64a; }
+.reward-relic::before { position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 5px; content: ''; background: var(--rarity); }
+.reward-relic::after { position: absolute; inset: 8px; content: ''; border-left: 2px solid var(--rarity); border-bottom: 1px solid color-mix(in srgb,var(--rarity) 42%,transparent); pointer-events: none; }
+.reward-relic__reel-window { position: absolute; left: 50%; top: 70px; width: 190px; height: 112px; overflow: hidden; border: 1px solid color-mix(in srgb,var(--rarity) 62%,transparent); background: #080a0b; transform: translateX(-50%); }
+.reward-relic__reel-track { position: absolute; inset: 0 0 auto; transform: translateY(var(--reward-reel-y,0)); will-change: transform; }
+.reward-relic__symbol { display: grid; height: 112px; place-items: center; align-content: center; color: #b8c0bf; font: italic 900 17px/1 var(--ui-display); letter-spacing: .13em; }
+.reward-relic__symbol-glyph { display: block; margin-bottom: 7px; color: var(--rarity); font-size: 46px; line-height: 1; }
+.reward-relic__final { position: absolute; z-index: 2; inset: 26px 34px 50px; text-align: center; pointer-events: none; }
+.reward-relic__rarity,
+.reward-relic__icon,
+.reward-relic__name,
+.reward-relic__description,
+.reward-relic__stack { opacity: 0; }
+.reward-relic__rarity { color: var(--rarity); font-size: 10px; font-weight: 900; letter-spacing: .22em; }
+.reward-relic__icon { display: grid; width: 118px; height: 118px; margin: 11px auto 8px; place-items: center; color: var(--rarity); border: 2px solid var(--rarity); background: #0b0e0f; clip-path: var(--ui-cut-md); font: italic 900 31px/1 var(--ui-display); }
+.reward-relic__icon img { width: 100%; height: 100%; object-fit: contain; }
+.reward-relic__name { margin: 0; font: italic 900 clamp(34px,6vw,44px)/.94 var(--ui-display); letter-spacing: -.025em; }
+.reward-relic__description { max-width: 410px; min-height: 38px; margin: 11px auto 0; color: #9caaa9; font-size: 13px; line-height: 1.4; }
+.reward-relic__stack { margin-top: 11px; color: var(--rarity); font: italic 900 18px/1 var(--ui-display); letter-spacing: .1em; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__reel-window,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__reel-window { opacity: 0; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__rarity,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__rarity { animation: reward-fade-up 160ms ease-out both; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__icon,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__icon { animation: reward-relic-icon-hit 210ms cubic-bezier(.12,.86,.2,1) both; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__name,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__name { animation: reward-name-slam 220ms cubic-bezier(.12,.86,.2,1) 50ms both; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__description,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__description { animation: reward-fade-up 200ms ease-out 160ms both; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__stack,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__stack { animation: reward-level-pop 180ms cubic-bezier(.12,.86,.2,1) 220ms both; }
+.reward-layer--relic[data-phase='revealed'] .reward-relic__stack--up,
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-relic__stack--up { animation: reward-stack-up 300ms cubic-bezier(.12,.86,.2,1) 220ms both; }
+.reward-relic--lock-hit { animation: reward-relic-lock-hit 250ms cubic-bezier(.12,.8,.2,1) both !important; }
+.reward-continue { position: absolute; z-index: 6; left: 24px; right: 24px; bottom: 18px; width: calc(100% - 48px); min-height: 32px; padding: 7px 12px; color: #d7d1bd; border: 0; border-radius: 0; background: transparent; font: italic 900 11px/1 var(--ui-display); letter-spacing: .2em; opacity: .34; cursor: pointer; }
+.reward-layer--relic[data-phase='awaitingContinue'] .reward-continue[aria-disabled='false'] { animation: reward-continue-pulse 1.2s ease-in-out infinite; }
+.reward-peer-status--relic { position: absolute; top: calc(50% + 220px); }
+
+.reward-debug { position: fixed; z-index: 260; left: 8px; bottom: 8px; margin: 0; padding: 6px 8px; color: #7fd0dd; border: 1px solid #22333d; background: rgba(10,18,22,.75); white-space: pre; pointer-events: none; font: 10px/1.4 ui-monospace,monospace; }
+
+@keyframes reward-scrim-in { from { opacity: 0; } }
+@keyframes reward-burst-impact { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.42); } 65% { opacity: .94; transform: translate(-50%,-50%) scale(1.06); } 100% { opacity: .58; transform: translate(-50%,-50%) scale(1); } }
+@keyframes reward-burst-idle { from { transform: translate(-50%,-50%) scale(1) rotate(0); } to { transform: translate(-50%,-50%) scale(1) rotate(12deg); } }
+@keyframes reward-core-detonate { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.02); } 22% { opacity: 1; } 55% { opacity: .98; transform: translate(-50%,-50%) scale(.72); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.65); } }
+@keyframes reward-shock-blast { 0% { opacity: .95; transform: translate(-50%,-50%) scale(.04) rotate(-7deg); } 45% { opacity: .72; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.9) rotate(8deg); } }
+@keyframes reward-speedline-blast { 0% { opacity: 0; transform: scale(.16) rotate(-5deg); } 24% { opacity: .95; } 100% { opacity: 0; transform: scale(1.34) rotate(2deg); } }
+@keyframes reward-speedline-micro { 0% { opacity: .9; transform: scale(.48); } 100% { opacity: 0; transform: scale(1.18); } }
+@keyframes reward-ring-enter { from { opacity: 0; transform: translate(-50%,-50%) scale(.45) rotate(-7deg); } to { opacity: .42; transform: translate(-50%,-50%) scale(1) rotate(4deg); } }
+@keyframes reward-edge-impulse { 0% { opacity: 0; } 25% { opacity: .85; } 100% { opacity: 0; } }
+@keyframes reward-stage-punch { 0% { opacity: 0; transform: scale(.055); } 10% { opacity: 1; transform: scale(.12); } 38% { transform: scale(.58); } 68% { transform: scale(1.19); } 84% { transform: scale(.965); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes reward-title-slam { 0% { opacity: 0; transform: translateY(-34px) scale(1.22) skewX(-5deg); } 58% { opacity: 1; transform: translateY(6px) scale(.96) skewX(-2deg); } 78% { transform: translateY(-2px) scale(1.035) skewX(-1deg); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-level-pop { 0% { opacity: 0; transform: scale(.35) translateY(10px); } 65% { opacity: 1; transform: scale(1.18) translateY(-2px); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-card-enter { 0% { opacity: 0; transform: translateY(108px) scale(.84); } 68% { opacity: 1; transform: translateY(-7px) scale(1.028); } 86% { transform: translateY(3px) scale(.99); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-card-lock-hit { 0% { transform: translateY(10px) scale(.96); } 34%,60% { transform: translateY(-5px) scale(1.08); filter: brightness(1.45); } 82% { transform: translateY(2px) scale(.98); } 100% { transform: none; filter: none; } }
+@keyframes reward-rarity-sweep { 0% { opacity: 0; transform: translateX(-110%); } 38% { opacity: .8; } 100% { opacity: 0; transform: translateX(110%); } }
+@keyframes reward-chosen { 45% { opacity: 1; transform: scale(1.06); filter: brightness(1.35); } 100% { opacity: 1; transform: scale(1.025); filter: brightness(1.15); } }
+@keyframes reward-rejected { to { opacity: 0; transform: translateX(var(--reject-x)) skewX(-4deg); } }
+@keyframes reward-relic-housing-in { 0% { opacity: 0; transform: translateY(54px) scale(.82); } 68% { opacity: 1; transform: translateY(-6px) scale(1.04); } 86% { transform: translateY(2px) scale(.985); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-relic-lock-hit { 0% { opacity: 1; transform: scale(.92); } 42%,58% { transform: scale(1.1); filter: brightness(1.55); } 80% { transform: scale(.975); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes reward-relic-icon-hit { 0% { opacity: 0; transform: scale(.3); } 58% { opacity: 1; transform: scale(1.16); } 82% { transform: scale(.96); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-name-slam { 0% { opacity: 0; transform: translateY(-18px) scale(1.12) skewX(-4deg); } 62% { opacity: 1; transform: translateY(3px) scale(.98); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-stack-up { 0% { opacity: 0; transform: scale(.45); } 52% { opacity: 1; transform: scale(1.22); } 72% { transform: scale(.94); } 100% { opacity: 1; transform: none; } }
+@keyframes reward-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes reward-continue-pulse { 0%,100% { opacity: .48; } 50% { opacity: 1; } }
+@keyframes reward-shard-flight { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 100% { opacity: 0; transform: translate(var(--shard-x),var(--shard-y)) rotate(var(--shard-r)); } }
+
+@media (max-width: 760px) {
+  .reward-layer { padding: 10px; }
+  .reward-stage { width: 96vw; min-height: 0; }
+  .reward-title { font-size: clamp(40px,12vw,58px); }
+  .reward-card-bank { gap: 6px; margin-top: 22px; }
+  .reward-card { min-width: 0; width: 32%; height: min(43vh,290px); clip-path: var(--ui-cut-sm); }
+  .reward-card__hotkey { left: 7px; top: 8px; width: 28px; height: 25px; font-size: 15px; }
+  .reward-card__reel-window { left: 7px; right: 7px; top: 45px; height: 100px; }
+  .reward-card__content { left: 8px; right: 8px; top: 154px; }
+  .reward-card__name { font-size: clamp(14px,4.7vw,20px); }
+  .reward-card__effect { margin-top: 8px; font-size: clamp(8px,2.5vw,10px); }
+  .reward-card__focus-rail { display: none; }
+  .reward-relic { width: min(92vw,520px); height: min(390px,64vh); }
+  .reward-relic__final { inset-inline: 18px; }
+  .reward-relic__name { font-size: clamp(29px,9vw,39px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-stage--enter { animation: reward-stage-reduced 220ms ease-out both !important; }
+  .reward-stage--enter .reward-title,
+  .reward-stage--enter .reward-level-number,
+  .reward-stage--enter .reward-card,
+  .reward-stage--enter .reward-relic,
+  .reward-card--lock-hit,
+  .reward-relic--lock-hit { animation-duration: 180ms !important; animation-delay: 0ms !important; }
+  .reward-impact-core,
+  .reward-speedlines,
+  .reward-overlay--edge-impact::after,
+  .reward-shard-layer { display: none !important; }
+  .reward-fx-layer--entrance .reward-burst { animation: none; opacity: .28; transform: translate(-50%,-50%) scale(1); }
+  .reward-fx-layer--entrance .reward-shockwave { animation-duration: 180ms; opacity: 0; }
+  .reward-card__reel-track,
+  .reward-relic__reel-track { transform: none !important; }
+}
+@keyframes reward-stage-reduced { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+
+.reward-overlay--reduced-flash .reward-impact-core,
+.reward-overlay--reduced-flash::after { display: none; }
+.reward-overlay--reduced-flash .reward-burst { filter: brightness(.58); }
+.reward-overlay--reduced-flash .reward-speedlines { opacity: .55; }
+
+@media (forced-colors: active) {
+  .reward-card,
+  .reward-relic,
+  .reward-continue { clip-path: none; border: 2px solid CanvasText; }
+  .reward-scrim,
+  .reward-fx-layer { display: none; }
+}

@@ -242,6 +242,9 @@
       "progressionDefinitions": [
         "progression-definitions/mainStage.json"
       ],
+      "relicChestSpawnPolicies": [
+        "relic-chest-spawn-policies/mainStage.json"
+      ],
       "levelCurves": [
         "level-curves/mainStagePrototype.json"
       ],

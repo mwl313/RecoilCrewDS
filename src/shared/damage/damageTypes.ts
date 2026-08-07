@@ -15,6 +15,16 @@ export type DamageSource =
   | 'enemy'
   | 'test';
 
+/** Damage directly caused by the Gunner's equipped weapons. */
+export function isGunnerWeaponDamage(source: DamageSource): boolean {
+  return source === 'mg' || source === 'cannon';
+}
+
+/** Cannon splash is the authoritative self-damage source in ProjectileSystem. */
+export function isCannonSelfDamage(source: DamageSource): boolean {
+  return source === 'cannon' || source === 'splash';
+}
+
 export interface DamageTags {
   explosive?: boolean;
   recoilCaused?: boolean;

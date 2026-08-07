@@ -1868,6 +1868,202 @@
       "file": "/assets/models/environment/urban/zombie-kit/watertower.gltf",
       "tags": ["urban", "landmark", "zombie-apocalypse-kit"],
       "optional": true
+    },
+    {
+      "id": "relic.aerialMaster",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/aerial-master.png",
+      "tags": ["relic", "gunner", "airborne", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.airMaster",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/air-master.png",
+      "tags": ["relic", "driver", "air", "dash", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.apexPredator",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/apex-predator.png",
+      "tags": ["relic", "crew", "elite", "boss", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.armorShred",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/armor-shred.png",
+      "tags": ["relic", "gunner", "debuff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.bulletTime",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/bullet-time.png",
+      "tags": ["relic", "driver", "cooldown", "air", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.coveringFire",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/covering-fire.png",
+      "tags": ["relic", "gunner", "machine-gun", "debuff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.dashRefund",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/dash-refund.png",
+      "tags": ["relic", "driver", "dash", "cooldown", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.deathMark",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/death-mark.png",
+      "tags": ["relic", "gunner", "kill", "explosion", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.doubleJump",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/double-jump.png",
+      "tags": ["relic", "driver", "jump", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.friendlyShield",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/friendly-shield.png",
+      "tags": ["relic", "crew", "shield", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.glassCannon",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/glass-cannon.png",
+      "tags": ["relic", "crew", "damage", "tradeoff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.groundPound",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/ground-pound.png",
+      "tags": ["relic", "driver", "landing", "area", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.hePayload",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/he-payload.png",
+      "tags": ["relic", "gunner", "cannon", "explosive", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.heartyTank",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/hearty-tank.png",
+      "tags": ["relic", "driver", "integrity", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.heatSink",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/heat-sink.png",
+      "tags": ["relic", "gunner", "machine-gun", "cannon", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.ironWill",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/iron-will.png",
+      "tags": ["relic", "driver", "integrity", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.lastResort",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/last-resort.png",
+      "tags": ["relic", "driver", "integrity", "tradeoff", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.magnetCore",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/magnet-core.png",
+      "tags": ["relic", "crew", "xp", "magnet", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.momentumShield",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/momentum-shield.png",
+      "tags": ["relic", "driver", "speed", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.phaseDash",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/phase-dash.png",
+      "tags": ["relic", "driver", "dash", "invulnerable", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.phoenixCore",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/phoenix-core.png",
+      "tags": ["relic", "driver", "revive", "fire", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.rapidReload",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/rapid-reload.png",
+      "tags": ["relic", "gunner", "cannon", "cooldown", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.roadkill",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/roadkill.png",
+      "tags": ["relic", "driver", "speed", "contact", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.safeHaven",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/safe-haven.png",
+      "tags": ["relic", "crew", "healing", "survival", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.twinShell",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/twin-shell.png",
+      "tags": ["relic", "gunner", "cannon", "double-shot", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.unstoppable",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/unstoppable.png",
+      "tags": ["relic", "driver", "dash", "speed", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.vampireRounds",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/vampire-rounds.png",
+      "tags": ["relic", "gunner", "cannon", "healing", "icon", "free-icon-pack-v3.1"]
+    },
+    {
+      "id": "relic.xpSurge",
+      "kind": "image",
+      "namespace": "ui",
+      "file": "/assets/images/relics/xp-surge.png",
+      "tags": ["relic", "crew", "xp", "icon", "free-icon-pack-v3.1"]
     }
   ]
 }

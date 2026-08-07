@@ -209,7 +209,13 @@ export class EnemySystem {
               resolvedRewardXp: spawnLock.resolvedRewardXp,
               scaledContactDps: spawnLock.scaledContactDps,
               scaledProjectileDamage: spawnLock.scaledProjectileDamage,
-              rewardClass: isMonster(def) ? def.rewardClass : 'ambient',
+              rewardClass: isMonster(def)
+                ? ownership?.populationClass === 'special'
+                  ? 'elite'
+                  : ownership?.populationClass === 'wave' || ownership?.populationClass === 'boss'
+                    ? ownership.populationClass
+                    : def.rewardClass
+                : 'ambient',
             },
           }
         : {}),

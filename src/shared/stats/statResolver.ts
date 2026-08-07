@@ -70,6 +70,15 @@ export class StatResolver {
     for (const stat of affected) this.invalidate(stat);
   }
 
+  /** Remove a namespaced modifier family without changing exact-match semantics. */
+  removeModifiersBySourcePrefix(prefix: string): void {
+    const affected = new Set(this.modifiers.filter((m) => m.source.startsWith(prefix)).map((m) => m.stat));
+    const remaining = this.modifiers.filter((m) => !m.source.startsWith(prefix));
+    this.modifiers.length = 0;
+    this.modifiers.push(...remaining);
+    for (const stat of affected) this.invalidate(stat);
+  }
+
   clearModifiers(): void {
     const affected = new Set(this.modifiers.map((m) => m.stat));
     this.modifiers.length = 0;

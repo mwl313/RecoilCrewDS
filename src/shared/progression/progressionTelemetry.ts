@@ -14,6 +14,20 @@ export interface ProgressionTelemetry {
   roadkillKills: number;
   triggerActivations: Record<string, number>;
   selectionTimeouts: number;
+  initialMapChestsSpawned: number;
+  periodicMapChestsSpawned: number;
+  enemyDropChestsSpawned: number;
+  leaderChestsSpawned: number;
+  chestsClaimed: number;
+  unopenedChestsAtEnd: number;
+  timeToFirstChestClaim: number | null;
+  enemyChestRollsByClass: Record<string, number>;
+  enemyChestDropsByClass: Record<string, number>;
+  relicsAcquired: number;
+  duplicateConversions: number;
+  activeChestPeak: number;
+  mapSpawnAttempts: number;
+  mapSpawnCandidateFailures: number;
 }
 
 export function createProgressionTelemetry(): ProgressionTelemetry {
@@ -32,5 +46,19 @@ export function createProgressionTelemetry(): ProgressionTelemetry {
     roadkillKills: 0,
     triggerActivations: {},
     selectionTimeouts: 0,
+    initialMapChestsSpawned: 0,
+    periodicMapChestsSpawned: 0,
+    enemyDropChestsSpawned: 0,
+    leaderChestsSpawned: 0,
+    chestsClaimed: 0,
+    unopenedChestsAtEnd: 0,
+    timeToFirstChestClaim: null,
+    enemyChestRollsByClass: {},
+    enemyChestDropsByClass: {},
+    relicsAcquired: 0,
+    duplicateConversions: 0,
+    activeChestPeak: 0,
+    mapSpawnAttempts: 0,
+    mapSpawnCandidateFailures: 0,
   };
 }
