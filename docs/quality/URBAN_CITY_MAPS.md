@@ -12,11 +12,13 @@ These maps are isolated opt-in prototypes. They do not replace or modify the pro
 ## Layout and gameplay contract
 
 - Terrain is flat across both maps.
-- Streets are generated from a connected authored graph. Straight, cracked-straight, corner, T-junction, and four-way pieces are selected from actual cardinal neighbours, never scattered randomly.
-- All buildings come exclusively from the Ultimate Textured Building Pack. Zombie Apocalypse Kit assets are limited to roads and street furniture, so building art is never mixed across packs.
+- Streets follow a connected but deliberately irregular authored graph: bent arterials, unequal blocks, loops, short side streets, dead ends, parking areas, and open plazas replace the former uniform grid. Straight, cracked-straight, corner, T-junction, and four-way pieces are selected from actual cardinal neighbours, never scattered randomly.
+- Building placement is deterministic but non-uniform, with varied setbacks, orientation, footprints, and a skyline ranging from one to six stories. Taller buildings cluster loosely toward each city core while low-rise districts remain around the perimeter.
+- All buildings come exclusively from the Ultimate Textured Building Pack. Zombie Apocalypse Kit assets provide coherent roads plus non-character city dressing such as parked vehicles, traffic furniture, hydrants, trash, and water-tower landmarks, so building art is never mixed across packs.
 - Imported materials use their original source textures. Runtime rendering does not apply material overrides or tint.
-- Every building has an authoritative rectangular wall collider, a flat authoritative roof surface, and a broad ramp matched to its roof height.
+- Every building has an authoritative rectangular wall collider and flat authoritative roof surface. The prototypes intentionally have no rooftop ramps; taller roofs may be unreachable through ordinary driving.
 - Wall collision is elevation-aware: it blocks tanks and monsters at street level, then releases them once they reach rooftop elevation.
+- Parked vehicles are authoritative street-level collision obstacles rather than visual-only decoration.
 - Road and street-furniture meshes are instanced to keep the 400 m prototype bounded to a small number of draw calls.
 
 ## Evidence

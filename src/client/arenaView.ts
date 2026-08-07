@@ -117,20 +117,16 @@ export class ArenaView {
 
     // Ramps.
     for (const ramp of this.world.ramps) {
-      const model = ramp.assetId
-        ? this.buildUrbanRoadRamp(ramp)
-        : this.assets.model('arena.ramp');
-      if (!ramp.assetId) {
-        model.scale.set(ramp.w, ramp.rise, ramp.d);
-        model.position.set(ramp.x, ramp.baseY, ramp.z);
-        model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
-      }
+      const model = this.assets.model('arena.ramp');
+      model.scale.set(ramp.w, ramp.rise, ramp.d);
+      model.position.set(ramp.x, ramp.baseY, ramp.z);
+      model.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
       model.traverse((o) => {
         o.castShadow = true;
         o.receiveShadow = true;
       });
       this.group.add(model);
-      if (!ramp.assetId) this.disposables.push(model);
+      this.disposables.push(model);
       this.colliders.push({
         box: new THREE.Box3(
           new THREE.Vector3(ramp.x - ramp.w / 2, 0, ramp.z - ramp.d / 2),
@@ -321,22 +317,6 @@ export class ArenaView {
     }
   }
 
-  private buildUrbanRoadRamp(ramp: import('../shared/arena').RampDef): THREE.Object3D {
-    const group = new THREE.Group();
-    const road = this.assets.model(ramp.assetId!);
-    const slopeLength = Math.hypot(ramp.d, ramp.rise);
-    road.scale.set(ramp.w / 8, 1, slopeLength / 8);
-    road.rotation.x = -Math.atan2(ramp.rise, ramp.d);
-    road.traverse((o) => {
-      o.castShadow = true;
-      o.receiveShadow = true;
-    });
-    group.add(road);
-    group.position.set(ramp.x, ramp.baseY + ramp.rise / 2 + 0.02, ramp.z);
-    group.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
-    return group;
-  }
-
   private buildObstacle(o: Obstacle) {
     const { x, z, w, d, h } = o;
     let mesh: THREE.Object3D;
@@ -400,7 +380,8 @@ export class ArenaView {
         mesh = g;
         break;
       }
-      case 'urbanBuilding': {
+      case 'urbanBuilding':
+      case 'urbanProp': {
         if (!o.assetId || !o.modelScale) {
           mesh = boxMesh(w, h, d, boxMat(0x5c5345), x, h / 2, z);
           break;
@@ -418,13 +399,13 @@ export class ArenaView {
       default:
         mesh = boxMesh(w, h, d, boxMat(0x5c5345), x, h / 2, z);
     }
-    if (o.type !== 'towerBase' && o.type !== 'scrapPile' && o.type !== 'urbanBuilding') {
+    if (o.type !== 'towerBase' && o.type !== 'scrapPile' && o.type !== 'urbanBuilding' && o.type !== 'urbanProp') {
       mesh.position.x = x;
       mesh.position.z = z;
       mesh.position.y = h / 2;
     }
     this.group.add(mesh);
-    if (o.type !== 'urbanBuilding') this.disposables.push(mesh);
+    if (o.type !== 'urbanBuilding' && o.type !== 'urbanProp') this.disposables.push(mesh);
     this.colliders.push({ box: new BoxAround(x, z, w, d, h), type: o.type });
   }
 

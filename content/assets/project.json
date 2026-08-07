@@ -1590,6 +1590,30 @@
       "optional": true
     },
     {
+      "id": "environment.urban.ultimate.threeStorySmall.light",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/three-story-small.glb",
+      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof", "mid-rise"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.fourStoryCenter.darkBlue",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/four-story-center.glb",
+      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof", "mid-rise"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.ultimate.sixStoryStack.grey",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/ultimate-buildings/six-story-stack.glb",
+      "tags": ["urban", "building", "ultimate-building-pack", "flat-roof", "high-rise"],
+      "optional": true
+    },
+    {
       "id": "environment.urban.zombie.streetStraight",
       "kind": "model",
       "namespace": "environment",
@@ -1675,6 +1699,62 @@
       "namespace": "environment",
       "file": "/assets/models/environment/urban/zombie-kit/trafficcone-2.gltf",
       "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.vehiclePickup",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/vehicle-pickup.gltf",
+      "tags": ["urban", "vehicle", "obstacle", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.vehicleSports",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/vehicle-sports.gltf",
+      "tags": ["urban", "vehicle", "obstacle", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.vehicleTruck",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/vehicle-truck.gltf",
+      "tags": ["urban", "vehicle", "obstacle", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.fireHydrant",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/firehydrant.gltf",
+      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trashBag1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trashbag-1.gltf",
+      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.trashBag2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/trashbag-2.gltf",
+      "tags": ["urban", "street-furniture", "zombie-apocalypse-kit"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.zombie.waterTower",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/zombie-kit/watertower.gltf",
+      "tags": ["urban", "landmark", "zombie-apocalypse-kit"],
       "optional": true
     }
   ]

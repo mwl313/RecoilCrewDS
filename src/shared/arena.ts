@@ -7,7 +7,7 @@ export interface Obstacle {
   w: number;
   d: number;
   h: number;
-  type: 'container' | 'barrier' | 'wall' | 'tires' | 'factory' | 'crusher' | 'towerBase' | 'scrapPile' | 'urbanBuilding';
+  type: 'container' | 'barrier' | 'wall' | 'tires' | 'factory' | 'crusher' | 'towerBase' | 'scrapPile' | 'urbanBuilding' | 'urbanProp';
   /** Optional semantic model used by authored environments. */
   assetId?: string;
   yaw?: number;
@@ -32,8 +32,6 @@ export interface RampDef {
   dirZ: number;
   rise: number;
   baseY: number;
-  assetId?: string;
-  urbanRoofBuildingId?: string;
 }
 
 export const ARENA = {
