@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { claimChest, completeRelicReveal, makeMatch, revealChest, step } from './helpers';
 
 describe('authoritative relic chest opening and reveal flow', () => {
-  it('claims into opening, waits 0.65 s, then applies exactly once at reveal start', () => {
+  it('claims into opening, waits 0.4 s, then applies exactly once at reveal start', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'reveal-enter');
     const chest = m.systems.progression.spawnChest('mapStart', 3, 3);
     const offer = claimChest(m, chest, 1_000);
@@ -12,8 +12,8 @@ describe('authoritative relic chest opening and reveal flow', () => {
     expect(m.state.matchFlow).toBe('relicOpening');
     expect(chest.lifecycle).toBe('opening');
     expect(m.state.teamProgression.relicStacks).toEqual({});
-    expect(m.checkProgressionTimeout(1_649)).toBe(false);
-    expect(m.checkProgressionTimeout(1_651)).toBe(true);
+    expect(m.checkProgressionTimeout(1_399)).toBe(false);
+    expect(m.checkProgressionTimeout(1_401)).toBe(true);
     expect(chest.lifecycle).toBe('revealing');
     expect(m.state.matchFlow).toBe('relicSelection');
     const result = m.state.teamProgression.lastRelicResult!;
@@ -30,7 +30,7 @@ describe('authoritative relic chest opening and reveal flow', () => {
     step(m, 60);
     expect(m.state.time).toBe(0);
     expect(m.state.tank.x).toBe(tankX);
-    m.checkProgressionTimeout(1_651);
+    m.checkProgressionTimeout(1_401);
     step(m, 60);
     expect(m.state.time).toBe(0);
   });
@@ -57,7 +57,7 @@ describe('authoritative relic chest opening and reveal flow', () => {
     revealChest(m, chest, 1_000);
     const active = m.state.teamProgression.activeSelection!;
     expect(active.expiresAtWallMs).toBeUndefined();
-    expect(active.revealStartedAtWallMs).toBe(1_651);
+    expect(active.revealStartedAtWallMs).toBe(1_401);
     expect(m.checkProgressionTimeout(999_999)).toBe(false);
     expect(m.state.matchFlow).toBe('relicSelection');
     expect(chest.lifecycle).toBe('revealing');
@@ -70,7 +70,7 @@ describe('authoritative relic chest opening and reveal flow', () => {
     const openingSnapshot = JSON.parse(JSON.stringify(m.state));
     expect(openingSnapshot.chests.find((entry: { id: number }) => entry.id === chest.id).lifecycle).toBe('opening');
     expect(openingSnapshot.chests.find((entry: { id: number }) => entry.id === chest.id).rewardOffer).toEqual(offer);
-    m.checkProgressionTimeout(5_651);
+    m.checkProgressionTimeout(5_401);
     const firstResult = { ...m.state.teamProgression.lastRelicResult! };
     const revealingSnapshot = JSON.parse(JSON.stringify(m.state));
     expect(revealingSnapshot.chests.find((entry: { id: number }) => entry.id === chest.id).lifecycle).toBe('revealing');

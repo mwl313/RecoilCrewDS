@@ -12,7 +12,7 @@ test('records the full 1280x720 upgrade punch, reels, locks, and selection', asy
     (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state()?.matchFlow === 'upgradeSelection',
   );
   await expect(page.locator('.reward-stage--upgrade')).toBeVisible();
-  await page.waitForTimeout(1_450);
+  await page.waitForTimeout(2_300);
   await page.keyboard.press('Digit2');
   await page.waitForTimeout(420);
   await context.close();
@@ -27,7 +27,7 @@ test('records the natural Epic or Legendary relic punch, reel, lock, and staged 
     (window as unknown as { __recoil: { state(): { teamProgression: { activeSelection: { relicResult?: { rarity: string } } } } } }).__recoil.state().teamProgression.activeSelection.relicResult?.rarity,
   );
   expect(['epic', 'legendary']).toContain(rarity);
-  await page.waitForTimeout(2_050);
+  await page.waitForTimeout(3_050);
   await page.keyboard.press('Space');
   await page.waitForTimeout(320);
   await context.close();
@@ -57,7 +57,7 @@ async function launchGame(browser: Browser, testInfo: TestInfo, reducedMotion = 
     recordVideo: { dir: testInfo.outputPath('raw-video'), size: { width: 1280, height: 720 } },
   });
   const page = await context.newPage();
-  await page.goto('http://localhost:8099/?test=1');
+  await page.goto('http://localhost:8099/?test=1&nodebug=1');
   await page.click('#screen-boot');
   await expect(page.locator('#screen-main')).toBeVisible();
   await page.click('#screen-main [data-act="single"]');

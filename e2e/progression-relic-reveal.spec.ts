@@ -34,6 +34,8 @@ test('single player relic early input reveals, then a fresh input continues', as
     (window as unknown as { __recoil: { state(): { matchFlow: string } } }).__recoil.state().matchFlow,
   );
   expect(afterFastForward).toBe('relicSelection');
+  await expect(page.locator('#progression-overlay')).toHaveClass(/reward-overlay--shake/);
+  expect(await page.locator('.reward-shard--active').count()).toBeGreaterThan(0);
   await page.keyboard.press('Space');
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state();

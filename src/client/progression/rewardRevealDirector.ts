@@ -1,4 +1,5 @@
 import type { ProgressionSelectionState } from '../../shared/progression/progressionTypes';
+import { RELIC_LOCK_TIME, UPGRADE_LOCK_TIMES } from './rewardReelAnimator';
 
 export type RewardPresentationState =
   | 'hidden'
@@ -23,9 +24,9 @@ export interface RewardTimelineSnapshot {
   startedNow: boolean;
 }
 
-const UPGRADE_SELECTABLE_MS = 1_100;
-const RELIC_FINAL_MS = 1_480;
-const RELIC_CONTINUE_MS = 1_750;
+const UPGRADE_SELECTABLE_MS = 2_200;
+const RELIC_FINAL_MS = RELIC_LOCK_TIME;
+const RELIC_CONTINUE_MS = 2_900;
 const FAST_FORWARD_ARM_MS = 250;
 
 /**
@@ -99,7 +100,7 @@ export class RewardRevealDirector {
 function upgradeState(elapsedMs: number, reducedMotion: boolean): RewardPresentationState {
   if (reducedMotion) return elapsedMs < 300 ? 'intro' : 'selectable';
   if (elapsedMs < 300) return 'intro';
-  if (elapsedMs < 720) return 'spinning';
+  if (elapsedMs < 900) return 'spinning';
   if (elapsedMs < UPGRADE_SELECTABLE_MS) return 'decelerating';
   return 'selectable';
 }
@@ -109,8 +110,8 @@ function relicState(elapsedMs: number, fastForwardedAtMs: number | null, nowMs: 
     return nowMs - fastForwardedAtMs >= FAST_FORWARD_ARM_MS ? 'awaitingContinue' : 'revealed';
   }
   if (reducedMotion) return elapsedMs < 300 ? 'revealed' : 'awaitingContinue';
-  if (elapsedMs < 760) return 'intro';
-  if (elapsedMs < 1_320) return 'spinning';
+  if (elapsedMs < 420) return 'intro';
+  if (elapsedMs < 1_700) return 'spinning';
   if (elapsedMs < RELIC_FINAL_MS) return 'decelerating';
   if (elapsedMs < RELIC_CONTINUE_MS) return 'revealed';
   return 'awaitingContinue';
@@ -118,9 +119,9 @@ function relicState(elapsedMs: number, fastForwardedAtMs: number | null, nowMs: 
 
 function lockedCardCount(elapsedMs: number, reducedMotion: boolean): number {
   if (reducedMotion) return elapsedMs >= 300 ? 3 : 0;
-  if (elapsedMs < 720) return 0;
-  if (elapsedMs < 850) return 1;
-  if (elapsedMs < 980) return 2;
+  if (elapsedMs < UPGRADE_LOCK_TIMES[0]) return 0;
+  if (elapsedMs < UPGRADE_LOCK_TIMES[1]) return 1;
+  if (elapsedMs < UPGRADE_LOCK_TIMES[2]) return 2;
   return 3;
 }
 

@@ -256,6 +256,7 @@ export class GameClient {
         gameRef!.audio.play(sounds[name], { kind: detail?.rarity, charge: detail?.progress });
       },
       duckLegendary: () => gameRef!.audio.duckForReward({ depth: 0.72, attackMs: 18, holdMs: 82, releaseMs: 520 }),
+      rewardImpact: (intensity) => gameRef!.cameras.addImpulse(intensity),
     });
     game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
       const relic = gameRef!.contentPack?.getRelic(relicId);
