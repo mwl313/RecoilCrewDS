@@ -59,10 +59,10 @@
     "chassisAssetId": "playerTank.chassis",
     "turretAssetId": "playerTank.turret",
     "barrelAssetId": "playerTank.barrel",
-    "turretPivot": [0, 1.15, 0],
-    "barrelPivot": [0, 0.62, 0],
-    "muzzleLocal": [0, 0.75, 2.9],
-    "aimPivotLocal": [0, 1.15, 0],
+    "turretPivot": [0, 1.146526, 0],
+    "barrelPivot": [0, 0.160565, 0.533964],
+    "muzzleLocal": [0, 0, 1.298692],
+    "aimPivotLocal": [0, 1.146526, 0],
     "cameraAnchorLocal": [0, 1.35, 0],
     "forwardAxis": [0, 0, 1]
   }

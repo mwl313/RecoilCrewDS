@@ -13,9 +13,17 @@
   "entities": [
     {
       "id": "menuTank",
-      "transform": { "position": [1.35, -1.35, 0], "rotation": [0, -0.42, 0], "scale": [1.05, 1.05, 1.05] },
+      "transform": { "position": [1.55, -1.35, 0], "rotation": [0, -0.42, 0], "scale": [1.05, 1.05, 1.05] },
       "components": [
-        { "type": "model", "props": { "assetId": "scene.menuTank" } },
+        {
+          "type": "model",
+          "props": {
+            "assetId": "scene.menuTank",
+            "responsiveMaxWidth": 720,
+            "responsivePosition": [0.1, -2.55, 0],
+            "responsiveScale": [0.48, 0.48, 0.48]
+          }
+        },
         { "type": "rotateAnimation", "props": { "speed": 0.055 } },
         { "type": "floatAnimation", "props": { "amplitude": 0.08, "speed": 0.65 } },
         { "type": "dragRotate", "props": { "regionStart": 0.46, "sensitivity": 0.009 } }

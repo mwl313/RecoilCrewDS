@@ -28,9 +28,9 @@ describe('tank rig schema and content', () => {
     const tankDef = pack.getTank('tank.default');
     expect(tankDef.rig).toBeDefined();
     expect(tankDef.rig).toEqual(DEFAULT_TANK_RIG);
-    expect(tankDef.rig.muzzleLocal).toEqual([0, 0.75, 2.9]);
-    expect(tankDef.rig.turretPivot).toEqual([0, 1.15, 0]);
-    expect(tankDef.rig.barrelPivot).toEqual([0, 0.62, 0]);
+    expect(tankDef.rig.muzzleLocal).toEqual([0, 0, 1.298692]);
+    expect(tankDef.rig.turretPivot).toEqual([0, 1.146526, 0]);
+    expect(tankDef.rig.barrelPivot).toEqual([0, 0.160565, 0.533964]);
   });
 
   it('MatchRules resolves the selected tank rig on content and legacy paths', () => {
@@ -85,10 +85,18 @@ describe('shared weapon-mount geometry', () => {
   });
 
   it('backs a vertical-down muzzle up to terrain without changing shot direction', () => {
+    // Exercise terrain correction with an intentionally low socket. The
+    // authored Tank 3 muzzle finishes just above terrain at full depression.
+    const lowMuzzleRig: TankRigDefinition = {
+      ...DEFAULT_TANK_RIG,
+      turretPivot: [0, 0.5, 0],
+      barrelPivot: [0, 0, 0],
+      muzzleLocal: [0, 0, 1],
+    };
     const mount = computeWeaponMountWorldPose(
       { x: 0, y: 0, z: 0, yaw: 0 },
       { yaw: 0, pitch: -Math.PI / 2 },
-      DEFAULT_TANK_RIG,
+      lowMuzzleRig,
     );
     expect(mount.muzzle.y).toBeLessThan(0);
     const safe = resolveTerrainSafeMuzzle(mount, () => 0);
@@ -112,9 +120,9 @@ describe('shared weapon-mount geometry', () => {
   it('aim pivot world uses the rig aimPivotLocal rotated by chassis yaw', () => {
     const pose = tank({ yaw: Math.PI / 2 });
     const pivot = computeAimPivotWorld(pose, DEFAULT_TANK_RIG);
-    // [0,1.15,0] rotated 90° around Y stays (0,1.15,0).
+    // A centered vertical pivot is unchanged by chassis yaw.
     expect(pivot.x).toBeCloseTo(pose.x, 6);
-    expect(pivot.y).toBeCloseTo(pose.y + 1.15, 6);
+    expect(pivot.y).toBeCloseTo(pose.y + DEFAULT_TANK_RIG.aimPivotLocal[1], 6);
     expect(pivot.z).toBeCloseTo(pose.z, 6);
   });
 });
