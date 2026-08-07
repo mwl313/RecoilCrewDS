@@ -143,6 +143,8 @@ export interface ShellState {
   combat?: ShellCombatPayload;
   /** Presentation scale for the shell/impact (charge-scaled). */
   visualScale?: number;
+  /** Authored projectile glow/core color captured from the firing monster. */
+  visualColor?: string;
 }
 
 export interface ShellCombatPayload {

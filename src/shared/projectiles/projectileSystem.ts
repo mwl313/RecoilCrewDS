@@ -27,7 +27,7 @@ export class ProjectileSystem {
     kind: ShellState['kind'],
     life: number,
     weaponId?: string,
-    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; hitRadius?: number; tankHitRadius?: number; team?: 'player' | 'enemy'; ownerEnemyId?: number },
+    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; visualColor?: string; hitRadius?: number; tankHitRadius?: number; team?: 'player' | 'enemy'; ownerEnemyId?: number },
   ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
@@ -47,6 +47,7 @@ export class ProjectileSystem {
       tankHitRadius: payload?.tankHitRadius,
       chargeRatio: payload?.chargeRatio,
       visualScale: payload?.visualScale,
+      visualColor: payload?.visualColor,
       combat:
         payload && payload.damage !== undefined && payload.splashRadius !== undefined
           ? {

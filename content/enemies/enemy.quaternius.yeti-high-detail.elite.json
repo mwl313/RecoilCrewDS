@@ -24,6 +24,7 @@
     "range": 38,
     "preferredRange": 16,
     "projectileId": "projectile.enemyIceShot",
+    "visualColor": "#2EA8FF",
     "telegraphTime": 1,
     "shotCount": 1
   },

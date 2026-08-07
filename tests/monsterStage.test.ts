@@ -249,6 +249,7 @@ describe('monster stage timeline', () => {
     expect(enemyShells.length).toBeGreaterThanOrEqual(1);
     expect(enemyShells[0].team).toBe('enemy');
     expect(enemyShells[0].ownerEnemyId).toBe(foe.id);
+    expect(enemyShells[0].visualColor).toBe('#A855F7');
     expect(foe.telegraph).toBe(0);
   });
 

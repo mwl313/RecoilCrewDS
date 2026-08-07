@@ -37,6 +37,7 @@
         "rate": 0.3,
         "range": 40,
         "projectileId": "projectile.enemyIceBolt",
+        "visualColor": "#C4F1FF",
         "telegraphTime": 1.2
       }
     ]

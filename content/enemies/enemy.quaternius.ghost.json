@@ -24,6 +24,7 @@
     "range": 34,
     "preferredRange": 14,
     "projectileId": "projectile.enemyGhostShot",
+    "visualColor": "#B58CFF",
     "telegraphTime": 0.8,
     "shotCount": 1
   },
