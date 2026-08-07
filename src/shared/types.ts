@@ -87,7 +87,11 @@ export interface EnemyState {
     rewardClass: 'ambient' | 'wave' | 'elite' | 'boss';
     /** Award-once guard for XP bundles. */
     xpAwarded?: boolean;
+    /** Award-once guard for chest reward routing. */
+    chestRewardResolved?: boolean;
   };
+  /** Legacy and modern normalized reward routing guard. */
+  rewardResolved?: boolean;
 }
 
 export type ScrapKind = 'normal' | 'heavy';

@@ -67,10 +67,12 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * the server-selected run instead of reconstructing it client-side.
  * Protocol 12: lobby roles are always occupied by connected players and
  * two-player changes use an explicit request/accept swap handshake.
- * Protocol 13: snapshots carry the authoritative burst/recovery dash state,
- * captured direction, and temporary dash-velocity diagnostics.
- */
-export const PROTOCOL_VERSION = 13;
+   * Protocol 13: snapshots carry the authoritative burst/recovery dash state,
+   * captured direction, and temporary dash-velocity diagnostics.
+   * Protocol 14: snapshots carry authoritative relic chest lifecycle timing,
+   * reward candidate offers, and stable relic acquisition order.
+   */
+export const PROTOCOL_VERSION = 14;
 
 export interface ProtocolEnvelope {
   protocol: number;

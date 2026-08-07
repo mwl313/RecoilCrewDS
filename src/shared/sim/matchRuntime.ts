@@ -109,6 +109,7 @@ function initialState(matchId: string, rules: MatchRules, world: ArenaWorld): Ma
       treasureChestsOpened: 0,
       relicAcquisitionSequence: 0,
       relicStacks: {},
+      relicAcquisitionOrder: [],
       activeSelection: null,
       lastRelicResult: null,
       pendingRelicResults: [],
@@ -421,7 +422,7 @@ export class MatchRuntime {
     // are skipped entirely; the wall-clock selection timeout drives resume.
     if (
       this.systems.progression.isEnabled &&
-      (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicSelection')
+      (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicOpening' || this.state.matchFlow === 'relicSelection')
     ) {
       return;
     }
@@ -457,6 +458,7 @@ export class MatchRuntime {
     }
     this.mode.stepAssistance();
     this.mode.stepCombo(dt);
+    this.systems.progression.step(dt);
     this.stepBarrels(dt);
     if (!this.stageEnforced) {
       this.results = this.mode.checkCompletion() ?? this.results;

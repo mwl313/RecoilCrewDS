@@ -32,6 +32,7 @@ import type {
   LevelCurveDefinition,
   ProgressionDefinition,
   ProgressionModePolicyDefinition,
+  RelicChestSpawnPolicyDefinition,
   RelicDefinition,
   RelicEffectTemplateDefinition,
   RelicPoolDefinition,
@@ -97,6 +98,7 @@ export const CONTENT_CATEGORIES = [
   'difficulties',
   'presentation',
   'progressionDefinitions',
+  'relicChestSpawnPolicies',
   'levelCurves',
   'xpPickupDefinitions',
   'upgradeRarityTables',
@@ -154,6 +156,7 @@ export interface CategoryRegistries {
   difficulties: DefinitionRegistry<DifficultyDefinition>;
   presentation: DefinitionRegistry<PresentationDefinition>;
   progressionDefinitions: DefinitionRegistry<ProgressionDefinition>;
+  relicChestSpawnPolicies: DefinitionRegistry<RelicChestSpawnPolicyDefinition>;
   levelCurves: DefinitionRegistry<LevelCurveDefinition>;
   xpPickupDefinitions: DefinitionRegistry<XpPickupDefinition>;
   upgradeRarityTables: DefinitionRegistry<UpgradeRarityTableDefinition>;
@@ -350,6 +353,9 @@ export class ContentPack {
   }
   getProgressionDefinition(id: string): ProgressionDefinition {
     return this.require('progressionDefinitions', id);
+  }
+  getRelicChestSpawnPolicy(id: string): RelicChestSpawnPolicyDefinition {
+    return this.require('relicChestSpawnPolicies', id);
   }
   getLevelCurve(id: string): LevelCurveDefinition {
     return this.require('levelCurves', id);

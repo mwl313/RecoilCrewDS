@@ -46,6 +46,7 @@ export const packManifestSchema = z.object({
       difficulties: z.array(z.string()),
       presentation: z.array(z.string()),
       progressionDefinitions: z.array(z.string()),
+      relicChestSpawnPolicies: z.array(z.string()),
       levelCurves: z.array(z.string()),
       xpPickupDefinitions: z.array(z.string()),
       upgradeRarityTables: z.array(z.string()),

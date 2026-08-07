@@ -11,6 +11,7 @@
   "relicPoolId": "relicPool.main",
   "multiplayerPolicyId": "progressionMode.multiplayer",
   "singlePlayerPolicyId": "progressionMode.singlePlayer",
+  "relicChestSpawnPolicyId": "relicChestSpawn.mainStage",
   "enemyXpRewards": {
     "ambient": 1,
     "wave": 2,
