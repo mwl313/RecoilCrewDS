@@ -39,6 +39,7 @@
     "test:progression": "vitest run tests/progression08",
     "test:progression:hardening": "vitest run tests/progression08/firstChestIntegration.test.ts tests/progression08/progressionDisabledMode.test.ts tests/progression08/xpGrantRouting.test.ts tests/progression08/relicSelectionFlow.test.ts tests/progression08/relicParameterization.test.ts tests/progression08/progressionOverlay.test.ts tests/progression08/progressionFlowQueue.test.ts",
     "test:progression:simulation": "tsx scripts/progression-simulation.ts",
+    "test:horde:progression": "tsx scripts/horde-progression-comparison.ts",
     "import:monsterpack": "tsx scripts/import-monsterpack10.ts",
     "validate:monsterpack-import": "tsx scripts/validate-monsterpack10-import.ts",
     "test:monsterpack-import": "vitest run tests/monsterpack10",

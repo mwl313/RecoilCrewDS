@@ -1,0 +1,482 @@
+{
+  "format": 2,
+  "capturedAt": "2026-08-07T18:04:56.093Z",
+  "runtime": {
+    "node": "v24.13.0",
+    "platform": "win32",
+    "arch": "x64",
+    "tickRateHz": 30,
+    "snapshotReferenceRateHz": 20,
+    "ticksPerScenario": 180
+  },
+  "results": [
+    {
+      "count": 100,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 0.285,
+        "p95": 0.811,
+        "p99": 1.742
+      },
+      "enemyAi": {
+        "p50": 0.348,
+        "p95": 0.899,
+        "p99": 1.581
+      },
+      "interpolation": {
+        "p50": 0.018,
+        "p95": 0.054,
+        "p99": 0.43
+      },
+      "spawnMs": 0.315,
+      "snapshotBytes": 36376,
+      "enemyBytes": 33657,
+      "snapshotBytesPerSecondAt20Hz": 727520,
+      "hordeReplicationBytesPerSecond": 5502.667,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.094,
+        "p99": 1.1
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 2.712,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 100,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 0.239,
+        "p95": 0.54,
+        "p99": 0.806
+      },
+      "enemyAi": {
+        "p50": 0.189,
+        "p95": 0.32,
+        "p99": 0.488
+      },
+      "interpolation": {
+        "p50": 0.013,
+        "p95": 0.033,
+        "p99": 0.174
+      },
+      "spawnMs": 0.469,
+      "snapshotBytes": 58461,
+      "enemyBytes": 33666,
+      "snapshotBytesPerSecondAt20Hz": 1169220,
+      "hordeReplicationBytesPerSecond": 5918,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.037,
+        "p99": 0.352
+      },
+      "projectiles": 30,
+      "xpShards": 100,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": -1.112,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -6,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 150,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 0.322,
+        "p95": 0.504,
+        "p99": 0.932
+      },
+      "enemyAi": {
+        "p50": 0.286,
+        "p95": 0.435,
+        "p99": 0.705
+      },
+      "interpolation": {
+        "p50": 0.016,
+        "p95": 0.027,
+        "p99": 0.045
+      },
+      "spawnMs": 0.112,
+      "snapshotBytes": 53150,
+      "enemyBytes": 50431,
+      "snapshotBytesPerSecondAt20Hz": 1063000,
+      "hordeReplicationBytesPerSecond": 6764,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.014,
+        "p99": 0.121
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 11.301,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 150,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 0.328,
+        "p95": 0.588,
+        "p99": 0.716
+      },
+      "enemyAi": {
+        "p50": 0.275,
+        "p95": 0.413,
+        "p99": 0.599
+      },
+      "interpolation": {
+        "p50": 0.017,
+        "p95": 0.031,
+        "p99": 0.051
+      },
+      "spawnMs": 0.184,
+      "snapshotBytes": 86595,
+      "enemyBytes": 50547,
+      "snapshotBytesPerSecondAt20Hz": 1731900,
+      "hordeReplicationBytesPerSecond": 7141.333,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.03,
+        "p99": 0.137
+      },
+      "projectiles": 45,
+      "xpShards": 150,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": -2.895,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -9,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 200,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 0.411,
+        "p95": 0.686,
+        "p99": 0.897
+      },
+      "enemyAi": {
+        "p50": 0.382,
+        "p95": 0.605,
+        "p99": 0.855
+      },
+      "interpolation": {
+        "p50": 0.028,
+        "p95": 0.036,
+        "p99": 0.056
+      },
+      "spawnMs": 0.103,
+      "snapshotBytes": 69873,
+      "enemyBytes": 67154,
+      "snapshotBytesPerSecondAt20Hz": 1397460,
+      "hordeReplicationBytesPerSecond": 7444,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.027,
+        "p99": 0.343
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 18.848,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 200,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 0.392,
+        "p95": 0.59,
+        "p99": 0.752
+      },
+      "enemyAi": {
+        "p50": 0.402,
+        "p95": 0.647,
+        "p99": 0.909
+      },
+      "interpolation": {
+        "p50": 0.023,
+        "p95": 0.059,
+        "p99": 0.071
+      },
+      "spawnMs": 0.171,
+      "snapshotBytes": 114305,
+      "enemyBytes": 67205,
+      "snapshotBytesPerSecondAt20Hz": 2286100,
+      "hordeReplicationBytesPerSecond": 8439.333,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.023,
+        "p99": 0.379
+      },
+      "projectiles": 60,
+      "xpShards": 200,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": -17.223,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -11,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 300,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 0.668,
+        "p95": 1.044,
+        "p99": 1.428
+      },
+      "enemyAi": {
+        "p50": 0.671,
+        "p95": 1.068,
+        "p99": 1.213
+      },
+      "interpolation": {
+        "p50": 0.028,
+        "p95": 0.043,
+        "p99": 0.058
+      },
+      "spawnMs": 0.107,
+      "snapshotBytes": 103404,
+      "enemyBytes": 100685,
+      "snapshotBytesPerSecondAt20Hz": 2068080,
+      "hordeReplicationBytesPerSecond": 9528.667,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.014,
+        "p99": 0.353
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 21.421,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 300,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 0.698,
+        "p95": 1.086,
+        "p99": 1.414
+      },
+      "enemyAi": {
+        "p50": 0.62,
+        "p95": 0.944,
+        "p99": 1.382
+      },
+      "interpolation": {
+        "p50": 0.04,
+        "p95": 0.072,
+        "p99": 0.082
+      },
+      "spawnMs": 0.254,
+      "snapshotBytes": 170249,
+      "enemyBytes": 100699,
+      "snapshotBytesPerSecondAt20Hz": 3404980,
+      "hordeReplicationBytesPerSecond": 10691.333,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.024,
+        "p99": 0.443
+      },
+      "projectiles": 90,
+      "xpShards": 300,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": -5.705,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -16,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 500,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 1.203,
+        "p95": 1.675,
+        "p99": 1.93
+      },
+      "enemyAi": {
+        "p50": 1.192,
+        "p95": 1.639,
+        "p99": 1.985
+      },
+      "interpolation": {
+        "p50": 0.047,
+        "p95": 0.073,
+        "p99": 0.091
+      },
+      "spawnMs": 0.128,
+      "snapshotBytes": 170460,
+      "enemyBytes": 167741,
+      "snapshotBytesPerSecondAt20Hz": 3409200,
+      "hordeReplicationBytesPerSecond": 13994.333,
+      "replicationSerializeMs": {
+        "p50": 0.001,
+        "p95": 0.028,
+        "p99": 0.492
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 16.2,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 500,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 1.125,
+        "p95": 1.574,
+        "p99": 1.929
+      },
+      "enemyAi": {
+        "p50": 1.468,
+        "p95": 2.076,
+        "p99": 2.45
+      },
+      "interpolation": {
+        "p50": 0.053,
+        "p95": 0.077,
+        "p99": 0.122
+      },
+      "spawnMs": 0.308,
+      "snapshotBytes": 270085,
+      "enemyBytes": 167825,
+      "snapshotBytesPerSecondAt20Hz": 5401700,
+      "hordeReplicationBytesPerSecond": 16120.667,
+      "replicationSerializeMs": {
+        "p50": 0.001,
+        "p95": 0.027,
+        "p99": 0.423
+      },
+      "projectiles": 150,
+      "xpShards": 400,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 2.686,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -26,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 750,
+      "scenario": "baseline",
+      "serverStep": {
+        "p50": 2.149,
+        "p95": 2.888,
+        "p99": 3.382
+      },
+      "enemyAi": {
+        "p50": 2.004,
+        "p95": 2.709,
+        "p99": 3.002
+      },
+      "interpolation": {
+        "p50": 0.1,
+        "p95": 0.132,
+        "p99": 0.139
+      },
+      "spawnMs": 0.322,
+      "snapshotBytes": 254120,
+      "enemyBytes": 251401,
+      "snapshotBytesPerSecondAt20Hz": 5082400,
+      "hordeReplicationBytesPerSecond": 19814,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.091,
+        "p99": 1.058
+      },
+      "projectiles": 0,
+      "xpShards": 0,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": 24.708,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": 0,
+        "xpShards": 0
+      }
+    },
+    {
+      "count": 750,
+      "scenario": "combatPressure",
+      "serverStep": {
+        "p50": 1.838,
+        "p95": 2.472,
+        "p99": 2.795
+      },
+      "enemyAi": {
+        "p50": 1.66,
+        "p95": 2.221,
+        "p99": 2.458
+      },
+      "interpolation": {
+        "p50": 0.1,
+        "p95": 0.168,
+        "p99": 0.191
+      },
+      "spawnMs": 0.41,
+      "snapshotBytes": 379586,
+      "enemyBytes": 251665,
+      "snapshotBytesPerSecondAt20Hz": 7591720,
+      "hordeReplicationBytesPerSecond": 22365.333,
+      "replicationSerializeMs": {
+        "p50": 0,
+        "p95": 0.041,
+        "p99": 0.641
+      },
+      "projectiles": 225,
+      "xpShards": 400,
+      "eliteCount": 1,
+      "bossCount": 1,
+      "heapDeltaMb": -9.843,
+      "stateGrowth": {
+        "enemies": 0,
+        "shells": -40,
+        "xpShards": 0
+      }
+    }
+  ]
+}

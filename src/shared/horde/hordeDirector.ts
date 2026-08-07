@@ -74,9 +74,14 @@ export class HordeDirector {
   readonly population: PopulationManager;
   spawnBudget = 0;
   lastSelectedPack: string | null = null;
+  lastPackSize = 0;
   private lastFarmingPhase = -1;
   lastAnchor: { x: number; z: number } | null = null;
+  lastAnchorDistance = 0;
   anchorFailures = 0;
+  currentEntityTarget = 0;
+  currentThreatTarget = 0;
+  currentSpawnIncome = 0;
   currentWaveId: number | null = null;
   private readonly packCooldowns = new Map<string, number>();
   /** Deferred boss wave: opened exactly once after the authoritative intro. */
@@ -129,6 +134,9 @@ export class HordeDirector {
     const entityTarget = lerp(phase.entityTargetStart, phase.entityTargetEnd, progress);
     const threatTarget = lerp(phase.threatTargetStart, phase.threatTargetEnd, progress);
     const income = lerp(phase.spawnIncomeStart, phase.spawnIncomeEnd, progress);
+    this.currentEntityTarget = entityTarget;
+    this.currentThreatTarget = threatTarget;
+    this.currentSpawnIncome = income;
     this.spawnBudget = Math.min(this.resolved.limits.maximumStoredBudget, this.spawnBudget + income * dt);
 
     if (tally.entities >= entityTarget || tally.threat >= threatTarget) return;
@@ -149,7 +157,9 @@ export class HordeDirector {
     this.commitOrdinaryMix(entries, pack);
     this.spawnBudget -= pack.threatCost;
     this.lastSelectedPack = pack.id;
+    this.lastPackSize = entries.reduce((sum, entry) => sum + entry.count, 0);
     this.lastAnchor = { x: plan.anchor.x, z: plan.anchor.z };
+    this.lastAnchorDistance = Math.hypot(plan.anchor.x - this.ctx.state.tank.x, plan.anchor.z - this.ctx.state.tank.z);
     this.packCooldowns.set(pack.id, pack.cooldownSeconds ?? 1);
   }
 
@@ -176,18 +186,19 @@ export class HordeDirector {
       (runtime.definitionId === this.resolved.bossWave.id ? this.resolved.bossWave : undefined);
     if (!def) return;
     runtime.reinforcementAccumulator += def.reinforcementThreatPerSecond * dt;
-    if (runtime.reinforcementAccumulator >= 1) {
-      runtime.reinforcementAccumulator -= 1;
-      const packId = def.reinforcementPackIds[0];
-      const pack = this.resolved.packs.get(packId);
-      if (pack) {
-        // Atomic reinforcement pack: preflight budget/cap/definitions/wave
-        // state, then spawn every authored entry or none.
-        const entries = this.resolvePackEntries(pack, runtime.definitionId === this.resolved.bossWave.id);
-        if (waves.spendReinforcementPack(runtime.waveId, pack.threatCost, entries)) {
-          this.commitOrdinaryMix(entries, pack);
-          this.lastSelectedPack = packId;
-        }
+    const packId = def.reinforcementPackIds[0];
+    const pack = this.resolved.packs.get(packId);
+    if (pack && runtime.reinforcementAccumulator >= pack.threatCost) {
+      // Atomic reinforcement pack: preflight budget/cap/definitions/wave
+      // state, then spawn every authored entry or none.
+      const entries = this.resolvePackEntries(pack, runtime.definitionId === this.resolved.bossWave.id);
+      if (waves.spendReinforcementPack(runtime.waveId, pack.threatCost, entries)) {
+        runtime.reinforcementAccumulator -= pack.threatCost;
+        this.commitOrdinaryMix(entries, pack);
+        this.lastSelectedPack = packId;
+        this.lastPackSize = entries.reduce((sum, entry) => sum + entry.count, 0);
+      } else {
+        runtime.reinforcementAccumulator = Math.min(runtime.reinforcementAccumulator, pack.threatCost);
       }
     }
   }
@@ -247,6 +258,17 @@ export class HordeDirector {
           positions.length > 0 ? positions : undefined,
         );
         if (spawned) this.commitOrdinaryMix(entries, pack);
+        if (spawned) {
+          this.lastSelectedPack = packId;
+          this.lastPackSize = entries.reduce((sum, entry) => sum + entry.count, 0);
+          if (plan) {
+            this.lastAnchor = { x: plan.anchor.x, z: plan.anchor.z };
+            this.lastAnchorDistance = Math.hypot(
+              plan.anchor.x - this.ctx.state.tank.x,
+              plan.anchor.z - this.ctx.state.tank.z,
+            );
+          }
+        }
       }
     }
     // Boss-intro presentation is emitted once at the deferred intro start
@@ -369,6 +391,48 @@ export class HordeDirector {
       entityCost: entries.reduce((sum, entry) => sum + entry.count, 0),
     };
   }
+
+  /** Authoritative density telemetry used by debug UI and qualification tests. */
+  densityTelemetry(): HordeDensityTelemetry {
+    const tank = this.ctx.state.tank;
+    const telemetry: HordeDensityTelemetry = {
+      globalEnemyCount: 0,
+      nearbyEnemyCount45: 0,
+      nearbyEnemyCount70: 0,
+      close: 0,
+      ranged: 0,
+      specialist: 0,
+    };
+    const roleByEnemyId = new Map(
+      (this.resolved.gameplayRoster?.ordinaryCandidates ?? []).map((entry) => [entry.enemyId, entry.slot] as const),
+    );
+    const add = (enemyId: string, count: number, x: number, z: number) => {
+      telemetry.globalEnemyCount += count;
+      const distance = Math.hypot(x - tank.x, z - tank.z);
+      if (distance <= 45) telemetry.nearbyEnemyCount45 += count;
+      if (distance <= 70) telemetry.nearbyEnemyCount70 += count;
+      const role = roleByEnemyId.get(enemyId);
+      if (role === 'closeFodder') telemetry.close += count;
+      else if (role === 'rangedFodder') telemetry.ranged += count;
+      else if (role === 'specialist') telemetry.specialist += count;
+    };
+    for (const enemy of this.ctx.state.enemies) {
+      if (enemy.alive) add(enemy.defId ?? '', 1, enemy.x, enemy.z);
+    }
+    for (const sector of this.ctx.hordeSectors.sectors.values()) {
+      add(sector.enemyDefId, sector.count, sector.centerX, sector.centerZ);
+    }
+    return telemetry;
+  }
+}
+
+export interface HordeDensityTelemetry {
+  globalEnemyCount: number;
+  nearbyEnemyCount45: number;
+  nearbyEnemyCount70: number;
+  close: number;
+  ranged: number;
+  specialist: number;
 }
 
 interface ResolvedPackEntry {

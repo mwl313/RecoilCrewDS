@@ -172,6 +172,7 @@ export const spawnAnchorPolicySchema = z
   .object({
     ...commonDefinition,
     visibleNearField: positiveNumber,
+    preferredTankDistance: positiveNumber.optional(),
     safeZoneTags: z.array(z.string()).optional(),
     maximumRecentUseAgeSeconds: nonNegativeNumber,
   })

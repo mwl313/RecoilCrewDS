@@ -3,13 +3,13 @@
   "label": "Production Mixed Farming Group",
   "tags": ["farming"],
   "entries": [
-    { "slotId": "selected.phase.closeFodder", "count": 2, "formationRole": "wanderer" },
-    { "slotId": "selected.phase.rangedFodder", "count": 1, "formationRole": "skirmisher" }
+    { "slotId": "selected.phase.closeFodder", "count": 5, "formationRole": "wanderer" },
+    { "slotId": "selected.phase.rangedFodder", "count": 2, "formationRole": "skirmisher" }
   ],
-  "threatCost": 4,
-  "entityCost": 3,
+  "threatCost": 8,
+  "entityCost": 7,
   "formation": "cluster",
   "spacing": 2.6,
-  "radius": 8,
-  "cooldownSeconds": 2
+  "radius": 10,
+  "cooldownSeconds": 1.5
 }

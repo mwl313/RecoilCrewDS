@@ -116,14 +116,21 @@ export class HordeSectorAggregator {
 
   /** Collapse wave-owned sectors on leader death (no rewards, ambient stays). */
   purgeWave(waveId: number): number {
+    return this.purgeWaveDetailed(waveId).entities;
+  }
+
+  /** Detailed collapse result lets wave live counters retain threat parity. */
+  purgeWaveDetailed(waveId: number): { entities: number; threat: number } {
     let removed = 0;
+    let threat = 0;
     for (const [id, sector] of [...this.sectors]) {
       if (sector.waveId === waveId) {
         this.sectors.delete(id);
         removed += sector.count;
+        threat += sector.threat;
       }
     }
-    return removed;
+    return { entities: removed, threat };
   }
 
   /** Sector count + threat for population accounting. */

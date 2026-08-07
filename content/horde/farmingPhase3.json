@@ -2,11 +2,11 @@
   "id": "horde.farming.phase3",
   "label": "Farming Phase 3",
   "durationSeconds": 60,
-  "entityTargetStart": 26,
-  "entityTargetEnd": 36,
-  "threatTargetStart": 32,
-  "threatTargetEnd": 46,
-  "spawnIncomeStart": 1.6,
-  "spawnIncomeEnd": 2.2,
+  "entityTargetStart": 50,
+  "entityTargetEnd": 72,
+  "threatTargetStart": 66,
+  "threatTargetEnd": 95,
+  "spawnIncomeStart": 3.2,
+  "spawnIncomeEnd": 4.4,
   "eligiblePackTags": ["farming"]
 }

@@ -3,12 +3,12 @@
   "label": "Production Farming Cluster",
   "tags": ["farming"],
   "entries": [
-    { "slotId": "selected.phase.closeFodder", "count": 3, "formationRole": "wanderer" }
+    { "slotId": "selected.phase.closeFodder", "count": 6, "formationRole": "wanderer" }
   ],
-  "threatCost": 3,
-  "entityCost": 3,
+  "threatCost": 6,
+  "entityCost": 6,
   "formation": "cluster",
   "spacing": 2.2,
-  "radius": 6,
-  "cooldownSeconds": 1.5
+  "radius": 8,
+  "cooldownSeconds": 1.25
 }

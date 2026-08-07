@@ -208,4 +208,4 @@ export class EntityViewRegistry {
   }
 }
 
-const FODDER_CAPACITY = 512;
+export const FODDER_CAPACITY = 512;

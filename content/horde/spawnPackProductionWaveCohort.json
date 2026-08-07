@@ -3,13 +3,13 @@
   "label": "Production Wave Cohort",
   "tags": ["wave"],
   "entries": [
-    { "slotId": "selected.phase.closeFodder", "count": 2, "formationRole": "line" },
-    { "slotId": "selected.phase.rangedFodder", "count": 1, "formationRole": "support" },
+    { "slotId": "selected.phase.closeFodder", "count": 5, "formationRole": "line" },
+    { "slotId": "selected.phase.rangedFodder", "count": 2, "formationRole": "support" },
     { "slotId": "selected.phase.specialist", "count": 1, "formationRole": "vanguard" }
   ],
-  "threatCost": 8,
-  "entityCost": 4,
+  "threatCost": 15,
+  "entityCost": 8,
   "formation": "column",
   "spacing": 3,
-  "radius": 10
+  "radius": 12
 }

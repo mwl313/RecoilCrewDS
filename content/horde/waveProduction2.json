@@ -6,9 +6,9 @@
   "reinforcementPackIds": ["pack.production.mixedFarming", "pack.production.waveCohort"],
   "openingThreat": 16,
   "reinforcementThreat": 32,
-  "reinforcementThreatPerSecond": 3,
-  "maximumActiveWaveThreat": 80,
-  "maximumActiveWaveEntities": 55,
+  "reinforcementThreatPerSecond": 3.5,
+  "maximumActiveWaveThreat": 100,
+  "maximumActiveWaveEntities": 64,
   "approachPolicyId": "horde.navigationPolicy.main",
   "rewardTableId": "reward.main",
   "purgeWaveCohortOnLeaderDeath": true

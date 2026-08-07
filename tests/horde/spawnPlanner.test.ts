@@ -134,6 +134,30 @@ describe('SpawnPlanner (M4)', () => {
     expect(planner.plan(packA, 'ambient')).toBeNull();
   });
 
+  it('uses the data-driven preferred tank distance', () => {
+    const m = matchFor(sessionFor('map.arena400Primary', 'PLAN055'), 'plan-match-55');
+    const packA = m.runtime.systems.horde!.resolved.packs.get('pack.wanderingCluster')!;
+    const tank = m.state.tank;
+    const makeAnchor = (id: string, distance: number): SpawnAnchor => ({
+      id,
+      type: 'regional',
+      x: tank.x + distance,
+      z: tank.z,
+      regionId: null,
+      terrainTag: 'flat',
+      tags: ['farming'],
+      capacity: 20,
+      minTankDistance: 0,
+      maxTankDistance: 200,
+      cameraExposure: 0,
+      lastUsedAt: -Infinity,
+      reachable: true,
+    });
+    const planner = new SpawnPlanner(m.runtime.systems, hash32('preferred-55'), [makeAnchor('55m', 55), makeAnchor('70m', 70)]);
+    expect(m.runtime.systems.horde!.resolved.policies.anchor.preferredTankDistance).toBe(55);
+    expect(planner.plan(packA, 'ambient')?.anchor.id).toBe('55m');
+  });
+
   it('farming spawns through the HordeDirector carry anchor ownership', () => {
     const enforced = packWithStageEnforced();
     const bundle = resolveMapBundle(enforced, 'map.arena400Primary');

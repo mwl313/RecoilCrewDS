@@ -35,7 +35,14 @@ export class SpawnPlanner {
       valid.push(anchor);
     }
     if (valid.length === 0) return null;
-    const best = this.scoreAndPick(pack, populationClass, valid, tank.x, tank.z);
+    const best = this.scoreAndPick(
+      pack,
+      populationClass,
+      valid,
+      tank.x,
+      tank.z,
+      policy?.preferredTankDistance ?? 70,
+    );
     if (!best) return null;
     best.lastUsedAt = this.ctx.state.time;
     const seed = forkSeed(
@@ -94,6 +101,7 @@ export class SpawnPlanner {
     candidates: SpawnAnchor[],
     tx: number,
     tz: number,
+    preferredTankDistance: number,
   ): SpawnAnchor | null {
     const preferredTypes = preferredAnchorTypes(pack.tags, populationClass);
     let best: SpawnAnchor | null = null;
@@ -105,7 +113,7 @@ export class SpawnPlanner {
       const score =
         typeScore * 100 -
         tagOverlap * 10 +
-        Math.abs(d - 70) / 100 +
+        Math.abs(d - preferredTankDistance) / 100 +
         anchor.cameraExposure * 5;
       if (score < bestScore) {
         bestScore = score;
