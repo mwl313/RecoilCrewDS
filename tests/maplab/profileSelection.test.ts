@@ -30,8 +30,25 @@ function setModeMap(root: string, mapProfileId: string): void {
 
 describe('map profile selection (mode-driven)', () => {
   it('the default profile comes from the active mode definition', { timeout: 30_000 }, () => {
-    expect(DEFAULT_MAP_PROFILE_ID).toBe('map.rocketJumpHighlands');
+    expect(DEFAULT_MAP_PROFILE_ID).toBe('map.urban400Prototype');
     expect(resolveDefaultMapProfileId(pack)).toBe(DEFAULT_MAP_PROFILE_ID);
+  });
+
+  it('resolves a map from an explicitly selected gameplay mode', () => {
+    expect(resolveDefaultMapProfileId(pack, 'mode.mainStage')).toBe('map.urban400Prototype');
+    expect(resolveDefaultMapProfileId(pack, 'mode.singlePlayerMainStage')).toBe('map.urban400Prototype');
+    const multiplayer = selectArenaSessionFromPack(pack, {
+      roomCode: 'MODE-MP',
+      matchIndex: 0,
+      modeId: 'mode.mainStage',
+    });
+    const singlePlayer = selectArenaSessionFromPack(pack, {
+      roomCode: 'MODE-SP',
+      matchIndex: 0,
+      modeId: 'mode.singlePlayerMainStage',
+    });
+    expect(multiplayer.metadata.mapProfileId).toBe('map.urban400Prototype');
+    expect(singlePlayer.metadata.mapProfileId).toBe('map.urban400Prototype');
   });
 
   it('selectArenaSessionFromPack loads the mode mapProfileId', { timeout: 30_000 }, () => {

@@ -68,13 +68,14 @@ export function selectArenaSession(options: ArenaSessionOptions): ArenaSessionRe
 /** Resolve the primary map bundle from a validated content pack. */
 export function selectArenaSessionFromPack(
   pack: ContentPack,
-  options: Omit<ArenaSessionOptions, 'bundle' | 'fallbackBundle'>,
+  options: Omit<ArenaSessionOptions, 'bundle' | 'fallbackBundle'> & { modeId?: string },
 ): ArenaSessionResult {
-  const bundle = resolveMapBundle(pack, resolveDefaultMapProfileId(pack));
+  const { modeId, ...sessionOptions } = options;
+  const bundle = resolveMapBundle(pack, resolveDefaultMapProfileId(pack, modeId));
   const fallbackBundle = bundle.map.fallbackMapId
     ? resolveMapBundle(pack, bundle.map.fallbackMapId)
     : bundle;
-  return selectArenaSession({ ...options, bundle, fallbackBundle });
+  return selectArenaSession({ ...sessionOptions, bundle, fallbackBundle });
 }
 
 /** Client-safe bundle resolution (mirrors validated content, parity-tested). */

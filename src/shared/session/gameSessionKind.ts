@@ -27,3 +27,22 @@ export const SINGLE_PLAYER_SESSION: GameSessionContext = {
   localControl: 'combined',
   rulesModeId: 'mode.singlePlayerMainStage',
 };
+
+/** Modes that may be presented or selected by the shipping player UI. */
+export const PLAYER_FACING_MODE_IDS = [
+  MULTIPLAYER_SESSION.rulesModeId,
+  SINGLE_PLAYER_SESSION.rulesModeId,
+] as const;
+
+export type PlayerFacingModeId = (typeof PLAYER_FACING_MODE_IDS)[number];
+
+export function isPlayerFacingModeId(modeId: string): modeId is PlayerFacingModeId {
+  return (PLAYER_FACING_MODE_IDS as readonly string[]).includes(modeId);
+}
+
+/** Legacy score attack remains reachable only by explicit test automation. */
+export function resolveSinglePlayerModeId(requestedMode: string | null, testMode: boolean): string {
+  return testMode && requestedMode === 'demo'
+    ? 'mode.singlePlayerScoreAttack'
+    : SINGLE_PLAYER_SESSION.rulesModeId;
+}

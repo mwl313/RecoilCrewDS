@@ -1614,6 +1614,30 @@
       "optional": true
     },
     {
+      "id": "environment.urban.nature.commonTree1",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/nature-pack/common-tree-1.glb",
+      "tags": ["urban", "tree", "decoration", "ultimate-nature-pack", "common-tree"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.nature.commonTree2",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/nature-pack/common-tree-2.glb",
+      "tags": ["urban", "tree", "decoration", "ultimate-nature-pack", "common-tree"],
+      "optional": true
+    },
+    {
+      "id": "environment.urban.nature.commonTree3",
+      "kind": "model",
+      "namespace": "environment",
+      "file": "/assets/models/environment/urban/nature-pack/common-tree-3.glb",
+      "tags": ["urban", "tree", "decoration", "ultimate-nature-pack", "common-tree"],
+      "optional": true
+    },
+    {
       "id": "environment.urban.zombie.streetStraight",
       "kind": "model",
       "namespace": "environment",

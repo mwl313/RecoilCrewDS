@@ -6,7 +6,7 @@
  */
 export const MAP_PROFILE_BUNDLE_FORMAT = 1;
 export const MAP_PROFILE_SOURCE_HASH = '70393cb334153a3b43e93ad648643f2e740eb81b248180eb96811054a742d921';
-export const DEFAULT_MAP_PROFILE_ID = 'map.rocketJumpHighlands';
+export const DEFAULT_MAP_PROFILE_ID = 'map.urban400Prototype';
 
 import type { MapGenerationBundle } from '../shared/mapgen/profiles';
 

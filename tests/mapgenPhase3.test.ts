@@ -198,7 +198,7 @@ describe('server room arena lifecycle', () => {
     const manager = new RoomManager({ content: CONTENT_META, pack });
     const { a, room } = startCrew(manager);
     const start = a.last('start') as { arena?: ArenaMetadata };
-    expect(start.arena?.mapProfileId).toBe('map.rocketJumpHighlands');
+    expect(start.arena?.mapProfileId).toBe('map.urban400Prototype');
     expect(typeof start.arena?.arenaChecksum).toBe('number');
     const snapshot = a.last('snapshot') as { arena?: ArenaMetadata };
     expect(snapshot.arena).toEqual(start.arena);

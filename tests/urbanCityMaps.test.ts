@@ -15,9 +15,9 @@ function roadDegree(cells: ReadonlySet<string>, x: number, z: number): number {
 }
 
 describe.each([
-  ['urban200', 70, 6],
-  ['urban400', 250, 20],
-] as const)('%s authored city', (prototypeId, minimumBuildings, minimumVehicles) => {
+  ['urban200', 70, 6, 14],
+  ['urban400', 250, 20, 45],
+] as const)('%s authored city', (prototypeId, minimumBuildings, minimumVehicles, minimumTrees) => {
   const layout = createUrbanLayout(prototypeId);
 
   it('keeps building art consistent while using non-character city dressing', () => {
@@ -25,8 +25,24 @@ describe.each([
     expect(layout.solidProps.length).toBeGreaterThanOrEqual(minimumVehicles);
     expect(layout.buildings.every((b) => b.assetId?.startsWith('environment.urban.ultimate.'))).toBe(true);
     expect(layout.roads.every((r) => r.assetId.startsWith('environment.urban.zombie.'))).toBe(true);
-    expect(layout.decorations.every((r) => r.assetId.startsWith('environment.urban.zombie.'))).toBe(true);
+    expect(layout.decorations.every((r) =>
+      r.assetId.startsWith('environment.urban.zombie.') || r.assetId.startsWith('environment.urban.nature.commonTree'),
+    )).toBe(true);
     expect(layout.solidProps.every((p) => p.assetId?.startsWith('environment.urban.zombie.vehicle'))).toBe(true);
+  });
+
+  it('uses one coherent tree family as collision-free decoration in clear lots and verges', () => {
+    const trees = layout.decorations.filter((d) => d.id.startsWith('urban.tree.'));
+    expect(trees.length).toBeGreaterThanOrEqual(minimumTrees);
+    expect(new Set(trees.map((tree) => tree.assetId)).size).toBeLessThanOrEqual(3);
+    expect(trees.every((tree) => tree.assetId.startsWith('environment.urban.nature.commonTree'))).toBe(true);
+    expect(trees.every((tree) => layout.roads.every((road) =>
+      Math.abs(tree.x - road.x) >= TILE / 2 + 2 || Math.abs(tree.z - road.z) >= TILE / 2 + 2,
+    ))).toBe(true);
+    expect(trees.every((tree) => layout.buildings.every((building) =>
+      Math.abs(tree.x - building.x) >= building.w / 2 + 2 || Math.abs(tree.z - building.z) >= building.d / 2 + 2,
+    ))).toBe(true);
+    expect(layout.solidProps.every((prop) => !prop.id.startsWith('urban.tree.'))).toBe(true);
   });
 
   it('builds one connected, irregular street graph with corners, junctions, and dead ends', () => {

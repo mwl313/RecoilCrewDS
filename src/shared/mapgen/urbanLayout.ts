@@ -35,6 +35,7 @@ interface CitySpec {
   size: number;
   targetBuildings: number;
   targetVehicles: number;
+  targetTrees: number;
   paths: Array<Array<[number, number]>>;
   spawnPoints: Array<{ x: number; z: number }>;
   bugSpawns: Array<{ x: number; z: number }>;
@@ -58,6 +59,12 @@ const VEHICLES = [
   { assetId: 'environment.urban.zombie.vehicleTruck', w: 6.2, d: 2.4, h: 2.7 },
 ] as const;
 
+const TREES = [
+  { assetId: 'environment.urban.nature.commonTree1', nativeRadius: 1.6, scale: 2.55 },
+  { assetId: 'environment.urban.nature.commonTree2', nativeRadius: 1.6, scale: 2.35 },
+  { assetId: 'environment.urban.nature.commonTree3', nativeRadius: 0.8, scale: 2.55 },
+] as const;
+
 const ROAD = {
   straight: 'environment.urban.zombie.streetStraight',
   straightCrack1: 'environment.urban.zombie.streetStraightCrack1',
@@ -74,6 +81,7 @@ const CITY_SPECS: Record<UrbanPrototypeId, CitySpec> = {
     size: 200,
     targetBuildings: 76,
     targetVehicles: 12,
+    targetTrees: 18,
     paths: [
       [[-96, 8], [-64, 8], [-64, -16], [-16, -16], [-16, 16], [40, 16], [40, 48], [88, 48], [88, 96]],
       [[-24, -96], [-24, -56], [8, -56], [8, -16], [-16, -16]],
@@ -98,6 +106,7 @@ const CITY_SPECS: Record<UrbanPrototypeId, CitySpec> = {
     size: 400,
     targetBuildings: 270,
     targetVehicles: 38,
+    targetTrees: 58,
     paths: [
       [[-192, 24], [-152, 24], [-152, -8], [-80, -8], [-80, 16], [-8, 16], [-8, -16], [72, -16], [72, 16], [136, 16], [136, 48], [192, 48]],
       [[-24, -192], [-24, -144], [8, -144], [8, -72], [-16, -72], [-16, 16], [16, 16], [16, 88], [-8, 88], [-8, 152], [24, 152], [24, 192]],
@@ -138,7 +147,9 @@ export function createUrbanLayout(id: UrbanPrototypeId): UrbanLayout {
     .map(({ x, z }, index) => roadVisual(cells, x, z, index));
   const buildings = placeBuildings(id, spec, roads);
   const solidProps = placeVehicles(id, spec, roads, buildings);
-  const decorations = [...buildStreetDecorations(cells, roads, id), ...spec.landmarks];
+  const streetDecorations = buildStreetDecorations(cells, roads, id);
+  const trees = placeTrees(id, spec, roads, buildings, solidProps, [...streetDecorations, ...spec.landmarks]);
+  const decorations = [...streetDecorations, ...trees, ...spec.landmarks];
   return {
     id,
     roads,
@@ -312,6 +323,84 @@ function placeVehicles(
     });
   }
   return props;
+}
+
+/**
+ * Decorative trees occupy verges, pocket parks, and vacant lots without
+ * entering the authoritative obstacle list. Clearance uses each model's
+ * canopy radius so foliage does not hang over roads or intersect buildings.
+ */
+function placeTrees(
+  id: UrbanPrototypeId,
+  spec: CitySpec,
+  roads: readonly UrbanVisualPlacement[],
+  buildings: readonly Obstacle[],
+  solidProps: readonly Obstacle[],
+  fixedDecorations: readonly UrbanVisualPlacement[],
+): UrbanVisualPlacement[] {
+  const rng = seededRandom(id === 'urban200' ? 0x2ee5_0200 : 0x2ee5_0400);
+  const trees: UrbanVisualPlacement[] = [];
+  const half = spec.size / 2;
+
+  const tryPlace = (x: number, z: number): boolean => {
+    if (trees.length >= spec.targetTrees) return false;
+    const model = TREES[Math.floor(rng() * TREES.length)];
+    const scale = model.scale * (0.9 + rng() * 0.18);
+    const radius = model.nativeRadius * scale;
+    if (Math.abs(x) + radius > half - 1.5 || Math.abs(z) + radius > half - 1.5) return false;
+    if (roads.some((road) => boxesOverlap(x, z, radius * 2, radius * 2, road.x, road.z, TILE, TILE, 1.1))) return false;
+    if (buildings.some((building) => boxesOverlap(x, z, radius * 2, radius * 2, building.x, building.z, building.w, building.d, 1.4))) return false;
+    if (solidProps.some((prop) => boxesOverlap(x, z, radius * 2, radius * 2, prop.x, prop.z, prop.w, prop.d, 1.2))) return false;
+    if (fixedDecorations.some((decoration) => Math.hypot(x - decoration.x, z - decoration.z) < radius + 2.4)) return false;
+    if (spec.spawnPoints.some((spawn) => Math.hypot(x - spawn.x, z - spawn.z) < radius + 7)) return false;
+    if (trees.some((tree) => Math.hypot(x - tree.x, z - tree.z) < radius + tree.scale * 1.15)) return false;
+    trees.push({
+      id: `urban.tree.${trees.length}`,
+      assetId: model.assetId,
+      x: snap(x, 0.25),
+      y: 0.03,
+      z: snap(z, 0.25),
+      yaw: rng() * Math.PI * 2,
+      scale,
+    });
+    return true;
+  };
+
+  // Small groups soften the authored plazas without turning them into forests.
+  for (const plaza of spec.plazas) {
+    for (let attempt = 0; attempt < 28 && trees.length < spec.targetTrees; attempt++) {
+      const angle = rng() * Math.PI * 2;
+      const distance = plaza.radius * (0.42 + rng() * 0.42);
+      tryPlace(plaza.x + Math.cos(angle) * distance, plaza.z + Math.sin(angle) * distance);
+    }
+  }
+
+  // Fill occasional roadside verges where the building pass left a genuine gap.
+  const roadside = roads
+    .filter((road) => road.assetId === ROAD.straight || road.assetId === ROAD.straightCrack1 || road.assetId === ROAD.straightCrack2)
+    .map((road) => ({ road, order: rng() }))
+    .sort((a, b) => a.order - b.order);
+  for (const { road } of roadside) {
+    if (trees.length >= spec.targetTrees) break;
+    if (rng() < 0.48) continue;
+    const horizontal = Math.abs(Math.sin(road.yaw)) > 0.5;
+    const side = rng() < 0.5 ? -1 : 1;
+    const offset = TILE / 2 + 5.8 + rng() * 2.2;
+    const along = (rng() - 0.5) * 4;
+    tryPlace(
+      road.x + (horizontal ? along : side * offset),
+      road.z + (horizontal ? side * offset : along),
+    );
+  }
+
+  // A bounded fallback supplies scattered courtyard/vacant-lot trees.
+  for (let attempt = 0; attempt < spec.targetTrees * 100 && trees.length < spec.targetTrees; attempt++) {
+    const x = (rng() * 2 - 1) * (half - 6);
+    const z = (rng() * 2 - 1) * (half - 6);
+    if (!roads.some((road) => Math.hypot(x - road.x, z - road.z) < 28)) continue;
+    tryPlace(x, z);
+  }
+  return trees;
 }
 
 function buildRoadCells(paths: CitySpec['paths']): Set<string> {

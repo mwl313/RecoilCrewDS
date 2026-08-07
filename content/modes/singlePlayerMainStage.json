@@ -2,7 +2,7 @@
   "id": "mode.singlePlayerMainStage",
   "label": "Single Player Main Stage",
   "description": "Production single-player survival with combined controls and ×2 XP. Identical enemy difficulty to multiplayer.",
-  "mapProfileId": "map.rocketJumpHighlands",
+  "mapProfileId": "map.urban400Prototype",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.default",

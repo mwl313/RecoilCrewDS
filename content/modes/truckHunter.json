@@ -2,6 +2,7 @@
   "id": "mode.truckHunter",
   "label": "Truck Hunter",
   "description": "Proof mode: survive the hounds and end the round when the Loot Truck escapes.",
+  "mapProfileId": "map.urban400Prototype",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.truckHunter",

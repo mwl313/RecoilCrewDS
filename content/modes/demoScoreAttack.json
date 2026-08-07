@@ -2,7 +2,7 @@
   "id": "mode.demoScoreAttack",
   "label": "Demo Score Attack",
   "description": "The classic Recoil Crew score-attack loop; the permanent regression fixture.",
-  "mapProfileId": "map.rocketJumpHighlands",
+  "mapProfileId": "map.urban400Prototype",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.default",

@@ -17,7 +17,7 @@ import { DebugOverlay } from './app/debugOverlay';
 import { PresentationWorld } from './presentation/presentationWorld';
 import { CLIENT_CONTENT_PACK } from '../generated/contentPack.generated';
 import type { GameSessionKind } from '../shared/session/gameSessionKind';
-import { SINGLE_PLAYER_SESSION } from '../shared/session/gameSessionKind';
+import { resolveSinglePlayerModeId, SINGLE_PLAYER_SESSION } from '../shared/session/gameSessionKind';
 import type { ArenaMetadata, ArenaSessionResult } from '../shared/mapgen/arenaSession';
 import {
   reconstructArenaSession,
@@ -519,8 +519,9 @@ function buildSessionFromMetadata(meta: ArenaMetadata): ArenaSessionResult | { e
   return result.session;
 }
 
-function buildSinglePlayerSession(): ArenaSessionResult {
-  const { bundle, fallbackBundle } = resolveClientMapBundle(FORCED_MAP_ID);
+function buildSinglePlayerSession(modeId: string): ArenaSessionResult {
+  const modeMapId = CLIENT_CONTENT_PACK.getMode(modeId).mapProfileId;
+  const { bundle, fallbackBundle } = resolveClientMapBundle(FORCED_MAP_ID ?? modeMapId);
   const roomCode = FORCED_SEED !== null ? `SEED${FORCED_SEED}` : 'SINGLE';
   try {
     const session = selectArenaSession({
@@ -633,12 +634,11 @@ async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string):
 async function startSinglePlayer(): Promise<void> {
   teardownGame();
   sessionKind = 'singlePlayer';
-  const session = buildSinglePlayerSession();
+  const spModeId = resolveSinglePlayerModeId(params.get('mode'), TEST_MODE);
+  const session = buildSinglePlayerSession(spModeId);
   arenaSession = session.metadata ? session : null;
   singlePlayerMatchIndex++;
   const matchId = 'single-' + Date.now();
-  const spModeId =
-    params.get('mode') === 'demo' ? 'mode.singlePlayerScoreAttack' : SINGLE_PLAYER_SESSION.rulesModeId;
   activeSinglePlayerModeId = spModeId;
   if (session.arena?.urbanLayout) {
     const loaded = assets ?? (await assetsPromise);

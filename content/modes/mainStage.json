@@ -2,7 +2,7 @@
   "id": "mode.mainStage",
   "label": "Main Stage",
   "description": "Production multiplayer survival: three farming phases, two elite waves, and a boss finale. Boss death wins; tank destruction loses.",
-  "mapProfileId": "map.rocketJumpHighlands",
+  "mapProfileId": "map.urban400Prototype",
   "difficulty": "difficulty.standard",
   "tank": "tank.default",
   "loadout": "loadout.default",

@@ -838,11 +838,15 @@ export class RoomManager {
     room.matchIndex = matchIndex + 1;
     const matchId = room.pendingMatchId ?? room.code + '-' + this.now();
     room.pendingMatchId = null;
+    // The selected gameplay mode owns the default map. GAME_MODE can change
+    // this per server without rewriting the content pack's fixture mode.
+    const modeId = this.contentMeta?.modeId ?? (this.pack ? 'mode.mainStage' : undefined);
     let world: ArenaWorld | undefined;
     if (this.pack) {
       const session = selectArenaSessionFromPack(this.pack, {
         roomCode: room.code,
         matchIndex,
+        modeId,
       });
       room.arenaSession = session;
       world = session.world;
@@ -852,7 +856,6 @@ export class RoomManager {
     // Production multiplayer runs the main-stage horde loop. The room's
     // content metadata is authoritative when present (tests and fixture
     // servers keep the Demo mode); the live server pins mode.mainStage.
-    const modeId = this.contentMeta?.modeId ?? (this.pack ? 'mode.mainStage' : undefined);
     room.match = this.pack
       ? new Match(matchId, room.rematchModifier, this.pack, world, modeId)
       : new Match(matchId, room.rematchModifier, undefined, world);

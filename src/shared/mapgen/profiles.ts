@@ -141,8 +141,8 @@ export interface MapGenerationBundle {
  * Server selection, the generated client bundle, Single Player, and Map Lab all
  * resolve through this single function.
  */
-export function resolveDefaultMapProfileId(pack: ContentPack): string {
-  const mode = pack.get<ModeDefinition>('modes', pack.modeId);
+export function resolveDefaultMapProfileId(pack: ContentPack, modeId = pack.modeId): string {
+  const mode = pack.get<ModeDefinition>('modes', modeId);
   return mode?.mapProfileId ?? 'map.arena400Primary';
 }
 
