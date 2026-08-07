@@ -46,6 +46,7 @@ import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNorm
 import { urbanAssetIds } from '../shared/mapgen/urbanLayout';
 import { netcodeMetrics } from './netcode/netcodeMetrics';
 import { resolveGameplayPreloadAssetIds } from './assets/gameplayPreload';
+import { runCountdownSequence } from './presentation/countdownSequence';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -78,7 +79,7 @@ let sessionKind: GameSessionKind = 'multiplayer';
 // authoritative application state machine. SceneFlowPresenter owns the
 // presentation side (scene runtimes, transitions, hybrid worlds, actions)
 // and mirrors `flow` through showState() for scene selection only.
-let flow: 'boot' | 'main' | 'settings' | 'create' | 'join' | 'lobby' | 'ready' | 'game' | 'results' | 'error' = 'boot';
+let flow: 'boot' | 'main' | 'settings' | 'create' | 'join' | 'lobby' | 'ready' | 'countdown' | 'game' | 'results' | 'error' = 'boot';
 let lastPingSent = 0;
 let pingMs = 0;
 let latestState: MatchState | null = null;
@@ -665,6 +666,8 @@ async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string):
 async function startSinglePlayer(): Promise<void> {
   teardownGame();
   sessionKind = 'singlePlayer';
+  hud.showScreen('countdown');
+  flow = 'countdown';
   const spModeId = resolveSinglePlayerModeId(params.get('mode'), TEST_MODE);
   const session = buildSinglePlayerSession(spModeId);
   arenaSession = session.metadata ? session : null;
@@ -691,7 +694,6 @@ async function startSinglePlayer(): Promise<void> {
     input.releaseLock();
     flow = 'results';
   };
-  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   game.suppressAutoInput = TEST_MODE;
   if (TEST_MODE && params.get('urbanView') === 'overview' && session.arena?.urbanLayout) {
     game.setUrbanOverview(session.arena.widthMeters);
@@ -702,7 +704,10 @@ async function startSinglePlayer(): Promise<void> {
     }, 250);
   }
   hud.setTheme('singlePlayer');
+  await runCountdownSequence((value) => hud.showCountdown(value));
+  game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   hud.setGameScreen(true);
+  hud.hideCountdown();
   inGame = true;
   flow = 'game';
   input.setEnabled(true);
