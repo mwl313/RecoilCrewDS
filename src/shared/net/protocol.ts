@@ -75,10 +75,12 @@ export interface RunConfigMessage extends ProtocolEnvelope {
    * AIR MASTER Dash-reuse counters for shared prediction.
    * Protocol 16: relic reveal uses per-connected-player acknowledgements
    * with no replicated auto-dismiss deadline.
-   * Protocol 17: team progression snapshots include the authoritative,
-   * level-up-only cumulative stat summary used by the tactical drawer.
-   */
-export const PROTOCOL_VERSION = 17;
+ * Protocol 17: team progression snapshots include the authoritative,
+ * level-up-only cumulative stat summary used by the tactical drawer.
+ * Protocol 18: production combat events carry semantic procedural-audio
+ * cues plus compact enemy tier/size/profile metadata.
+ */
+export const PROTOCOL_VERSION = 18;
 
 export interface ProtocolEnvelope {
   protocol: number;

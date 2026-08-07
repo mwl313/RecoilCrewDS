@@ -125,6 +125,11 @@ export interface ShellState {
   /** Projectile allegiance: enemy shells only affect the tank. */
   team: 'player' | 'enemy';
   ownerEnemyId?: number;
+  /** Compact presentation metadata captured at enemy fire time. */
+  sourceTier?: 'fodder' | 'specialist' | 'elite' | 'boss';
+  sourceSizeClass?: 'small' | 'medium' | 'large';
+  sourcePresentationProfileId?: string;
+  sourceAttackSequence?: number;
   /** Weapon that fired this shell (per-weapon knockback stats). */
   weaponId?: string;
   x: number;
@@ -368,7 +373,15 @@ export type SimEventType =
   | 'assist'
   | 'dashContact'
   | 'roadkillContact'
-  | 'tankImpulse';
+  | 'tankImpulse'
+  | 'enemyTelegraph'
+  | 'enemyFire'
+  | 'enemyProjectileImpact'
+  | 'enemyMeleeImpact'
+  | 'bossTelegraph'
+  | 'bossFire'
+  | 'playerCannonImpact'
+  | 'tankLanding';
 
 export interface SimEvent {
   type: SimEventType;
@@ -392,6 +405,12 @@ export interface SimEvent {
   /** Combat 05: charge ratio of the fired cannon shell. */
   chargeRatio?: number;
   source?: string;
+  /** Compact procedural-audio metadata; never a replicated enemy definition. */
+  tier?: 'fodder' | 'specialist' | 'elite' | 'boss';
+  sizeClass?: 'small' | 'medium' | 'large';
+  presentationProfileId?: string;
+  attackSemantic?: 'rangedTelegraph' | 'rangedFire' | 'chargeTelegraph' | 'meleeImpact' | 'projectileImpact';
+  eventSequence?: number;
 }
 
 export interface ClientState {

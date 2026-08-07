@@ -11,6 +11,7 @@ import { InputManager } from './input';
 import { Hud } from './hud';
 import { NetClient } from './net';
 import { AudioManager } from './audio';
+import type { ProceduralSoundRecipe } from './audio/procedural/proceduralSoundTypes';
 import { AssetService } from './assets';
 import { HudController } from './app/hudController';
 import { DebugOverlay } from './app/debugOverlay';
@@ -891,6 +892,8 @@ if (TEST_MODE) {
     renderTank: () => game?.getRenderTank() ?? null,
     turretSpaces: () => game?.getTurretSpaces() ?? null,
     cameraState: () => game?.getCameraState() ?? null,
+    audioStats: () => game?.audioDiagnostics() ?? audio.debugStats(),
+    audioPlay: (recipe: ProceduralSoundRecipe) => audio.playLocal(recipe, { seed: 0x51f15e }),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,

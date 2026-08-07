@@ -27,7 +27,19 @@ export class ProjectileSystem {
     kind: ShellState['kind'],
     life: number,
     weaponId?: string,
-    payload?: Partial<ShellCombatPayload> & { chargeRatio?: number; visualScale?: number; visualColor?: string; hitRadius?: number; tankHitRadius?: number; team?: 'player' | 'enemy'; ownerEnemyId?: number },
+    payload?: Partial<ShellCombatPayload> & {
+      chargeRatio?: number;
+      visualScale?: number;
+      visualColor?: string;
+      hitRadius?: number;
+      tankHitRadius?: number;
+      team?: 'player' | 'enemy';
+      ownerEnemyId?: number;
+      sourceTier?: ShellState['sourceTier'];
+      sourceSizeClass?: ShellState['sourceSizeClass'];
+      sourcePresentationProfileId?: string;
+      sourceAttackSequence?: number;
+    },
   ): ShellState {
     const s = this.ctx.state;
     const shell: ShellState = {
@@ -35,6 +47,10 @@ export class ProjectileSystem {
       kind,
       team: payload?.team ?? 'player',
       ownerEnemyId: payload?.ownerEnemyId,
+      sourceTier: payload?.sourceTier,
+      sourceSizeClass: payload?.sourceSizeClass,
+      sourcePresentationProfileId: payload?.sourcePresentationProfileId,
+      sourceAttackSequence: payload?.sourceAttackSequence,
       weaponId,
       x,
       y,
@@ -94,9 +110,15 @@ export class ProjectileSystem {
         if (td < tankHitRadius && s.tank.deadT <= 0) {
           const damage = sh.combat?.damage ?? 6;
           this.ctx.damage.applyTank(damage, 'enemy');
-          pushEvent(this.ctx, 'hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
+          pushEvent(this.ctx, 'enemyProjectileImpact', s.tank.x, s.tank.y + 1.2, s.tank.z, {
             value: damage,
             kind: 'enemy',
+            id: sh.ownerEnemyId,
+            tier: sh.sourceTier,
+            sizeClass: sh.sourceSizeClass,
+            presentationProfileId: sh.sourcePresentationProfileId,
+            eventSequence: sh.sourceAttackSequence,
+            attackSemantic: 'projectileImpact',
           });
           continue;
         }
@@ -141,14 +163,23 @@ export class ProjectileSystem {
     const w = this.ctx.rules.config.weapons;
     this.ctx.eventBus.emit('projectile.impacted', { shellId: sh.id, kind: sh.kind, x: sh.x, y: sh.y, z: sh.z, chargeRatio: sh.chargeRatio });
     if (sh.kind === 'enemy') {
-      pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, { value: sh.hitRadius ?? 0.6, kind: 'enemy' });
+      pushEvent(this.ctx, 'enemyProjectileImpact', sh.x, sh.y, sh.z, {
+        value: sh.hitRadius ?? 0.6,
+        kind: 'world',
+        id: sh.ownerEnemyId,
+        tier: sh.sourceTier,
+        sizeClass: sh.sourceSizeClass,
+        presentationProfileId: sh.sourcePresentationProfileId,
+        eventSequence: sh.sourceAttackSequence,
+        attackSemantic: 'projectileImpact',
+      });
       return;
     }
     const resolver = this.ctx.rules.resolver;
     const combat = sh.combat;
     const radius = combat?.splashRadius ?? w.cannonRadius;
     const dmg = combat?.damage ?? w.cannonDamage;
-    pushEvent(this.ctx, 'enemyExplosion', sh.x, sh.y, sh.z, {
+    pushEvent(this.ctx, this.ctx.rules.packId === 'legacy' ? 'enemyExplosion' : 'playerCannonImpact', sh.x, sh.y, sh.z, {
       id: sh.id,
       value: radius,
       kind: 'cannon',

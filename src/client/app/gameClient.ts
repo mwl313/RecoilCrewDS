@@ -707,6 +707,13 @@ export class GameClient {
     }
     if (renderTank) this.lastCameraTank = { ...renderTank };
     this.updateCameraAndAim(renderTank ?? this.lastCameraTank, dtRaw);
+    const audioCamera = this.cameras.getCameraState();
+    this.audio.setListenerPose({
+      x: audioCamera.position.x,
+      y: audioCamera.position.y,
+      z: audioCamera.position.z,
+      yaw: audioCamera.yaw,
+    });
     if (frame && renderTank) this.presenter.syncWorld(frame, renderTank, dt);
     if (this.presenter.latest) {
       const latest = this.presenter.latest;
@@ -751,6 +758,20 @@ export class GameClient {
     const latest = this.presenter.latest;
     this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
+    if (latest) {
+      let nearbyCount = 0;
+      let distanceTotal = 0;
+      for (const enemy of latest.enemies) {
+        if (!enemy.alive) continue;
+        const distance = Math.hypot(enemy.x - audioCamera.position.x, enemy.z - audioCamera.position.z);
+        if (distance > 100) continue;
+        nearbyCount++;
+        distanceTotal += distance;
+      }
+      this.audio.setHordePresence(nearbyCount, nearbyCount > 0 ? distanceTotal / nearbyCount : 100);
+    } else {
+      this.audio.setHordePresence(0, 100);
+    }
     this.enemyWorldUi?.update(
       frame?.enemies ?? latest?.enemies ?? [],
       this.cameras.activeCam.camera,
@@ -1056,17 +1077,17 @@ export class GameClient {
       }
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
-      this.audio.play('cannon');
+      this.audio.playLocal('playerCannon', { chargeRatio: 0 });
       this.cameras.addImpulse(0.45);
     } else if (action === 'secondaryReleased') {
-      // Release presentation; charge scaling/visuals land in M6/M8.
+      const chargeRatio = this.getLocalChargeView()?.ratio ?? 0;
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
-      this.audio.play('cannon');
+      this.audio.playLocal('playerCannon', { chargeRatio });
       this.cameras.addImpulse(0.45);
     } else if (action === 'mgStart') {
       if ((latest?.turret.mgCooldown ?? 1) <= 0) {
-        this.audio.play('machineGun');
+        this.audio.playLocal('playerMg');
         this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
       }
     }
@@ -1208,6 +1229,10 @@ export class GameClient {
 
   getCameraState() {
     return this.cameras.getCameraState();
+  }
+
+  audioDiagnostics() {
+    return this.audio.debugStats();
   }
 
   composerPassCount(): number {
