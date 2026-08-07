@@ -64,9 +64,12 @@ export const DEFAULT_TPS_TUNING: TpsCameraTuning = {
   collisionPullInSeconds: 0.02,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
-  horizontalFollowSeconds: 0.16,
-  verticalFollowUpSeconds: 0.2,
-  verticalFollowDownSeconds: 0.13,
+  // Ground-plane follow is rigid by default. The rendered tank is already
+  // presentation-smoothed, so smoothing it again here creates visible model
+  // drift and lets the camera boom trail through unrelated geometry.
+  horizontalFollowSeconds: 0,
+  verticalFollowUpSeconds: 0.14,
+  verticalFollowDownSeconds: 0.1,
   maxVerticalLag: 2,
   speedFovBonus: 5.5,
 };
@@ -99,6 +102,7 @@ const scratchEye = new THREE.Vector3();
 const scratchRayDir = new THREE.Vector3();
 const scratchAimDir = new THREE.Vector3();
 const scratchAimPoint = new THREE.Vector3();
+const FOLLOW_DISCONTINUITY_DISTANCE_SQ = 12 * 12;
 
 function candidatesOf(
   source: CameraCollisionSource,
@@ -159,6 +163,13 @@ export class TpsCameraController {
   }
 
   setFollowPose(position: THREE.Vector3, chassisYaw: number): void {
+    // Respawns, rematches, and large reconciliation corrections are
+    // discontinuities rather than motion to be eased across. Reset the
+    // anchor so the camera cannot travel through the arena toward the tank.
+    if (this.followInitialized && this.followTarget.distanceToSquared(position) > FOLLOW_DISCONTINUITY_DISTANCE_SQ) {
+      this.smoothedFollow.copy(position);
+      this.initialized = false;
+    }
     this.followTarget.copy(position);
     this.chassisYaw = chassisYaw;
   }
@@ -202,9 +213,16 @@ export class TpsCameraController {
       this.smoothedFollow.copy(this.followTarget);
       this.followInitialized = true;
     } else {
-      const horizontalK = expFollow(safeDt, this.tuning.horizontalFollowSeconds);
-      this.smoothedFollow.x += (this.followTarget.x - this.smoothedFollow.x) * horizontalK;
-      this.smoothedFollow.z += (this.followTarget.z - this.smoothedFollow.z) * horizontalK;
+      if (this.tuning.horizontalFollowSeconds <= 0) {
+        // Keep the tank locked to the same screen-space position during
+        // ordinary driving. Vertical motion is damped independently below.
+        this.smoothedFollow.x = this.followTarget.x;
+        this.smoothedFollow.z = this.followTarget.z;
+      } else {
+        const horizontalK = expFollow(safeDt, this.tuning.horizontalFollowSeconds);
+        this.smoothedFollow.x += (this.followTarget.x - this.smoothedFollow.x) * horizontalK;
+        this.smoothedFollow.z += (this.followTarget.z - this.smoothedFollow.z) * horizontalK;
+      }
       const verticalSeconds = this.followTarget.y < this.smoothedFollow.y
         ? this.tuning.verticalFollowDownSeconds
         : this.tuning.verticalFollowUpSeconds;

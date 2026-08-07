@@ -64,22 +64,23 @@ The former controller copied the tank position directly into one follow position
 The replacement keeps three concerns separate:
 
 1. Tank-relative target pivot.
-2. Axis-specific smoothed follow pivot.
+2. Rigid ground-plane follow plus a separately smoothed vertical pivot.
 3. Wall/terrain boom collision and release.
 
 | Parameter | Value |
 | --- | ---: |
-| Horizontal follow | 0.16 s |
-| Upward vertical follow | 0.20 s |
-| Downward vertical follow | 0.13 s |
+| Horizontal follow | Rigid (0 s) |
+| Upward vertical follow | 0.14 s |
+| Downward vertical follow | 0.10 s |
 | Hard vertical leash | 2.0 m |
+| Discontinuity reset distance | 12.0 m |
 | Collision pull-in | 0.02 s |
 | Collision release | 0.10 s |
 | Maximum processed frame delta | 0.10 s |
 
-The downward time constant is deliberately faster than the upward value. The hard leash clamps only the smoothed pivot relative to the live tank target; collision is still allowed to shorten the camera boom but cannot leave a stale world-space height behind.
+The rendered tank is already presentation-smoothed, so applying a second horizontal filter made the vehicle slide and jitter relative to the camera. Ground-plane follow is therefore rigid again. The downward vertical time constant remains deliberately faster than the upward value. The hard leash clamps only the smoothed pivot relative to the live tank target; collision is still allowed to shorten the camera boom but cannot leave a stale world-space height behind. A move greater than 12 m in one rendered update is treated as a respawn/teleport and resets the follow state instead of flying the camera through world collision toward the new position.
 
-In the deterministic 9 m / 1.5 s valley descent test, maximum observed vertical lag was 0.731 m and settled lag after one second was 0.000 m, both inside the 2.0 m leash.
+In the deterministic 9 m / 1.5 s valley descent test, maximum observed vertical lag was 0.551 m and settled lag after one second was effectively 0.000 m, both inside the 2.0 m leash. Horizontal lag remained exactly 0 m.
 
 ## Diagnostics
 

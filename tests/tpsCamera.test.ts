@@ -232,6 +232,26 @@ describe('TPS camera rig placement', () => {
     expect(Math.abs(diagnostics.verticalLag)).toBeLessThanOrEqual(TUNING.maxVerticalLag + 1e-6);
     expect(Number.isFinite(cam.camera.position.length())).toBe(true);
   });
+
+  it('keeps the default camera rigidly attached in the ground plane', () => {
+    const cam = new TpsCameraController();
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.setFollowPose(new THREE.Vector3(1.2, 0, 2.4), 0);
+    cam.update(1 / 60, []);
+    expect(cam.getFollowDiagnostics().horizontalLag).toBe(0);
+  });
+
+  it('resets follow state across a teleport instead of flying through the arena', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    cam.setFollowPose(new THREE.Vector3(40, 25, -30), 0);
+    cam.update(1 / 60, []);
+    const diagnostics = cam.getFollowDiagnostics();
+    expect(diagnostics.horizontalLag).toBe(0);
+    expect(diagnostics.verticalLag).toBe(0);
+  });
 });
 
 describe('gunner world aim and turret conversion', () => {
