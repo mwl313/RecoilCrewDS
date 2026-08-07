@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'a04f6ab1f93ac5f2c18b85631805753cfccdb14e19dc62052862635c78fe0262';
+export const CONTENT_PACK_SOURCE_HASH = '246bd2ec12ef4732aad5aa2fb1fcf38076600ee605f5188a55ab591e82acffac';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = 'bb02284a5e1d9d25c9a938471efa5009681c21d43640c5f2f412c9e8e211b8c2';
+export const CONTENT_PACK_HASH = 'd41398c6c2f5d5107dc114a44d19dca00c6b054d807e4aa029935909edf3d4f3';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -269,7 +269,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "progression.mainStage", definition: {"id":"progression.mainStage","label":"Main Stage Progression","description":"Shared gameplay progression for both modes. XP values and curve are prototype tuning.","behaviors":[],"levelCurveId":"levelCurve.mainStagePrototype","xpPickupDefinitionId":"xpPickup.default","upgradeRarityTableId":"rarity.upgrade.default","upgradeFirstExperienceRuleId":"firstExperience.levelUp.first","treasureRarityTableId":"rarity.treasure.default","firstTreasureRuleId":"firstExperience.treasure.first","relicPoolId":"relicPool.main","multiplayerPolicyId":"progressionMode.multiplayer","singlePlayerPolicyId":"progressionMode.singlePlayer","relicChestSpawnPolicyId":"relicChestSpawn.mainStage","enemyXpRewards":{"ambient":1,"wave":2,"elite":40,"boss":150},"duplicateUniqueRelicXp":250} },
   ],
   "relicChestSpawnPolicies": [
-    { id: "relicChestSpawn.mainStage", definition: {"id":"relicChestSpawn.mainStage","label":"Main Stage Relic Chest Spawning","description":"Authoritative map, enemy-drop, lifecycle, and reveal tuning for relic chests.","behaviors":[],"initialMapChestCount":10,"initialDiscoveryChest":{"enabled":true,"minimumDistanceFromTankSpawn":25,"maximumDistanceFromTankSpawn":55},"initialMinimumChestSpacing":28,"periodic":{"enabled":true,"intervalSeconds":20,"intervalJitterSeconds":4,"minimumDistanceFromCurrentTank":35,"maximumActiveMapChests":14,"maximumMapChestsSpawnedPerMatch":20},"enemyDropRates":{"ambient":0.01,"wave":0.02,"elite":0.08,"boss":0,"leaderGuaranteed":true},"spawnAnimationSeconds":0.5,"claimRadius":2.6,"openAnimationSeconds":0.65,"relicRevealSeconds":2,"relicRevealMinimumSkipSeconds":0.35,"minimumFullyOpenLifetimeSeconds":2,"despawnAnimationSeconds":0.45} },
+    { id: "relicChestSpawn.mainStage", definition: {"id":"relicChestSpawn.mainStage","label":"Main Stage Relic Chest Spawning","description":"Authoritative map, enemy-drop, lifecycle, and reveal tuning for relic chests.","behaviors":[],"initialMapChestCount":10,"initialDiscoveryChest":{"enabled":true,"minimumDistanceFromTankSpawn":25,"maximumDistanceFromTankSpawn":55},"initialMinimumChestSpacing":28,"periodic":{"enabled":true,"intervalSeconds":20,"intervalJitterSeconds":4,"minimumDistanceFromCurrentTank":35,"maximumActiveMapChests":14,"maximumMapChestsSpawnedPerMatch":20},"enemyDropRates":{"ambient":0.01,"wave":0.02,"elite":0.08,"boss":0,"leaderGuaranteed":true},"spawnAnimationSeconds":0.5,"claimRadius":2.6,"openAnimationSeconds":0.4,"relicRevealSeconds":2,"relicRevealMinimumSkipSeconds":0.35,"minimumFullyOpenLifetimeSeconds":2,"despawnAnimationSeconds":0.45} },
   ],
   "levelCurves": [
     { id: "levelCurve.mainStagePrototype", definition: {"id":"levelCurve.mainStagePrototype","label":"Main Stage Prototype Level Curve","description":"Prototype tuning only; final curve will be set after enemy design and population density are finished.","behaviors":[],"thresholds":[20,45,75,110,150,195,245,300],"overflowRule":"repeatLastDelta","maximumLevel":99} },

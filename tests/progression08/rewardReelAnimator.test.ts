@@ -4,6 +4,7 @@ import {
   REWARD_REEL_CELL_COUNT,
   REWARD_REEL_CELL_HEIGHT,
   REWARD_TICK_INTERVALS,
+  UPGRADE_LOCK_TIMES,
   rewardReelFrame,
 } from '../../src/client/progression/rewardReelAnimator';
 
@@ -19,19 +20,22 @@ describe('reward reel presentation animator', () => {
   });
 
   it('travels through multiple full cells and visibly decelerates before lock', () => {
-    const early = rewardReelFrame(350, 0, 'upgrade');
-    const middle = rewardReelFrame(560, 0, 'upgrade');
-    const final = rewardReelFrame(720, 0, 'upgrade');
-    expect(Math.abs(final.translateY)).toBeGreaterThan(REWARD_REEL_CELL_HEIGHT * 8);
+    const early = rewardReelFrame(450, 0, 'upgrade');
+    const middle = rewardReelFrame(1_150, 0, 'upgrade');
+    const final = rewardReelFrame(UPGRADE_LOCK_TIMES[0], 0, 'upgrade');
+    expect(Math.abs(final.translateY)).toBeGreaterThan(REWARD_REEL_CELL_HEIGHT * 14);
     expect(early.velocity).toBeGreaterThan(middle.velocity);
     expect(middle.velocity).toBeGreaterThan(final.velocity);
     expect(final.progress).toBe(1);
   });
 
   it('uses the approved changing casino cadence instead of a fixed interval', () => {
-    expect(REWARD_TICK_INTERVALS).toHaveLength(12);
-    expect(REWARD_TICK_INTERVALS[0]).toBe(32);
-    expect(REWARD_TICK_INTERVALS.at(-1)).toBe(145);
+    expect(REWARD_TICK_INTERVALS).toHaveLength(17);
+    expect(REWARD_TICK_INTERVALS[0]).toBe(36);
+    expect(REWARD_TICK_INTERVALS.at(-1)).toBe(300);
     expect(new Set(REWARD_TICK_INTERVALS).size).toBe(REWARD_TICK_INTERVALS.length);
+    for (let index = 1; index < REWARD_TICK_INTERVALS.length; index++) {
+      expect(REWARD_TICK_INTERVALS[index]).toBeGreaterThan(REWARD_TICK_INTERVALS[index - 1]!);
+    }
   });
 });

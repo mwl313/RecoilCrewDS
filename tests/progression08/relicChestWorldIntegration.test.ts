@@ -54,7 +54,7 @@ describe('relic chest world integration', () => {
     expect(policy.enemyDropRates).toMatchObject({ ambient: 0.01, wave: 0.02, elite: 0.08, boss: 0 });
     expect(policy.initialMapChestCount).toBe(10);
     expect(policy.spawnAnimationSeconds).toBe(0.5);
-    expect(policy.openAnimationSeconds).toBe(0.65);
+    expect(policy.openAnimationSeconds).toBe(0.4);
     expect(policy.relicRevealSeconds).toBe(2);
     expect(policy.despawnAnimationSeconds).toBe(0.45);
   });

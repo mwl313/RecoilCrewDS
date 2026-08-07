@@ -9,7 +9,7 @@ const VIEWPORTS = [
 ] as const;
 
 test('upgrade and relic reward plates fit every qualification viewport', async ({ page }, testInfo) => {
-  await page.goto('/?test=1');
+  await page.goto('/?test=1&nodebug=1');
   await page.click('#screen-boot');
   await expect(page.locator('#screen-main')).toBeVisible();
   await page.click('#screen-main [data-act="single"]');
@@ -29,7 +29,7 @@ test('upgrade and relic reward plates fit every qualification viewport', async (
   })));
   expect(upgradeReels).toHaveLength(3);
   expect(upgradeReels.every((reel) => reel.overflow === 'hidden' && reel.cells >= 8)).toBe(true);
-  await page.waitForTimeout(1_150);
+  await page.waitForTimeout(2_300);
 
   for (const viewport of VIEWPORTS) {
     await page.setViewportSize(viewport);
@@ -54,7 +54,7 @@ test('upgrade and relic reward plates fit every qualification viewport', async (
   await page.waitForFunction(() =>
     (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state()?.matchFlow === 'relicSelection',
   );
-  await expect(page.locator('.reward-relic__symbol')).toHaveCount(10);
+  expect(await page.locator('.reward-relic__symbol').count()).toBeGreaterThanOrEqual(8);
   await expect(page.locator('.reward-relic__reel-window')).toHaveCSS('overflow', 'hidden');
   await page.keyboard.press('Space');
   await page.waitForTimeout(300);

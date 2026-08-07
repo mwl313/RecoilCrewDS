@@ -15,13 +15,13 @@ export interface ProgressionOverlayCallbacks {
   relicInfo?: (relicId: string) => { label: string; description: string; iconId?: string; iconUrl?: string | null } | null;
   rewardSound?: (name: 'levelImpact' | 'tick' | 'cardLock' | 'focus' | 'confirm' | 'relicLock' | 'exit', detail?: RewardSoundDetail) => void;
   duckLegendary?: () => void;
+  rewardImpact?: (intensity: number) => void;
 }
 
 /** Compatibility shell around the presentation-only director and DOM view. */
 export class ProgressionOverlay {
-  private readonly director = new RewardRevealDirector(
-    typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  );
+  private readonly reducedMotion = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  private readonly director = new RewardRevealDirector(this.reducedMotion);
   private readonly view: RewardRevealView;
   private latestState: MatchState | null = null;
   private latestRole: ProgressionRole = 'single';
@@ -81,6 +81,7 @@ export class ProgressionOverlay {
           const rarity = offer[index]?.rarity;
           if (rarity === 'legendary') this.cb.duckLegendary?.();
           this.cb.rewardSound?.('cardLock', { rarity });
+          this.triggerScreenImpact(impactStrength(rarity, index === 2));
         }
         this.lastLockedCards = this.timeline.lockedCards;
       }
@@ -155,8 +156,11 @@ export class ProgressionOverlay {
     this.localSelectionSent = true;
     this.exitUntilMs = this.nowMs + 280;
     this.director.markConfirmed(this.latestRole !== 'single');
+    const rarity = (active.singlePlayerOffer ?? active.driverOffer ?? active.gunnerOffer)?.[index]?.rarity ?? 'common';
+    this.view.impactUpgradeSelection(index, rarity);
+    this.triggerScreenImpact(impactStrength(rarity, true));
     this.view.markSelected(index);
-    this.cb.rewardSound?.('confirm', { rarity: (active.singlePlayerOffer ?? active.driverOffer ?? active.gunnerOffer)?.[index]?.rarity });
+    this.cb.rewardSound?.('confirm', { rarity });
     this.cb.selectUpgrade(index);
   }
 
@@ -164,7 +168,7 @@ export class ProgressionOverlay {
     const active = this.latestState?.teamProgression.activeSelection;
     if (!active || active.kind !== 'relic' || this.localRelicAckSent) return;
     if (!this.timeline.continueArmed) {
-      if (this.director.fastForwardRelic(this.nowMs)) {
+      if (!this.timeline.finalVisible && this.director.fastForwardRelic(this.nowMs)) {
         this.timeline = this.director.sync(active, this.nowMs);
         this.view.updateRelic(active, this.latestRole, this.timeline);
         this.triggerRelicImpact(active);
@@ -191,8 +195,14 @@ export class ProgressionOverlay {
   private triggerRelicImpact(selection: NonNullable<MatchState['teamProgression']['activeSelection']>): void {
     const rarity = selection.relicResult?.rarity ?? 'common';
     this.view.impactRelic(selection);
+    this.triggerScreenImpact(impactStrength(rarity, true));
     if (rarity === 'legendary') this.cb.duckLegendary?.();
     this.cb.rewardSound?.('relicLock', { rarity });
+  }
+
+  private triggerScreenImpact(intensity: number): void {
+    this.view.shake(intensity);
+    if (!this.reducedMotion) this.cb.rewardImpact?.(intensity);
   }
 
   updateDebug(text: string): void {
@@ -202,4 +212,9 @@ export class ProgressionOverlay {
   dispose(): void {
     this.view.dispose();
   }
+}
+
+function impactStrength(rarity: string | undefined, final: boolean): number {
+  const rarityBoost = rarity === 'legendary' ? 0.28 : rarity === 'epic' ? 0.18 : rarity === 'rare' ? 0.1 : 0.04;
+  return (final ? 0.42 : 0.26) + rarityBoost;
 }

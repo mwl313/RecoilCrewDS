@@ -2,7 +2,7 @@ import type { MatchState } from '../../shared/types';
 import type { ProgressionSelectionState, UpgradeCard } from '../../shared/progression/progressionTypes';
 import type { RewardTimelineSnapshot } from './rewardRevealDirector';
 import { RewardFxLayer } from './rewardFxLayer';
-import { buildRewardReelSymbols, rewardReelFrame } from './rewardReelAnimator';
+import { buildRewardReelSymbols, rewardReelFrame, type RewardReelSymbol } from './rewardReelAnimator';
 
 export type ProgressionRole = 'driver' | 'gunner' | 'single';
 
@@ -26,6 +26,9 @@ export class RewardRevealView {
   private continuePrompt: HTMLButtonElement | null = null;
   private relicReel: HTMLElement | null = null;
   private relicPlate: HTMLElement | null = null;
+  private relicOutline: HTMLElement | null = null;
+  private relicSymbols: RewardReelSymbol[] = [];
+  private lastRelicCellIndex = -1;
   private lastLockedCount = 0;
   private rewardIdentity = '';
 
@@ -164,15 +167,20 @@ export class RewardRevealView {
     const info = this.cb.relicInfo?.(result.relicId) ?? null;
     this.rewardIdentity = `relic:${result.acquisitionSequence}`;
     this.relicHost.replaceChildren();
-    this.relicHost.dataset['rarity'] = result.rarity;
+    this.relicHost.removeAttribute('data-rarity');
     const stage = element('div', 'reward-stage reward-stage--relic');
     const signal = element('div', 'reward-kicker reward-relic__signal', 'RELIC SIGNAL ACQUIRED');
     this.relicPlate = element('article', 'reward-relic');
-    this.relicPlate.dataset['rarity'] = result.rarity;
+    this.relicSymbols = buildRewardReelSymbols(this.rewardIdentity, 0, 'relic');
+    this.lastRelicCellIndex = -1;
+    this.relicPlate.dataset['rarity'] = this.relicSymbols[0]?.rarity ?? 'common';
+    this.relicHost.dataset['rarity'] = this.relicPlate.dataset['rarity'];
+    this.relicOutline = element('div', 'reward-relic__roulette-outline');
     const reelWindow = element('div', 'reward-relic__reel-window');
     this.relicReel = element('div', 'reward-relic__reel-track');
-    for (const symbol of buildRewardReelSymbols(this.rewardIdentity, 0, 'relic')) {
+    for (const symbol of this.relicSymbols) {
       const cell = element('div', 'reward-relic__symbol');
+      cell.dataset['rarity'] = symbol.rarity;
       cell.append(element('span', 'reward-relic__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
       this.relicReel.appendChild(cell);
     }
@@ -202,7 +210,7 @@ export class RewardRevealView {
     this.continuePrompt.className = 'reward-continue';
     this.continuePrompt.textContent = 'INPUT TO FAST-FORWARD';
     this.continuePrompt.addEventListener('click', () => this.cb.continueRelic());
-    this.relicPlate.append(reelWindow, final, this.continuePrompt);
+    this.relicPlate.append(this.relicOutline, reelWindow, final, this.continuePrompt);
     stage.append(signal, this.relicPlate);
     if (role !== 'single') stage.appendChild(element('div', 'reward-peer-status reward-peer-status--relic'));
     this.relicHost.appendChild(stage);
@@ -215,6 +223,17 @@ export class RewardRevealView {
     const frame = rewardReelFrame(timeline.elapsedMs, 0, 'relic');
     this.relicReel?.style.setProperty('--reward-reel-y', `${frame.translateY}px`);
     this.relicReel?.style.setProperty('--reward-reel-velocity', String(frame.velocity));
+    if (timeline.finalVisible) {
+      const finalRarity = selection.relicResult?.rarity ?? 'common';
+      this.relicPlate?.setAttribute('data-rarity', finalRarity);
+      this.relicHost.dataset['rarity'] = finalRarity;
+    } else if (frame.visibleCellIndex !== this.lastRelicCellIndex) {
+      const spinningRarity = this.relicSymbols[frame.visibleCellIndex]?.rarity ?? 'common';
+      this.relicPlate?.setAttribute('data-rarity', spinningRarity);
+      this.relicHost.dataset['rarity'] = spinningRarity;
+      if (this.relicOutline) restartClass(this.relicOutline, 'reward-relic__roulette-outline--flash');
+      this.lastRelicCellIndex = frame.visibleCellIndex;
+    }
     this.continuePrompt?.setAttribute('aria-disabled', String(!timeline.continueArmed));
     if (this.continuePrompt) this.continuePrompt.textContent = timeline.continueArmed
       ? 'CLICK / SPACE TO CONTINUE'
@@ -245,6 +264,17 @@ export class RewardRevealView {
     this.fx.burst(rarity, shardCount(rarity, true), this.rewardIdentity, this.relicPlate ?? undefined, 'relic');
   }
 
+  impactUpgradeSelection(index: number, rarity: string): void {
+    const card = this.cardButtons[index];
+    if (!card) return;
+    this.fx.burst(rarity, shardCount(rarity) + 6, `${this.rewardIdentity}:manual:${index}`, card, 'final-card');
+  }
+
+  shake(intensity: number): void {
+    this.root.style.setProperty('--reward-shake', `${Math.max(2, Math.round(intensity * 18))}px`);
+    restartClass(this.root, 'reward-overlay--shake');
+  }
+
   showUpgrade(timeline: RewardTimelineSnapshot): void {
     this.root.hidden = false;
     this.root.dataset['kind'] = 'upgrade';
@@ -260,6 +290,7 @@ export class RewardRevealView {
   hide(): void {
     this.root.hidden = true;
     this.root.classList.remove('reward-overlay--edge-impact');
+    this.root.classList.remove('reward-overlay--shake');
     this.selectionHost.hidden = true;
     this.relicHost.hidden = true;
     this.fx.clear();

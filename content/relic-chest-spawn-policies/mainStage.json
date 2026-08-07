@@ -26,7 +26,7 @@
   },
   "spawnAnimationSeconds": 0.5,
   "claimRadius": 2.6,
-  "openAnimationSeconds": 0.65,
+  "openAnimationSeconds": 0.4,
   "relicRevealSeconds": 2,
   "relicRevealMinimumSkipSeconds": 0.35,
   "minimumFullyOpenLifetimeSeconds": 2,
