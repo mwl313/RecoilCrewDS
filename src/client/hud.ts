@@ -1,5 +1,5 @@
 import type { MatchState, ModifierId, Role } from '../shared/types';
-import type { AppFlowHandlers, FlowStateId } from './presentation/flowTypes';
+import type { AppFlowHandlers, FlowStateId, ResultOutcome } from './presentation/flowTypes';
 import { SceneFlowPresenter } from './presentation/sceneFlowPresenter';
 import { UiComponentRegistry } from './presentation/componentRegistry';
 import { registerDefaultUiComponents } from './presentation/uiComponents';
@@ -151,6 +151,10 @@ export class Hud {
     this.flow.setSceneContext('scene.settings', patch);
   }
 
+  setPauseContext(singleMode: boolean) {
+    this.flow.setSceneContext('scene.pause', { singleMode });
+  }
+
   setTheme(theme: 'driver' | 'gunner' | 'singlePlayer') {
     this.hudRuntime.setTheme(theme);
   }
@@ -186,15 +190,17 @@ export class Hud {
   showResults(
     results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
     rematch: { driver: boolean; gunner: boolean; modifier: string },
+    outcome: ResultOutcome = 'complete',
   ) {
-    this.flow.showResults(results, rematch);
+    this.flow.showResults(results, rematch, outcome);
     this.onUiSound?.();
   }
 
   showSinglePlayerResults(
     results: { score: number; bestCombo: number; chargedCannonShots: number; fullChargeShots: number; kills: number; scrapCollected: number; links: number; wipeouts: number; grade: string; title: string; modifier: string },
+    outcome: ResultOutcome = 'complete',
   ) {
-    this.flow.showSinglePlayerResults(results);
+    this.flow.showSinglePlayerResults(results, outcome);
     this.onUiSound?.();
   }
 

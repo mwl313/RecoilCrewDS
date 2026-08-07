@@ -2,73 +2,154 @@
   "id": "scene.results",
   "label": "Results",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 220 },
+  "enterTransition": { "type": "fade", "durationMs": 320 },
   "root": {
     "id": "screen-results",
     "type": "container",
-    "class": "screen",
+    "class": "screen ui-screen results-screen",
+    "bindings": [
+      { "target": "class", "source": "victory", "transform": "booleanClass", "attribute": "is-victory" },
+      { "target": "class", "source": "defeat", "transform": "booleanClass", "attribute": "is-defeat" }
+    ],
     "children": [
+      { "id": "results-frame", "type": "container", "class": "ui-safe-frame" },
+      {
+        "id": "results-topbar",
+        "type": "horizontal",
+        "class": "ui-topbar results-topbar",
+        "children": [
+          { "id": "results-unit", "type": "text", "class": "ui-unit-mark", "text": "RC / FIELD UNIT 07" },
+          { "id": "results-system", "type": "text", "class": "ui-system-state results-system-state", "text": "RUN COMPLETE", "bindings": [{ "target": "text", "source": "outcomeState", "fallback": "RUN COMPLETE" }] }
+        ]
+      },
       {
         "id": "results-panel",
         "type": "panel",
-        "class": "panel results",
+        "class": "results-shell",
         "children": [
-          { "id": "results-heading", "type": "text", "props": { "tag": "h2" }, "text": "ROUND COMPLETE" },
-          { "id": "results-grade", "type": "text", "class": "results-grade", "text": "B", "bindings": [{ "target": "text", "source": "grade", "fallback": "B" }] },
-          { "id": "results-title", "type": "text", "class": "results-title", "text": "SCRAP GOBLINS", "bindings": [{ "target": "text", "source": "title", "fallback": "SCRAP GOBLINS" }] },
-          { "id": "results-score", "type": "text", "class": "results-score", "text": "0", "bindings": [{ "target": "text", "source": "score", "fallback": "0" }] },
           {
-            "id": "results-stats",
-            "type": "repeater",
-            "class": "results-stats",
-            "props": { "listSource": "stats" },
+            "id": "results-layout",
+            "type": "grid",
+            "class": "results-layout",
             "children": [
               {
-                "id": "results-stat-item",
-                "type": "horizontal",
-                "class": "results-stat",
+                "id": "results-outcome",
+                "type": "container",
+                "class": "results-outcome",
                 "children": [
-                  { "id": "results-stat-label", "type": "text", "props": { "tag": "span" }, "bindings": [{ "target": "text", "source": "item.label" }] },
-                  { "id": "results-stat-value", "type": "text", "props": { "tag": "b" }, "bindings": [{ "target": "text", "source": "item.value" }] }
+                  { "id": "results-kicker", "type": "text", "class": "ui-kicker results-kicker", "text": "MISSION REPORT // CLOSED", "bindings": [{ "target": "text", "source": "outcomeKicker", "fallback": "MISSION REPORT // CLOSED" }] },
+                  { "id": "results-heading", "type": "text", "class": "results-heading", "props": { "tag": "h2" }, "text": "ROUND COMPLETE", "bindings": [{ "target": "text", "source": "outcomeHeading", "fallback": "ROUND COMPLETE" }] },
+                  { "id": "results-outcome-rule", "type": "container", "class": "results-outcome-rule" },
+                  { "id": "results-outcome-copy", "type": "text", "class": "results-outcome-copy", "text": "Field run logged. Crew performance is ready for review.", "bindings": [{ "target": "text", "source": "outcomeCopy", "fallback": "Field run logged. Crew performance is ready for review." }] },
+                  {
+                    "id": "results-grade-block",
+                    "type": "container",
+                    "class": "results-grade-block",
+                    "children": [
+                      { "id": "results-grade-label", "type": "text", "class": "results-grade-label", "text": "RUN GRADE" },
+                      { "id": "results-grade", "type": "text", "class": "results-grade", "text": "B", "bindings": [{ "target": "text", "source": "grade", "fallback": "B" }] }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "results-debrief",
+                "type": "container",
+                "class": "results-debrief",
+                "children": [
+                  { "id": "results-debrief-label", "type": "text", "class": "results-section-label", "text": "AFTER-ACTION DEBRIEF" },
+                  { "id": "results-title", "type": "text", "class": "results-title", "text": "SCRAP GOBLINS", "bindings": [{ "target": "text", "source": "title", "fallback": "SCRAP GOBLINS" }] },
+                  {
+                    "id": "results-score-block",
+                    "type": "horizontal",
+                    "class": "results-score-block",
+                    "children": [
+                      { "id": "results-score-label", "type": "text", "class": "results-section-label", "text": "FINAL SCORE" },
+                      { "id": "results-score", "type": "text", "class": "results-score", "text": "0", "bindings": [{ "target": "text", "source": "score", "fallback": "0" }] }
+                    ]
+                  },
+                  {
+                    "id": "results-stats",
+                    "type": "repeater",
+                    "class": "results-stats",
+                    "props": { "listSource": "stats" },
+                    "children": [
+                      {
+                        "id": "results-stat-item",
+                        "type": "horizontal",
+                        "class": "results-stat",
+                        "children": [
+                          { "id": "results-stat-label", "type": "text", "props": { "tag": "span" }, "bindings": [{ "target": "text", "source": "item.label" }] },
+                          { "id": "results-stat-value", "type": "text", "props": { "tag": "b" }, "bindings": [{ "target": "text", "source": "item.value" }] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "results-rematch",
+                    "type": "container",
+                    "class": "results-rematch",
+                    "bindings": [{ "target": "visible", "source": "crewMode" }],
+                    "children": [
+                      { "id": "results-mods-title", "type": "text", "class": "results-section-label mods-title", "text": "REMATCH LOADOUT" },
+                      {
+                        "id": "mods",
+                        "type": "repeater",
+                        "class": "mods",
+                        "props": { "listSource": "modifiers" },
+                        "children": [
+                          {
+                            "id": "mod-chip",
+                            "type": "button",
+                            "class": "ui-compact-action mod",
+                            "bindings": [
+                              { "target": "text", "source": "item.label" },
+                              { "target": "class", "source": "item.selected", "transform": "booleanClass", "attribute": "selected" },
+                              { "target": "attribute", "source": "item.desc", "attribute": "title" },
+                              { "target": "attribute", "source": "item.id", "attribute": "data-mod" }
+                            ],
+                            "actions": [{ "event": "click", "action": "app.rematch", "payload": { "__itemId": true } }]
+                          }
+                        ]
+                      },
+                      { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [{ "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" }] },
+                      {
+                        "id": "leave-btn",
+                        "type": "button",
+                        "class": "ui-action results-leave",
+                        "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" },
+                        "text": "LEAVE CREW",
+                        "actions": [{ "event": "click", "action": "app.leave" }],
+                        "bindings": [{ "target": "visible", "source": "crewMode" }]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "sp-actions",
+                    "type": "vertical",
+                    "class": "sp-actions results-actions",
+                    "bindings": [{ "target": "visible", "source": "singleMode" }],
+                    "children": [
+                      {
+                        "id": "sp-play-again",
+                        "type": "button",
+                        "class": "ui-action",
+                        "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
+                        "text": "PLAY AGAIN",
+                        "actions": [{ "event": "click", "action": "app.restartSinglePlayer" }]
+                      },
+                      {
+                        "id": "sp-main",
+                        "type": "button",
+                        "class": "ui-action",
+                        "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" },
+                        "text": "RETURN TO MAIN MENU",
+                        "actions": [{ "event": "click", "action": "app.returnToMenu" }]
+                      }
+                    ]
+                  }
                 ]
               }
-            ]
-          },
-          { "id": "results-mods-title", "type": "text", "class": "mods-title", "text": "REMATCH MODIFIER", "bindings": [{ "target": "visible", "source": "crewMode" }] },
-          {
-            "id": "mods",
-            "type": "repeater",
-            "class": "mods",
-            "bindings": [{ "target": "visible", "source": "crewMode" }],
-            "props": { "listSource": "modifiers" },
-            "children": [
-              {
-                "id": "mod-chip",
-                "type": "button",
-                "class": "mod",
-                "bindings": [
-                  { "target": "text", "source": "item.label" },
-                  { "target": "class", "source": "item.selected", "transform": "booleanClass", "attribute": "selected" },
-                  { "target": "attribute", "source": "item.desc", "attribute": "title" },
-                  { "target": "attribute", "source": "item.id", "attribute": "data-mod" }
-                ],
-                "actions": [{ "event": "click", "action": "app.rematch", "payload": { "__itemId": true } }]
-              }
-            ]
-          },
-          { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [
-            { "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" },
-            { "target": "visible", "source": "crewMode" }
-          ] },
-          { "id": "leave-btn", "type": "button", "class": "btn ghost", "text": "LEAVE CREW", "actions": [{ "event": "click", "action": "app.leave" }], "bindings": [{ "target": "visible", "source": "crewMode" }] },
-          {
-            "id": "sp-actions",
-            "type": "vertical",
-            "class": "sp-actions",
-            "bindings": [{ "target": "visible", "source": "singleMode" }],
-            "children": [
-              { "id": "sp-play-again", "type": "button", "class": "btn primary", "text": "PLAY AGAIN", "actions": [{ "event": "click", "action": "app.restartSinglePlayer" }] },
-              { "id": "sp-main", "type": "button", "class": "btn ghost", "text": "MAIN MENU", "actions": [{ "event": "click", "action": "app.returnToMenu" }] }
             ]
           }
         ]
@@ -77,9 +158,15 @@
   },
   "previewStates": [
     {
-      "id": "crew",
-      "label": "Crew results",
+      "id": "victory",
+      "label": "Victory — crew",
       "context": {
+        "victory": true,
+        "defeat": false,
+        "outcomeHeading": "VICTORY",
+        "outcomeKicker": "BOSS NEUTRALIZED // STAGE CLEAR",
+        "outcomeCopy": "The boss is down. Shared chassis survived the full operation.",
+        "outcomeState": "STAGE CLEAR",
         "grade": "S",
         "title": "ONE BRAIN, TWO BROWSERS",
         "score": "16,264",
@@ -98,18 +185,24 @@
       }
     },
     {
-      "id": "single",
-      "label": "Single Player results",
+      "id": "defeat",
+      "label": "Game over — single player",
       "context": {
-        "grade": "A",
-        "title": "SOLO SCRAP HUNTER",
-        "score": "8,412",
+        "victory": false,
+        "defeat": true,
+        "outcomeHeading": "GAME OVER",
+        "outcomeKicker": "CHASSIS LOST // RUN TERMINATED",
+        "outcomeCopy": "Field unit integrity reached zero before the boss was neutralized.",
+        "outcomeState": "CHASSIS OFFLINE",
+        "grade": "C",
+        "title": "SCRAP GOBLINS",
+        "score": "4,812",
         "crewMode": false,
         "singleMode": true,
         "stats": [
-          { "label": "BEST COMBO", "value": "×4" },
+          { "label": "BEST COMBO", "value": "×3" },
           { "label": "CHARGED SHOTS", "value": "2" },
-          { "label": "KILLS", "value": "27" }
+          { "label": "KILLS", "value": "18" }
         ]
       }
     }

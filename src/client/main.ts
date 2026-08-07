@@ -486,7 +486,12 @@ net.onMessage = (msg) => {
       game?.handleActionResult(Number(msg.actionSeq ?? 0), msg.accepted === true);
       break;
     case 'results': {
-      hud.showResults(msg.results as never, msg.rematch as never);
+      const outcome = latestState?.matchFlow === 'clear'
+        ? 'victory'
+        : latestState?.matchFlow === 'gameOver'
+          ? 'defeat'
+          : 'complete';
+      hud.showResults(msg.results as never, msg.rematch as never, outcome);
       input.setEnabled(false);
       game?.setInputEnabled(false);
       input.releaseLock();
@@ -677,7 +682,12 @@ async function startSinglePlayer(): Promise<void> {
   lastPreloadedMatchId = matchId;
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
-    hud.showSinglePlayerResults(results as never);
+    const outcome = game?.singlePlayerMatch?.state.matchFlow === 'clear'
+      ? 'victory'
+      : game?.singlePlayerMatch?.state.matchFlow === 'gameOver'
+        ? 'defeat'
+        : 'complete';
+    hud.showSinglePlayerResults(results as never, outcome);
     input.releaseLock();
     flow = 'results';
   };
@@ -760,6 +770,7 @@ function showPause() {
   if (flow !== 'game') return;
   input.setEnabled(false);
   game?.setInputEnabled(false);
+  hud.setPauseContext(sessionKind === 'singlePlayer');
   hud.showScreen('pause');
 }
 
