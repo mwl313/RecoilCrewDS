@@ -41,6 +41,8 @@ import { RelicChestWorldRenderer } from '../relics/relicChestWorldRenderer';
 import { RELIC_CHEST_ASSET_ID } from '../relics/relicChestPresentation';
 import { RelicInventoryRail } from '../progression/relicInventoryRail';
 import { ProgressionInputContext } from '../progression/progressionInputContext';
+import { EnemyWorldUiLayer } from '../worldUi/enemyWorldUiLayer';
+import { TacticalDrawer } from '../tactical/tacticalDrawer';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -96,6 +98,8 @@ export class GameClient {
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
   private relicChestRenderer: RelicChestWorldRenderer | null = null;
+  private enemyWorldUi: EnemyWorldUiLayer | null = null;
+  private tacticalDrawer: TacticalDrawer | null = null;
   private latestSectors: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
@@ -114,8 +118,8 @@ export class GameClient {
     }
   }
 
-  qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> {
-    return this.world.qualityDiagnostics();
+  qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> & { fps: number } {
+    return { ...this.world.qualityDiagnostics(), fps: Number(this.quality.currentFps.toFixed(2)) };
   }
 
   private constructor(deps: {
@@ -217,6 +221,7 @@ export class GameClient {
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
       setBloomStrength: (s) => renderWorld.setBloomStrength(s),
+      setApronQuality: (q) => renderWorld.setApronQuality(q),
     });
     quality.reset();
     const presenter = new NetworkStatePresenter({
@@ -239,6 +244,8 @@ export class GameClient {
     deps.quality = quality;
     const game = new GameClient(deps);
     gameRef = game;
+    game.enemyWorldUi = new EnemyWorldUiLayer(container);
+    game.tacticalDrawer = new TacticalDrawer(container, world);
     game.progressionOverlay = new ProgressionOverlay(container, {
       selectUpgrade: (index) => gameRef!.submitUpgrade(index),
       acknowledgeRelic: () => gameRef!.acknowledgeRelicPresentation(),
@@ -340,6 +347,7 @@ export class GameClient {
    */
   applyArenaSession(session: ArenaSessionResult): void {
     this.world.rebuildArena(session.world);
+    this.tacticalDrawer?.rebuild(session.world);
     this.resetState();
     this.prediction.setGround(session.world);
     if (this.session.kind === 'singlePlayer' && this.contentPack) {
@@ -519,6 +527,8 @@ export class GameClient {
     this.prediction.reset();
     this.aggregateSectors.reset();
     this.xpShards.reset();
+    this.enemyWorldUi?.reset();
+    this.tacticalDrawer?.close();
     this.singlePlayerAcc = 0;
     this.resetSinglePlayerRenderPose();
     this.lastCameraTank = this.singlePlayerMatch ? { ...this.singlePlayerMatch.state.tank } : null;
@@ -583,6 +593,11 @@ export class GameClient {
     if (this.session.kind === 'multiplayer' && this.role === 'driver' && (ev.type === 'jump' || ev.type === 'dash')) {
       return;
     }
+    this.enemyWorldUi?.handleEvent(
+      ev,
+      this.cameras.activeCam.camera,
+      this.presenter.latest?.enemies ?? [],
+    );
     this.router.handleEvent(ev);
   }
 
@@ -619,6 +634,7 @@ export class GameClient {
       this.singlePlayerPreviousTank = { ...m.state.tank };
       m.step(step);
       for (const ev of m.takeEvents()) {
+        this.enemyWorldUi?.handleEvent(ev, this.cameras.activeCam.camera, m.state.enemies);
         this.router.handleEvent(ev);
         this.onHudEvent?.(ev);
       }
@@ -656,6 +672,13 @@ export class GameClient {
     // Single Player may enter progression during the simulation step above;
     // close the input boundary before camera/weapon presentation this frame.
     this.syncProgressionInputContext();
+    const tacticalToggle = this.input.consumeTacticalToggle?.() ?? false;
+    const tacticalState = this.presenter.latest;
+    if (tacticalState?.matchFlow === 'playing' && this.inputEnabled) {
+      if (tacticalToggle) this.tacticalDrawer?.toggle();
+    } else {
+      this.tacticalDrawer?.close();
+    }
     let renderTank: TankState | null = null;
     const frame = this.suppressPresentationFramesForTest ? null : this.presenter.remoteFrame;
     if (frame) {
@@ -691,6 +714,11 @@ export class GameClient {
       this.relicInventoryRail?.update(latest);
       this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
       this.relicChestRenderer?.sync(latest.chests, latest.time, Date.now(), dtRaw);
+      this.tacticalDrawer?.update(
+        latest,
+        renderTank ?? this.presenter.getRenderTank(),
+        this.session.kind === 'singlePlayer' ? 'single' : this.role,
+      );
     }
 
     this.pollGunnerActions();
@@ -722,6 +750,12 @@ export class GameClient {
     const latest = this.presenter.latest;
     this.audio.setEngine(latest ? Math.min(1, Math.hypot(latest.tank.vx, latest.tank.vz) / 20) : 0);
     this.audio.setMusicIntensity(latest ? clamp(latest.time / 90 * 1.15, 0, 1.25) : 0);
+    this.enemyWorldUi?.update(
+      frame?.enemies ?? latest?.enemies ?? [],
+      this.cameras.activeCam.camera,
+      renderTank,
+      performance.now(),
+    );
     this.renderFrame();
   };
 
@@ -927,6 +961,7 @@ export class GameClient {
   setInputEnabled(enabled: boolean): void {
     this.inputEnabled = enabled;
     if (!enabled) {
+      this.tacticalDrawer?.close();
       this.lastPredictInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
       this.chargeHoldActive = false;
       this.chargeHoldStart = 0;
@@ -1178,6 +1213,15 @@ export class GameClient {
     return this.world.composerPassCount();
   }
 
+  tacticalDiagnostics(): { open: boolean; chassisYaw: number; renderedEffects: number } | null {
+    return this.tacticalDrawer?.diagnostics() ?? null;
+  }
+
+  setApronEnabledForTest(enabled: boolean): void {
+    this.world.setApronEnabled(enabled);
+    this.world.resetQualityDiagnostics();
+  }
+
   destroy(): void {
     this.running = false;
     cancelAnimationFrame(this.raf);
@@ -1192,6 +1236,10 @@ export class GameClient {
     this.relicInventoryRail = null;
     this.relicChestRenderer?.dispose();
     this.relicChestRenderer = null;
+    this.enemyWorldUi?.dispose();
+    this.enemyWorldUi = null;
+    this.tacticalDrawer?.dispose();
+    this.tacticalDrawer = null;
     this.world.dispose();
   }
 }

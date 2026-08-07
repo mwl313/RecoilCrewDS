@@ -5,6 +5,7 @@ export interface QualityTargets {
   setPixelRatio(ratio: number): void;
   setShadows(enabled: boolean): void;
   setBloomStrength(strength: number): void;
+  setApronQuality(quality: 'high' | 'low'): void;
 }
 
 /** FPS sampling + adaptive quality (procedural client presentation). */
@@ -38,6 +39,7 @@ export class QualityManager {
     this.targets.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     this.targets.setShadows(true);
     this.targets.setBloomStrength(0.55);
+    this.targets.setApronQuality('high');
   }
 
   private adapt(): void {
@@ -48,11 +50,13 @@ export class QualityManager {
       this.targets.setPixelRatio(1);
       this.targets.setShadows(false);
       this.targets.setBloomStrength(0.18);
+      this.targets.setApronQuality('low');
     } else if (avg > 55 && this.quality === 'low' && this.samples.length > 240) {
       this.quality = 'high';
       this.targets.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
       this.targets.setShadows(true);
       this.targets.setBloomStrength(0.55);
+      this.targets.setApronQuality('high');
       this.samples.length = 0;
     }
   }

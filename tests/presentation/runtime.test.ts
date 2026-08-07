@@ -214,6 +214,7 @@ describe('HudProjector', () => {
         totalXpCollected: 240,
         pendingLevelUps: 1,
         levelUpOffersCompleted: 3,
+        levelUpgradeSummary: [],
         treasureChestsOpened: 0,
         relicAcquisitionSequence: 0,
         relicStacks: {},
@@ -463,6 +464,55 @@ describe('SceneFlowPresenter overlay visibility', () => {
     // Leaving to the menu re-shows the menu scene.
     flow.showState('main');
     expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+  });
+
+  it('only offers Restart Match on the single-player pause screen', () => {
+    const container = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, document.createElement('div'), registry);
+    flow.bind({} as never);
+
+    flow.setSceneContext('scene.pause', { singleMode: false });
+    flow.showState('pause');
+    const restart = container.querySelector('#pause-single') as HTMLButtonElement;
+    expect(restart.textContent).toBe('RESTART MATCH');
+    expect(restart.classList.contains('hidden')).toBe(true);
+
+    flow.setSceneContext('scene.pause', { singleMode: true });
+    expect(restart.classList.contains('hidden')).toBe(false);
+  });
+
+  it('presents victory and game-over with distinct outcome states', () => {
+    const container = document.createElement('div');
+    const registry = new UiComponentRegistry();
+    registerDefaultUiComponents(registry);
+    const flow = new SceneFlowPresenter(container, document.createElement('div'), registry);
+    flow.bind({} as never);
+    const results = {
+      score: 4200,
+      bestCombo: 4,
+      chargedCannonShots: 2,
+      fullChargeShots: 1,
+      kills: 12,
+      scrapCollected: 8,
+      links: 0,
+      wipeouts: 0,
+      grade: 'A',
+      title: 'SOLO',
+      modifier: 'none',
+    };
+
+    flow.showSinglePlayerResults(results, 'victory');
+    const root = container.querySelector('#screen-results') as HTMLElement;
+    expect(root.classList.contains('is-victory')).toBe(true);
+    expect(root.classList.contains('is-defeat')).toBe(false);
+    expect(container.querySelector('#results-heading')?.textContent).toBe('VICTORY');
+
+    flow.showSinglePlayerResults(results, 'defeat');
+    expect(root.classList.contains('is-victory')).toBe(false);
+    expect(root.classList.contains('is-defeat')).toBe(true);
+    expect(container.querySelector('#results-heading')?.textContent).toBe('GAME OVER');
   });
 });
 

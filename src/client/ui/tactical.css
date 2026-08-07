@@ -1,0 +1,76 @@
+.tactical-drawer {
+  --drawer-width: clamp(360px, 31vw, 420px);
+  position: fixed;
+  z-index: 25;
+  top: 76px;
+  bottom: 24px;
+  left: 24px;
+  width: var(--drawer-width);
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+  color: #e9eee4;
+  background: rgba(10, 15, 17, .94);
+  border: 1px solid rgba(149, 171, 171, .44);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .52), inset 0 0 0 1px rgba(255, 255, 255, .025);
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  transform: translateX(calc(-100% - 42px));
+  opacity: 0;
+  transition: transform 260ms cubic-bezier(.2,.75,.2,1), opacity 180ms ease;
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+
+.tactical-drawer.is-open { transform: translateX(0); opacity: 1; }
+.tactical-drawer__accent { height: 4px; background: #ffb31a; box-shadow: 0 0 18px rgba(255,179,26,.38); }
+.tactical-drawer[data-role='driver'] .tactical-drawer__accent { background: var(--driver-cyan, #30d6e9); }
+.tactical-drawer[data-role='gunner'] .tactical-drawer__accent { background: var(--gunner-red, #ff554d); }
+
+.tactical-drawer__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 19px 14px;
+  border-bottom: 1px solid rgba(149,171,171,.23);
+}
+.tactical-drawer__eyebrow,
+.tactical-drawer__section-title,
+.tactical-drawer__meta { font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #93a5a4; }
+.tactical-drawer h2 { margin: 1px 0 0; font-size: 31px; line-height: .9; letter-spacing: .055em; font-style: italic; }
+.tactical-drawer__meta { display: grid; justify-items: end; gap: 5px; color: #d9e1d8; }
+.tactical-drawer kbd { padding: 3px 6px; border: 1px solid #596766; background: #182023; color: #aebcba; font: inherit; font-size: 9px; }
+.tactical-drawer__map-wrap { padding: 13px 19px 0; }
+.tactical-drawer__section-title { display: flex; justify-content: space-between; margin-bottom: 7px; }
+.tactical-minimap { display: block; width: 100%; max-height: min(35vh, 320px); aspect-ratio: 1; background: #101719; image-rendering: auto; }
+.tactical-drawer__modifiers { padding: 13px 19px 18px; }
+.tactical-drawer__rows { overflow: hidden auto; max-height: calc(100vh - 500px); min-height: 58px; scrollbar-width: thin; }
+.tactical-drawer__rows h3 { margin: 10px 0 3px; padding: 4px 7px; color: #9baaaa; background: #151d1f; font-size: 10px; letter-spacing: .16em; }
+.tactical-stat-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label value' 'label detail'; column-gap: 12px; padding: 6px 7px; border-bottom: 1px solid rgba(141,161,160,.13); }
+.tactical-stat-row__label { grid-area: label; align-self: center; font-size: 13px; font-weight: 700; letter-spacing: .055em; color: #d6ded7; }
+.tactical-stat-row strong { grid-area: value; font-size: 14px; line-height: 1; color: #ffbd35; text-align: right; }
+.tactical-stat-row small { grid-area: detail; font-size: 9px; letter-spacing: .1em; color: #829291; text-align: right; }
+.tactical-drawer__empty { margin: 10px 0; padding: 20px 8px; border: 1px dashed #3f4c4d; color: #718181; text-align: center; font-size: 12px; letter-spacing: .12em; }
+
+.app-root.tactical-open .hud-survival-cluster { transform: translateX(calc(clamp(360px, 31vw, 420px) + 24px)); transition: transform 260ms cubic-bezier(.2,.75,.2,1); }
+
+@media (max-width: 900px) {
+  .tactical-drawer { --drawer-width: min(390px, 63vw); top: 62px; left: 14px; bottom: 14px; }
+  .tactical-minimap { max-height: 31vh; }
+  .tactical-drawer__rows { max-height: calc(100vh - 430px); }
+  .app-root.tactical-open .hud-survival-cluster { transform: none; opacity: .25; }
+}
+
+@media (max-width: 620px) {
+  .tactical-drawer { --drawer-width: min(408px, calc(100vw - 28px)); }
+  .tactical-drawer__header { padding: 13px 15px 11px; }
+  .tactical-drawer__map-wrap, .tactical-drawer__modifiers { padding-left: 15px; padding-right: 15px; }
+  .tactical-minimap { max-height: 30vh; }
+  .tactical-drawer__rows { max-height: calc(100vh - 400px); }
+  .hud-session-cluster, .hud-ability-panel { transition: opacity 180ms ease; }
+  .app-root.tactical-open .hud-session-cluster,
+  .app-root.tactical-open .hud-ability-panel { opacity: .18; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tactical-drawer { transition-duration: 1ms; }
+}

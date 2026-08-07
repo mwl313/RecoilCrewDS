@@ -184,6 +184,20 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
     expect(selectionHost.querySelectorAll('button')[0]).toBe(firstButton);
   });
 
+  it('formats absolute combat upgrades in display units without scaling percentages', () => {
+    const { overlay, selectionHost } = mount();
+    overlay.update(
+      fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } }),
+      'single',
+      0,
+    );
+    const effects = [...selectionHost.querySelectorAll<HTMLElement>('.reward-card__effect')]
+      .map((node) => node.textContent ?? '');
+    expect(effects[1]).toContain('MG DAMAGE\n+10%');
+    expect(effects[2]).toContain('MAX INTEGRITY\n+100');
+    expect(effects[2]).not.toContain('+1,000');
+  });
+
   it('same stackable relic presents again through the acquisition sequence', () => {
     const { overlay, relicHost } = mount();
     const first = fakeState({ matchFlow: 'relicSelection', teamProgression: { activeSelection: relicReveal(1, 1) } });

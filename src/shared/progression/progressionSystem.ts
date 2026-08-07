@@ -294,7 +294,15 @@ export class ProgressionSystem {
       const single = this.selection.selectedCard(active, 'single');
       if (single) cards.push(single);
     }
-    for (const card of cards) applyUpgradeCard(this.ctx.rules, active.offerId, card, this.telemetry);
+    for (const card of cards) {
+      applyUpgradeCard(
+        this.ctx.rules,
+        active.offerId,
+        card,
+        this.telemetry,
+        s.teamProgression.levelUpgradeSummary,
+      );
+    }
     s.teamProgression.levelUpOffersCompleted++;
     s.teamProgression.activeSelection = null;
     this.teamXp.consumeLevelUp();

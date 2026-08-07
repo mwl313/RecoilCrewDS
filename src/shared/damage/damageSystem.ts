@@ -35,9 +35,17 @@ export class DamageSystem {
         enemy,
         weaponId,
       }) ?? amount;
+    const hpBefore = Math.max(0, e.hp);
     e.hp -= modified * this.ctx.enemies.damageMultiplier(enemy, source);
     e.hp -= modified * (rearBonus - 1);
-    pushEvent(this.ctx, 'hit', e.x, e.y + 0.8, e.z, { value: modified, id: e.id, kind: e.type });
+    const hpAfter = Math.max(0, e.hp);
+    const actualHpLoss = Math.max(0, hpBefore - hpAfter);
+    pushEvent(this.ctx, 'hit', e.x, e.y + 0.8, e.z, {
+      value: actualHpLoss,
+      id: e.id,
+      kind: e.type,
+      source,
+    });
     const applied: DamageAppliedEvent = { targetId: e.id, targetKind: 'enemy', amount: modified, source, weaponId };
     this.ctx.eventBus.emit('damage.applied', applied);
     if (e.hp <= 0) {

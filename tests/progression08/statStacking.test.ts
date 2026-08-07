@@ -76,4 +76,54 @@ describe('stat stacking math (progression08)', () => {
     const breakdown = m.rules.resolver.breakdown('weapon.cannonRadius');
     expect(breakdown.final).toBeCloseTo(m.rules.resolver.resolve('weapon.cannonRadius'));
   });
+
+  it('replicates cumulative level-up-only add and multiply contributions', () => {
+    const m = makeMatch();
+    const summary = m.state.teamProgression.levelUpgradeSummary;
+    applyUpgradeCard(m.rules, 'offer.a', card(1.1), createProgressionTelemetry(), summary);
+    applyUpgradeCard(m.rules, 'offer.b', card(1.2), createProgressionTelemetry(), summary);
+    applyUpgradeCard(
+      m.rules,
+      'offer.c',
+      {
+        cardId: 'armor',
+        categoryId: 'upgrade.tank.maxIntegrity',
+        rarity: 'rare',
+        rolledEffects: [{ statId: 'tank.maxIntegrity', operation: 'add', value: 20 }],
+      },
+      createProgressionTelemetry(),
+      summary,
+    );
+    applyUpgradeCard(
+      m.rules,
+      'offer.d',
+      {
+        cardId: 'armor-2',
+        categoryId: 'upgrade.tank.maxIntegrity',
+        rarity: 'rare',
+        rolledEffects: [{ statId: 'tank.maxIntegrity', operation: 'add', value: 20 }],
+      },
+      createProgressionTelemetry(),
+      summary,
+    );
+
+    expect(summary[0]).toMatchObject({
+      statId: 'weapon.cannonRadius',
+      additiveTotal: 0,
+      effectCount: 2,
+    });
+    expect(summary[0].multiplierProduct).toBeCloseTo(1.32);
+    expect(summary[1]).toEqual({
+      statId: 'tank.maxIntegrity',
+      additiveTotal: 40,
+      multiplierProduct: 1,
+      effectCount: 2,
+    });
+
+    // Relic projection changes real stats but never contaminates this view.
+    m.state.teamProgression.relicStacks['relic.he_payload'] = 1;
+    m.systems.progression.projectionRefresh();
+    expect(summary).toHaveLength(2);
+    expect(summary[0].multiplierProduct).toBeCloseTo(1.32);
+  });
 });

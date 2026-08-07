@@ -1,6 +1,6 @@
 import type { MatchRules } from '../rules/matchRules';
 import { statModifier } from '../stats/statModifier';
-import type { UpgradeCard } from './progressionTypes';
+import type { LevelUpgradeStatSummary, UpgradeCard } from './progressionTypes';
 import type { ProgressionTelemetry } from './progressionTelemetry';
 
 /**
@@ -13,6 +13,7 @@ export function applyUpgradeCard(
   offerId: string,
   card: UpgradeCard,
   telemetry: ProgressionTelemetry,
+  summary?: LevelUpgradeStatSummary[],
 ): void {
   const modifierId = `upgrade.${offerId}.${card.cardId}`;
   for (const effect of card.rolledEffects) {
@@ -24,7 +25,24 @@ export function applyUpgradeCard(
         tags: ['levelUpgrade', card.categoryId],
       }),
     );
+    if (summary) recordLevelUpgradeEffect(summary, effect);
   }
   telemetry.upgradePickRates[card.categoryId] = (telemetry.upgradePickRates[card.categoryId] ?? 0) + 1;
   telemetry.rarityDistribution[card.rarity] = (telemetry.rarityDistribution[card.rarity] ?? 0) + 1;
+}
+
+/** Update replicated summary only after the corresponding modifier succeeds. */
+export function recordLevelUpgradeEffect(
+  summary: LevelUpgradeStatSummary[],
+  effect: UpgradeCard['rolledEffects'][number],
+): LevelUpgradeStatSummary {
+  let row = summary.find((entry) => entry.statId === effect.statId);
+  if (!row) {
+    row = { statId: effect.statId, additiveTotal: 0, multiplierProduct: 1, effectCount: 0 };
+    summary.push(row);
+  }
+  if (effect.operation === 'add') row.additiveTotal += effect.value;
+  else row.multiplierProduct *= effect.value;
+  row.effectCount++;
+  return row;
 }

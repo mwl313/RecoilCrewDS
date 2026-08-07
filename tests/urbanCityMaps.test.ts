@@ -7,7 +7,7 @@ import {
   urbanVehicleRampHeightAt,
 } from '../src/shared/mapgen/urbanLayout';
 import { canTraverseGroundStep } from '../src/shared/mapgen/terrainTraversal';
-import { stepTankKinematics, type TankKinematicState } from '../src/shared/sim/tankKinematics';
+import { applyStableBoundary, stepTankKinematics, type TankKinematicState } from '../src/shared/sim/tankKinematics';
 
 const TILE = 8;
 const VEHICLE_MODEL_BOUNDS = {
@@ -40,6 +40,8 @@ describe.each([
       r.assetId.startsWith('environment.urban.zombie.') || r.assetId.startsWith('environment.urban.nature.commonTree'),
     )).toBe(true);
     expect(layout.solidProps.every((p) => p.assetId?.startsWith('environment.urban.zombie.vehicle'))).toBe(true);
+    expect(layout.perimeterBlockers.length).toBeGreaterThanOrEqual(3);
+    expect(layout.perimeterBlockers.every((p) => p.type === 'barrier' && p.assetId === 'prop.barrier')).toBe(true);
   });
 
   it('uses one coherent tree family as collision-free decoration in clear lots and verges', () => {
@@ -118,7 +120,9 @@ describe.each([
     const layout = session.arena.urbanLayout!;
     expect(session.arena.fallbackUsed).toBe(false);
     expect([session.arena.widthMeters, session.arena.depthMeters]).toEqual([size, size]);
-    expect(session.world.obstacles).toHaveLength(layout.buildings.length + layout.solidProps.length);
+    expect(session.world.obstacles).toHaveLength(
+      layout.buildings.length + layout.solidProps.length + layout.perimeterBlockers.length,
+    );
     expect(session.world.ramps).toHaveLength(0);
 
     const building = session.world.obstacles.find((o) => o.type === 'urbanBuilding')!;
@@ -224,5 +228,24 @@ describe.each([
         Math.abs(spawn.x - obstacle.x) < obstacle.w / 2 && Math.abs(spawn.z - obstacle.z) < obstacle.d / 2,
       ),
     )).toBe(true);
+  });
+});
+
+describe('continuous authoritative arena boundary', () => {
+  it('removes only outward velocity while preserving tangent and inward recovery', () => {
+    const outward = { x: 11, z: 4, vx: 7, vz: 3 };
+    applyStableBoundary(outward, { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }, 0.5);
+    expect(outward).toEqual({ x: 9.5, z: 4, vx: 0, vz: 3 });
+
+    const inward = { x: 11, z: 4, vx: -7, vz: 3 };
+    applyStableBoundary(inward, { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }, 0.5);
+    expect(inward).toEqual({ x: 9.5, z: 4, vx: -7, vz: 3 });
+  });
+
+  it('stays stable across repeated edge resolution', () => {
+    const tank = { x: 10.2, z: 3, vx: 5, vz: -2 };
+    const bounds = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 };
+    for (let i = 0; i < 20; i++) applyStableBoundary(tank, bounds, 0.5);
+    expect(tank).toEqual({ x: 9.5, z: 3, vx: 0, vz: -2 });
   });
 });
