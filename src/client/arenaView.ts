@@ -317,6 +317,22 @@ export class ArenaView {
     }
   }
 
+  private buildUrbanRoadRamp(ramp: import('../shared/arena').RampDef): THREE.Object3D {
+    const group = new THREE.Group();
+    const road = this.assets.model(ramp.assetId!);
+    const slopeLength = Math.hypot(ramp.d, ramp.rise);
+    road.scale.set(ramp.w / 8, 1, slopeLength / 8);
+    road.rotation.x = -Math.atan2(ramp.rise, ramp.d);
+    road.traverse((o) => {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    group.add(road);
+    group.position.set(ramp.x, ramp.baseY + ramp.rise / 2 + 0.02, ramp.z);
+    group.rotation.y = Math.atan2(ramp.dirX, ramp.dirZ);
+    return group;
+  }
+
   private buildObstacle(o: Obstacle) {
     const { x, z, w, d, h } = o;
     let mesh: THREE.Object3D;

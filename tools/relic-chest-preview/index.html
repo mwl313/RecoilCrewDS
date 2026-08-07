@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recoil Crew — Relic Chest QA</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="stage-shell">
+        <div id="viewport" aria-label="Relic chest 3D preview"></div>
+        <div class="stage-title">
+          <span>RELIC CHEST / ARTICULATION QA</span>
+          <strong id="capture-label">CLOSED · RAYS ON</strong>
+        </div>
+      </section>
+      <aside class="control-panel">
+        <header>
+          <p class="eyebrow">Development tool</p>
+          <h1>Relic Chest</h1>
+          <p>Scrub the single normalized progress value shared by the lid and gold VFX.</p>
+        </header>
+
+        <label class="range-label" for="progress">
+          <span>openProgress</span>
+          <output id="progress-value">0.000</output>
+        </label>
+        <input id="progress" type="range" min="0" max="1" step="0.001" value="0" />
+
+        <div class="button-row">
+          <button id="play-open" type="button">Play Open</button>
+          <button id="play-close" type="button">Play Close</button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+
+        <label class="toggle"><input id="rays" type="checkbox" checked /> Golden rays</label>
+        <label class="select-label" for="lighting">Lighting view</label>
+        <select id="lighting">
+          <option value="neutral">Neutral QA lighting</option>
+          <option value="game">Game lighting</option>
+        </select>
+
+        <section>
+          <h2>Diagnostics</h2>
+          <dl id="diagnostics"></dl>
+        </section>
+        <section>
+          <h2>Source fidelity</h2>
+          <dl id="materials"></dl>
+        </section>
+        <p id="status" class="status">Loading cataloged GLB…</p>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
