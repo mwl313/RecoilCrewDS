@@ -30,7 +30,7 @@ export class RelicInventory {
         relicId: relic.id,
         stackCount: current,
         duplicateConverted: true,
-        replacementXp: this.definition.duplicateUniqueRelicXp,
+        replacementXp: relic.duplicateReplacement?.amount ?? this.definition.duplicateUniqueRelicXp,
         capabilityGranted: false,
       };
     }

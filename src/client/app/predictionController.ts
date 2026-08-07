@@ -183,6 +183,10 @@ export class PredictionController {
       dashPeakSpeed: d.dashPeakSpeed,
       dashSpeed: d.dashSpeed,
       dashSteeringMultiplier: d.dashSteeringMultiplier,
+      airJumpsRemaining: d.airJumpsRemaining,
+      airJumpCapacity: d.airJumpCapacity,
+      airDashReuseRemaining: d.airDashReuseRemaining,
+      airDashReuseCapacity: d.airDashReuseCapacity,
       drift: d.drift,
     };
   }

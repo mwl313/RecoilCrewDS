@@ -411,7 +411,6 @@ export const progressionDefinitionSchema = z
         boss: positiveNumber,
       })
       .strict(),
-    enemyChestDropChance: probability,
     duplicateUniqueRelicXp: positiveNumber,
   })
   .strict();

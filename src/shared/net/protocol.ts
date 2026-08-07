@@ -71,8 +71,10 @@ export interface RunConfigMessage extends ProtocolEnvelope {
    * captured direction, and temporary dash-velocity diagnostics.
    * Protocol 14: snapshots carry authoritative relic chest lifecycle timing,
    * reward candidate offers, and stable relic acquisition order.
+   * Protocol 15: tank snapshots carry authoritative airborne jump and
+   * AIR MASTER Dash-reuse counters for shared prediction.
    */
-export const PROTOCOL_VERSION = 14;
+export const PROTOCOL_VERSION = 15;
 
 export interface ProtocolEnvelope {
   protocol: number;

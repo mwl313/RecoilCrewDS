@@ -72,6 +72,10 @@ function initialTank(rules: MatchRules, world: ArenaWorld): MatchState['tank'] {
     shieldedT: rules.config.tank.shieldTime,
     deadT: 0,
     grounded: true,
+    airJumpsRemaining: 0,
+    airJumpCapacity: 0,
+    airDashReuseRemaining: 0,
+    airDashReuseCapacity: 0,
     drift: false,
     landingGripT: 0,
   };
@@ -437,6 +441,7 @@ export class MatchRuntime {
       s.matchFlow = this.systems.stage.state.phase === 'clear' ? 'clear' : 'gameOver';
       this.results = this.results ?? this.mode.computeResults();
     }
+    this.systems.statusEffects.update(dt);
     this.weaponSystem.applyEdges(this.gunnerEdgeLatches);
     this.gunnerEdgeLatches = { mgStart: false, mgStop: false, secondaryPressed: false, secondaryReleased: false };
     this.stepTank(dt);
@@ -552,6 +557,10 @@ export class MatchRuntime {
     t.dashSpeed = 0;
     t.dashSteeringMultiplier = 1;
     t.landingGripT = 0;
+    t.airJumpsRemaining = Math.max(0, Math.floor(this.cfg.tank.extraJumps));
+    t.airJumpCapacity = t.airJumpsRemaining;
+    t.airDashReuseRemaining = Math.max(0, Math.min(1, Math.floor(this.cfg.tank.airDashCharges)));
+    t.airDashReuseCapacity = t.airDashReuseRemaining;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
     t.integrity = this.cfg.tank.maxIntegrity;

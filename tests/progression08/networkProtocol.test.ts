@@ -4,7 +4,7 @@ import { makeMatch } from './helpers';
 
 describe('progression network protocol (progression08)', () => {
   it('protocol version includes authoritative relic chest lifecycle snapshots', () => {
-    expect(PROTOCOL_VERSION).toBe(14);
+    expect(PROTOCOL_VERSION).toBe(15);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'selectUpgrade', offerId: 'x', cardIndex: 0 })).toBe(true);
     expect(protocolOk({ protocol: PROTOCOL_VERSION, t: 'skipRelicPresentation', acquisitionSequence: 1 })).toBe(true);
   });
