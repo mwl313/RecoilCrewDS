@@ -1,5 +1,13 @@
 # Monster Presentation Audit
 
+## Milestone record
+
+- Branch: `quality-improvement`
+- Starting SHA: `f0f4fc1824da5bf4b08f2cfae24e787ba17902ae`
+- Ending implementation SHA at final qualification: `a28da4a`
+- Browser/device: Chrome 151, Windows, 1280×720, NVIDIA GeForce RTX 4060 Ti through ANGLE D3D11.
+- Recommendation: retain the shared material/lighting policy and three-tier motion system; do not add blanket emissive, unlit materials, or skeletal far hordes.
+
 ## Scope and evidence
 
 Phase B audited the production monster pipeline and the common near/mid/far presentation paths. The reusable comparison route is:
@@ -121,3 +129,7 @@ PASS
 npm run build:client
 PASS
 ```
+
+Final qualification also passed `npm run validate:enemy-animations` (73 presentation profiles, 70 animation profiles, 0 errors/warnings), the 11-file / 38-test Monster Pack import suite, the real browser Monster Pack rendering benchmark, the 15-file / 95-test animation suite, and all 50 repository E2E cases across bounded groups. Human review covered the unlit/neutral/production comparison, far-motion gallery, upright Elite Demon, ordinary/elite/boss screenshots, airborne reconstruction, and refreshed boss/reconnect evidence.
+
+Known asset limitations remain explicit: placeholder custom Beast/Spider/Witch families use procedural fallbacks, many far Quaternius assets are rigid by design and depend on the mixer-free motion envelope, and no second physical GPU class was available for visual/performance verification.

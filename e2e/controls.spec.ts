@@ -154,19 +154,22 @@ test('real Shift press dashes once online, never repeatedly while held', async (
     return s ? s.tank.dashCooldown > 0 : false;
   }, undefined, { timeout: 10000 });
 
-  // While Shift is held the tank must never receive a second dash burst:
-  // with throttle 0 the speed only decays after the first burst.
+  // Count authoritative replicated state entries, not speed deltas. The
+  // stateful dash intentionally has an acceleration curve, so one valid
+  // burst can contain more than one large positive speed delta.
   const bursts = await a.evaluate(async () => {
-    const w = window as unknown as { __recoil: { state(): { tank: { vx: number; vz: number } } | null } };
+    const w = window as unknown as {
+      __recoil: { state(): { tank: { dashState?: 'inactive' | 'burst' | 'recovery' } } | null };
+    };
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    let prev = 0;
+    let previous: 'inactive' | 'burst' | 'recovery' = 'inactive';
     let bursts = 0;
     for (let i = 0; i < 70; i++) {
       const s = w.__recoil.state();
       if (s) {
-        const speed = Math.hypot(s.tank.vx, s.tank.vz);
-        if (speed - prev > 3) bursts++;
-        prev = speed;
+        const current = s.tank.dashState ?? 'inactive';
+        if (current === 'burst' && previous !== 'burst') bursts++;
+        previous = current;
       }
       await delay(30);
     }
@@ -187,8 +190,8 @@ test('HUD and How To Play use JUMP/DASH labels with no active brace/boost text',
   await menu.click('#screen-boot');
   await menu.click('#screen-main [data-act="howto"]');
   const howto = await menu.textContent('#screen-howto');
-  expect(howto).toContain('Shift dash');
-  expect(howto).toContain('Space jump');
+  expect(howto).toMatch(/SHIFT\s+DASH/i);
+  expect(howto).toMatch(/SPACE\s+JUMP/i);
   expect(howto).not.toMatch(/brace/i);
   expect(howto).not.toMatch(/boost/i);
   await menu.close();

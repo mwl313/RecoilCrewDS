@@ -112,9 +112,12 @@ export class FallbackAssetFactory {
     };
     const buildTankBarrel = (): THREE.Object3D => {
       const root = new THREE.Group();
-      root.add(cyl(0.11, 0.14, 2.8, dark, 10, 0, 0.72, 1.4));
+      const tube = cyl(0.11, 0.14, 2.8, dark, 10, 0, 0.72, 1.4);
+      tube.rotation.x = Math.PI / 2;
       root.add(box(0.42, 0.34, 0.7, paint(0x1f2c33), 0, 0.62, 0.15));
-      root.add(cyl(0.18, 0.2, 0.5, dark, 10, 0, 0.78, 2.75));
+      const muzzle = cyl(0.18, 0.2, 0.5, dark, 10, 0, 0.78, 2.75);
+      muzzle.rotation.x = Math.PI / 2;
+      root.add(tube, muzzle);
       return root;
     };
     const buildScrapBug = (): THREE.Object3D => {

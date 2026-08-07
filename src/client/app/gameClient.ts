@@ -36,6 +36,9 @@ import {
   resolveSelectedPreloadAssetIds,
 } from '../../shared/monsters/monsterPreload';
 import type { SelectedMonsterRun } from '../../shared/monsters/monsterRunSelection';
+import { interpolateSinglePlayerTank } from '../prediction/singlePlayerTankInterpolator';
+
+const SINGLE_PLAYER_STEP = 1 / 30;
 
 /**
  * GameClient: thin coordinator. It owns the frame loop, single-player
@@ -66,6 +69,7 @@ export class GameClient {
   private running = false;
   private slowMo = 0;
   private singlePlayerAcc = 0;
+  private singlePlayerPreviousTank: TankState | null = null;
   private singlePlayerResultsShown = false;
   private contentPack: ContentPack | null = null;
   private secondaryDown = false;
@@ -98,6 +102,10 @@ export class GameClient {
       fog.near = sizeMeters * 1.25;
       fog.far = sizeMeters * 2.4;
     }
+  }
+
+  qualityDiagnostics(): ReturnType<RenderWorld['qualityDiagnostics']> {
+    return this.world.qualityDiagnostics();
   }
 
   private constructor(deps: {
@@ -314,6 +322,7 @@ export class GameClient {
       );
       this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
       this.applyTankRig(this.singlePlayerMatch.runtime.rules.tank.rig);
+      this.resetSinglePlayerRenderPose();
     }
   }
 
@@ -481,6 +490,7 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.reset();
     this.singlePlayerAcc = 0;
+    this.resetSinglePlayerRenderPose();
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
@@ -490,6 +500,12 @@ export class GameClient {
     this.chargeHoldStart = 0;
     this.chargeHoldActive = false;
     this.chargeSoundStarted = false;
+  }
+
+  private resetSinglePlayerRenderPose(): void {
+    this.singlePlayerPreviousTank = this.singlePlayerMatch
+      ? { ...this.singlePlayerMatch.state.tank }
+      : null;
   }
 
   setSnapshot(msg: {
@@ -557,7 +573,7 @@ export class GameClient {
       secondary: this.mouseDown('secondary'),
     });
     this.singlePlayerAcc += dt;
-    const step = 1 / 30;
+    const step = SINGLE_PLAYER_STEP;
     let guard = 0;
     while (this.singlePlayerAcc >= step && guard++ < 6) {
       this.singlePlayerAcc -= step;
@@ -568,6 +584,7 @@ export class GameClient {
       m.setDriverInput({ ...frame });
       // The frame is created; clear the latches so holding never repeats.
       this.input.clearDriverEdges();
+      this.singlePlayerPreviousTank = { ...m.state.tank };
       m.step(step);
       for (const ev of m.takeEvents()) {
         this.router.handleEvent(ev);
@@ -606,7 +623,11 @@ export class GameClient {
     const frame = this.presenter.remoteFrame;
     if (frame) {
       if (this.session.kind === 'singlePlayer') {
-        renderTank = frame.tank;
+        renderTank = interpolateSinglePlayerTank(
+          this.singlePlayerPreviousTank,
+          frame.tank,
+          this.singlePlayerAcc / SINGLE_PLAYER_STEP,
+        );
       } else {
         if (this.prediction.isPredictionDisabled()) {
           // Wrong-ground / pathological divergence fallback: render the
