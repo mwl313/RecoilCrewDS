@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+interface BrowserSoundtrackState {
+  activeTrackCount: number;
+  currentContext: string;
+  currentIndex: number;
+  currentTrackId: string | null;
+  pendingMatchAdvance: boolean;
+}
+
+async function soundtrackState(page: import('@playwright/test').Page): Promise<BrowserSoundtrackState> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __recoil: { soundtrack(): BrowserSoundtrackState } };
+    return w.__recoil.soundtrack();
+  });
+}
+
 async function boot(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/?test=1');
   await page.click('#screen-boot');
@@ -39,6 +54,7 @@ test('both players see names, YOU only on their own card, and seats/ready start 
   const gunner = await ctx.newPage();
   await boot(driver);
   await boot(gunner);
+  const driverMenuSoundtrack = await soundtrackState(driver);
   await driver.evaluate(() => {
     const w = window as unknown as { __recoil: { settings: { save: (n: string) => unknown } } };
     w.__recoil.settings.save('TurboToad07');
@@ -48,6 +64,12 @@ test('both players see names, YOU only on their own card, and seats/ready start 
     w.__recoil.settings.save('ScrapFox42');
   });
   await createAndJoin(driver, gunner);
+
+  expect(await soundtrackState(driver)).toMatchObject({
+    currentContext: 'lobby',
+    currentIndex: driverMenuSoundtrack.currentIndex,
+    currentTrackId: driverMenuSoundtrack.currentTrackId,
+  });
 
   await expect(driver.locator('#screen-ready')).toBeVisible();
   await expect(gunner.locator('#screen-ready')).toBeVisible();
@@ -84,9 +106,25 @@ test('both players see names, YOU only on their own card, and seats/ready start 
   await gunner.click('#lobby-ready');
   await expect(driver.locator('#screen-countdown')).toBeVisible();
   await driver.waitForFunction(() => {
+    const w = window as unknown as { __recoil: { soundtrack(): BrowserSoundtrackState } };
+    return w.__recoil.soundtrack().currentContext === 'countdown';
+  });
+  expect(await soundtrackState(driver)).toMatchObject({
+    currentIndex: driverMenuSoundtrack.currentIndex,
+    pendingMatchAdvance: true,
+  });
+  await driver.waitForFunction(() => {
     const w = window as unknown as { __recoil: { flow(): string } };
     return w.__recoil.flow() === 'game';
   }, undefined, { timeout: 15_000 });
+  const driverMatchSoundtrack = await soundtrackState(driver);
+  expect(driverMatchSoundtrack).toMatchObject({
+    currentContext: 'match',
+    pendingMatchAdvance: false,
+  });
+  expect(driverMatchSoundtrack.currentIndex).toBe(
+    (driverMenuSoundtrack.currentIndex + 1) % driverMenuSoundtrack.activeTrackCount,
+  );
   await ctx.close();
 });
 

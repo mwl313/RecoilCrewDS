@@ -1,3 +1,10 @@
+import { SoundtrackController } from './audio/soundtrackController';
+import { SOUNDTRACK_TRACKS } from './audio/soundtrackManifest';
+import {
+  DeferredSoundtrackAutomation,
+  WebAudioSoundtrackAutomation,
+} from './audio/soundtrackWebAudio';
+
 export type SoundName =
   | 'ui'
   | 'machineGun'
@@ -30,23 +37,40 @@ export class AudioManager {
   ctx: AudioContext | null = null;
   master: GainNode | null = null;
   musicGain: GainNode | null = null;
+  readonly soundtrack: SoundtrackController;
   private engineNodes: { osc1: OscillatorNode; osc2: OscillatorNode; filter: BiquadFilterNode; gain: GainNode } | null = null;
   private engineSpeed = 0;
   private lastMg = 0;
   private lastCannon = 0;
   private chargeSweep: OscillatorNode | null = null;
   private chargeGain: GainNode | null = null;
-  private musicStep = 0;
-  private musicTimer: ReturnType<typeof setInterval> | null = null;
-  private musicIntensity = 0;
   private sirenToggle = 0;
   private noiseBuf: AudioBuffer | null = null;
+  private readonly soundtrackMedia: HTMLAudioElement;
+  private readonly soundtrackAutomation = new DeferredSoundtrackAutomation();
+
+  constructor() {
+    this.soundtrackMedia = new Audio();
+    this.soundtrack = new SoundtrackController({
+      tracks: SOUNDTRACK_TRACKS,
+      media: this.soundtrackMedia,
+      automation: this.soundtrackAutomation,
+      beforePlay: () => this.prepareSoundtrackPlayback(),
+    });
+    this.soundtrack.start();
+  }
 
   unlock() {
-    if (this.ctx) {
-      if (this.ctx.state === 'suspended') void this.ctx.resume();
-      return;
+    this.ensureInitialized();
+    if (this.ctx?.state === 'suspended') {
+      void this.ctx.resume().then(() => this.soundtrack.onUserActivation());
+    } else {
+      void this.soundtrack.onUserActivation();
     }
+  }
+
+  private ensureInitialized(): void {
+    if (this.ctx) return;
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.ctx = new Ctx();
     this.master = this.ctx.createGain();
@@ -54,12 +78,33 @@ export class AudioManager {
     const comp = this.ctx.createDynamicsCompressor();
     this.master.connect(comp);
     comp.connect(this.ctx.destination);
-    this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.value = 0.34;
-    this.musicGain.connect(this.master);
+    const source = this.ctx.createMediaElementSource(this.soundtrackMedia);
+    const trackFadeGain = this.ctx.createGain();
+    const lowPass = this.ctx.createBiquadFilter();
+    const contextGain = this.ctx.createGain();
+    const duckGain = this.ctx.createGain();
+    trackFadeGain.gain.value = 0;
+    lowPass.type = 'lowpass';
+    lowPass.frequency.value = 2_300;
+    lowPass.Q.value = 0.7;
+    contextGain.gain.value = 0.72;
+    duckGain.gain.value = 1;
+    source.connect(trackFadeGain).connect(lowPass).connect(contextGain).connect(duckGain).connect(this.master);
+    this.musicGain = contextGain;
+    this.soundtrackAutomation.bind(new WebAudioSoundtrackAutomation(
+      this.ctx,
+      trackFadeGain,
+      lowPass,
+      contextGain,
+      duckGain,
+    ));
     this.noiseBuf = this.makeNoise(1.5);
     this.startEngine();
-    this.startMusic();
+  }
+
+  private prepareSoundtrackPlayback(): void {
+    this.ensureInitialized();
+    if (this.ctx?.state === 'suspended') void this.ctx.resume();
   }
 
   private makeNoise(seconds: number): AudioBuffer {
@@ -107,96 +152,12 @@ export class AudioManager {
   }
 
   setMusicIntensity(v: number) {
-    this.musicIntensity = Math.max(0, Math.min(1.4, v));
+    // Compatibility no-op: long-form soundtrack intensity is scene-driven.
+    void v;
   }
 
   duckForReward(opts: { depth: number; attackMs: number; holdMs: number; releaseMs: number }): void {
-    if (!this.ctx || !this.musicGain) return;
-    const t = this.ctx.currentTime;
-    const base = 0.34;
-    const floor = base * Math.max(0, Math.min(1, 1 - opts.depth));
-    this.musicGain.gain.cancelScheduledValues(t);
-    this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
-    this.musicGain.gain.linearRampToValueAtTime(floor, t + opts.attackMs / 1000);
-    this.musicGain.gain.setValueAtTime(floor, t + (opts.attackMs + opts.holdMs) / 1000);
-    this.musicGain.gain.linearRampToValueAtTime(base, t + (opts.attackMs + opts.holdMs + opts.releaseMs) / 1000);
-  }
-
-  private startMusic() {
-    if (this.musicTimer) return;
-    this.musicTimer = setInterval(() => this.scheduleMusic(), 90);
-  }
-
-  private scheduleMusic() {
-    const ctx = this.ctx;
-    if (!ctx || !this.musicGain) return;
-    const stepDur = 0.24;
-    const ahead = ctx.currentTime + 0.25;
-    while (this.musicStep * stepDur < ahead) {
-      const t = this.musicStep * stepDur;
-      const step = this.musicStep % 8;
-      const intensity = this.musicIntensity;
-      if (intensity > 0.02) {
-        // Kick.
-        if (step % 4 === 0) {
-          const osc = ctx.createOscillator();
-          const g = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(150, t);
-          osc.frequency.exponentialRampToValueAtTime(42, t + 0.12);
-          g.gain.setValueAtTime(0.34 * Math.min(1, intensity), t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-          osc.connect(g).connect(this.musicGain);
-          osc.start(t);
-          osc.stop(t + 0.2);
-        }
-        // Hat.
-        if (step % 2 === 1 && this.noiseBuf) {
-          const src = ctx.createBufferSource();
-          src.buffer = this.noiseBuf;
-          const hp = ctx.createBiquadFilter();
-          hp.type = 'highpass';
-          hp.frequency.value = 7000;
-          const g = ctx.createGain();
-          g.gain.setValueAtTime(0.08 * intensity, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-          src.connect(hp).connect(g).connect(this.musicGain);
-          src.start(t, Math.random() * 0.4, 0.08);
-        }
-        // Bass.
-        const bassNotes = [55, 55, 65.4, 55, 49, 49, 65.4, 73.4];
-        if (step % 2 === 0) {
-          const osc = ctx.createOscillator();
-          const g = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.value = bassNotes[step];
-          g.gain.setValueAtTime(0.2 * intensity, t);
-          g.gain.exponentialRampToValueAtTime(0.01, t + stepDur * 1.8);
-          osc.connect(g).connect(this.musicGain);
-          osc.start(t);
-          osc.stop(t + stepDur * 1.9);
-        }
-        // Pad when intense.
-        if (intensity > 0.65 && step % 4 === 0) {
-          const padNotes = [220, 261.6, 329.6];
-          for (const f of padNotes) {
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.value = f;
-            const lp = ctx.createBiquadFilter();
-            lp.type = 'lowpass';
-            lp.frequency.value = 900;
-            g.gain.setValueAtTime(0.028, t);
-            g.gain.exponentialRampToValueAtTime(0.005, t + 1.6);
-            osc.connect(lp).connect(g).connect(this.musicGain);
-            osc.start(t);
-            osc.stop(t + 1.7);
-          }
-        }
-      }
-      this.musicStep++;
-    }
+    this.soundtrack.duckForReward(opts);
   }
 
   private now(): number {
@@ -572,7 +533,7 @@ export class AudioManager {
   }
 
   dispose() {
-    if (this.musicTimer) clearInterval(this.musicTimer);
+    this.soundtrack.dispose();
     if (this.ctx) void this.ctx.close();
     this.ctx = null;
   }

@@ -1,5 +1,22 @@
 import { expect, test } from '@playwright/test';
 
+interface BrowserSoundtrackState {
+  activeTrackCount: number;
+  currentContext: string;
+  currentIndex: number;
+  currentTrackId: string | null;
+  currentTime: number;
+  mediaPaused: boolean;
+  pendingMatchAdvance: boolean;
+}
+
+async function soundtrackState(page: import('@playwright/test').Page): Promise<BrowserSoundtrackState> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __recoil: { soundtrack(): BrowserSoundtrackState } };
+    return w.__recoil.soundtrack();
+  });
+}
+
 test('single player runs a full local round with combined controls and local restart', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -11,9 +28,16 @@ test('single player runs a full local round with combined controls and local res
   // main-stage SP is qualified separately in monster-coreloop specs).
   await page.goto('/?test=1&mode=demo');
   await page.click('#screen-boot');
+  const menuSoundtrack = await soundtrackState(page);
   await page.click('#screen-main [data-act="single"]');
   await expect(page.locator('#screen-countdown:not(.hidden)')).toBeVisible();
   await expect(page.locator('#countdown-n')).toHaveText('3');
+  expect(await soundtrackState(page)).toMatchObject({
+    currentContext: 'countdown',
+    currentIndex: menuSoundtrack.currentIndex,
+    currentTrackId: menuSoundtrack.currentTrackId,
+    pendingMatchAdvance: true,
+  });
   expect(await page.evaluate(() => (window as unknown as { __recoil: { state(): unknown } }).__recoil.state())).toBeNull();
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
@@ -27,6 +51,11 @@ test('single player runs a full local round with combined controls and local res
   await expect(page.locator('#ping')).toBeHidden();
   await expect(page.locator('#practice-tag')).toHaveCount(0);
   await expect(page.locator('#crosshair:not(.hidden)')).toBeVisible();
+  const firstMatchSoundtrack = await soundtrackState(page);
+  expect(firstMatchSoundtrack.currentContext).toBe('match');
+  expect(firstMatchSoundtrack.currentIndex).toBe(
+    (menuSoundtrack.currentIndex + 1) % menuSoundtrack.activeTrackCount,
+  );
 
   // Keyboard driving moves the local tank.
   const z0 = await page.evaluate(() => (window as unknown as { __recoil: { state(): { tank: { z: number } } } }).__recoil.state().tank.z);
@@ -80,15 +109,32 @@ test('single player runs a full local round with combined controls and local res
   await expect(page.locator('#sp-play-again')).toBeVisible();
   await expect(page.locator('#results-rematch')).toHaveClass(/hidden/);
   await expect(page.locator('#leave-btn')).toHaveClass(/hidden/);
+  const resultsSoundtrack = await soundtrackState(page);
+  expect(resultsSoundtrack).toMatchObject({
+    currentContext: 'results',
+    currentIndex: firstMatchSoundtrack.currentIndex,
+    currentTrackId: firstMatchSoundtrack.currentTrackId,
+    mediaPaused: false,
+  });
 
   // PLAY AGAIN restarts a fresh local match (no network involved).
   const oldMatchId = await page.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
   await page.click('#sp-play-again');
   await expect(page.locator('#screen-countdown:not(.hidden)')).toBeVisible();
+  expect(await soundtrackState(page)).toMatchObject({
+    currentContext: 'countdown',
+    currentIndex: resultsSoundtrack.currentIndex,
+    pendingMatchAdvance: true,
+  });
   await page.waitForFunction((oldId) => {
     const s = (window as unknown as { __recoil: { state(): { phase: string; matchId: string } | null } }).__recoil.state();
     return s?.phase === 'running' && s.matchId !== oldId;
   }, oldMatchId);
+  const rematchSoundtrack = await soundtrackState(page);
+  expect(rematchSoundtrack.currentContext).toBe('match');
+  expect(rematchSoundtrack.currentIndex).toBe(
+    (resultsSoundtrack.currentIndex + 1) % resultsSoundtrack.activeTrackCount,
+  );
 
   const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU'));
   expect(critical).toEqual([]);
