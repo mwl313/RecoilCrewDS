@@ -147,7 +147,7 @@
                 "children": [
                   { "id": "integrity-meta", "type": "horizontal", "class": "hud-meter-meta", "children": [
                     { "id": "integrity-label", "type": "text", "class": "bar-label", "text": "CHASSIS INTEGRITY" },
-                    { "id": "integrity-value", "type": "statText", "class": "hud-meter-value", "text": "100", "bindings": [{ "target": "text", "source": "tank.integrity", "transform": "integer" }] }
+              { "id": "integrity-value", "type": "statText", "class": "hud-meter-value", "text": "1,000", "bindings": [{ "target": "text", "source": "tank.integrityText" }] }
                   ] },
                   { "id": "integrity-wrap", "type": "container", "class": "hud-meter", "children": [
                     { "id": "integrity", "type": "progressBar", "class": "bar-fill integrity", "props": { "valueSource": "tank.integrity", "maxSource": "tank.integrityMax" }, "bindings": [{ "target": "class", "source": "tank.integrityLow", "transform": "booleanClass", "attribute": "low" }] }
@@ -299,7 +299,7 @@
         "promptSub": "LMB MACHINE GUN · RMB CANNON",
         "crosshairVisible": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0 },
-        "stage": { "waveLabel": "WAVE 2", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.7, "leaderHpMax": 1, "monster": { "level": 12, "waveTimerLabel": "WAVE ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": true, "label": "IRON MAW", "hpText": "8,420 / 12,000", "ratio": 0.7, "ratioMax": 1 }, "elite2": { "visible": false }, "boss": { "visible": false } } }
+        "stage": { "waveLabel": "WAVE 2", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.7, "leaderHpMax": 1, "monster": { "level": 12, "waveTimerLabel": "WAVE ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": true, "label": "IRON MAW", "hpText": "84,200 / 120,000", "ratio": 0.7, "ratioMax": 1 }, "elite2": { "visible": false }, "boss": { "visible": false } } }
       }
     },
     {
@@ -317,7 +317,7 @@
         "promptSub": "WASD · SHIFT · SPACE · LMB · RMB",
         "crosshairVisible": true,
         "objective": { "visible": false, "screenX": 0, "screenY": 0 },
-        "stage": { "waveLabel": "BOSS", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.46, "leaderHpMax": 1, "monster": { "level": 16, "waveTimerLabel": "BOSS ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": false }, "elite2": { "visible": false }, "boss": { "visible": true, "label": "THE SCRAP TYRANT", "hpText": "18,400 / 40,000", "ratio": 0.46, "ratioMax": 1 } } }
+        "stage": { "waveLabel": "BOSS", "waveActive": true, "farmingLabel": "", "leaderHpRatio": 0.46, "leaderHpMax": 1, "monster": { "level": 16, "waveTimerLabel": "BOSS ACTIVE", "waveCountdownText": "", "waveWarning": "", "waveWarningVisible": false, "elite1": { "visible": false }, "elite2": { "visible": false }, "boss": { "visible": true, "label": "THE SCRAP TYRANT", "hpText": "184,000 / 400,000", "ratio": 0.46, "ratioMax": 1 } } }
       }
     }
   ]

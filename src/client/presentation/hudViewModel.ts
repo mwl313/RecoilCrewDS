@@ -1,6 +1,10 @@
 import type { MatchState, Role } from '../../shared/types';
 import type { HordeEncounterView, HordeMonsterStageView } from '../../shared/net/protocol';
 import { BASE_CONFIG } from '../../shared/config';
+import {
+  formatCombatDisplayValue,
+  toCombatDisplayValue,
+} from '../../shared/presentation/combatDisplayUnits';
 
 /**
  * Safe, typed projection of authoritative/interpolated state + client
@@ -32,6 +36,7 @@ export interface HudViewModel {
   tank: {
     integrity: number;
     integrityMax: number;
+    integrityText: string;
     integrityLow: boolean;
     speed: number;
     grounded: boolean;
@@ -97,8 +102,9 @@ export interface HudViewModel {
 export interface HudEncounterBar {
   visible: boolean;
   label: string;
-  hp: number;
-  maxHp: number;
+  /** Presentation-only values; authoritative health remains in HordeEncounterView. */
+  displayHp: number;
+  displayMaxHp: number;
   hpText: string;
   ratio: number;
   ratioMax: number;
@@ -149,6 +155,7 @@ export function emptyHudViewModel(): HudViewModel {
     tank: {
       integrity: 100,
       integrityMax: 100,
+      integrityText: '1,000',
       integrityLow: false,
       speed: 0,
       grounded: true,
@@ -204,20 +211,20 @@ export function emptyHudViewModel(): HudViewModel {
 }
 
 export function emptyEncounterBar(): HudEncounterBar {
-  return { visible: false, label: '', hp: 0, maxHp: 1, hpText: '', ratio: 0, ratioMax: 1 };
+  return { visible: false, label: '', displayHp: 0, displayMaxHp: 10, hpText: '', ratio: 0, ratioMax: 1 };
 }
 
-function encounterBar(row: HordeEncounterView | undefined): HudEncounterBar {
+export function encounterBar(row: HordeEncounterView | undefined): HudEncounterBar {
   if (!row) return emptyEncounterBar();
   const ratio = row.maxHp > 0 ? Math.max(0, Math.min(1, row.hp / row.maxHp)) : 0;
-  const hp = Math.max(0, Math.round(row.hp));
-  const maxHp = Math.max(1, Math.round(row.maxHp));
+  const displayHp = toCombatDisplayValue(Math.max(0, row.hp));
+  const displayMaxHp = toCombatDisplayValue(Math.max(1, row.maxHp));
   return {
     visible: row.alive && row.maxHp > 0,
     label: row.label,
-    hp,
-    maxHp,
-    hpText: `${hp} / ${maxHp}`,
+    displayHp,
+    displayMaxHp,
+    hpText: `${formatCombatDisplayValue(Math.max(0, row.hp))} / ${formatCombatDisplayValue(Math.max(1, row.maxHp))}`,
     ratio,
     ratioMax: 1,
   };
@@ -344,6 +351,7 @@ export class HudProjector {
       tank: {
         integrity: t.integrity,
         integrityMax: maxIntegrity,
+        integrityText: formatCombatDisplayValue(t.integrity),
         integrityLow: t.integrity < 35,
         speed: Math.round(Math.hypot(t.vx, t.vz) * 3.6),
         grounded: t.grounded,

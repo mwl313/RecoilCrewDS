@@ -28,7 +28,7 @@ function state(overrides: Partial<MatchState> = {}): MatchState {
     matchFlow: 'playing',
     teamProgression: {
       level: 1, currentXp: 0, xpForNextLevel: 20, totalXpCollected: 0, pendingLevelUps: 0,
-      levelUpOffersCompleted: 0, treasureChestsOpened: 0, relicAcquisitionSequence: 0, relicStacks: {},
+      levelUpOffersCompleted: 0, levelUpgradeSummary: [], treasureChestsOpened: 0, relicAcquisitionSequence: 0, relicStacks: {},
       activeSelection: null, lastRelicResult: null, pendingRelicResults: [],
     },
     chests: [],
@@ -309,7 +309,7 @@ describe('stage HUD projection (M11)', () => {
     expect(single.stage.monster.elite2.visible).toBe(false);
     expect(single.stage.monster.boss.visible).toBe(true);
     expect(single.stage.monster.boss.label).toBe('Boss B');
-    expect(single.stage.monster.boss.hpText).toBe('8000 / 10000');
+    expect(single.stage.monster.boss.hpText).toBe('80,000 / 100,000');
 
     const two = projector.project(state({ time: 130 }), {
       ...base,

@@ -895,6 +895,9 @@ if (TEST_MODE) {
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,
     renderCount: () => game?.world.renderCount ?? 0,
+    tactical: () => game?.tacticalDiagnostics() ?? null,
+    quality: () => game?.qualityDiagnostics() ?? null,
+    setApronEnabled: (enabled: boolean) => game?.setApronEnabledForTest(enabled),
     setInputEnabled: (enabled: boolean) => {
       input.setEnabled(enabled);
       game?.setInputEnabled(enabled);

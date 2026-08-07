@@ -18,6 +18,8 @@ export interface UrbanLayout {
   decorations: UrbanVisualPlacement[];
   buildings: Obstacle[];
   solidProps: Obstacle[];
+  /** Authored authoritative road closures just inside the playable edge. */
+  perimeterBlockers: Obstacle[];
   spawnPoints: { x: number; z: number }[];
   bugSpawns: { x: number; z: number }[];
   truckRoute: { x: number; z: number }[];
@@ -147,6 +149,7 @@ export function createUrbanLayout(id: UrbanPrototypeId): UrbanLayout {
     .map(({ x, z }, index) => roadVisual(cells, x, z, index));
   const buildings = placeBuildings(id, spec, roads);
   const solidProps = placeVehicles(id, spec, roads, buildings);
+  const perimeterBlockers = placePerimeterBlockers(spec, cells, roads);
   const streetDecorations = buildStreetDecorations(cells, roads, id);
   const trees = placeTrees(id, spec, roads, buildings, solidProps, [...streetDecorations, ...spec.landmarks]);
   const decorations = [...streetDecorations, ...trees, ...spec.landmarks];
@@ -156,6 +159,7 @@ export function createUrbanLayout(id: UrbanPrototypeId): UrbanLayout {
     decorations,
     buildings,
     solidProps,
+    perimeterBlockers,
     spawnPoints: spec.spawnPoints.map((p) => ({ ...p })),
     bugSpawns: spec.bugSpawns.map((p) => ({ ...p })),
     truckRoute: spec.truckRoute.map((p) => ({ ...p })),
@@ -168,7 +172,41 @@ export function urbanAssetIds(layout: UrbanLayout): string[] {
     ...layout.decorations.map((p) => p.assetId),
     ...layout.buildings.map((p) => p.assetId).filter((id): id is string => Boolean(id)),
     ...layout.solidProps.map((p) => p.assetId).filter((id): id is string => Boolean(id)),
+    ...layout.perimeterBlockers.map((p) => p.assetId).filter((id): id is string => Boolean(id)),
   ])].sort();
+}
+
+function placePerimeterBlockers(
+  spec: CitySpec,
+  cells: ReadonlySet<string>,
+  roads: readonly UrbanVisualPlacement[],
+): Obstacle[] {
+  const half = spec.size / 2;
+  return roads
+    .filter((road) => roadDegree(cells, road.x, road.z) === 1)
+    .filter((road) => Math.max(Math.abs(road.x), Math.abs(road.z)) >= half - TILE * 2)
+    .map((road, index) => {
+      const xEdge = Math.abs(road.x) >= Math.abs(road.z) && Math.abs(road.x) >= half - TILE * 2;
+      return {
+        id: `urban.perimeterBlocker.${index}`,
+        x: road.x,
+        z: road.z,
+        w: xEdge ? 1.35 : 7.2,
+        d: xEdge ? 7.2 : 1.35,
+        h: 1.05,
+        type: 'barrier' as const,
+        assetId: 'prop.barrier',
+      };
+    });
+}
+
+function roadDegree(cells: ReadonlySet<string>, x: number, z: number): number {
+  return [
+    cell(x + TILE, z),
+    cell(x - TILE, z),
+    cell(x, z + TILE),
+    cell(x, z - TILE),
+  ].filter((key) => cells.has(key)).length;
 }
 
 /** Flat ground plus authored driveable urban surfaces. */

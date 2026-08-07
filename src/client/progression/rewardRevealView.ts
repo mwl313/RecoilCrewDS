@@ -3,6 +3,7 @@ import type { ProgressionSelectionState, UpgradeCard } from '../../shared/progre
 import type { RewardTimelineSnapshot } from './rewardRevealDirector';
 import { RewardFxLayer } from './rewardFxLayer';
 import { buildRewardReelSymbols, rewardReelFrame, type RewardReelSymbol } from './rewardReelAnimator';
+import { formatUpgradeEffect } from '../../shared/presentation/statPresentation';
 
 export type ProgressionRole = 'driver' | 'gunner' | 'single';
 
@@ -357,11 +358,7 @@ function glyphFor(id: string): string {
 }
 
 function formatEffects(card: UpgradeCard): string {
-  return card.rolledEffects.map((effect) => {
-    const label = humanize(effect.statId);
-    if (effect.operation === 'multiply') return `${label}\n${effect.value < 1 ? '' : '+'}${Math.round((effect.value - 1) * 100)}%`;
-    return `${label}\n+${effect.value}`;
-  }).join('\n');
+  return card.rolledEffects.map(formatUpgradeEffect).join('\n');
 }
 
 function shardCount(rarity: string, relic = false): number {

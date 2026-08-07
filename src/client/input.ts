@@ -27,6 +27,8 @@ export class InputManager {
   private progressionDx = 0;
   private progressionActions: ProgressionInputAction[] = [];
   private progressionKeysDown = new Set<string>();
+  private tacticalTogglePressed = false;
+  private tacticalToggleHeld = false;
   locked = false;
   private enabled = true;
 
@@ -98,6 +100,8 @@ export class InputManager {
     this.progressionDx = 0;
     this.progressionActions = [];
     this.progressionKeysDown.clear();
+    this.tacticalTogglePressed = false;
+    this.tacticalToggleHeld = false;
   }
 
   private clearPointerDeltas() {
@@ -150,6 +154,14 @@ export class InputManager {
       return;
     }
     if (this.inputContext !== 'gameplay') return;
+    if (e.code === 'Tab') {
+      e.preventDefault();
+      if (!e.repeat && !this.tacticalToggleHeld) {
+        this.tacticalToggleHeld = true;
+        this.tacticalTogglePressed = true;
+      }
+      return;
+    }
     const name = this.keyMap[e.code];
     if (name === 'dash' || name === 'jump') {
       e.preventDefault();
@@ -175,6 +187,10 @@ export class InputManager {
 
   private onKeyUp = (e: KeyboardEvent) => {
     if (!this.enabled) return;
+    if (e.code === 'Tab') {
+      this.tacticalToggleHeld = false;
+      return;
+    }
     if (this.inputContext === 'progressionUpgrade' || this.inputContext === 'progressionRelic') {
       this.progressionKeysDown.delete(e.code);
       return;
@@ -243,6 +259,12 @@ export class InputManager {
     const v = this.escapePressed;
     this.escapePressed = false;
     return v;
+  }
+
+  consumeTacticalToggle(): boolean {
+    const value = this.tacticalTogglePressed;
+    this.tacticalTogglePressed = false;
+    return value;
   }
 
   consumeMouse(): { dx: number; dy: number } {
@@ -320,6 +342,7 @@ export class InputManager {
       context: InputContext;
     recenterPressed: boolean;
     escapePressed: boolean;
+    tacticalOpenRequested: boolean;
     pointer: {
       accumulatedDx: number;
       accumulatedDy: number;
@@ -338,6 +361,7 @@ export class InputManager {
       context: this.inputContext,
       recenterPressed: this.recenterPressed,
       escapePressed: this.escapePressed,
+      tacticalOpenRequested: this.tacticalTogglePressed,
       pointer: {
         accumulatedDx: this.dx,
         accumulatedDy: this.dy,

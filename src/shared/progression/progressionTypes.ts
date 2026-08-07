@@ -3,6 +3,18 @@ import type { EnemyActionCue } from '../animation/enemyActionCue';
 
 export type MatchFlowState = 'playing' | 'upgradeSelection' | 'relicOpening' | 'relicSelection' | 'clear' | 'gameOver';
 
+/**
+ * Match-scoped cumulative contribution from successful level-up effects.
+ * This intentionally excludes base values, difficulty, relics, and timed
+ * modifiers so reconnecting clients can render the same truthful build view.
+ */
+export interface LevelUpgradeStatSummary {
+  statId: string;
+  additiveTotal: number;
+  multiplierProduct: number;
+  effectCount: number;
+}
+
 export interface TeamProgressionState {
   level: number;
   currentXp: number;
@@ -10,6 +22,7 @@ export interface TeamProgressionState {
   totalXpCollected: number;
   pendingLevelUps: number;
   levelUpOffersCompleted: number;
+  levelUpgradeSummary: LevelUpgradeStatSummary[];
   treasureChestsOpened: number;
   /** Monotonic match-scoped sequence; every resolved chest increments it. */
   relicAcquisitionSequence: number;

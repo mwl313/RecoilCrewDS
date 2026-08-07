@@ -182,7 +182,11 @@ export function toArenaProps(arena: GeneratedArena): ArenaProps {
 
   if (arena.urbanLayout) {
     return {
-      obstacles: [...arena.urbanLayout.buildings, ...arena.urbanLayout.solidProps].map((o) => ({ ...o })),
+      obstacles: [
+        ...arena.urbanLayout.buildings,
+        ...arena.urbanLayout.solidProps,
+        ...arena.urbanLayout.perimeterBlockers,
+      ].map((o) => ({ ...o })),
       barrels: [],
       ramps: [],
       spawnPoints: arena.urbanLayout.spawnPoints.map((p) => ({ ...p })),

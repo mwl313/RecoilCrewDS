@@ -214,6 +214,7 @@ describe('HudProjector', () => {
         totalXpCollected: 240,
         pendingLevelUps: 1,
         levelUpOffersCompleted: 3,
+        levelUpgradeSummary: [],
         treasureChestsOpened: 0,
         relicAcquisitionSequence: 0,
         relicStacks: {},
