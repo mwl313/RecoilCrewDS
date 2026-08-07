@@ -1,3 +1,15 @@
+export type InputContext = 'gameplay' | 'progressionUpgrade' | 'progressionRelic' | 'pause' | 'disabled';
+
+export type ProgressionInputAction =
+  | { kind: 'direct'; index: number }
+  | { kind: 'move'; direction: -1 | 1 }
+  | { kind: 'confirm' };
+
+export interface ProgressionInputFrame {
+  dx: number;
+  actions: ProgressionInputAction[];
+}
+
 export class InputManager {
   private keys = new Set<string>();
   /** Keys currently held down that can re-arm a one-shot action edge. */
@@ -11,6 +23,10 @@ export class InputManager {
   private lastRawDy = 0;
   private pointerLockChangedAt = 0;
   private rejectedMouseEvents = 0;
+  private inputContext: InputContext = 'gameplay';
+  private progressionDx = 0;
+  private progressionActions: ProgressionInputAction[] = [];
+  private progressionKeysDown = new Set<string>();
   locked = false;
   private enabled = true;
 
@@ -56,6 +72,21 @@ export class InputManager {
     if (!enabled) this.clearAll();
   }
 
+  context(): InputContext {
+    return this.inputContext;
+  }
+
+  /**
+   * Context transitions are hard input boundaries. Clearing both gameplay
+   * and reward edges here prevents the press that confirms a reward from
+   * becoming the first cannon/jump edge after gameplay resumes.
+   */
+  setContext(context: InputContext): void {
+    if (this.inputContext === context) return;
+    this.clearAll();
+    this.inputContext = context;
+  }
+
   private clearAll() {
     this.keys.clear();
     this.actionArmed.clear();
@@ -64,6 +95,9 @@ export class InputManager {
     this.clearPointerDeltas();
     this.recenterPressed = false;
     this.escapePressed = false;
+    this.progressionDx = 0;
+    this.progressionActions = [];
+    this.progressionKeysDown.clear();
   }
 
   private clearPointerDeltas() {
@@ -111,6 +145,11 @@ export class InputManager {
 
   private onKeyDown = (e: KeyboardEvent) => {
     if (!this.enabled) return;
+    if (this.inputContext === 'progressionUpgrade' || this.inputContext === 'progressionRelic') {
+      this.onProgressionKeyDown(e);
+      return;
+    }
+    if (this.inputContext !== 'gameplay') return;
     const name = this.keyMap[e.code];
     if (name === 'dash' || name === 'jump') {
       e.preventDefault();
@@ -136,6 +175,11 @@ export class InputManager {
 
   private onKeyUp = (e: KeyboardEvent) => {
     if (!this.enabled) return;
+    if (this.inputContext === 'progressionUpgrade' || this.inputContext === 'progressionRelic') {
+      this.progressionKeysDown.delete(e.code);
+      return;
+    }
+    if (this.inputContext !== 'gameplay') return;
     const name = this.keyMap[e.code];
     if (name === 'dash' || name === 'jump') {
       this.actionArmed.delete(name);
@@ -152,12 +196,23 @@ export class InputManager {
     }
     this.lastRawDx = e.movementX;
     this.lastRawDy = e.movementY;
+    if (this.inputContext === 'progressionUpgrade') {
+      this.progressionDx += e.movementX;
+      return;
+    }
+    if (this.inputContext === 'progressionRelic') return;
+    if (this.inputContext !== 'gameplay') return;
     this.dx += e.movementX;
     this.dy += e.movementY;
   };
 
   private onMouseDown = (e: MouseEvent) => {
     if (!this.enabled) return;
+    if (this.inputContext === 'progressionUpgrade' || this.inputContext === 'progressionRelic') {
+      if (e.button === 0) this.progressionActions.push({ kind: 'confirm' });
+      return;
+    }
+    if (this.inputContext !== 'gameplay') return;
     if (!this.locked) {
       // First click after countdown/pause acquires pointer lock (must run
       // inside the user gesture for Chrome to accept it).
@@ -170,6 +225,7 @@ export class InputManager {
 
   private onMouseUp = (e: MouseEvent) => {
     if (!this.enabled) return;
+    if (this.inputContext !== 'gameplay') return;
     if (e.button === 0) this.mouse.delete('primary');
     if (e.button === 2) this.mouse.delete('secondary');
   };
@@ -190,6 +246,10 @@ export class InputManager {
   }
 
   consumeMouse(): { dx: number; dy: number } {
+    if (this.inputContext !== 'gameplay') {
+      this.clearPointerDeltas();
+      return { dx: 0, dy: 0 };
+    }
     const out = { dx: this.dx, dy: this.dy };
     this.dx = 0;
     this.dy = 0;
@@ -214,13 +274,50 @@ export class InputManager {
     this.actionLatches.clear();
   }
 
+  consumeProgressionInput(): ProgressionInputFrame {
+    const frame = { dx: this.progressionDx, actions: this.progressionActions };
+    this.progressionDx = 0;
+    this.progressionActions = [];
+    return frame;
+  }
+
+  private onProgressionKeyDown(e: KeyboardEvent): void {
+    const relevant = new Set([
+      'Digit1', 'Digit2', 'Digit3', 'Numpad1', 'Numpad2', 'Numpad3',
+      'ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD', 'Enter', 'Space',
+    ]);
+    if (!relevant.has(e.code)) return;
+    e.preventDefault();
+    if (e.repeat || this.progressionKeysDown.has(e.code)) return;
+    this.progressionKeysDown.add(e.code);
+    if (this.inputContext === 'progressionUpgrade') {
+      const direct: Record<string, number> = {
+        Digit1: 0, Numpad1: 0, Digit2: 1, Numpad2: 1, Digit3: 2, Numpad3: 2,
+      };
+      if (direct[e.code] !== undefined) {
+        this.progressionActions.push({ kind: 'direct', index: direct[e.code] });
+      } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+        this.progressionActions.push({ kind: 'move', direction: -1 });
+      } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+        this.progressionActions.push({ kind: 'move', direction: 1 });
+      } else if (e.code === 'Enter' || e.code === 'Space') {
+        this.progressionActions.push({ kind: 'confirm' });
+      }
+      return;
+    }
+    if (e.code === 'Enter' || e.code === 'Space') {
+      this.progressionActions.push({ kind: 'confirm' });
+    }
+  }
+
   /** Test hook: currently held semantic keys/buttons. */
   debugState(): {
     keys: string[];
     latches: string[];
     buttons: string[];
-    enabled: boolean;
-    locked: boolean;
+      enabled: boolean;
+      locked: boolean;
+      context: InputContext;
     recenterPressed: boolean;
     escapePressed: boolean;
     pointer: {
@@ -238,6 +335,7 @@ export class InputManager {
       buttons: [...this.mouse],
       enabled: this.enabled,
       locked: this.locked,
+      context: this.inputContext,
       recenterPressed: this.recenterPressed,
       escapePressed: this.escapePressed,
       pointer: {

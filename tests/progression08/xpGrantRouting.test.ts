@@ -111,7 +111,7 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     expect(m.state.matchFlow).toBe('gameOver');
   });
 
-  it('shard collection, leader, boss, and duplicate conversion all update telemetry', () => {
+  it('shard collection, leader, and boss rewards update telemetry', () => {
     // Shard path.
     const shardMatch = makeMatch('mode.singlePlayerScoreAttack', 'telemetry-shard');
     shardMatch.systems.xpShards.spawn(1, shardMatch.state.tank.x + 0.2, shardMatch.state.tank.z);
@@ -130,9 +130,9 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     expect(bossM.systems.progression.telemetry.xpCollectedPerMinute).toBeGreaterThan(0);
   });
 
-  it('duplicate unique conversion XP flows through the shared grant path', () => {
-    // Build a fixture pack whose relic pool contains only a unique relic so
-    // the second chest is a deterministic duplicate conversion.
+  it('owned non-stackable relics are ineligible and never grant replacement XP', () => {
+    // A fixture pool containing only one unique relic becomes exhausted after
+    // the first acquisition; the second chest cannot manufacture a duplicate.
     const { manifest, files } = loadRealPackRecords();
     (files['relic-pools/main.json'] as { relicIds: string[] }).relicIds = ['relic.phase_dash'];
     const pack = new ContentLoader().loadFromRecords(manifest, files);
@@ -143,11 +143,8 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     expect(r1?.duplicateConverted).toBe(false);
     completeRelicReveal(m);
     const c2 = m.systems.progression.spawnChest('map', 4, 4);
-    const r2 = revealChest(m, c2, 5000);
-    expect(r2?.duplicateConverted).toBe(true);
-    expect(r2?.replacementXp).toBe(250);
-    completeRelicReveal(m);
-    // Single-player XP multiplier 2: 250 × 2 = 500 granted once.
-    expect(m.state.teamProgression.totalXpCollected - before).toBe(500);
+    c2.lifecycle = 'closed';
+    expect(m.openProgressionChest(c2.id, 5000)).toBeNull();
+    expect(m.state.teamProgression.totalXpCollected - before).toBe(0);
   });
 });

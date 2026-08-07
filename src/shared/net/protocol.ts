@@ -71,8 +71,12 @@ export interface RunConfigMessage extends ProtocolEnvelope {
    * captured direction, and temporary dash-velocity diagnostics.
    * Protocol 14: snapshots carry authoritative relic chest lifecycle timing,
    * reward candidate offers, and stable relic acquisition order.
+   * Protocol 15: tank snapshots carry authoritative airborne jump and
+   * AIR MASTER Dash-reuse counters for shared prediction.
+   * Protocol 16: relic reveal uses per-connected-player acknowledgements
+   * with no replicated auto-dismiss deadline.
    */
-export const PROTOCOL_VERSION = 14;
+export const PROTOCOL_VERSION = 16;
 
 export interface ProtocolEnvelope {
   protocol: number;
@@ -181,6 +185,11 @@ export interface SkipRelicPresentationMessage extends ProtocolEnvelope {
   acquisitionSequence: number;
 }
 
+export interface AcknowledgeRelicMessage extends ProtocolEnvelope {
+  t: 'acknowledgeRelic';
+  acquisitionSequence: number;
+}
+
 export interface LeaveMessage extends ProtocolEnvelope {
   t: 'leave';
 }
@@ -210,6 +219,7 @@ export type ClientMessage =
   | AssetReadyMessage
   | RematchMessage
   | SelectUpgradeMessage
+  | AcknowledgeRelicMessage
   | SkipRelicPresentationMessage
   | LeaveMessage;
 

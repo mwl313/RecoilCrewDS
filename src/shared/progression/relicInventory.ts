@@ -4,7 +4,7 @@ import type { ProgressionDefinition } from '../content/schemas/progression';
 import type { RelicAcquireResult } from './progressionTypes';
 
 /**
- * Relic inventory with stacks and unique-duplicate conversion. Capabilities
+ * Relic inventory with stacks and unique acquisition guards. Capabilities
  * are granted once through the source-safe CapabilitySystem.
  */
 export class RelicInventory {
@@ -26,11 +26,13 @@ export class RelicInventory {
     const stacks = this.state.teamProgression.relicStacks;
     const current = stacks[relic.id] ?? 0;
     if (relic.stackPolicy === 'unique' && current > 0) {
+      // Authority filters owned uniques before rolling. This defensive guard
+      // is intentionally a no-op, never an XP conversion path.
       return {
         relicId: relic.id,
         stackCount: current,
-        duplicateConverted: true,
-        replacementXp: this.definition.duplicateUniqueRelicXp,
+        duplicateConverted: false,
+        replacementXp: 0,
         capabilityGranted: false,
       };
     }

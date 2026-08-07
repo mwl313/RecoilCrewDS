@@ -64,17 +64,21 @@ test('production world chest completes proximity open, reveal, HUD, and despawn'
   await expect(page.locator('#progression-relic-layer')).toBeVisible();
   await expect(page.locator('#relic-inventory-rail')).toBeVisible();
   await expect(page.locator('#relic-inventory-rail .relic-rail-cell')).toHaveCount(1);
-  await expect(page.locator('#relic-inventory-rail .relic-rail-icon--fallback')).toHaveCount(1);
+  const railIcon = page.locator('#relic-inventory-rail .relic-rail-icon img');
+  await expect(railIcon).toHaveCount(1);
+  await expect(railIcon).toHaveAttribute('src', /^\/assets\/images\/relics\/[a-z0-9-]+\.png$/);
+  await expect.poll(() => railIcon.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(page.locator('#relic-inventory-rail .relic-rail-icon--fallback')).toHaveCount(0);
   const revealText = await page.locator('#progression-relic-layer').innerText();
   expect(revealText).not.toContain('relic.');
 
   await page.waitForFunction(() => {
     const button = document.querySelector<HTMLButtonElement>('#progression-relic-layer button');
-    return button !== null && !button.disabled;
+    return button?.getAttribute('aria-disabled') === 'false';
   });
-  await page.evaluate(() =>
-    (window as unknown as { __recoil: { progression: { skipRelic(): void } } }).__recoil.progression.skipRelic(),
-  );
+  // The full relic layer is the click target so locked and unlocked pointer
+  // paths share the same continue contract.
+  await page.locator('#progression-relic-layer').click({ position: { x: 18, y: 18 } });
   await page.waitForFunction(() => {
     const state = (window as unknown as { __recoil: { state(): WorldRelicState } }).__recoil.state();
     return state.matchFlow === 'playing';

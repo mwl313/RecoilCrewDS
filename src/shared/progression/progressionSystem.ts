@@ -1,7 +1,7 @@
 import type { MatchRules } from '../rules/matchRules';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState, MatchState } from '../types';
-import type { ProgressionRewardEvent, ProgressionXpSource, RelicRewardOffer, RelicRollResult, TreasureChestSource, TreasureChestState, UpgradeCard } from './progressionTypes';
+import type { ProgressionRewardEvent, ProgressionSelectionState, ProgressionXpSource, RelicRewardOffer, RelicRollResult, TreasureChestSource, TreasureChestState, UpgradeCard } from './progressionTypes';
 import type { SelectionRole } from './upgradeSelectionController';
 import { ProgressionRng } from './progressionRng';
 import { TeamExperienceSystem } from './teamExperienceSystem';
@@ -18,6 +18,10 @@ import { hash32 } from '../mapgen/seed';
 import type { LevelCurveDefinition, ProgressionDefinition } from '../content/schemas/progression';
 import type { RelicChestSpawnPolicyDefinition } from '../content/schemas/progression';
 import { RelicChestSpawnDirector } from './relicChestSpawnDirector';
+import { resolveRelicEffectParameters } from './relicEffectParameters';
+import { isCannonSelfDamage, isGunnerWeaponDamage } from '../damage/damageTypes';
+import { isWaveLeader, normalizedEnemyClass } from '../enemies/enemyClassification';
+import type { StageEvent } from '../stage/stageTypes';
 
 export interface ProgressionDebugState {
   flow: string;
@@ -36,6 +40,21 @@ export interface ProgressionDebugState {
   relicStacks: Record<string, number>;
   damageModifiers: RelicDamageModifiers;
   roadkill: { capability: boolean; speed: number; maxSpeed: number; ratio: number; threshold: number; lastDamage: number };
+  capabilitySources: Record<string, string[]>;
+  movement: {
+    grounded: boolean;
+    extraJumpsRemaining: number;
+    airDashReuseRemaining: number;
+    dashState: string;
+    phaseDashInvulnerable: boolean;
+  };
+  triggers: {
+    phoenixConsumed: boolean;
+    safeHavenLastWaveId: number | null;
+    activeEnemyDebuffs: number;
+    aerialMasterEligible: boolean;
+  };
+  lastRelicResult: { acquisitionSequence: number; relicId: string; duplicateConverted: boolean; replacementXp: number } | null;
 }
 
 /**
@@ -60,7 +79,9 @@ export class ProgressionSystem {
   private periodicSpawnRemaining = 0;
   private mapChestsSpawned = 0;
   private terminalTelemetryCaptured = false;
-  private phaseDashUntil = -1;
+  private readonly clearedWaveTriggerIds = new Set<number>();
+  private readonly leaderChestRewardedWaveIds = new Set<number>();
+  private lastSafeHavenWaveId: number | null = null;
   private lastRoadkill: { speed: number; maxSpeed: number; ratio: number; damage: number } = { speed: 0, maxSpeed: 0, ratio: 0, damage: 0 };
 
   constructor(private readonly ctx: SystemContext) {
@@ -115,6 +136,7 @@ export class ProgressionSystem {
       ctx.eventBus.subscribe('entity.killed', (payload) => this.onEntityKilled(payload as { enemy: { id: number; x: number; y: number; z: number }; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('damage.applied', (payload) => this.onDamageApplied(payload as { targetId: number | string; targetKind: string; amount: number; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('waveEvent', (payload) => this.onWaveEvent(payload as { type: string; waveId: number }));
+      ctx.eventBus.subscribe('stageEvent', (payload) => this.onStageEvent(payload as StageEvent));
       if (this.worldChestSpawningEnabled) this.initializeMapChests();
     }
   }
@@ -147,7 +169,7 @@ export class ProgressionSystem {
 
   /**
    * Authoritative internal XP grant. Every XP source (shards, leader/elite,
-   * boss, unique duplicate conversion, direct rewards) routes through here:
+   * boss, and direct rewards) routes through here:
    * multiplier policy, team XP, telemetry, event emission, level-up
    * queueing, and a single serialized flow advance.
    */
@@ -195,6 +217,7 @@ export class ProgressionSystem {
       kind: 'upgrade',
       level: s.teamProgression.level,
       expiresAtWallMs: nowMs + (policy?.selectionTimeoutSeconds ?? 10) * 1000,
+      offerStartedAtWallMs: nowMs,
       driverOffer: roleSeparated ? driverOffer : undefined,
       gunnerOffer: roleSeparated ? gunnerOffer : undefined,
       singlePlayerOffer: roleSeparated ? undefined : singleOffer,
@@ -249,8 +272,9 @@ export class ProgressionSystem {
       return true;
     }
     if (active.kind === 'relic') {
-      if (nowMs < (active.revealDeadlineWallMs ?? active.expiresAtWallMs)) return false;
-      return this.resolveRelicReveal(nowMs);
+      // Relic reveal has no normal deadline. It resolves only through the
+      // explicit connected-player acknowledgement gate or terminal cleanup.
+      return false;
     }
     return false;
   }
@@ -323,6 +347,7 @@ export class ProgressionSystem {
   step(dt: number): void {
     if (!this.isEnabled || !this.chestPolicy || dt <= 0) return;
     const s = this.ctx.state;
+    this.registry.prune(s.time);
     if (s.matchFlow === 'clear' || s.matchFlow === 'gameOver' || s.phase === 'results') {
       this.captureTerminalChestTelemetry();
       return;
@@ -447,8 +472,12 @@ export class ProgressionSystem {
     const pool = this.ctx.rules.relicPoolIds
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
-    const candidates = pool.filter((r) => r.rarity === rarity);
-    const pickPool = candidates.length > 0 ? candidates : pool;
+    const eligible = pool.filter((relic) => relic.stackPolicy !== 'unique' || !this.inventory.has(relic.id));
+    const candidates = eligible.filter((relic) => relic.rarity === rarity);
+    // Deterministic rarity fallback: preserve the rolled rarity whenever it
+    // has an eligible candidate, otherwise draw only from remaining eligible
+    // content in canonical pool order. Owned uniques never re-enter.
+    const pickPool = candidates.length > 0 ? candidates : eligible;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
     const offer: RelicRewardOffer = {
@@ -498,18 +527,12 @@ export class ProgressionSystem {
     this.telemetry.relicsAcquired++;
     this.telemetry.rarityDistribution[candidate.rarity] = (this.telemetry.rarityDistribution[candidate.rarity] ?? 0) + 1;
     this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
-    if (acquire.duplicateConverted) this.telemetry.duplicateConversions++;
-    if (!acquire.duplicateConverted) {
-      this.projector.reproject(s.teamProgression);
-      if (acquire.capabilityGranted) {
-        this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
-      }
+    this.projector.reproject(s.teamProgression);
+    if (acquire.capabilityGranted) {
+      this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
     }
     this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: candidate.rarity, duplicateConverted: acquire.duplicateConverted });
     this.beginRelicReveal(roll, nowMs, chest, offer);
-    if (acquire.duplicateConverted) {
-      this.grantXp(acquire.replacementXp, 'duplicateRelic', { x: chest.x, y: chest.y, z: chest.z });
-    }
     return roll;
   }
 
@@ -521,15 +544,16 @@ export class ProgressionSystem {
     offer?: RelicRewardOffer,
   ): void {
     const s = this.ctx.state;
-    const revealSeconds = this.chestPolicy?.relicRevealSeconds ?? 2;
     if (chest) chest.lifecycle = 'revealing';
     s.teamProgression.activeSelection = {
       offerId: `reveal-${result.acquisitionSequence}`,
       kind: 'relic',
       level: s.teamProgression.level,
-      expiresAtWallMs: nowMs + revealSeconds * 1000,
-      revealDeadlineWallMs: nowMs + revealSeconds * 1000,
-      revealMinimumSkipAtWallMs: nowMs + (this.chestPolicy?.relicRevealMinimumSkipSeconds ?? 0.35) * 1000,
+      revealStartedAtWallMs: nowMs,
+      continueAllowedAtWallMs: nowMs + (this.chestPolicy?.relicRevealMinimumSkipSeconds ?? 0.35) * 1000,
+      singlePlayerRelicAcknowledged: false,
+      driverRelicAcknowledged: false,
+      gunnerRelicAcknowledged: false,
       chestId: chest?.id,
       relicOffer: offer,
       relicResult: result,
@@ -544,11 +568,13 @@ export class ProgressionSystem {
     });
   }
 
-  /**
-   * Idempotent skip/acknowledgement of the active relic reveal. Either
-   * player may skip; the result is never rerolled or re-applied.
-   */
-  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+  /** Idempotent acknowledgement of the predetermined active relic result. */
+  acknowledgeProgressionRelic(
+    role: SelectionRole,
+    acquisitionSequence: number,
+    requiredRoles: SelectionRole[],
+    nowMs: number,
+  ): { accepted: boolean; reason?: string; waitingFor?: SelectionRole[] } {
     if (!this.isEnabled) return { accepted: false, reason: 'disabled' };
     const active = this.ctx.state.teamProgression.activeSelection;
     if (!active || active.kind !== 'relic') return { accepted: false, reason: 'no_active_reveal' };
@@ -556,10 +582,27 @@ export class ProgressionSystem {
     if (active.relicResult?.acquisitionSequence !== acquisitionSequence) {
       return { accepted: false, reason: 'sequence_mismatch' };
     }
-    if (nowMs < (active.revealMinimumSkipAtWallMs ?? 0)) {
+    if (nowMs < (active.continueAllowedAtWallMs ?? 0)) {
       return { accepted: false, reason: 'minimum_delay' };
     }
+    setRelicAcknowledged(active, role);
+    const required = [...new Set(requiredRoles)];
+    const waitingFor = required.filter((requiredRole) => !isRelicAcknowledged(active, requiredRole));
+    if (waitingFor.length > 0) return { accepted: true, waitingFor };
     return this.resolveRelicReveal(nowMs) ? { accepted: true } : { accepted: false, reason: 'terminal' };
+  }
+
+  refreshRelicAcknowledgementGate(requiredRoles: SelectionRole[], nowMs: number): boolean {
+    const active = this.ctx.state.teamProgression.activeSelection;
+    if (!active || active.kind !== 'relic' || active.resolved) return false;
+    const required = [...new Set(requiredRoles)];
+    if (required.length === 0 || required.some((role) => !isRelicAcknowledged(active, role))) return false;
+    return this.resolveRelicReveal(nowMs);
+  }
+
+  /** Backwards-compatible Single Player/test facade. */
+  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+    return this.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], nowMs);
   }
 
   private resolveRelicReveal(nowMs: number): boolean {
@@ -596,10 +639,9 @@ export class ProgressionSystem {
     const monster = enemy?.monster;
     if (monster) monster.chestRewardResolved = true;
     const ownership = enemy.ownership;
-    const rewardClass: 'ambient' | 'wave' | 'elite' | 'boss' = monster?.rewardClass
-      ?? (ownership?.populationClass === 'special' ? 'elite' : ownership?.populationClass ?? 'ambient');
+    const rewardClass = normalizedEnemyClass(enemy);
     const isBoss = rewardClass === 'boss';
-    const isLeader = !isBoss && ownership?.leaderId === payload.enemy.id;
+    const isLeader = !isBoss && isWaveLeader(enemy);
 
     if (monster) {
       if (!monster.xpAwarded) {
@@ -622,7 +664,15 @@ export class ProgressionSystem {
     }
 
     if (isLeader && this.chestPolicy?.enemyDropRates.leaderGuaranteed) {
-      if (this.spawnRewardChest('waveClear', payload.enemy.x, payload.enemy.z)) this.telemetry.leaderChestsSpawned++;
+      const waveId = ownership?.waveId ?? -payload.enemy.id;
+      const runtime = waveId >= 0 ? this.ctx.waves.waves.get(waveId) : undefined;
+      const finalLeader = !runtime || runtime.state === 'complete';
+      if (finalLeader && !this.leaderChestRewardedWaveIds.has(waveId)) {
+        if (this.spawnRewardChest('waveClear', payload.enemy.x, payload.enemy.z, true)) {
+          this.leaderChestRewardedWaveIds.add(waveId);
+          this.telemetry.leaderChestsSpawned++;
+        }
+      }
       this.ctx.eventBus.emit('progressionEvent', {
         type: 'reward',
         payload: { kind: 'waveLeaderKilled', waveId: ownership?.waveId ?? undefined, leaderEnemyId: payload.enemy.id } satisfies ProgressionRewardEvent,
@@ -648,6 +698,7 @@ export class ProgressionSystem {
       });
     }
     this.dispatchTrigger({ type: 'enemyKilled', enemyId: payload.enemy.id, source: payload.source, weaponId: payload.weaponId });
+    this.registry.removeEnemy(payload.enemy.id);
   }
 
   private resolveRandomEnemyChest(rewardClass: 'ambient' | 'wave' | 'elite' | 'boss', x: number, z: number): void {
@@ -660,8 +711,8 @@ export class ProgressionSystem {
     this.telemetry.enemyDropChestsSpawned++;
   }
 
-  private spawnRewardChest(source: 'enemyDrop' | 'waveClear', x: number, z: number): TreasureChestState | null {
-    const placement = this.chestSpawnDirector?.enemyDropPlacement({ x, z }, this.ctx.state.chests);
+  private spawnRewardChest(source: 'enemyDrop' | 'waveClear', x: number, z: number, guaranteed = false): TreasureChestState | null {
+    const placement = this.chestSpawnDirector?.enemyDropPlacement({ x, z }, this.ctx.state.chests, guaranteed);
     if (!placement) return null;
     return this.createChest(source, placement.x, placement.z, placement.y - 0.4);
   }
@@ -685,13 +736,13 @@ export class ProgressionSystem {
     }
   }
 
-  private onDamageApplied(payload: { targetId: number | string; targetKind: string; source: DamageSource; weaponId?: string }): void {
+  private onDamageApplied(payload: { targetId: number | string; targetKind: string; amount: number; source: DamageSource; weaponId?: string }): void {
     if (!this.isEnabled) return;
     this.dispatchTrigger({
       type: 'damageApplied',
       targetId: payload.targetId,
       targetKind: payload.targetKind,
-      amount: 0,
+      amount: payload.amount,
       source: payload.source,
       weaponId: payload.weaponId,
     });
@@ -699,9 +750,20 @@ export class ProgressionSystem {
 
   private onWaveEvent(payload: { type: string; waveId: number }): void {
     if (!this.isEnabled) return;
-    if (payload.type !== 'wavePurged') return;
-    this.dispatchTrigger({ type: 'waveCleared', waveId: payload.waveId });
-    this.telemetry.levelsPerStage += 0;
+    // Purge is cleanup, not a semantic wave-clear relic trigger.
+    void payload;
+  }
+
+  private onStageEvent(payload: StageEvent): void {
+    if (!this.isEnabled || payload.type !== 'waveCleared' || payload.waveId === undefined) return;
+    this.dispatchWaveCleared(payload.waveId);
+  }
+
+  private dispatchWaveCleared(waveId: number): void {
+    if (this.clearedWaveTriggerIds.has(waveId)) return;
+    this.clearedWaveTriggerIds.add(waveId);
+    if (this.inventory.has('relic.safe_haven')) this.lastSafeHavenWaveId = waveId;
+    this.dispatchTrigger({ type: 'waveCleared', waveId });
   }
 
   // ---------------------------------------------------------- triggers
@@ -717,7 +779,7 @@ export class ProgressionSystem {
         if (!template) continue;
         const handler = this.registry.resolve(template.effectType);
         if (!handler) continue;
-        handler.handle(event, this.ctx, relic, stacks, { ...(template.parameters ?? {}), ...(effect.parameters ?? {}) }, this.telemetry);
+        handler.handle(event, this.ctx, relic, stacks, resolveRelicEffectParameters(template, effect), this.telemetry);
       }
     }
   }
@@ -729,9 +791,6 @@ export class ProgressionSystem {
 
   notifyDash(): void {
     if (!this.isEnabled) return;
-    if (this.inventory.has('relic.phase_dash')) {
-      this.phaseDashUntil = this.ctx.state.time + this.ctx.rules.config.tank.dashPresentationSeconds;
-    }
   }
 
   notifyDashHit(enemyId: number): void {
@@ -756,48 +815,53 @@ export class ProgressionSystem {
 
   notifyWaveCleared(waveId: number): void {
     if (!this.isEnabled) return;
-    this.dispatchTrigger({ type: 'waveCleared', waveId });
+    this.dispatchWaveCleared(waveId);
+  }
+
+  notifyCannonHit(enemyId: number): void {
+    if (!this.isEnabled) return;
+    this.dispatchTrigger({ type: 'cannonHit', enemyId });
   }
 
   // ------------------------------------------------------------ damage
-  modifyEnemyDamage(amount: number, source: DamageSource, ctx2: { airborne: boolean; enemy: EnemyState }): number {
+  modifyEnemyDamage(amount: number, source: DamageSource, ctx2: { enemy: EnemyState; weaponId?: string }): number {
     if (!this.isEnabled) return amount;
     const m = this.projector.reproject(this.ctx.state.teamProgression);
     let multiplier = 1 + m.outgoingPercent / 100;
-    if (ctx2.airborne) multiplier *= 1 + m.airbornePercent / 100;
-    const ownership = ctx2.enemy.ownership;
-    const cls = ownership?.populationClass;
-    const isEliteOrBoss =
-      cls === 'boss' || (cls === 'wave' && ownership !== undefined && ownership.leaderId === ctx2.enemy.id);
+    if (!this.ctx.state.tank.grounded && isGunnerWeaponDamage(source)) {
+      multiplier *= 1 + m.airbornePercent / 100;
+    }
+    const cls = normalizedEnemyClass(ctx2.enemy);
+    const isEliteOrBoss = cls === 'elite' || cls === 'boss' || isWaveLeader(ctx2.enemy);
     if (isEliteOrBoss) multiplier *= 1 + m.eliteBossPercent / 100;
     if (this.ctx.state.tank.integrity / Math.max(1, this.ctx.rules.resolver.resolve('tank.maxIntegrity')) <= 0.3) {
       multiplier *= 1 + m.lastResortPercent / 100;
     }
     const debuff = this.registry.debuffFor(ctx2.enemy.id, this.ctx.state.time);
     multiplier *= 1 + debuff.vulnPercent / 100;
-    void source;
+    void ctx2.weaponId;
     return amount * multiplier;
   }
 
   modifyTankDamage(amount: number, source: DamageSource): number {
     if (!this.isEnabled) return amount;
     const t = this.ctx.state.tank;
-    if (this.phaseDashUntil > this.ctx.state.time) return 0;
+    if (this.inventory.has('relic.phase_dash') && t.dashState !== undefined && t.dashState !== 'inactive') return 0;
     const m = this.projector.reproject(this.ctx.state.teamProgression);
-    let multiplier = 1 + m.incomingPercent / 100;
-    if (source === 'cannon') multiplier *= 1 + m.cannonSelfPercent / 100;
+    let multiplier = Math.max(0, 1 - m.incomingPercent / 100);
+    if (isCannonSelfDamage(source)) multiplier *= Math.max(0, 1 - m.cannonSelfPercent / 100);
     const speed = Math.hypot(t.vx, t.vz);
     const maxSpeed = this.ctx.rules.resolver.resolve('tank.forwardSpeed');
-    if (speed >= maxSpeed) multiplier *= 1 + m.momentumPercent / 100;
+    if (speed >= maxSpeed) multiplier *= Math.max(0, 1 - m.momentumPercent / 100);
     const ratio = t.integrity / Math.max(1, this.ctx.rules.resolver.resolve('tank.maxIntegrity'));
-    if (ratio <= 0.5) multiplier *= 1 + m.ironWillPercent / 100;
+    if (ratio <= 0.5) multiplier *= Math.max(0, 1 - m.ironWillPercent / 100);
     return Math.max(0, amount * multiplier);
   }
 
   enemySpeedMultiplier(e: EnemyState): number {
     if (!this.isEnabled) return 1;
     const d = this.registry.debuffFor(e.id, this.ctx.state.time);
-    return 1 - d.speedPercent / 100;
+    return Math.max(0, 1 - d.speedPercent / 100);
   }
 
   // --------------------------------------------------------- roadkill
@@ -807,9 +871,10 @@ export class ProgressionSystem {
     if (!relic) return null;
     const stacks = this.inventory.getStack('relic.roadkill');
     if (stacks <= 0) return null;
-    const template = relic.effects.find((e) => e.templateId === 'relicEffect.roadkill');
-    const params = template?.parameters as Record<string, unknown> | undefined;
-    if (!params) return null;
+    const effect = relic.effects.find((e) => e.templateId === 'relicEffect.roadkill');
+    const template = effect ? this.ctx.rules.relicEffectTemplatesById.get(effect.templateId) : undefined;
+    if (!effect || !template) return null;
+    const params = resolveRelicEffectParameters(template, effect);
     return {
       capability: 'tank.roadkillContact',
       stacks,
@@ -836,7 +901,9 @@ export class ProgressionSystem {
     if (!this.isEnabled) return 1;
     const relic = this.ctx.rules.relicsById.get('relic.twin_shell');
     if (!relic || this.inventory.getStack('relic.twin_shell') <= 0) return 1;
-    const params = relic.effects.find((e) => e.templateId === 'relicEffect.twinShell')?.parameters as Record<string, unknown> | undefined;
+    const effect = relic.effects.find((e) => e.templateId === 'relicEffect.twinShell');
+    const template = effect ? this.ctx.rules.relicEffectTemplatesById.get(effect.templateId) : undefined;
+    const params = effect && template ? resolveRelicEffectParameters(template, effect) : undefined;
     return (params?.cooldownMultiplier as number) ?? 1;
   }
 
@@ -867,7 +934,7 @@ export class ProgressionSystem {
       driverReady: s.teamProgression.activeSelection?.driverSelection !== undefined,
       gunnerReady: s.teamProgression.activeSelection?.gunnerSelection !== undefined,
       timeoutMs: s.teamProgression.activeSelection
-        ? Math.max(0, s.teamProgression.activeSelection.expiresAtWallMs - Date.now())
+        ? Math.max(0, (s.teamProgression.activeSelection.expiresAtWallMs ?? Date.now()) - Date.now())
         : 0,
       chestsOpened: s.teamProgression.treasureChestsOpened,
       relicStacks: { ...s.teamProgression.relicStacks },
@@ -880,12 +947,46 @@ export class ProgressionSystem {
         threshold: roadkill?.minimumSpeedRatio ?? 1,
         lastDamage: this.lastRoadkill.damage,
       },
+      capabilitySources: this.ctx.capabilities.debugSources(),
+      movement: {
+        grounded: t.grounded,
+        extraJumpsRemaining: t.airJumpsRemaining ?? 0,
+        airDashReuseRemaining: t.airDashReuseRemaining ?? 0,
+        dashState: t.dashState ?? 'inactive',
+        phaseDashInvulnerable: this.inventory.has('relic.phase_dash') && t.dashState !== undefined && t.dashState !== 'inactive',
+      },
+      triggers: {
+        phoenixConsumed: this.registry.wasConsumed('relic.phoenix_core'),
+        safeHavenLastWaveId: this.lastSafeHavenWaveId,
+        activeEnemyDebuffs: this.registry.size(),
+        aerialMasterEligible: this.inventory.has('relic.aerial_master') && !t.grounded,
+      },
+      lastRelicResult: s.teamProgression.lastRelicResult
+        ? {
+            acquisitionSequence: s.teamProgression.lastRelicResult.acquisitionSequence,
+            relicId: s.teamProgression.lastRelicResult.relicId,
+            duplicateConverted: s.teamProgression.lastRelicResult.duplicateConverted,
+            replacementXp: s.teamProgression.lastRelicResult.replacementXp,
+          }
+        : null,
     };
   }
 }
 
 function emptyCurve(): LevelCurveDefinition {
   return { id: 'levelCurve.empty', label: 'Empty', thresholds: [20], overflowRule: 'cap' as const, behaviors: [] };
+}
+
+function setRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): void {
+  if (role === 'single') active.singlePlayerRelicAcknowledged = true;
+  else if (role === 'driver') active.driverRelicAcknowledged = true;
+  else active.gunnerRelicAcknowledged = true;
+}
+
+function isRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): boolean {
+  if (role === 'single') return active.singlePlayerRelicAcknowledged === true;
+  if (role === 'driver') return active.driverRelicAcknowledged === true;
+  return active.gunnerRelicAcknowledged === true;
 }
 
 function emptyDefinition(): ProgressionDefinition {
@@ -904,7 +1005,6 @@ function emptyDefinition(): ProgressionDefinition {
     singlePlayerPolicyId: 'progressionMode.singlePlayer',
     relicChestSpawnPolicyId: 'relicChestSpawn.empty',
     enemyXpRewards: { ambient: 0, wave: 0, elite: 0, boss: 0 },
-    enemyChestDropChance: 0,
     duplicateUniqueRelicXp: 0,
   };
 }

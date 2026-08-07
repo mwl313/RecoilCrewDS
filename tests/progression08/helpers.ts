@@ -65,6 +65,6 @@ export function completeRelicReveal(m: MatchRuntime): void {
   if (!active?.relicResult) return;
   m.skipProgressionRelic(
     active.relicResult.acquisitionSequence,
-    (active.revealMinimumSkipAtWallMs ?? 0) + 1,
+    (active.continueAllowedAtWallMs ?? 0) + 1,
   );
 }

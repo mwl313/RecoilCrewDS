@@ -39,7 +39,9 @@ export interface ProgressionSelectionState {
   offerId: string;
   kind: 'upgrade' | 'relic';
   level: number;
-  expiresAtWallMs: number;
+  /** Upgrade auto-pick deadline. Absent for acknowledgement-gated relics. */
+  expiresAtWallMs?: number;
+  offerStartedAtWallMs?: number;
   driverOffer?: UpgradeCard[];
   gunnerOffer?: UpgradeCard[];
   singlePlayerOffer?: UpgradeCard[];
@@ -49,8 +51,11 @@ export interface ProgressionSelectionState {
   singlePlayerSelection?: number;
   resolved: boolean;
   /** Relic reveal fields (kind === 'relic'). */
-  revealDeadlineWallMs?: number;
-  revealMinimumSkipAtWallMs?: number;
+  revealStartedAtWallMs?: number;
+  continueAllowedAtWallMs?: number;
+  singlePlayerRelicAcknowledged?: boolean;
+  driverRelicAcknowledged?: boolean;
+  gunnerRelicAcknowledged?: boolean;
   chestId?: number;
   relicOffer?: RelicRewardOffer;
   applied?: boolean;

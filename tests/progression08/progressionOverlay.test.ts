@@ -15,6 +15,10 @@ interface FakeSelection {
   kind: 'upgrade' | 'relic';
   level: number;
   expiresAtWallMs: number;
+  revealStartedAtWallMs?: number;
+  continueAllowedAtWallMs?: number;
+  driverRelicAcknowledged?: boolean;
+  gunnerRelicAcknowledged?: boolean;
   driverOffer?: Array<{ cardId: string; categoryId: string; rarity: string; rolledEffects: Array<{ statId: string; operation: 'multiply' | 'add'; value: number }> }>;
   singlePlayerOffer?: FakeSelection['driverOffer'];
   driverSelection?: number;
@@ -88,6 +92,8 @@ function relicReveal(sequence: number, stack: number, duplicate = false): FakeSe
     kind: 'relic',
     level: 1,
     expiresAtWallMs: 20_000,
+    revealStartedAtWallMs: 0,
+    continueAllowedAtWallMs: 350,
     relicResult: {
       relicId: 'relic.magnet_core',
       rarity: 'common',
@@ -116,7 +122,7 @@ function mount(): {
   const skipped: number[] = [];
   const overlay = new ProgressionOverlay(container, {
     selectUpgrade: (index) => selected.push(index),
-    skipRelicPresentation: () => skipped.push(1),
+    acknowledgeRelic: () => skipped.push(1),
     relicInfo: (id) =>
       id === 'relic.magnet_core'
         ? { label: 'MAGNET CORE', description: 'XP magnet radius +50% per stack.' }
@@ -138,9 +144,9 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
       teamProgression: { activeSelection: relicReveal(1, 1) },
     });
     overlay.update(state, 'single', 0);
-    expect(root.style.display).not.toBe('none');
-    expect(selectionHost.style.display).toBe('none');
-    expect(relicHost.style.display).not.toBe('none');
+    expect(root.hidden).toBe(false);
+    expect(selectionHost.hidden).toBe(true);
+    expect(relicHost.hidden).toBe(false);
     expect(relicHost.textContent).toContain('MAGNET CORE');
     expect(relicHost.textContent).toContain('×1');
     expect(relicHost.textContent).toContain('XP magnet radius +50% per stack.');
@@ -149,25 +155,25 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
   it('hiding the selection layer does not destroy an active relic presentation', () => {
     const { overlay, selectionHost, relicHost } = mount();
     overlay.update(fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } }), 'single', 0);
-    expect(selectionHost.style.display).not.toBe('none');
+    expect(selectionHost.hidden).toBe(false);
     overlay.update(fakeState({ matchFlow: 'relicSelection', teamProgression: { activeSelection: relicReveal(1, 1) } }), 'single', 1);
-    expect(selectionHost.style.display).toBe('none');
+    expect(selectionHost.hidden).toBe(true);
     expect(relicHost.textContent).toContain('MAGNET CORE');
     overlay.update(fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } }), 'single', 2);
-    expect(selectionHost.style.display).not.toBe('none');
+    expect(selectionHost.hidden).toBe(false);
     expect(relicHost.textContent).toContain('MAGNET CORE');
   });
 
-  it('timer text updates live without rebuilding card DOM', () => {
+  it('subtle final-three-second fuse updates without rebuilding card DOM', () => {
     const { overlay, selectionHost } = mount();
     const state = fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } });
     overlay.update(state, 'single', 0);
     const timer = selectionHost.querySelector('[data-progression-timer]')!;
-    expect(timer.textContent).toContain('10s');
+    expect(timer.textContent).toBe('');
     const firstButton = selectionHost.querySelectorAll('button')[0];
     const buttonCount = selectionHost.querySelectorAll('button').length;
-    overlay.update(state, 'single', 3000);
-    expect(timer.textContent).toContain('7s');
+    overlay.update(state, 'single', 8000);
+    expect(timer.textContent).toContain('AUTO 2');
     expect(selectionHost.querySelectorAll('button').length).toBe(buttonCount);
     expect(selectionHost.querySelectorAll('button')[0]).toBe(firstButton);
   });
@@ -183,12 +189,17 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
     expect(relicHost.textContent).toContain('MAGNET CORE');
   });
 
-  it('duplicate conversion presentation is visible', () => {
-    const { overlay, relicHost } = mount();
-    const state = fakeState({ matchFlow: 'relicSelection', teamProgression: { activeSelection: relicReveal(3, 1, true) } });
+  it('has no relic countdown and early input fast-forwards without acknowledging', () => {
+    const { overlay, relicHost, skipped } = mount();
+    const state = fakeState({ matchFlow: 'relicSelection', teamProgression: { activeSelection: relicReveal(3, 1) } });
     overlay.update(state, 'single', 0);
-    expect(relicHost.textContent).toContain('DUPLICATE');
-    expect(relicHost.textContent).toContain('+250 XP');
+    expect(relicHost.textContent).not.toMatch(/auto\s+\d|skip\s+available/i);
+    overlay.handleInput({ dx: 0, actions: [{ kind: 'confirm' }] });
+    expect(skipped).toEqual([]);
+    expect(relicHost.dataset['phase']).toBe('revealed');
+    overlay.update(state, 'single', 300);
+    overlay.handleInput({ dx: 0, actions: [{ kind: 'confirm' }] });
+    expect(skipped).toEqual([1]);
   });
 
   it('local buttons disable after a selection is recorded', () => {
@@ -211,8 +222,22 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
   it('progression-disabled state creates no visible overlay', () => {
     const { overlay, root, selectionHost, relicHost } = mount();
     overlay.update(fakeState({}), 'single', 0);
-    expect(root.style.display).toBe('none');
-    expect(selectionHost.style.display).toBe('none');
-    expect(relicHost.style.display).toBe('none');
+    expect(root.hidden).toBe(true);
+    expect(selectionHost.hidden).toBe(true);
+    expect(relicHost.hidden).toBe(true);
+  });
+
+  it('single player omits peer status while Multiplayer reports real readiness', () => {
+    const { overlay, root } = mount();
+    const single = fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection('sp') } });
+    overlay.update(single, 'single', 2_000);
+    expect(root.querySelector('.reward-peer-status')).toBeNull();
+    const multiplayer = upgradeSelection('mp');
+    multiplayer.singlePlayerOffer = undefined;
+    multiplayer.driverOffer = upgradeSelection('source').singlePlayerOffer;
+    multiplayer.driverSelection = 1;
+    overlay.update(fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: multiplayer } }), 'driver', 3_000);
+    expect(root.textContent).toContain('YOU // READY');
+    expect(root.textContent).toContain('GUNNER // CHOOSING...');
   });
 });

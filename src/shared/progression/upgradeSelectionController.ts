@@ -35,7 +35,7 @@ export class UpgradeSelectionController {
   /** Deterministic timeout auto-pick for every unselected role. */
   autoPick(selection: ProgressionSelectionState, nowMs: number): SelectionRole[] {
     if (selection.resolved) return [];
-    if (nowMs < selection.expiresAtWallMs) return [];
+    if (selection.expiresAtWallMs === undefined || nowMs < selection.expiresAtWallMs) return [];
     const auto: SelectionRole[] = [];
     const rand = this.rng.stream('progression.timeoutAutopick');
     const roles: SelectionRole[] = this.roleSeparated ? ['driver', 'gunner'] : ['single'];
