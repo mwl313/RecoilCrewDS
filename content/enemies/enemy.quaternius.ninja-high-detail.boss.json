@@ -37,6 +37,7 @@
         "rate": 0.5,
         "range": 36,
         "projectileId": "projectile.enemyBoneShot",
+        "visualColor": "#BFC7D5",
         "telegraphTime": 0.9
       }
     ]

@@ -24,6 +24,7 @@
     "range": 32,
     "preferredRange": 12,
     "projectileId": "projectile.enemyBoneShot",
+    "visualColor": "#E6C78A",
     "telegraphTime": 0.7,
     "shotCount": 1
   },

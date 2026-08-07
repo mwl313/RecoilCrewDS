@@ -697,6 +697,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
             team: 'enemy',
             ownerEnemyId: e.id,
+            visualColor: attack.visualColor,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 1.2, e.z, { id: e.id, kind: 'enemy' });
@@ -784,6 +785,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
             team: 'enemy',
             ownerEnemyId: e.id,
+            visualColor: pattern.visualColor,
           },
         );
         pushEvent(ctx, 'towerFire', e.x, e.y + 2, e.z, { id: e.id, kind: 'boss' });

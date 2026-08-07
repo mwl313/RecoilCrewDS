@@ -17,6 +17,9 @@ const behaviorEntrySchema = z.object({
 });
 
 const cueNormalizedSchema = z.number().min(0).max(1).optional();
+const projectileVisualColorSchema = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/, 'projectile visual color must be a six-digit hex color');
 
 /** Ordinary melee attack: sustained contact DPS normalized over cadence. */
 const ordinaryMeleeAttackSchema = z.object({
@@ -37,6 +40,7 @@ const ordinaryRangedAttackSchema = z.object({
   range: positiveNumber,
   preferredRange: positiveNumber.optional(),
   projectileId: z.string().regex(/^projectile\./, 'projectile ref must start with projectile.'),
+  visualColor: projectileVisualColorSchema,
   telegraphTime: positiveNumber,
   shotCount: z.literal(1),
   attackCueNormalized: cueNormalizedSchema,
@@ -58,6 +62,7 @@ const bossPatternSchema = z.discriminatedUnion('type', [
     rate: positiveNumber,
     range: positiveNumber,
     projectileId: z.string().regex(/^projectile\./),
+    visualColor: projectileVisualColorSchema,
     telegraphTime: positiveNumber,
     attackCueNormalized: cueNormalizedSchema,
   }),

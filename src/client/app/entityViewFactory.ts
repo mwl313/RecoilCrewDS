@@ -28,6 +28,7 @@ import {
 import { applyMonsterScaleAndOffset } from './monsterTransform';
 import { DistantEnemyMotion } from '../animation/distantEnemyMotion';
 import { prepareMonsterMaterials } from '../materials/monsterMaterialPolicy';
+import { projectileVisualColors } from '../presentation/projectileColor';
 
 /**
  * Builds entity views by semantic asset id/category. Model child names are a
@@ -215,8 +216,9 @@ export class EntityViewFactory {
     const group = new THREE.Group();
     const charged = (sh.chargeRatio ?? 0) > 0;
     const ratio = Math.max(0, Math.min(1, sh.chargeRatio ?? 0));
+    const colors = projectileVisualColors(sh);
     const mat = new THREE.SpriteMaterial({
-      color: charged ? 0xfff2b0 : 0xffb45e,
+      color: colors.glow,
       transparent: true,
       opacity: 0.95,
       blending: THREE.AdditiveBlending,
@@ -226,11 +228,13 @@ export class EntityViewFactory {
     glow.scale.setScalar(0.7 + (sh.visualScale ?? (1 + ratio)) * 0.5);
     group.add(glow);
     if (charged) {
-      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8), new THREE.MeshBasicMaterial({ color: 0xfff7d0 })));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8), new THREE.MeshBasicMaterial({ color: colors.core })));
     } else if (sh.kind === 'tower') {
-      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff5a4a })));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: colors.core })));
+    } else if (sh.kind === 'enemy') {
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ color: colors.core })));
     } else {
-      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffcf8a })));
+      group.add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshBasicMaterial({ color: colors.core })));
     }
     scene.add(group);
     return { group, glow, kind: sh.kind };

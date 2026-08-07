@@ -24,6 +24,7 @@
     "range": 32,
     "preferredRange": 12,
     "projectileId": "projectile.enemySpitShot",
+    "visualColor": "#FFD23F",
     "telegraphTime": 0.7,
     "shotCount": 1
   },

@@ -37,6 +37,7 @@
         "rate": 0.4,
         "range": 40,
         "projectileId": "projectile.enemyFireball",
+        "visualColor": "#FF3B30",
         "telegraphTime": 1
       }
     ]

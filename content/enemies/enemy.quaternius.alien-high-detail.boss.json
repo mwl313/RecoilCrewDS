@@ -37,6 +37,7 @@
         "rate": 0.45,
         "range": 40,
         "projectileId": "projectile.enemySpitShot",
+        "visualColor": "#7CFF6B",
         "telegraphTime": 1
       }
     ]
