@@ -10,6 +10,11 @@ import {
 
 const DIRECTION_EPSILON = 1e-8;
 
+export const TPS_PARALLAX_SAFETY = {
+  softStart: (10 * Math.PI) / 180,
+  asymptoticLimit: (14 * Math.PI) / 180,
+} as const;
+
 export const TPS_VERTICAL_AIM_ASSIST = {
   pitchStartPitch: (70 * Math.PI) / 180,
   yawStartPitch: (78 * Math.PI) / 180,
@@ -40,6 +45,9 @@ export interface TpsWeaponAimDiagnostics {
   horizontalRatio: number;
   cameraHorizontalRatio: number;
   conditioningRatio: number;
+  parallaxDivergence: number;
+  parallaxOutputDivergence: number;
+  parallaxLimited: boolean;
   pitchAssistWeight: number;
   poleBlendWeight: number;
   poleActive: boolean;
@@ -64,6 +72,13 @@ export interface TpsWeaponAimInput {
 function smoothstep01(value: number): number {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
+}
+
+function compressParallaxDivergence(divergence: number): number {
+  if (divergence <= TPS_PARALLAX_SAFETY.softStart) return divergence;
+  const span = TPS_PARALLAX_SAFETY.asymptoticLimit - TPS_PARALLAX_SAFETY.softStart;
+  return TPS_PARALLAX_SAFETY.softStart
+    + span * (1 - Math.exp(-(divergence - TPS_PARALLAX_SAFETY.softStart) / span));
 }
 
 /**
@@ -93,12 +108,27 @@ export function resolveTpsWeaponAim(
   const cameraHorizontalRatio = Math.abs(Math.cos(input.cameraPitch));
   const conditioningRatio = Math.min(horizontalRatio, cameraHorizontalRatio);
 
-  const worldPitch = targetDistance > DIRECTION_EPSILON
+  const rawWorldPitch = targetDistance > DIRECTION_EPSILON
     ? Math.atan2(dy, horizontalDistance)
     : input.cameraPitch;
-  const worldYaw = horizontalDistance > DIRECTION_EPSILON
+  const rawWorldYaw = horizontalDistance > DIRECTION_EPSILON
     ? Math.atan2(dx, dz)
     : input.cameraYaw;
+  const pitchDelta = rawWorldPitch - input.cameraPitch;
+  const yawDelta = angleLerp(input.cameraYaw, rawWorldYaw, 1) - input.cameraYaw;
+  // Approximate the local angular cone. Yaw loses physical significance near
+  // a vertical pole, so weight it by the camera's horizontal component.
+  const weightedYawDelta = yawDelta * Math.abs(Math.cos(input.cameraPitch));
+  const parallaxDivergence = Math.hypot(pitchDelta, weightedYawDelta);
+  const parallaxOutputDivergence = compressParallaxDivergence(parallaxDivergence);
+  const parallaxScale = parallaxDivergence > DIRECTION_EPSILON
+    ? parallaxOutputDivergence / parallaxDivergence
+    : 1;
+  // Normal terrain following is byte-for-byte equivalent below 10°. Beyond
+  // that, close-wall parallax is compressed continuously toward a 14° cone
+  // rather than snapping to a separate aiming mode.
+  const worldPitch = input.cameraPitch + pitchDelta * parallaxScale;
+  const worldYaw = wrapAngle(input.cameraYaw + yawDelta * parallaxScale);
   const absoluteCameraPitch = Math.abs(input.cameraPitch);
   const pitchAssistT = (
     absoluteCameraPitch - TPS_VERTICAL_AIM_ASSIST.pitchStartPitch
@@ -152,6 +182,9 @@ export function resolveTpsWeaponAim(
       horizontalRatio,
       cameraHorizontalRatio,
       conditioningRatio,
+      parallaxDivergence,
+      parallaxOutputDivergence,
+      parallaxLimited: parallaxScale < 1 - 1e-8,
       pitchAssistWeight,
       poleBlendWeight,
       poleActive: state.poleActive,

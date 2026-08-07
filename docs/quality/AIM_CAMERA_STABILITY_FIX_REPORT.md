@@ -121,6 +121,16 @@ vectors from cancelling into a near-zero horizontal vector and accelerating
 
 Tests cover flat ground, a slope, raised roof/ramp-like surfaces, and terrain-before-collider/collider-before-terrain ordering. The same actual ground callback is used by the trajectory reticle and terrain-safe muzzle path.
 
+### Close-parallax safety envelope
+
+Terrain following remains exact while the terrain-derived barrel direction is
+within 10° of camera intent. Beyond 10°, divergence is compressed continuously
+toward an asymptotic 14° limit. This is a soft geometric envelope, not a new
+aim mode or a temporal filter: there is no threshold snap, ordinary slope aim
+is unchanged, and the reticle still reports the real predicted impact. Because
+the envelope is centered on camera intent, deliberate vertical rocket-jump
+aiming retains the existing exact-pole assist.
+
 ## RAF ownership and pointer-lock hardening
 
 - `GameClient` consumes mouse input every active gameplay RAF, outside presenter sync.

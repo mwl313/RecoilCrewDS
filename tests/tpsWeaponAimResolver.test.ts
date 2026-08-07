@@ -5,6 +5,7 @@ import { computeAimPivotWorld } from '../src/shared/vehicle/tankRigGeometry';
 import {
   resolveTpsWeaponAim,
   TPS_AIM_POLE_THRESHOLDS,
+  TPS_PARALLAX_SAFETY,
   TPS_VERTICAL_AIM_ASSIST,
   type TpsWeaponAimState,
 } from '../src/client/aim/tpsWeaponAimResolver';
@@ -110,6 +111,63 @@ describe('pole-safe TPS weapon aim resolver', () => {
     expect(result.diagnostics.poleActive).toBe(false);
     expect(result.diagnostics.poleBlendWeight).toBe(0);
     expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(0.8, 6);
+  });
+
+  it('soft-limits extreme close-cover parallax without discarding terrain intent', () => {
+    const pivot = computeAimPivotWorld(tank, DEFAULT_TANK_RIG);
+    const cameraYaw = 0;
+    const cameraPitch = 0.08;
+    const result = resolveTpsWeaponAim({
+      tank,
+      rig: DEFAULT_TANK_RIG,
+      worldTarget: { x: pivot.x, y: pivot.y + 8, z: pivot.z + 0.1 },
+      cameraYaw,
+      cameraPitch,
+      limits,
+    }, { poleActive: false });
+
+    expect(result.desiredPitch).toBeGreaterThan(cameraPitch);
+    expect(result.desiredPitch - cameraPitch).toBeLessThan(TPS_PARALLAX_SAFETY.asymptoticLimit);
+    expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(cameraYaw, 6);
+    expect(result.diagnostics.parallaxLimited).toBe(true);
+  });
+
+  it('leaves ordinary terrain parallax unchanged below the soft limit', () => {
+    const cameraYaw = 0.4;
+    const cameraPitch = 0.05;
+    const terrainPitch = cameraPitch + (8 * Math.PI) / 180;
+    const result = resolveTpsWeaponAim({
+      tank,
+      rig: DEFAULT_TANK_RIG,
+      worldTarget: targetOnIntent(cameraYaw, terrainPitch),
+      cameraYaw,
+      cameraPitch,
+      limits,
+    }, { poleActive: false });
+
+    expect(result.desiredPitch).toBeCloseTo(terrainPitch, 6);
+    expect(result.diagnostics.resolvedWorldYaw).toBeCloseTo(cameraYaw, 6);
+    expect(result.diagnostics.parallaxLimited).toBe(false);
+  });
+
+  it('enters the parallax safety envelope continuously without a threshold snap', () => {
+    const cameraYaw = 0;
+    const cameraPitch = 0;
+    let previousPitch = 0;
+    for (let degree = 0.25; degree <= 89; degree += 0.25) {
+      const result = resolveTpsWeaponAim({
+        tank,
+        rig: DEFAULT_TANK_RIG,
+        worldTarget: targetOnIntent(cameraYaw, degree * Math.PI / 180),
+        cameraYaw,
+        cameraPitch,
+        limits,
+      }, { poleActive: false });
+      expect(result.desiredPitch).toBeGreaterThanOrEqual(previousPitch - 1e-9);
+      expect(result.desiredPitch - previousPitch).toBeLessThan(0.005);
+      expect(result.desiredPitch).toBeLessThan(TPS_PARALLAX_SAFETY.asymptoticLimit);
+      previousPitch = result.desiredPitch;
+    }
   });
 
   it('enters a continuous assist and reaches exact vertical before the visual pole', () => {

@@ -120,6 +120,32 @@ describe('trajectory reticle projection', () => {
     expect(r.worldPoint.z).toBeLessThanOrEqual(9);
   });
 
+  it('marks a blocker containing the muzzle instead of projecting to the sky', () => {
+    const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
+    const query = buildCameraCollisionIndex([boxCollider([-2, 0, 2.7], [2, 4, 3.2])]);
+    const r = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0 },
+      { x: 0, y: 2, z: 3.1 },
+      query,
+    );
+    expect(r.blocked).toBe(true);
+    expect(r.worldPoint.z).toBeLessThanOrEqual(3.21);
+  });
+
+  it('honors a sub-metre desired range instead of using the 90-metre fallback', () => {
+    const cam = cameraAt([0, 2.5, -6], [0, 2, 20]);
+    const r = project(
+      cam,
+      { x: 0, y: 0, z: 0, yaw: 0 },
+      { yaw: 0, pitch: 0 },
+      { x: 0, y: 0.75, z: 3.1 },
+    );
+    expect(r.worldPoint.z).toBeGreaterThanOrEqual(3);
+    expect(r.worldPoint.z).toBeLessThan(3.2);
+  });
+
   it('accounts for cannon gravity instead of projecting a straight ray', () => {
     const cam = cameraAt([0, 2.5, -6], [0, 2, 45]);
     const noGravity = project(

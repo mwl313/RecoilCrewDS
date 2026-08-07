@@ -210,6 +210,14 @@ export interface TankState {
   shieldedT: number;
   deadT: number;
   grounded: boolean;
+  /** Remaining airborne jump inputs in the current airborne cycle. */
+  airJumpsRemaining?: number;
+  /** Last resolved extra-jump capacity, used for deterministic mid-air grants. */
+  airJumpCapacity?: number;
+  /** Remaining cooldown-bypass Dash uses in the current airborne cycle. */
+  airDashReuseRemaining?: number;
+  /** Last resolved reuse capacity (currently capability-clamped to one). */
+  airDashReuseCapacity?: number;
   drift: boolean;
   /** Landing momentum grace window (seconds); affects grip while > 0. */
   landingGripT?: number;
