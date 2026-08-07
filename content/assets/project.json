@@ -7,6 +7,14 @@
       "kind": "model",
       "namespace": "custom",
       "file": "/assets/models/items/relic-chest/relic-chest.glb",
+      "defaultTransform": {
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 0],
+        "scale": [2, 2, 2]
+      },
+      "collider": {
+        "radius": 1
+      },
       "sockets": [
         {
           "id": "GlowOrigin",

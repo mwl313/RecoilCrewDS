@@ -3,7 +3,7 @@
   "label": "Default XP Shard Pickup",
   "life": 30,
   "magnet": {
-    "baseRadius": 5,
+    "baseRadius": 10,
     "minimumPullSpeed": 4,
     "maximumPullSpeed": 18,
     "accelerationExponent": 1.5,

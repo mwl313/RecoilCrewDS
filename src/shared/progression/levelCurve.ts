@@ -18,21 +18,27 @@ export function applyXp(
   amount: number,
 ): LevelCurveResult {
   let lvl = Math.max(1, level);
-  let xp = currentXp + amount;
+  let xp = Math.max(0, currentXp + amount);
   let pending = 0;
-  let thresholdIndex = Math.max(0, lvl - 1);
+  const maximumLevel = curve.maximumLevel ?? Number.POSITIVE_INFINITY;
   let guard = 0;
-  while (thresholdIndex < curve.thresholds.length && xp >= curve.thresholds[thresholdIndex] && guard++ < 100) {
-    xp -= curve.thresholds[thresholdIndex];
-    lvl++;
-    pending++;
-    thresholdIndex++;
-    if (curve.maximumLevel && lvl >= curve.maximumLevel) {
+
+  while (lvl < maximumLevel && guard++ < 1_000) {
+    const thresholdIndex = Math.max(0, lvl - 1);
+    if (curve.overflowRule === 'cap' && thresholdIndex >= curve.thresholds.length) {
       xp = 0;
       break;
     }
+
+    const threshold = nextThreshold(curve, lvl);
+    if (xp < threshold) break;
+
+    xp -= threshold;
+    lvl++;
+    pending++;
   }
-  if (curve.overflowRule === 'cap' && thresholdIndex >= curve.thresholds.length) {
+
+  if (lvl >= maximumLevel) {
     xp = 0;
   }
   return {
@@ -49,7 +55,8 @@ export function nextThreshold(curve: LevelCurveDefinition, level: number): numbe
   if (curve.overflowRule === 'repeatLastDelta' && curve.thresholds.length >= 2) {
     const last = curve.thresholds[curve.thresholds.length - 1];
     const prev = curve.thresholds[curve.thresholds.length - 2];
-    return Math.max(1, last + (last - prev));
+    const overflowSteps = index - curve.thresholds.length + 1;
+    return Math.max(1, last + (last - prev) * overflowSteps);
   }
   return curve.thresholds[curve.thresholds.length - 1] ?? 1;
 }

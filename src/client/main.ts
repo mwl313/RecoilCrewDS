@@ -862,6 +862,7 @@ if (TEST_MODE) {
     predictionDebug: () => game?.predictionDebug() ?? null,
     progression: {
       xp: (value: number) => game?.singlePlayerMatch?.runtime.systems.progression.addXp(value),
+      chestViews: () => game?.relicChestDiagnostics() ?? [],
       submitUpgrade: (index: number) => game?.submitUpgrade(index),
       chest: (x: number, z: number) =>
         game?.singlePlayerMatch?.runtime.systems.progression.spawnChest('map', x, z)?.id ?? 0,

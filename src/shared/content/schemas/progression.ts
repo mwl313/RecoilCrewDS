@@ -353,6 +353,8 @@ export const progressionDefinitionSchema = z
       })
       .strict(),
     enemyChestDropChance: probability,
+    mapChestCount: z.number().int().nonnegative(),
+    mapChestMinSpawnDistance: nonNegativeNumber,
     duplicateUniqueRelicXp: positiveNumber,
   })
   .strict();

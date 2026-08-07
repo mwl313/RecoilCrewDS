@@ -16,6 +16,7 @@ import { createProgressionTelemetry, type ProgressionTelemetry } from './progres
 import type { DamageSource } from '../damage/damageTypes';
 import { hash32 } from '../mapgen/seed';
 import type { LevelCurveDefinition, ProgressionDefinition } from '../content/schemas/progression';
+import { TREASURE_CHEST_COLLISION_RADIUS } from './treasureChestGeometry';
 
 export interface ProgressionDebugState {
   flow: string;
@@ -88,6 +89,7 @@ export class ProgressionSystem {
       ctx.eventBus.subscribe('entity.killed', (payload) => this.onEntityKilled(payload as { enemy: { id: number; x: number; y: number; z: number }; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('damage.applied', (payload) => this.onDamageApplied(payload as { targetId: number | string; targetKind: string; amount: number; source: DamageSource; weaponId?: string }));
       ctx.eventBus.subscribe('waveEvent', (payload) => this.onWaveEvent(payload as { type: string; waveId: number }));
+      this.spawnInitialMapChests(def!);
     }
   }
 
@@ -330,6 +332,63 @@ export class ProgressionSystem {
       this.grantXp(acquire.replacementXp, 'duplicateRelic', { x: chest.x, y: chest.y, z: chest.z });
     }
     return roll;
+  }
+
+  /**
+   * Authoritative sphere pickup. This deliberately uses full 3D distance,
+   * so a tank passing above a chest does not hit an infinitely tall box.
+   */
+  updateChestProximity(nowMs: number): boolean {
+    const s = this.ctx.state;
+    if (!this.isEnabled || s.matchFlow !== 'playing') return false;
+    const tankRadius = this.ctx.rules.resolver.resolve('tank.collisionRadius');
+    const tankCenterY = s.tank.y + tankRadius * 0.65;
+    const pickupRadius = tankRadius + TREASURE_CHEST_COLLISION_RADIUS;
+    for (const chest of s.chests) {
+      if (chest.opened) continue;
+      const dx = chest.x - s.tank.x;
+      const dy = chest.y - tankCenterY;
+      const dz = chest.z - s.tank.z;
+      if (dx * dx + dy * dy + dz * dz > pickupRadius * pickupRadius) continue;
+      return this.openChest(chest.id, nowMs) !== null;
+    }
+    return false;
+  }
+
+  private spawnInitialMapChests(definition: ProgressionDefinition): void {
+    const count = definition.mapChestCount;
+    if (count <= 0) return;
+    const t = this.ctx.state.tank;
+    const minimumDistance = definition.mapChestMinSpawnDistance;
+    const unique = new Map<string, { x: number; z: number }>();
+    const nearbyRadius = Math.max(minimumDistance, TREASURE_CHEST_COLLISION_RADIUS * 4);
+    // Put the first candidate directly in front of the initial chassis and
+    // fan the rest around it. These deterministic nearby candidates make
+    // map chests discoverable instead of hiding all of them at enemy gates
+    // hundreds of metres away.
+    for (const angle of [0, Math.PI / 2, -Math.PI / 2, Math.PI, Math.PI / 4, -Math.PI / 4, Math.PI * 0.75, -Math.PI * 0.75]) {
+      const point = {
+        x: t.x + Math.sin(angle) * nearbyRadius,
+        z: t.z + Math.cos(angle) * nearbyRadius,
+      };
+      if (this.ctx.world.resolveCircle(point.x, point.z, TREASURE_CHEST_COLLISION_RADIUS).hit) continue;
+      unique.set(`${point.x.toFixed(3)}:${point.z.toFixed(3)}`, point);
+    }
+    for (const point of [
+      ...this.ctx.world.towerSpots,
+      ...this.ctx.world.bugSpawns,
+      ...this.ctx.world.spawnPoints.slice(1),
+    ]) {
+      if (Math.hypot(point.x - t.x, point.z - t.z) < minimumDistance) continue;
+      if (this.ctx.world.obstacleAt(point.x, point.z)) continue;
+      unique.set(`${point.x.toFixed(3)}:${point.z.toFixed(3)}`, point);
+    }
+
+    const candidates = [...unique.values()];
+    for (let i = 0; i < count && candidates.length > 0; i++) {
+      const point = candidates.shift()!;
+      this.spawnChest('map', point.x, point.z);
+    }
   }
 
   /** Start the authoritative shared relic reveal (result is already fixed). */
@@ -696,6 +755,8 @@ function emptyDefinition(): ProgressionDefinition {
     singlePlayerPolicyId: 'progressionMode.singlePlayer',
     enemyXpRewards: { ambient: 0, wave: 0, elite: 0, boss: 0 },
     enemyChestDropChance: 0,
+    mapChestCount: 0,
+    mapChestMinSpawnDistance: 0,
     duplicateUniqueRelicXp: 0,
   };
 }

@@ -90,15 +90,22 @@ describe('relic chest runtime GLB', () => {
 });
 
 describe('relic chest asset registration', () => {
-  it('registers the GLB and both presentation sockets without material overrides', () => {
+  it('registers the GLB at double size with a spherical collider and both presentation sockets', () => {
     const asset = PRESENTATION_ASSET_CATALOG.project.find((entry) => entry.id === RELIC_CHEST_ASSET_ID);
     expect(asset).toMatchObject({
       id: RELIC_CHEST_ASSET_ID,
       kind: 'model',
       namespace: 'custom',
       file: '/assets/models/items/relic-chest/relic-chest.glb',
+      defaultTransform: {
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [2, 2, 2],
+      },
+      collider: { radius: 1 },
       optional: true,
     });
+    expect(asset?.collider?.halfExtents).toBeUndefined();
     expect(asset?.sockets?.map((socket) => socket.id)).toEqual(['GlowOrigin', 'RewardAnchor']);
     expect(asset?.materialOverrides).toBeUndefined();
   });

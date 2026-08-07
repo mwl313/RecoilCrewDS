@@ -101,6 +101,12 @@ describe('RelicChestPresentation', () => {
     expect(core?.scale.y).toBeLessThanOrEqual(0.36);
     expect(aura).toBeTruthy();
     expect(aura.material.name).toBe('RelicChestPulsingAuraMaterial');
+    expect(aura.material.depthTest).toBe(true);
+    expect((core as THREE.Mesh).material).toMatchObject({ depthTest: true });
+    for (let index = 1; index <= 18; index += 1) {
+      const ray = root.getObjectByName(`RelicChestRay${index}`) as THREE.Group;
+      expect((ray.children[0] as THREE.Mesh).material).toMatchObject({ depthTest: true });
+    }
 
     const initialOpacity = aura.material.opacity;
     presentation.update(0.45);
