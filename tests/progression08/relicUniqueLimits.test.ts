@@ -16,7 +16,7 @@ describe('unique relic rolling and activation limits', () => {
     expect(actual).toEqual([...uniqueIds].sort());
   });
 
-  it.each(uniqueIds)('%s remains stack one and converts a duplicate to XP', (relicId) => {
+  it.each(uniqueIds)('%s remains stack one and never converts a defensive duplicate add to XP', (relicId) => {
     const m = makeMatch('mode.singlePlayerScoreAttack', `unique-${relicId}`);
     const inventory = new RelicInventory(
       m.state,
@@ -28,24 +28,27 @@ describe('unique relic rolling and activation limits', () => {
     const second = inventory.add(relic);
     expect(first.stackCount).toBe(1);
     expect(second.stackCount).toBe(1);
-    expect(second.duplicateConverted).toBe(true);
-    expect(second.replacementXp).toBe(250);
+    expect(second.duplicateConverted).toBe(false);
+    expect(second.replacementXp).toBe(0);
     expect(inventory.getStack(relicId)).toBe(1);
     if (relic.capabilityId) {
       expect(m.systems.capabilities.debugSources()[relic.capabilityId]).toEqual([`relic:${relicId}`]);
     }
   });
 
-  it('uses the relic-specific duplicate replacement before the global fallback', () => {
-    const m = makeMatch('mode.singlePlayerScoreAttack', 'unique-replacement-authority');
-    const inventory = new RelicInventory(m.state, progression, () => undefined);
-    const relic: RelicDefinition = {
-      ...CLIENT_CONTENT_PACK.getRelic('relic.phase_dash'),
-      id: 'relic.test_unique_replacement',
-      duplicateReplacement: { type: 'xp', amount: 777 },
-    };
-    inventory.add(relic);
-    expect(inventory.add(relic).replacementXp).toBe(777);
+  it('filters every owned unique before authoritative chest candidate selection', () => {
+    const m = makeMatch('mode.singlePlayerScoreAttack', 'unique-eligibility');
+    for (const relicId of uniqueIds) m.state.teamProgression.relicStacks[relicId] = 1;
+    for (let index = 0; index < 24; index++) {
+      const chest = m.systems.progression.spawnChest('mapStart', 20 + index, 20);
+      chest.lifecycle = 'closed';
+      const offer = m.openProgressionChest(chest.id, 1_000 + index * 10_000);
+      expect(offer).not.toBeNull();
+      expect(uniqueIds).not.toContain(offer!.candidates[0].relicId as typeof uniqueIds[number]);
+      m.checkProgressionTimeout(1_651 + index * 10_000);
+      const active = m.state.teamProgression.activeSelection!;
+      m.skipProgressionRelic(active.relicResult!.acquisitionSequence, active.continueAllowedAtWallMs! + 1);
+    }
   });
 
   it('PHOENIX usage persists in one match and starts unused in a new match', () => {

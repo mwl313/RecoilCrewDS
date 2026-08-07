@@ -1,7 +1,7 @@
 import type { MatchRules } from '../rules/matchRules';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState, MatchState } from '../types';
-import type { ProgressionRewardEvent, ProgressionXpSource, RelicRewardOffer, RelicRollResult, TreasureChestSource, TreasureChestState, UpgradeCard } from './progressionTypes';
+import type { ProgressionRewardEvent, ProgressionSelectionState, ProgressionXpSource, RelicRewardOffer, RelicRollResult, TreasureChestSource, TreasureChestState, UpgradeCard } from './progressionTypes';
 import type { SelectionRole } from './upgradeSelectionController';
 import { ProgressionRng } from './progressionRng';
 import { TeamExperienceSystem } from './teamExperienceSystem';
@@ -169,7 +169,7 @@ export class ProgressionSystem {
 
   /**
    * Authoritative internal XP grant. Every XP source (shards, leader/elite,
-   * boss, unique duplicate conversion, direct rewards) routes through here:
+   * boss, and direct rewards) routes through here:
    * multiplier policy, team XP, telemetry, event emission, level-up
    * queueing, and a single serialized flow advance.
    */
@@ -217,6 +217,7 @@ export class ProgressionSystem {
       kind: 'upgrade',
       level: s.teamProgression.level,
       expiresAtWallMs: nowMs + (policy?.selectionTimeoutSeconds ?? 10) * 1000,
+      offerStartedAtWallMs: nowMs,
       driverOffer: roleSeparated ? driverOffer : undefined,
       gunnerOffer: roleSeparated ? gunnerOffer : undefined,
       singlePlayerOffer: roleSeparated ? undefined : singleOffer,
@@ -271,8 +272,9 @@ export class ProgressionSystem {
       return true;
     }
     if (active.kind === 'relic') {
-      if (nowMs < (active.revealDeadlineWallMs ?? active.expiresAtWallMs)) return false;
-      return this.resolveRelicReveal(nowMs);
+      // Relic reveal has no normal deadline. It resolves only through the
+      // explicit connected-player acknowledgement gate or terminal cleanup.
+      return false;
     }
     return false;
   }
@@ -470,8 +472,12 @@ export class ProgressionSystem {
     const pool = this.ctx.rules.relicPoolIds
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
-    const candidates = pool.filter((r) => r.rarity === rarity);
-    const pickPool = candidates.length > 0 ? candidates : pool;
+    const eligible = pool.filter((relic) => relic.stackPolicy !== 'unique' || !this.inventory.has(relic.id));
+    const candidates = eligible.filter((relic) => relic.rarity === rarity);
+    // Deterministic rarity fallback: preserve the rolled rarity whenever it
+    // has an eligible candidate, otherwise draw only from remaining eligible
+    // content in canonical pool order. Owned uniques never re-enter.
+    const pickPool = candidates.length > 0 ? candidates : eligible;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
     const offer: RelicRewardOffer = {
@@ -521,18 +527,12 @@ export class ProgressionSystem {
     this.telemetry.relicsAcquired++;
     this.telemetry.rarityDistribution[candidate.rarity] = (this.telemetry.rarityDistribution[candidate.rarity] ?? 0) + 1;
     this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
-    if (acquire.duplicateConverted) this.telemetry.duplicateConversions++;
-    if (!acquire.duplicateConverted) {
-      this.projector.reproject(s.teamProgression);
-      if (acquire.capabilityGranted) {
-        this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
-      }
+    this.projector.reproject(s.teamProgression);
+    if (acquire.capabilityGranted) {
+      this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
     }
     this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: candidate.rarity, duplicateConverted: acquire.duplicateConverted });
     this.beginRelicReveal(roll, nowMs, chest, offer);
-    if (acquire.duplicateConverted) {
-      this.grantXp(acquire.replacementXp, 'duplicateRelic', { x: chest.x, y: chest.y, z: chest.z });
-    }
     return roll;
   }
 
@@ -544,15 +544,16 @@ export class ProgressionSystem {
     offer?: RelicRewardOffer,
   ): void {
     const s = this.ctx.state;
-    const revealSeconds = this.chestPolicy?.relicRevealSeconds ?? 2;
     if (chest) chest.lifecycle = 'revealing';
     s.teamProgression.activeSelection = {
       offerId: `reveal-${result.acquisitionSequence}`,
       kind: 'relic',
       level: s.teamProgression.level,
-      expiresAtWallMs: nowMs + revealSeconds * 1000,
-      revealDeadlineWallMs: nowMs + revealSeconds * 1000,
-      revealMinimumSkipAtWallMs: nowMs + (this.chestPolicy?.relicRevealMinimumSkipSeconds ?? 0.35) * 1000,
+      revealStartedAtWallMs: nowMs,
+      continueAllowedAtWallMs: nowMs + (this.chestPolicy?.relicRevealMinimumSkipSeconds ?? 0.35) * 1000,
+      singlePlayerRelicAcknowledged: false,
+      driverRelicAcknowledged: false,
+      gunnerRelicAcknowledged: false,
       chestId: chest?.id,
       relicOffer: offer,
       relicResult: result,
@@ -567,11 +568,13 @@ export class ProgressionSystem {
     });
   }
 
-  /**
-   * Idempotent skip/acknowledgement of the active relic reveal. Either
-   * player may skip; the result is never rerolled or re-applied.
-   */
-  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+  /** Idempotent acknowledgement of the predetermined active relic result. */
+  acknowledgeProgressionRelic(
+    role: SelectionRole,
+    acquisitionSequence: number,
+    requiredRoles: SelectionRole[],
+    nowMs: number,
+  ): { accepted: boolean; reason?: string; waitingFor?: SelectionRole[] } {
     if (!this.isEnabled) return { accepted: false, reason: 'disabled' };
     const active = this.ctx.state.teamProgression.activeSelection;
     if (!active || active.kind !== 'relic') return { accepted: false, reason: 'no_active_reveal' };
@@ -579,10 +582,27 @@ export class ProgressionSystem {
     if (active.relicResult?.acquisitionSequence !== acquisitionSequence) {
       return { accepted: false, reason: 'sequence_mismatch' };
     }
-    if (nowMs < (active.revealMinimumSkipAtWallMs ?? 0)) {
+    if (nowMs < (active.continueAllowedAtWallMs ?? 0)) {
       return { accepted: false, reason: 'minimum_delay' };
     }
+    setRelicAcknowledged(active, role);
+    const required = [...new Set(requiredRoles)];
+    const waitingFor = required.filter((requiredRole) => !isRelicAcknowledged(active, requiredRole));
+    if (waitingFor.length > 0) return { accepted: true, waitingFor };
     return this.resolveRelicReveal(nowMs) ? { accepted: true } : { accepted: false, reason: 'terminal' };
+  }
+
+  refreshRelicAcknowledgementGate(requiredRoles: SelectionRole[], nowMs: number): boolean {
+    const active = this.ctx.state.teamProgression.activeSelection;
+    if (!active || active.kind !== 'relic' || active.resolved) return false;
+    const required = [...new Set(requiredRoles)];
+    if (required.length === 0 || required.some((role) => !isRelicAcknowledged(active, role))) return false;
+    return this.resolveRelicReveal(nowMs);
+  }
+
+  /** Backwards-compatible Single Player/test facade. */
+  skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
+    return this.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], nowMs);
   }
 
   private resolveRelicReveal(nowMs: number): boolean {
@@ -914,7 +934,7 @@ export class ProgressionSystem {
       driverReady: s.teamProgression.activeSelection?.driverSelection !== undefined,
       gunnerReady: s.teamProgression.activeSelection?.gunnerSelection !== undefined,
       timeoutMs: s.teamProgression.activeSelection
-        ? Math.max(0, s.teamProgression.activeSelection.expiresAtWallMs - Date.now())
+        ? Math.max(0, (s.teamProgression.activeSelection.expiresAtWallMs ?? Date.now()) - Date.now())
         : 0,
       chestsOpened: s.teamProgression.treasureChestsOpened,
       relicStacks: { ...s.teamProgression.relicStacks },
@@ -955,6 +975,18 @@ export class ProgressionSystem {
 
 function emptyCurve(): LevelCurveDefinition {
   return { id: 'levelCurve.empty', label: 'Empty', thresholds: [20], overflowRule: 'cap' as const, behaviors: [] };
+}
+
+function setRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): void {
+  if (role === 'single') active.singlePlayerRelicAcknowledged = true;
+  else if (role === 'driver') active.driverRelicAcknowledged = true;
+  else active.gunnerRelicAcknowledged = true;
+}
+
+function isRelicAcknowledged(active: ProgressionSelectionState, role: SelectionRole): boolean {
+  if (role === 'single') return active.singlePlayerRelicAcknowledged === true;
+  if (role === 'driver') return active.driverRelicAcknowledged === true;
+  return active.gunnerRelicAcknowledged === true;
 }
 
 function emptyDefinition(): ProgressionDefinition {

@@ -20,6 +20,7 @@ import type { AnimationLodPolicyDefinition, EnemyAnimationLodTier } from '../../
 import { EntityViewFactory } from './entityViewFactory';
 import { applyDistantEnemyPose } from '../animation/distantEnemyMotion';
 import type { EnemyAnimationPresentationState } from '../animation/enemyAnimationStateResolver';
+import type { InputContext, ProgressionInputFrame } from '../input';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -27,6 +28,9 @@ export interface InputSource {
   edge(name: 'dash' | 'jump'): boolean;
   clearDriverEdges(): void;
   consumeMouse(): { dx: number; dy: number };
+  context(): InputContext;
+  setContext(context: InputContext): void;
+  consumeProgressionInput(): ProgressionInputFrame;
 }
 
 export interface PresenterDeps {

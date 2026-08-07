@@ -40,6 +40,7 @@ import { interpolateSinglePlayerTank } from '../prediction/singlePlayerTankInter
 import { RelicChestWorldRenderer } from '../relics/relicChestWorldRenderer';
 import { RELIC_CHEST_ASSET_ID } from '../relics/relicChestPresentation';
 import { RelicInventoryRail } from '../progression/relicInventoryRail';
+import { ProgressionInputContext } from '../progression/progressionInputContext';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -90,6 +91,7 @@ export class GameClient {
   suppressAutoInput = false;
   private suppressPresentationFramesForTest = false;
   private progressionOverlay: ProgressionOverlay | null = null;
+  private readonly progressionInput: ProgressionInputContext;
   private relicInventoryRail: RelicInventoryRail | null = null;
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
@@ -143,6 +145,7 @@ export class GameClient {
     this.tankRig = deps.tankRig;
     this.audio = deps.audio;
     this.input = deps.input;
+    this.progressionInput = new ProgressionInputContext(deps.input);
     this.arenaWorld = deps.arenaWorld;
     this.aggregateSectors = new AggregateSectorRenderer(
       deps.world.scene,
@@ -238,13 +241,21 @@ export class GameClient {
     gameRef = game;
     game.progressionOverlay = new ProgressionOverlay(container, {
       selectUpgrade: (index) => gameRef!.submitUpgrade(index),
-      skipRelicPresentation: () => gameRef!.skipRelicPresentation(),
+      acknowledgeRelic: () => gameRef!.acknowledgeRelicPresentation(),
       relicInfo: (relicId) => {
         const relic = gameRef!.contentPack?.getRelic(relicId);
         return relic
           ? { label: relic.label, description: relic.description, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
           : null;
       },
+      rewardSound: (name, rarity) => {
+        const sounds = {
+          levelImpact: 'rewardLevelImpact', tick: 'rewardTick', cardLock: 'rewardCardLock',
+          focus: 'rewardFocus', confirm: 'rewardConfirm', relicLock: 'relicLock', exit: 'rewardExit',
+        } as const;
+        gameRef!.audio.play(sounds[name], { kind: rarity });
+      },
+      duckLegendary: () => gameRef!.audio.duckForReward({ depth: 0.25, attackMs: 40, holdMs: 90, releaseMs: 450 }),
     });
     game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
       const relic = gameRef!.contentPack?.getRelic(relicId);
@@ -629,6 +640,8 @@ export class GameClient {
     this.slowMo = Math.max(0, this.slowMo - dtRaw);
     this.cameras.tickShake(dtRaw);
 
+    this.syncProgressionInputContext();
+
     this.lastPredictInput = this.sampleDriverInput();
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
       this.stepSinglePlayer(dtRaw);
@@ -639,6 +652,9 @@ export class GameClient {
       this.singlePlayerMatch.checkProgressionTimeout(Date.now());
     }
     this.presenter.computeRemote();
+    // Single Player may enter progression during the simulation step above;
+    // close the input boundary before camera/weapon presentation this frame.
+    this.syncProgressionInputContext();
     let renderTank: TankState | null = null;
     const frame = this.suppressPresentationFramesForTest ? null : this.presenter.remoteFrame;
     if (frame) {
@@ -777,7 +793,7 @@ export class GameClient {
   }
 
   private sendInputs(): void {
-    if (!this.onSendInput || this.suppressAutoInput) return;
+    if (!this.onSendInput || this.suppressAutoInput || this.progressionInput.active()) return;
     if (this.role === 'driver') {
       // Re-sample at send time: a key pressed since the frame sample must
       // still land in this sequenced frame (never lost between sends).
@@ -800,7 +816,7 @@ export class GameClient {
   }
 
   private sampleDriverInput(): { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } {
-    if (!this.inputEnabled) return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
+    if (!this.inputEnabled || this.progressionInput.active()) return { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
     return {
       throttle: this.keyAxis('forward') - this.keyAxis('back'),
       steer: this.keyAxis('right') - this.keyAxis('left'),
@@ -873,6 +889,7 @@ export class GameClient {
   }
 
   applySinglePlayerWeapons(dt: number): void {
+    if (this.progressionInput.active()) return;
     const m = this.singlePlayerMatch!;
     const state = m.state;
     if (state.tank.deadT > 0) return;
@@ -946,7 +963,7 @@ export class GameClient {
    * between 50 ms send frames.
    */
   private pollGunnerActions(): void {
-    if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput) return;
+    if (this.session.kind !== 'multiplayer' || this.role !== 'gunner' || !this.onSendInput || this.suppressAutoInput || this.progressionInput.active()) return;
     const latest = this.presenter.latest;
     const mg = this.mouseDown('primary');
     const secondary = this.mouseDown('secondary');
@@ -1048,16 +1065,48 @@ export class GameClient {
     }
   }
 
-  /** Request skip/acknowledgement of the shared relic reveal (idempotent). */
-  skipRelicPresentation(): void {
+  /** Acknowledge the shared relic reveal (idempotent per connected player). */
+  acknowledgeRelicPresentation(): void {
     const latest = this.presenter.latest;
     const selection = latest?.teamProgression.activeSelection;
     if (!selection || selection.kind !== 'relic' || latest?.matchFlow !== 'relicSelection') return;
     const acquisitionSequence = selection.relicResult?.acquisitionSequence ?? 0;
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.skipProgressionRelic(acquisitionSequence, Date.now());
+      this.singlePlayerMatch.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], Date.now());
     } else if (this.onSendInput) {
-      this.onSendInput({ t: 'skipRelicPresentation', acquisitionSequence });
+      this.onSendInput({ t: 'acknowledgeRelic', acquisitionSequence });
+    }
+  }
+
+  /** Legacy automation facade retained while tests migrate to acknowledge. */
+  skipRelicPresentation(): void {
+    this.acknowledgeRelicPresentation();
+  }
+
+  private syncProgressionInputContext(): void {
+    const latest = this.presenter.latest;
+    const selection = latest?.teamProgression.activeSelection;
+    const previousActive = this.progressionInput.active();
+    if (latest?.matchFlow === 'upgradeSelection' && selection?.kind === 'upgrade') {
+      this.progressionInput.sync('upgrade', selection.offerId);
+    } else if (latest?.matchFlow === 'relicOpening') {
+      const chest = latest.chests.find((entry) => entry.lifecycle === 'opening');
+      this.progressionInput.sync('relic', `opening:${chest?.id ?? 'unknown'}`);
+      // Opening has no UI action; discard click/Space edges so they cannot
+      // skip the newly-created reveal on the following frame.
+      this.input.consumeProgressionInput();
+    } else if (latest?.matchFlow === 'relicSelection' && selection?.kind === 'relic') {
+      this.progressionInput.sync('relic', String(selection.relicResult?.acquisitionSequence ?? selection.offerId));
+    } else {
+      this.progressionInput.sync('none');
+    }
+    if (!previousActive && this.progressionInput.active()) {
+      this.mgDown = false;
+      this.secondaryDown = false;
+      this.chargeHoldActive = false;
+      this.chargeHoldStart = 0;
+      this.input.clearDriverEdges();
+      this.stopChargeSound();
     }
   }
 
@@ -1066,6 +1115,7 @@ export class GameClient {
     if (!latest || !this.progressionOverlay) return;
     const role = this.session.kind === 'singlePlayer' ? 'single' : this.role;
     this.progressionOverlay.update(latest, role, Date.now());
+    this.progressionOverlay.handleInput(this.input.consumeProgressionInput());
     let debug = '';
     try {
       const dbg = this.singlePlayerMatch

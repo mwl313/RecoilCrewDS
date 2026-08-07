@@ -46,7 +46,7 @@
     "test:lobby": "vitest run tests/lobby09",
     "test:lobby:e2e": "playwright test e2e/lobby-nickname-settings.spec.ts e2e/lobby-seat-ready.spec.ts e2e/lobby-chat.spec.ts e2e/lobby-reconnect.spec.ts",
     "test:monsterpack-rendering": "playwright test e2e/monsterpack10-rendering.spec.ts",
-    "test:progression:e2e": "playwright test e2e/progression-levelup.spec.ts e2e/progression-relic.spec.ts e2e/progression-relic-reveal.spec.ts e2e/progression-first-chest.spec.ts e2e/progression-world-chest.spec.ts e2e/progression-world-chest-multiplayer.spec.ts e2e/progression-disabled-demo.spec.ts e2e/progression-multiplayer-selection.spec.ts e2e/progression-reconnect.spec.ts",
+    "test:progression:e2e": "playwright test e2e/progression-levelup.spec.ts e2e/progression-relic.spec.ts e2e/progression-relic-reveal.spec.ts e2e/progression-first-chest.spec.ts e2e/progression-world-chest.spec.ts e2e/progression-world-chest-multiplayer.spec.ts e2e/progression-disabled-demo.spec.ts e2e/progression-multiplayer-selection.spec.ts e2e/progression-reconnect.spec.ts e2e/progression-reward-responsive.spec.ts",
     "validate:progression-content": "tsx scripts/generate-content-pack.ts",
     "test:netcode": "vitest run tests/netcode",
     "test:netcode:e2e": "playwright test e2e/gunner-responsiveness.spec.ts e2e/shared-vehicle-prediction.spec.ts",

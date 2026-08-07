@@ -35,12 +35,12 @@ describe('authoritative relic chest opening and reveal flow', () => {
     expect(m.state.time).toBe(0);
   });
 
-  it('enforces minimum skip delay and makes skip idempotent', () => {
+  it('enforces minimum acknowledgement delay and makes acknowledgement idempotent', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'reveal-skip');
     const chest = m.systems.progression.spawnChest('mapStart', 3, 3);
     const result = revealChest(m, chest, 1_000);
     const active = m.state.teamProgression.activeSelection!;
-    expect(m.skipProgressionRelic(result.acquisitionSequence, (active.revealMinimumSkipAtWallMs ?? 0) - 1)).toEqual({
+    expect(m.skipProgressionRelic(result.acquisitionSequence, (active.continueAllowedAtWallMs ?? 0) - 1)).toEqual({
       accepted: false,
       reason: 'minimum_delay',
     });
@@ -51,16 +51,16 @@ describe('authoritative relic chest opening and reveal flow', () => {
     expect(m.state.teamProgression.relicStacks[result.relicId]).toBe(1);
   });
 
-  it('auto-completes after the dedicated two-second reveal timeout', () => {
+  it('has no normal relic countdown or automatic resolution', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'reveal-timeout');
     const chest = m.systems.progression.spawnChest('mapStart', 3, 3);
     revealChest(m, chest, 1_000);
-    const deadline = m.state.teamProgression.activeSelection!.revealDeadlineWallMs!;
-    expect(deadline).toBe(3_651);
-    expect(m.checkProgressionTimeout(deadline - 1)).toBe(false);
-    expect(m.checkProgressionTimeout(deadline + 1)).toBe(true);
-    expect(m.state.matchFlow).toBe('playing');
-    expect(chest.lifecycle).toBe('open');
+    const active = m.state.teamProgression.activeSelection!;
+    expect(active.expiresAtWallMs).toBeUndefined();
+    expect(active.revealStartedAtWallMs).toBe(1_651);
+    expect(m.checkProgressionTimeout(999_999)).toBe(false);
+    expect(m.state.matchFlow).toBe('relicSelection');
+    expect(chest.lifecycle).toBe('revealing');
   });
 
   it('serializes opening/revealing offers for reconnect without rerolling', () => {
@@ -74,8 +74,32 @@ describe('authoritative relic chest opening and reveal flow', () => {
     const firstResult = { ...m.state.teamProgression.lastRelicResult! };
     const revealingSnapshot = JSON.parse(JSON.stringify(m.state));
     expect(revealingSnapshot.chests.find((entry: { id: number }) => entry.id === chest.id).lifecycle).toBe('revealing');
-    m.checkProgressionTimeout(5_700);
+    m.checkProgressionTimeout(50_700);
     expect(m.state.teamProgression.lastRelicResult).toEqual(firstResult);
+  });
+
+  it('waits for every currently required Multiplayer acknowledgement', () => {
+    const m = makeMatch('mode.singlePlayerScoreAttack', 'reveal-multi-ack');
+    const chest = m.systems.progression.spawnChest('mapStart', 3, 3);
+    const result = revealChest(m, chest, 1_000);
+    const allowed = m.state.teamProgression.activeSelection!.continueAllowedAtWallMs! + 1;
+    const first = m.acknowledgeProgressionRelic('driver', result.acquisitionSequence, ['driver', 'gunner'], allowed);
+    expect(first).toEqual({ accepted: true, waitingFor: ['gunner'] });
+    expect(m.state.matchFlow).toBe('relicSelection');
+    expect(m.state.teamProgression.activeSelection?.driverRelicAcknowledged).toBe(true);
+    const second = m.acknowledgeProgressionRelic('gunner', result.acquisitionSequence, ['driver', 'gunner'], allowed + 1);
+    expect(second.accepted).toBe(true);
+    expect(m.state.matchFlow).toBe('playing');
+  });
+
+  it('drops disconnected peers from the acknowledgement gate', () => {
+    const m = makeMatch('mode.singlePlayerScoreAttack', 'reveal-disconnect-gate');
+    const chest = m.systems.progression.spawnChest('mapStart', 3, 3);
+    const result = revealChest(m, chest, 1_000);
+    const allowed = m.state.teamProgression.activeSelection!.continueAllowedAtWallMs! + 1;
+    m.acknowledgeProgressionRelic('driver', result.acquisitionSequence, ['driver', 'gunner'], allowed);
+    expect(m.refreshProgressionRelicGate(['driver'], allowed + 1)).toBe(true);
+    expect(m.state.matchFlow).toBe('playing');
   });
 
   it('starts continuous despawn after minimum open lifetime and removes the chest', () => {

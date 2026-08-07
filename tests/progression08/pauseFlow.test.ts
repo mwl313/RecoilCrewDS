@@ -28,7 +28,7 @@ describe('authoritative pause flow (progression08)', () => {
     const active = m.state.teamProgression.activeSelection!;
     step(m, 60);
     expect(m.state.time).toBe(0);
-    expect(m.checkProgressionTimeout(active.expiresAtWallMs + 1)).toBe(true);
+    expect(m.checkProgressionTimeout(active.expiresAtWallMs! + 1)).toBe(true);
     expect(m.state.matchFlow).toBe('playing');
   });
 });

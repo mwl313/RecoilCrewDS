@@ -74,11 +74,11 @@ test('production world chest completes proximity open, reveal, HUD, and despawn'
 
   await page.waitForFunction(() => {
     const button = document.querySelector<HTMLButtonElement>('#progression-relic-layer button');
-    return button !== null && !button.disabled;
+    return button?.getAttribute('aria-disabled') === 'false';
   });
-  await page.evaluate(() =>
-    (window as unknown as { __recoil: { progression: { skipRelic(): void } } }).__recoil.progression.skipRelic(),
-  );
+  // The full relic layer is the click target so locked and unlocked pointer
+  // paths share the same continue contract.
+  await page.locator('#progression-relic-layer').click({ position: { x: 18, y: 18 } });
   await page.waitForFunction(() => {
     const state = (window as unknown as { __recoil: { state(): WorldRelicState } }).__recoil.state();
     return state.matchFlow === 'playing';

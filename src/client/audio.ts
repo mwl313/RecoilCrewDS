@@ -17,7 +17,14 @@ export type SoundName =
   | 'cannonChargeFull'
   | 'cannonChargeRelease'
   | 'results'
-  | 'drift';
+  | 'drift'
+  | 'rewardLevelImpact'
+  | 'rewardTick'
+  | 'rewardCardLock'
+  | 'rewardFocus'
+  | 'rewardConfirm'
+  | 'relicLock'
+  | 'rewardExit';
 
 export class AudioManager {
   ctx: AudioContext | null = null;
@@ -101,6 +108,18 @@ export class AudioManager {
 
   setMusicIntensity(v: number) {
     this.musicIntensity = Math.max(0, Math.min(1.4, v));
+  }
+
+  duckForReward(opts: { depth: number; attackMs: number; holdMs: number; releaseMs: number }): void {
+    if (!this.ctx || !this.musicGain) return;
+    const t = this.ctx.currentTime;
+    const base = 0.34;
+    const floor = base * Math.max(0, Math.min(1, 1 - opts.depth));
+    this.musicGain.gain.cancelScheduledValues(t);
+    this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
+    this.musicGain.gain.linearRampToValueAtTime(floor, t + opts.attackMs / 1000);
+    this.musicGain.gain.setValueAtTime(floor, t + (opts.attackMs + opts.holdMs) / 1000);
+    this.musicGain.gain.linearRampToValueAtTime(base, t + (opts.attackMs + opts.holdMs + opts.releaseMs) / 1000);
   }
 
   private startMusic() {
@@ -442,6 +461,43 @@ export class AudioManager {
         g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
         src.connect(f).connect(g).connect(this.master);
         src.start(t, 0, 0.22);
+        break;
+      }
+      case 'rewardLevelImpact': {
+        this.blip(92, t, 0.2, 'sine', 0.36);
+        this.blip(720, t + 0.025, 0.08, 'square', 0.1);
+        break;
+      }
+      case 'rewardTick': {
+        this.blip(680, t, 0.025, 'square', 0.055);
+        break;
+      }
+      case 'rewardCardLock': {
+        this.blip(155, t, 0.12, 'triangle', 0.22);
+        this.blip(920, t, 0.04, 'square', 0.08);
+        break;
+      }
+      case 'rewardFocus': {
+        this.blip(540, t, 0.035, 'square', 0.055);
+        break;
+      }
+      case 'rewardConfirm': {
+        this.blip(110, t, 0.18, 'sine', 0.3);
+        this.blip(780, t + 0.035, 0.12, 'triangle', 0.12);
+        break;
+      }
+      case 'relicLock': {
+        const legendary = opts.kind === 'legendary';
+        this.blip(legendary ? 52 : 84, t, legendary ? 0.5 : 0.28, 'sine', legendary ? 0.52 : 0.34);
+        this.blip(740, t + 0.05, 0.16, 'triangle', 0.14);
+        if (legendary) {
+          this.blip(988, t + 0.12, 0.28, 'sine', 0.1);
+          this.blip(1318, t + 0.2, 0.3, 'sine', 0.08);
+        }
+        break;
+      }
+      case 'rewardExit': {
+        this.blip(420, t, 0.07, 'triangle', 0.08);
         break;
       }
     }

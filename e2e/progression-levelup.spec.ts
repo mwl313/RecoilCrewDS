@@ -9,6 +9,10 @@ test('single player collects XP, levels up, chooses a card, and resumes', async 
     const s = (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state();
     return s?.phase === 'running';
   });
+  await page.click('#game-canvas');
+  await page.waitForFunction(() =>
+    (window as unknown as { __recoil: { inputState(): { locked: boolean } } }).__recoil.inputState().locked,
+  );
 
   // Inject deterministic team XP through the test hook.
   await page.evaluate(() => {
@@ -26,16 +30,18 @@ test('single player collects XP, levels up, chooses a card, and resumes', async 
   expect(state.teamProgression.level).toBe(2);
   await expect(page.locator('#progression-overlay')).toBeVisible();
   await expect(page.locator('#progression-overlay button')).toHaveCount(3);
+  expect(await page.evaluate(() =>
+    (window as unknown as { __recoil: { inputState(): { locked: boolean } } }).__recoil.inputState().locked,
+  )).toBe(true);
 
-  // Dispatch the card click directly (the game HUD intentionally paints
-  // above the presentation overlay; the click handler is the contract).
-  await page.evaluate(() => {
-    const buttons = document.querySelectorAll<HTMLButtonElement>('#progression-overlay button');
-    buttons[1]?.click();
-  });
+  // Pointer-lock-safe direct selection never needs Escape or a DOM cursor.
+  await page.keyboard.press('Digit2');
   await page.waitForFunction(() => {
     const s = (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state();
     return s?.matchFlow === 'playing';
   });
+  expect(await page.evaluate(() =>
+    (window as unknown as { __recoil: { inputState(): { locked: boolean; buttons: string[] } } }).__recoil.inputState(),
+  )).toMatchObject({ locked: true, buttons: [] });
   await expect(page.locator('#progression-overlay')).toBeHidden();
 });

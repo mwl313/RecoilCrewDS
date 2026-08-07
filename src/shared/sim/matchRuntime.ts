@@ -428,6 +428,10 @@ export class MatchRuntime {
       this.systems.progression.isEnabled &&
       (this.state.matchFlow === 'upgradeSelection' || this.state.matchFlow === 'relicOpening' || this.state.matchFlow === 'relicSelection')
     ) {
+      // Reward input is a hard ownership boundary. Clearing here prevents a
+      // held MG/charge/driver edge from surviving the pause and firing on the
+      // first resumed simulation tick, including stale network frames.
+      this.clearInputs();
       return;
     }
     const dt = this.systems.round.advance(dtRaw);
@@ -598,6 +602,19 @@ export class MatchRuntime {
 
   skipProgressionRelic(acquisitionSequence: number, nowMs: number): { accepted: boolean; reason?: string } {
     return this.systems.progression.skipProgressionRelic(acquisitionSequence, nowMs);
+  }
+
+  acknowledgeProgressionRelic(
+    role: 'driver' | 'gunner' | 'single',
+    acquisitionSequence: number,
+    requiredRoles: Array<'driver' | 'gunner' | 'single'>,
+    nowMs: number,
+  ): { accepted: boolean; reason?: string; waitingFor?: Array<'driver' | 'gunner' | 'single'> } {
+    return this.systems.progression.acknowledgeProgressionRelic(role, acquisitionSequence, requiredRoles, nowMs);
+  }
+
+  refreshProgressionRelicGate(requiredRoles: Array<'driver' | 'gunner' | 'single'>, nowMs: number): boolean {
+    return this.systems.progression.refreshRelicAcknowledgementGate(requiredRoles, nowMs);
   }
 
   damageTank(amount: number, source: string) {

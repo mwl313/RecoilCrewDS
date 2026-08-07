@@ -133,6 +133,19 @@ export class Match {
     return this.runtime.skipProgressionRelic(acquisitionSequence, nowMs);
   }
 
+  acknowledgeProgressionRelic(
+    role: 'driver' | 'gunner' | 'single',
+    acquisitionSequence: number,
+    requiredRoles: Array<'driver' | 'gunner' | 'single'>,
+    nowMs: number,
+  ) {
+    return this.runtime.acknowledgeProgressionRelic(role, acquisitionSequence, requiredRoles, nowMs);
+  }
+
+  refreshProgressionRelicGate(requiredRoles: Array<'driver' | 'gunner' | 'single'>, nowMs: number): boolean {
+    return this.runtime.refreshProgressionRelicGate(requiredRoles, nowMs);
+  }
+
   damageTank(amount: number, source: string): void {
     this.runtime.damageTank(amount, source);
   }
