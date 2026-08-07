@@ -111,6 +111,7 @@ function mount(): {
   container: HTMLElement;
   selected: number[];
   skipped: number[];
+  sounds: Array<{ name: string; rarity?: string; progress?: number }>;
   root: HTMLElement;
   selectionHost: HTMLElement;
   relicHost: HTMLElement;
@@ -120,9 +121,11 @@ function mount(): {
   document.body.appendChild(container);
   const selected: number[] = [];
   const skipped: number[] = [];
+  const sounds: Array<{ name: string; rarity?: string; progress?: number }> = [];
   const overlay = new ProgressionOverlay(container, {
     selectUpgrade: (index) => selected.push(index),
     acknowledgeRelic: () => skipped.push(1),
+    rewardSound: (name, detail) => sounds.push({ name, ...detail }),
     relicInfo: (id) =>
       id === 'relic.magnet_core'
         ? { label: 'MAGNET CORE', description: 'XP magnet radius +50% per stack.' }
@@ -133,7 +136,7 @@ function mount(): {
   const selectionHost = document.getElementById('progression-selection-layer')!;
   const relicHost = document.getElementById('progression-relic-layer')!;
   const debugHost = document.getElementById('progression-debug-layer')!;
-  return { overlay, container, selected, skipped, root, selectionHost, relicHost, debugHost };
+  return { overlay, container, selected, skipped, sounds, root, selectionHost, relicHost, debugHost };
 }
 
 describe('progression overlay lifecycle (progression08 hardening)', () => {
@@ -239,5 +242,35 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
     overlay.update(fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: multiplayer } }), 'driver', 3_000);
     expect(root.textContent).toContain('YOU // READY');
     expect(root.textContent).toContain('GUNNER // CHOOSING...');
+  });
+
+  it('builds a real clipped reel track with at least eight full symbol cells per card', () => {
+    const { overlay, selectionHost } = mount();
+    overlay.update(fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } }), 'single', 0);
+    const windows = [...selectionHost.querySelectorAll('.reward-card__reel-window')];
+    expect(windows).toHaveLength(3);
+    for (const window of windows) expect(window.querySelectorAll('.reward-card__symbol').length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('fires natural relic final impact exactly once and never replays it on repeated snapshots', () => {
+    const { overlay, sounds } = mount();
+    const state = fakeState({ matchFlow: 'relicSelection', teamProgression: { activeSelection: relicReveal(11, 1) } });
+    overlay.update(state, 'single', 0);
+    expect(sounds.filter((sound) => sound.name === 'relicLock')).toHaveLength(0);
+    overlay.update(state, 'single', 1_481);
+    overlay.update(state, 'single', 1_520);
+    expect(sounds.filter((sound) => sound.name === 'relicLock')).toEqual([
+      { name: 'relicLock', rarity: 'common' },
+    ]);
+  });
+
+  it('passes the authoritative rarity to each card lock callback', () => {
+    const { overlay, sounds } = mount();
+    const state = fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } });
+    overlay.update(state, 'single', 0);
+    overlay.update(state, 'single', 721);
+    expect(sounds.filter((sound) => sound.name === 'cardLock')).toEqual([
+      { name: 'cardLock', rarity: 'epic' },
+    ]);
   });
 });

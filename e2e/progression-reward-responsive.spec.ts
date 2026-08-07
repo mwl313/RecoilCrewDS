@@ -23,6 +23,12 @@ test('upgrade and relic reward plates fit every qualification viewport', async (
   await page.waitForFunction(() =>
     (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state()?.matchFlow === 'upgradeSelection',
   );
+  const upgradeReels = await page.locator('.reward-card__reel-window').evaluateAll((windows) => windows.map((window) => ({
+    overflow: getComputedStyle(window).overflow,
+    cells: window.querySelectorAll('.reward-card__symbol').length,
+  })));
+  expect(upgradeReels).toHaveLength(3);
+  expect(upgradeReels.every((reel) => reel.overflow === 'hidden' && reel.cells >= 8)).toBe(true);
   await page.waitForTimeout(1_150);
 
   for (const viewport of VIEWPORTS) {
@@ -48,6 +54,8 @@ test('upgrade and relic reward plates fit every qualification viewport', async (
   await page.waitForFunction(() =>
     (window as unknown as { __recoil: { state(): { matchFlow: string } | null } }).__recoil.state()?.matchFlow === 'relicSelection',
   );
+  await expect(page.locator('.reward-relic__symbol')).toHaveCount(10);
+  await expect(page.locator('.reward-relic__reel-window')).toHaveCSS('overflow', 'hidden');
   await page.keyboard.press('Space');
   await page.waitForTimeout(300);
 
