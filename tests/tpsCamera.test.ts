@@ -25,6 +25,7 @@ const TUNING: TpsCameraTuning = {
   invertMouseX: false,
   invertMouseY: false,
   collisionPullInSeconds: 0.02,
+  collisionMaxPullInSpeed: 32,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
   horizontalFollowSeconds: 0.16,
@@ -98,6 +99,27 @@ describe('TPS camera direction conventions', () => {
     expect(cm.driverCam.minPitch).toBeCloseTo((-35 * Math.PI) / 180, 6);
     expect(cm.driverCam.maxPitch).toBeCloseTo((55 * Math.PI) / 180, 6);
   });
+
+  it('uses continuous deterministic shake instead of random frame displacement', () => {
+    const a = new CameraManager();
+    const b = new CameraManager();
+    const follow = new THREE.Vector3(0, 0, 0);
+    a.addImpulse(1.6);
+    b.addImpulse(1.6);
+    let last = new THREE.Vector3();
+    let maxStep = 0;
+    for (let i = 0; i < 30; i++) {
+      for (const camera of [a, b]) {
+        camera.tickShake(1 / 60);
+        camera.update(1 / 60, follow, 0, 0, [], { dx: 0, dy: 0 });
+        camera.applyShake();
+      }
+      expect(a.activeCam.camera.position.distanceTo(b.activeCam.camera.position)).toBeLessThan(1e-9);
+      if (i > 0) maxStep = Math.max(maxStep, last.distanceTo(a.activeCam.camera.position));
+      last = a.activeCam.camera.position.clone();
+    }
+    expect(maxStep).toBeLessThan(0.25);
+  });
 });
 
 describe('TPS camera rig placement', () => {
@@ -136,6 +158,17 @@ describe('TPS camera rig placement', () => {
     cam.update(1 / 30, colliders);
     expect(cam.camera.position.z).toBeGreaterThan(-2.0);
     expect(cam.camera.position.z).toBeLessThan(-0.8);
+  });
+
+  it('bounds one-frame boom pull-in when a collider enters the camera path', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    const before = cam.getFollowDiagnostics().distance;
+    cam.update(1 / 60, [box(-5, 0, -4, 5, 4, -1)]);
+    const after = cam.getFollowDiagnostics().distance;
+    expect(before - after).toBeGreaterThan(0);
+    expect(before - after).toBeLessThanOrEqual(TUNING.collisionMaxPullInSpeed / 60 + 1e-6);
   });
 
   it('never places the camera below the floor, even at maximum upward pitch', () => {

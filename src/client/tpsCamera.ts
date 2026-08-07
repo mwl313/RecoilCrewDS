@@ -37,6 +37,7 @@ export interface TpsCameraTuning {
   invertMouseX: boolean;
   invertMouseY: boolean;
   collisionPullInSeconds: number;
+  collisionMaxPullInSpeed: number;
   collisionReleaseSeconds: number;
   recenterSeconds: number;
   horizontalFollowSeconds: number;
@@ -61,7 +62,8 @@ export const DEFAULT_TPS_TUNING: TpsCameraTuning = {
   sensitivityY: 0.0022,
   invertMouseX: false,
   invertMouseY: false,
-  collisionPullInSeconds: 0.02,
+  collisionPullInSeconds: 0.055,
+  collisionMaxPullInSpeed: 32,
   collisionReleaseSeconds: 0.1,
   recenterSeconds: 0.16,
   // Ground-plane follow is rigid by default. The rendered tank is already
@@ -295,7 +297,14 @@ export class TpsCameraController {
     const rate = pullIn
       ? 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.collisionPullInSeconds))
       : 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.collisionReleaseSeconds));
-    this.currentDistance = clamp(this.currentDistance + (targetDistance - this.currentDistance) * rate, this.tuning.minimumDistance, boomLen);
+    const requestedDistance = this.currentDistance + (targetDistance - this.currentDistance) * rate;
+    // A newly intersecting proxy must not teleport the camera several metres
+    // in one rendered frame. Bound inward travel in world units per second;
+    // outward release retains its exponential damping.
+    const nextDistance = pullIn
+      ? Math.max(requestedDistance, this.currentDistance - this.tuning.collisionMaxPullInSpeed * safeDt)
+      : requestedDistance;
+    this.currentDistance = clamp(nextDistance, this.tuning.minimumDistance, boomLen);
 
     const eye = scratchEye.copy(anchor).addScaledVector(rayDir, this.currentDistance);
     // Ground clearance: never clip below the floor plus the camera radius.

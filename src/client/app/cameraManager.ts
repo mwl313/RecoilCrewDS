@@ -17,6 +17,7 @@ export class CameraManager {
   readonly gunnerCam: TpsCameraController;
   activeCam: TpsCameraController;
   private shake = 0;
+  private shakeTime = 0;
   private lastRenderYaw = 0;
   private overviewSize = 0;
 
@@ -66,7 +67,9 @@ export class CameraManager {
   }
 
   tickShake(dtRaw: number): void {
-    this.shake = Math.max(0, this.shake - dtRaw * 1.4);
+    const dt = Number.isFinite(dtRaw) ? clamp(dtRaw, 0, 0.1) : 0;
+    this.shakeTime += dt;
+    this.shake = Math.max(0, this.shake - dt * 1.4);
   }
 
   recenter(chassisYaw: number): void {
@@ -122,13 +125,14 @@ export class CameraManager {
     return { x: aim.x, y: aim.y, z: aim.z };
   }
 
-  /** Camera shake jitter applied to the active camera during render. */
+  /** Continuous, non-accumulating camera shake applied during render. */
   applyShake(): void {
     if (this.shake <= 0.001) return;
     const s = this.shake;
-    this.activeCam.camera.position.x += (Math.random() - 0.5) * s * 0.35;
-    this.activeCam.camera.position.y += (Math.random() - 0.5) * s * 0.3;
-    this.activeCam.camera.position.z += (Math.random() - 0.5) * s * 0.35;
+    const t = this.shakeTime;
+    this.activeCam.camera.position.x += Math.sin(t * 37 + 0.3) * s * 0.11;
+    this.activeCam.camera.position.y += Math.sin(t * 43 + 1.7) * s * 0.08;
+    this.activeCam.camera.position.z += Math.sin(t * 31 + 2.4) * s * 0.11;
   }
 }
 
