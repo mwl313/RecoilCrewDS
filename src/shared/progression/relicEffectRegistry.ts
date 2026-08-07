@@ -33,6 +33,7 @@ export interface RelicEffectHandler {
 export class RelicEffectRegistry {
   private readonly byType = new Map<string, RelicEffectHandler>();
   private readonly enemyDebuffs = new Map<number, { speedUntil: number; speedPercent: number; vulnUntil: number; vulnPercent: number }>();
+  private readonly usedOnce = new Set<string>();
 
   register(handler: RelicEffectHandler): void {
     this.byType.set(handler.trigger, handler);
@@ -72,12 +73,27 @@ export class RelicEffectRegistry {
     }
   }
 
+  removeEnemy(enemyId: number): void {
+    this.enemyDebuffs.delete(enemyId);
+  }
+
   clear(): void {
     this.enemyDebuffs.clear();
+    this.usedOnce.clear();
   }
 
   size(): number {
     return this.enemyDebuffs.size;
+  }
+
+  consumeOnce(key: string): boolean {
+    if (this.usedOnce.has(key)) return false;
+    this.usedOnce.add(key);
+    return true;
+  }
+
+  wasConsumed(key: string): boolean {
+    return this.usedOnce.has(key);
   }
 }
 
@@ -172,7 +188,10 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
   registry.register({
     trigger: 'cannonHitCooldownReduction',
     handle(event, ctx, relic, stacks, params, telemetry) {
-      if (event.type !== 'damageApplied' || event.source !== 'cannon' || event.targetKind !== 'enemy') return;
+      // ProjectileSystem emits this once per shell impact, even when its
+      // splash damages several enemies. This prevents multiplicative
+      // cooldown refunds from one area hit.
+      if (event.type !== 'cannonHit') return;
       ctx.state.turret.cannonCooldown = Math.max(
         0,
         ctx.state.turret.cannonCooldown * (1 - (num(params, 'percentPerStack') * stacks) / 100),
@@ -234,13 +253,11 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
     },
   });
 
-  const reviveUsed = new Set<string>();
   registry.register({
     trigger: 'revive',
     handle(event, ctx, relic, _stacks, params, telemetry) {
       if (event.type !== 'wipeout') return;
-      if (reviveUsed.has(relic.id)) return;
-      reviveUsed.add(relic.id);
+      if (!registry.consumeOnce(relic.id)) return;
       const t = ctx.state.tank;
       const max = ctx.rules.resolver.resolve('tank.maxIntegrity');
       t.integrity = Math.max(1, max * (num(params, 'integrityPercent') / 100));

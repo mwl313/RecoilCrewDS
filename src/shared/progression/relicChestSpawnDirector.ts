@@ -52,6 +52,18 @@ export class RelicChestSpawnDirector {
       const placement = this.validateCandidate(x, z, placements, this.policy.initialMinimumChestSpacing);
       if (placement) placements.push(placement);
     }
+    // Deterministic exhaustive fallback: authored "10 starting chests" is an
+    // invariant, not a best-effort random sample. This only changes seeds for
+    // which the random search could not fill the requested count.
+    if (placements.length < this.policy.initialMapChestCount) {
+      const step = Math.max(2, this.policy.initialMinimumChestSpacing);
+      for (let z = this.bounds.minZ + inset; z <= this.bounds.maxZ - inset && placements.length < this.policy.initialMapChestCount; z += step) {
+        for (let x = this.bounds.minX + inset; x <= this.bounds.maxX - inset && placements.length < this.policy.initialMapChestCount; x += step) {
+          const placement = this.validateCandidate(x, z, placements, this.policy.initialMinimumChestSpacing);
+          if (placement) placements.push(placement);
+        }
+      }
+    }
     return placements;
   }
 
@@ -79,6 +91,7 @@ export class RelicChestSpawnDirector {
   enemyDropPlacement(
     origin: { x: number; z: number },
     existing: readonly { x: number; z: number }[],
+    guaranteed = false,
   ): ChestPlacement | null {
     const startAngle = this.dropRandom() * Math.PI * 2;
     const radii = [0, 2.5, 5, 8, 12, 16];
@@ -93,6 +106,26 @@ export class RelicChestSpawnDirector {
           3.5,
         );
         if (placement) return placement;
+      }
+    }
+    if (guaranteed) {
+      const inset = 4;
+      const width = Math.max(0, this.bounds.maxX - this.bounds.minX - inset * 2);
+      const depth = Math.max(0, this.bounds.maxZ - this.bounds.minZ - inset * 2);
+      for (let i = 0; i < 2048; i++) {
+        const placement = this.validateCandidate(
+          this.bounds.minX + inset + this.dropRandom() * width,
+          this.bounds.minZ + inset + this.dropRandom() * depth,
+          existing,
+          3.5,
+        );
+        if (placement) return placement;
+      }
+      for (let z = this.bounds.minZ + inset; z <= this.bounds.maxZ - inset; z += 4) {
+        for (let x = this.bounds.minX + inset; x <= this.bounds.maxX - inset; x += 4) {
+          const placement = this.validateCandidate(x, z, existing, 3.5);
+          if (placement) return placement;
+        }
       }
     }
     return null;
@@ -120,6 +153,20 @@ export class RelicChestSpawnDirector {
         this.policy.initialMinimumChestSpacing,
       );
       if (placement) return placement;
+    }
+    const radialStep = Math.max(2, this.policy.initialMinimumChestSpacing / 3);
+    for (let radius = minimum; radius <= maximum; radius += radialStep) {
+      const count = Math.max(16, Math.ceil((Math.PI * 2 * radius) / radialStep));
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const placement = this.validateCandidate(
+          origin.x + Math.cos(angle) * radius,
+          origin.z + Math.sin(angle) * radius,
+          existing,
+          this.policy.initialMinimumChestSpacing,
+        );
+        if (placement) return placement;
+      }
     }
     return null;
   }

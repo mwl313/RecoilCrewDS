@@ -61,7 +61,10 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
 
       const w = ctx.rules.config.weapons;
       const range = weaponStat(weapon, 'weapon.mgRange', w.mgRange);
-      const damage = weaponStat(weapon, 'weapon.mgDamage', w.mgDamage);
+      // Runtime progression/items own weapon modifiers through StatResolver.
+      // Reading the frozen weapon statBlock here bypasses effects such as
+      // HEAT SINK and MG damage level-up cards.
+      const damage = ctx.rules.resolver.resolve('weapon.mgDamage');
       let bestT = range;
       let bestEnemy: (typeof s.enemies)[number] | null = null;
       for (const e of s.enemies) {

@@ -353,6 +353,10 @@ export class MatchRules {
     this.resolver.removeModifiersBySource(source);
   }
 
+  removeModifiersBySourcePrefix(prefix: string): void {
+    this.resolver.removeModifiersBySourcePrefix(prefix);
+  }
+
   clearModifiers(): void {
     this.resolver.clearModifiers();
   }

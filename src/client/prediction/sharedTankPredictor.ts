@@ -44,6 +44,8 @@ function emptyState(): TankKinematicState {
     landingGripT: 0,
     dashState: 'inactive', dashStateT: 0, dashDirectionX: 0, dashDirectionZ: 1,
     dashPeakSpeed: 0, dashSpeed: 0, dashSteeringMultiplier: 1,
+    airJumpsRemaining: 0, airJumpCapacity: 0,
+    airDashReuseRemaining: 0, airDashReuseCapacity: 0,
   };
 }
 
@@ -65,6 +67,10 @@ function fromTank(t: TankState): TankKinematicState {
     drift: t.drift,
     landingGripT: t.landingGripT ?? 0,
     prevOnRamp: t.prevOnRamp ?? false,
+    airJumpsRemaining: t.airJumpsRemaining ?? 0,
+    airJumpCapacity: t.airJumpCapacity ?? 0,
+    airDashReuseRemaining: t.airDashReuseRemaining ?? 0,
+    airDashReuseCapacity: t.airDashReuseCapacity ?? 0,
   };
 }
 
@@ -388,6 +394,10 @@ export class SharedTankPredictor {
     d.dashPeakSpeed = p.dashPeakSpeed;
     d.dashSpeed = p.dashSpeed;
     d.dashSteeringMultiplier = p.dashSteeringMultiplier;
+    d.airJumpsRemaining = p.airJumpsRemaining;
+    d.airJumpCapacity = p.airJumpCapacity;
+    d.airDashReuseRemaining = p.airDashReuseRemaining;
+    d.airDashReuseCapacity = p.airDashReuseCapacity;
     d.drift = p.drift;
   }
 }

@@ -133,6 +133,36 @@ describe('relic chest world integration', () => {
     expect(rolls).toBe(0);
   });
 
+  it('waits for the final co-leader and then awards exactly one chest for the wave', () => {
+    const m = makeMatch('mode.singlePlayerScoreAttack', 'multi-leader');
+    const wave = m.systems.waves.openWave({
+      definitionId: 'wave.test.multiLeader',
+      leaderEnemyId: 'enemy.scrapBug',
+      leaderEnemyIds: ['enemy.scrapBug', 'enemy.rammer'],
+      openingThreat: 2,
+      reinforcementThreat: 0,
+      reinforcementThreatPerSecond: 0,
+      maximumActiveWaveThreat: 2,
+      maximumActiveWaveEntities: 2,
+    });
+    expect(wave.leaderIds).toHaveLength(2);
+    killEnemy(m, wave.leaderIds[0]);
+    expect(m.state.chests.filter((chest) => chest.source === 'waveClear')).toHaveLength(0);
+    killEnemy(m, wave.leaderIds[1]);
+    expect(m.state.chests.filter((chest) => chest.source === 'waveClear')).toHaveLength(1);
+  });
+
+  it('falls back outside the local ring when a leader reward is guaranteed', () => {
+    const world = flatWorld();
+    world.isDriveableAt = (x, z) => Math.hypot(x, z) > 30;
+    const random = () => 0;
+    const director = new RelicChestSpawnDirector(world, policy, random, random, random, { attempt() {}, failure() {} });
+    expect(director.enemyDropPlacement({ x: 0, z: 0 }, [], false)).toBeNull();
+    const guaranteed = director.enemyDropPlacement({ x: 0, z: 0 }, [], true);
+    expect(guaranteed).not.toBeNull();
+    expect(Math.hypot(guaranteed!.x, guaranteed!.z)).toBeGreaterThan(30);
+  });
+
   it('applies boss zero-rate, purge none, and award-once routing', () => {
     const bossMatch = makeMatch('mode.singlePlayerScoreAttack', 'modern-boss');
     bossMatch.systems.progression.setEnemyChestRandomForTest(() => 0);
