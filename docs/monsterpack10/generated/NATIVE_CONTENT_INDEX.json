@@ -18,10 +18,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.alien-high-detail": {
@@ -38,7 +38,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.alpaking": {
@@ -61,10 +61,10 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.alpaking-evolved": {
@@ -80,7 +80,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.armabee": {
@@ -103,10 +103,10 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.armabee-evolved": {
@@ -122,7 +122,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.birb": {
@@ -138,7 +138,7 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.blue-demon": {
@@ -155,7 +155,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.bunny": {
@@ -171,7 +171,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.cactoro": {
@@ -193,10 +193,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.cactoro-high-detail": {
@@ -212,7 +212,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.cat": {
@@ -234,10 +234,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.chicken": {
@@ -259,10 +259,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.demon": {
@@ -278,7 +278,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.demon-high-detail": {
@@ -294,7 +294,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.dino": {
@@ -310,7 +310,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.dragon": {
@@ -328,7 +328,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.dragon-evolved": {
@@ -344,7 +344,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.fish": {
@@ -360,7 +360,7 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.fish-high-detail": {
@@ -376,7 +376,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.frog": {
@@ -392,7 +392,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.ghost": {
@@ -408,7 +408,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.ghost-skull": {
@@ -425,7 +425,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.glub": {
@@ -448,10 +448,10 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.glub-evolved": {
@@ -467,7 +467,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.goleling": {
@@ -485,7 +485,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.goleling-evolved": {
@@ -501,7 +501,7 @@
     ],
     "rigFamilyId": "rig.quaternius.compactFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.green-blob": {
@@ -523,10 +523,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.green-spiky-blob": {
@@ -542,7 +542,7 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.hywirl": {
@@ -558,7 +558,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.monkroose": {
@@ -574,7 +574,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.mushnub": {
@@ -596,10 +596,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.mushnub-evolved": {
@@ -615,7 +615,7 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.mushroom-king": {
@@ -632,7 +632,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.ninja": {
@@ -654,10 +654,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.ninja-high-detail": {
@@ -673,7 +673,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.orc": {
@@ -690,7 +690,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.orc-enemy": {
@@ -712,10 +712,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.pigeon": {
@@ -737,10 +737,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.pink-blob": {
@@ -762,10 +762,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.squidle": {
@@ -781,7 +781,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.tribal": {
@@ -797,7 +797,7 @@
     ],
     "rigFamilyId": "rig.quaternius.extendedFlying",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   },
   "monster.quaternius.wizard": {
@@ -819,10 +819,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.yeti": {
@@ -844,10 +844,10 @@
     ],
     "rigFamilyId": "rig.quaternius.simpleGround",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
-      "commonNear": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
-      "commonFar": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
-      "aggregate": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
+      "commonNear": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
+      "commonFar": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
+      "aggregate": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7"
     }
   },
   "monster.quaternius.yeti-high-detail": {
@@ -863,7 +863,7 @@
     ],
     "rigFamilyId": "rig.quaternius.humanoid",
     "importedHashes": {
-      "hero": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6"
+      "hero": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5"
     }
   }
 }

@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import { clamp, lerp, angleDiff, wrapAngle } from '../../shared/math';
+import { wrapAngle } from '../../shared/math';
 import { SnapshotBuffer, type SnapshotEnvelope } from '../../shared/net/interpolation';
 import type { AssetService, TankRig } from '../assets';
 import type { AudioManager } from '../audio';
-import type { Collider } from '../arenaView';
-import type { CameraCollisionQuery } from '../cameraCollision';
 import type { EnemyState, MatchState, Role, SimEvent, TankState } from '../../shared/types';
-import type { CameraManager } from './cameraManager';
 import type { EntityViewRegistry, EnemyRig } from './entityViewRegistry';
 import { InstancedEnemyRenderer } from '../enemies/instancedEnemyRenderer';
 import type { PredictionController } from './predictionController';
@@ -18,16 +15,11 @@ import type { OpEntry } from '../../shared/sim/opLog';
 import { netcodeMetrics } from '../netcode/netcodeMetrics';
 import type { GameSessionContext } from '../../shared/session/gameSessionKind';
 import type { TankRigRulesBlock } from '../../shared/stats/rulesRevision';
-import { solveTurretAim } from '../../shared/vehicle/tankRigGeometry';
-import { projectTrajectoryReticle, type TrajectoryReticleResult } from '../aim/trajectoryReticleProjector';
 import { AnimationLodManager, type AnimationLodCandidate } from '../animation/animationLodSelector';
 import type { AnimationLodPolicyDefinition, EnemyAnimationLodTier } from '../../shared/animation/animationProfileTypes';
 import { EntityViewFactory } from './entityViewFactory';
-import { BASE_CONFIG } from '../../shared/config';
 import { applyDistantEnemyPose } from '../animation/distantEnemyMotion';
 import type { EnemyAnimationPresentationState } from '../animation/enemyAnimationStateResolver';
-
-const scratchViewDirection = new THREE.Vector3();
 
 export interface InputSource {
   key(name: string): boolean;
@@ -42,15 +34,9 @@ export interface PresenterDeps {
   assets: AssetService;
   registry: EntityViewRegistry;
   tankRig: TankRig;
-  cameras: CameraManager;
   prediction: PredictionController;
-  colliders: () => Collider[];
-  cameraQuery: () => CameraCollisionQuery | null;
-  groundHeightAt: (x: number, z: number) => number;
-  input: InputSource;
   audio: AudioManager;
   onTankRig?: (block: TankRigRulesBlock) => void;
-  onTrajectoryReticle?: (result: TrajectoryReticleResult) => void;
   session: () => GameSessionContext;
   role: () => Role;
   singlePlayerMatch: () => { state: MatchState } | null;
@@ -374,64 +360,6 @@ export class NetworkStatePresenter {
       registry.truckMarker.visible = false;
     }
 
-    const speedRatio = Math.min(1, Math.hypot(t.vx, t.vz) / 18);
-    const mouse = deps.input.consumeMouse();
-    deps.cameras.update(dt, pos, yaw, deps.session().kind === 'singlePlayer' || deps.role() === 'driver' ? speedRatio : 0, deps.cameraQuery(), mouse);
-    if (deps.session().kind === 'singlePlayer' || deps.role() === 'gunner') {
-      const groundY = renderTank.y;
-      const aim = deps.cameras.computeAim(deps.cameras.activeCam.camera, deps.cameraQuery(), groundY);
-      // Tank, camera, and turret aim must share the same rendered chassis pose.
-      // Using the raw 30 Hz Single Player yaw here reintroduced a one-tick
-      // mismatch even after smoothing the visible tank and camera anchor.
-      const chassisYaw = yaw;
-      const limits = deps.prediction.turretPitchLimits();
-      const targetSolved = solveTurretAim(
-        { x: pos.x, y: pos.y, z: pos.z, yaw },
-        this.tankRig.rigDefinition,
-        { x: aim.x, y: aim.y, z: aim.z },
-        { minPitch: limits.minPitch, maxPitch: limits.maxPitch },
-      );
-      // Close third-person ground hits become geometrically ambiguous near
-      // vertical aim because the shoulder camera is offset from the turret.
-      // Blend toward the camera's actual direction near the poles so both
-      // online Gunner and Single Player can reach true up/down articulation.
-      const viewDirection = deps.cameras.activeCam.camera.getWorldDirection(scratchViewDirection);
-      const viewFlat = Math.hypot(viewDirection.x, viewDirection.z);
-      const viewWorldYaw = viewFlat > 1e-6
-        ? Math.atan2(viewDirection.x, viewDirection.z)
-        : deps.cameras.activeCam.yaw;
-      const viewYawLocal = wrapAngle(viewWorldYaw - yaw);
-      const viewPitch = clamp(Math.atan2(viewDirection.y, viewFlat), limits.minPitch, limits.maxPitch);
-      const verticalBlend = clamp((Math.abs(viewDirection.y) - 0.94) / 0.055, 0, 1);
-      const solved = {
-        desiredYawLocal: wrapAngle(targetSolved.desiredYawLocal + angleDiff(targetSolved.desiredYawLocal, viewYawLocal) * verticalBlend),
-        desiredPitch: lerp(targetSolved.desiredPitch, viewPitch, verticalBlend),
-      };
-      const worldYaw = wrapAngle(yaw + solved.desiredYawLocal);
-      deps.prediction.updateTurretTarget(worldYaw, solved.desiredPitch, chassisYaw, dt);
-      const predictedTurret = deps.prediction.getTurretSpaces();
-      this.tankRig.turret.rotation.y = predictedTurret.predictedYawLocal;
-      this.tankRig.barrel.rotation.x = -predictedTurret.predictedPitch;
-      deps.onTrajectoryReticle?.(
-        projectTrajectoryReticle({
-          camera: deps.cameras.activeCam.camera,
-          renderWidth: deps.world.renderer.domElement.clientWidth || window.innerWidth,
-          renderHeight: deps.world.renderer.domElement.clientHeight || window.innerHeight,
-          tank: { x: t.x, y: t.y, z: t.z, yaw },
-          turretLocalYaw: predictedTurret.predictedYawLocal,
-          turretPitch: predictedTurret.predictedPitch,
-          rig: this.tankRig.rigDefinition,
-          cameraQuery: deps.cameraQuery(),
-          groundHeightAt: deps.groundHeightAt,
-          projectile: {
-            speed: deps.prediction.movementRules()?.weapon?.cannonSpeed ?? BASE_CONFIG.weapons.cannonSpeed,
-            gravity: deps.prediction.movementRules()?.weapon?.cannonGravity ?? BASE_CONFIG.weapons.cannonGravity,
-            life: deps.prediction.movementRules()?.weapon?.cannonLife ?? BASE_CONFIG.weapons.cannonLife,
-          },
-          desiredPoint: { x: aim.x, y: aim.y, z: aim.z },
-        }),
-      );
-    }
     if (deps.session().kind === 'singlePlayer') {
       deps.applySinglePlayerWeapons(dt);
     }

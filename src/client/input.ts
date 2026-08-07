@@ -7,6 +7,10 @@ export class InputManager {
   private mouse = new Set<string>();
   private dx = 0;
   private dy = 0;
+  private lastRawDx = 0;
+  private lastRawDy = 0;
+  private pointerLockChangedAt = 0;
+  private rejectedMouseEvents = 0;
   locked = false;
   private enabled = true;
 
@@ -57,10 +61,16 @@ export class InputManager {
     this.actionArmed.clear();
     this.actionLatches.clear();
     this.mouse.clear();
-    this.dx = 0;
-    this.dy = 0;
+    this.clearPointerDeltas();
     this.recenterPressed = false;
     this.escapePressed = false;
+  }
+
+  private clearPointerDeltas() {
+    this.dx = 0;
+    this.dy = 0;
+    this.lastRawDx = 0;
+    this.lastRawDy = 0;
   }
 
   private onBlur = () => {
@@ -89,6 +99,10 @@ export class InputManager {
 
   private onLock = () => {
     this.locked = document.pointerLockElement !== null;
+    // Browsers may report a stale movement delta at either edge of a lock
+    // transition. Never carry that delta into the first gameplay RAF.
+    this.clearPointerDeltas();
+    this.pointerLockChangedAt = nowMs();
     if (!this.locked) {
       this.clearAll();
     }
@@ -132,6 +146,12 @@ export class InputManager {
 
   private onMouseMove = (e: MouseEvent) => {
     if (!this.locked || !this.enabled) return;
+    if (!Number.isFinite(e.movementX) || !Number.isFinite(e.movementY)) {
+      this.rejectedMouseEvents++;
+      return;
+    }
+    this.lastRawDx = e.movementX;
+    this.lastRawDy = e.movementY;
     this.dx += e.movementX;
     this.dy += e.movementY;
   };
@@ -195,7 +215,23 @@ export class InputManager {
   }
 
   /** Test hook: currently held semantic keys/buttons. */
-  debugState(): { keys: string[]; latches: string[]; buttons: string[]; enabled: boolean; locked: boolean; recenterPressed: boolean; escapePressed: boolean } {
+  debugState(): {
+    keys: string[];
+    latches: string[];
+    buttons: string[];
+    enabled: boolean;
+    locked: boolean;
+    recenterPressed: boolean;
+    escapePressed: boolean;
+    pointer: {
+      accumulatedDx: number;
+      accumulatedDy: number;
+      lastRawDx: number;
+      lastRawDy: number;
+      rejectedEvents: number;
+      msSinceLockChange: number;
+    };
+  } {
     return {
       keys: [...this.keys],
       latches: [...this.actionLatches],
@@ -204,6 +240,22 @@ export class InputManager {
       locked: this.locked,
       recenterPressed: this.recenterPressed,
       escapePressed: this.escapePressed,
+      pointer: {
+        accumulatedDx: this.dx,
+        accumulatedDy: this.dy,
+        lastRawDx: this.lastRawDx,
+        lastRawDy: this.lastRawDy,
+        rejectedEvents: this.rejectedMouseEvents,
+        msSinceLockChange: this.pointerLockChangedAt > 0
+          ? Math.max(0, nowMs() - this.pointerLockChangedAt)
+          : 0,
+      },
     };
   }
+}
+
+function nowMs(): number {
+  return typeof performance !== 'undefined' && Number.isFinite(performance.now())
+    ? performance.now()
+    : Date.now();
 }

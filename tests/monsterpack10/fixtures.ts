@@ -43,6 +43,7 @@ export function makeFixtureManifests(): MonsterPackSourceManifests {
       id: `model.quaternius.${slug}.${variant}`,
       variant,
       sourceModelId: `monster.quaternius.${slug}`,
+      pipelineVersion: '1.1.1-color-fidelity',
       outputFile: `exports/${variant === 'commonNear' ? 'common-near' : variant === 'commonFar' ? 'common-far' : variant === 'aggregate' ? 'aggregate' : 'hero'}/${slug}.${fileSuffix}.glb`,
       outputSha256: `hash-${slug}-${variant}`,
       outputFileBytes: 1000,

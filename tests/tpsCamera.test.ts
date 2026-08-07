@@ -4,6 +4,7 @@ import {
   TpsCameraController,
   computeWorldAim,
   localYawToWorld,
+  mapLookPitchToBoomPitch,
   worldYawToLocal,
   type TpsCameraTuning,
 } from '../src/client/tpsCamera';
@@ -20,6 +21,8 @@ const TUNING: TpsCameraTuning = {
   anchorHeight: 1.35,
   minPitch: (-35 * Math.PI) / 180,
   maxPitch: (55 * Math.PI) / 180,
+  boomPoleStartPitch: (50 * Math.PI) / 180,
+  boomMaxPitch: (65 * Math.PI) / 180,
   sensitivityX: 0.0024,
   sensitivityY: 0.0022,
   invertMouseX: false,
@@ -123,6 +126,31 @@ describe('TPS camera direction conventions', () => {
 });
 
 describe('TPS camera rig placement', () => {
+  it('maps the physical boom continuously and monotonically away from the look pole', () => {
+    let previous = mapLookPitchToBoomPitch(0);
+    for (let degree = 0.1; degree <= 90; degree += 0.1) {
+      const current = mapLookPitchToBoomPitch(degree * Math.PI / 180);
+      expect(current).toBeGreaterThanOrEqual(previous - 1e-9);
+      expect(current - previous).toBeLessThan(0.003);
+      previous = current;
+    }
+    expect(mapLookPitchToBoomPitch(45 * Math.PI / 180)).toBeCloseTo(45 * Math.PI / 180, 8);
+    expect(mapLookPitchToBoomPitch(Math.PI / 2)).toBeCloseTo(65 * Math.PI / 180, 8);
+    expect(mapLookPitchToBoomPitch(-Math.PI / 2)).toBeCloseTo(-65 * Math.PI / 180, 8);
+  });
+
+  it('keeps exact vertical look direction while the physical boom remains pole-safe', () => {
+    const cam = new TpsCameraController({ ...TUNING, minPitch: -Math.PI / 2, maxPitch: Math.PI / 2 });
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.pitch = -Math.PI / 2;
+    cam.update(1 / 60, []);
+    const direction = new THREE.Vector3();
+    cam.camera.getWorldDirection(direction);
+    expect(direction.y).toBeCloseTo(-1, 8);
+    expect(cam.getFollowDiagnostics().boomPitch).toBeCloseTo(-65 * Math.PI / 180, 8);
+    expect(cam.camera.position.distanceTo(new THREE.Vector3(0, 1.35, 0))).toBeGreaterThan(1);
+  });
+
   it('places the camera behind the chassis and looks along view-forward', () => {
     const cam = new TpsCameraController(TUNING);
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
@@ -292,9 +320,40 @@ describe('gunner world aim and turret conversion', () => {
     const cam = new TpsCameraController(TUNING);
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
     cam.update(1 / 30, []);
-    const aim = computeWorldAim(cam.camera, [], 0);
+    const aim = computeWorldAim(cam.camera, [], () => 0);
     expect(aim.z).toBeGreaterThan(0);
     expect(aim.x).toBeCloseTo(cam.camera.position.x, 3);
+  });
+
+  it('uses the nearest actual terrain hit on flat and sloped ground', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 8, 0);
+    camera.lookAt(0, 0, 12);
+    camera.updateMatrixWorld(true);
+    const flat = computeWorldAim(camera, [], () => 0).clone();
+    expect(flat.y).toBeCloseTo(0, 5);
+    const slopeHeight = (_x: number, z: number) => z * 0.25;
+    const slope = computeWorldAim(camera, [], slopeHeight);
+    expect(slope.y).toBeCloseTo(slopeHeight(slope.x, slope.z), 5);
+    expect(slope.distanceTo(camera.position)).toBeLessThan(flat.distanceTo(camera.position));
+  });
+
+  it('orders collider and terrain hits by nearest positive distance', () => {
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.set(0, 6, 0);
+    camera.lookAt(0, 0, 20);
+    camera.updateMatrixWorld(true);
+    const wall = [box(-2, 0, 4, 2, 8, 5)];
+    const diagnostics = { distance: 0, hitKind: 'range' as const, terrainMarchSteps: 0, terrainRefinementSteps: 0 };
+    const wallHit = computeWorldAim(camera, wall, () => 0, diagnostics).clone();
+    expect(diagnostics.hitKind).toBe('collider');
+    expect(wallHit.z).toBeCloseTo(4, 2);
+    const roofBeforeWall = (x: number, z: number) => Math.abs(x) < 3 && z > 2.5 ? 5.5 : 0;
+    const terrainHit = computeWorldAim(camera, wall, roofBeforeWall, diagnostics);
+    expect(diagnostics.hitKind).toBe('terrain');
+    expect(terrainHit.z).toBeLessThan(wallHit.z);
+    expect(diagnostics.terrainMarchSteps).toBeLessThanOrEqual(64);
+    expect(diagnostics.terrainRefinementSteps).toBeLessThanOrEqual(10);
   });
 
   it('converts world yaw to chassis-local yaw and back (single chassis application)', () => {

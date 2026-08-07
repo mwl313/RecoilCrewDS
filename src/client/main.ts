@@ -45,6 +45,7 @@ import {
 } from '../shared/monsters/monsterPreload';
 import { resolveMonsterDimensionsForDefId } from '../shared/monsters/monsterNormalization';
 import { urbanAssetIds } from '../shared/mapgen/urbanLayout';
+import { netcodeMetrics } from './netcode/netcodeMetrics';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -842,6 +843,8 @@ if (TEST_MODE) {
     renderTank: () => game?.getRenderTank() ?? null,
     turretSpaces: () => game?.getTurretSpaces() ?? null,
     cameraState: () => game?.getCameraState() ?? null,
+    netcodeMetrics: () => netcodeMetrics.snapshot(),
+    suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,
     renderCount: () => game?.world.renderCount ?? 0,
     setInputEnabled: (enabled: boolean) => {

@@ -79,6 +79,8 @@ const TIER_DIRS: Record<string, string> = {
   aggregate: 'aggregate',
 };
 
+const REQUIRED_PIPELINE_VERSION = '1.1.1-color-fidelity';
+
 interface ImportOptions {
   dryRun?: boolean;
   validateOnly?: boolean;
@@ -217,6 +219,17 @@ function validateSource(
     });
   }
   for (const v of entries) {
+    if (v.pipelineVersion !== REQUIRED_PIPELINE_VERSION) {
+      issues.push({
+        sourceModel: v.sourceModelId,
+        nativeId: v.id,
+        path: 'runtime_variants.json',
+        expected: `pipelineVersion ${REQUIRED_PIPELINE_VERSION}`,
+        actual: v.pipelineVersion ?? '(missing)',
+        suggestedFix:
+          'Reject the pack: regenerate with the color-fidelity pipeline so linear material colors are not encoded as sRGB twice.',
+      });
+    }
     if (!TIER_DIRS[v.variant]) {
       issues.push({
         sourceModel: v.sourceModelId,

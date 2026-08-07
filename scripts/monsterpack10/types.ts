@@ -6,6 +6,7 @@ export interface MonsterRuntimeVariant {
   id: string;
   variant: MonsterVariant;
   sourceModelId: string;
+  pipelineVersion: string;
   outputFile: string;
   outputSha256: string;
   outputFileBytes: number;

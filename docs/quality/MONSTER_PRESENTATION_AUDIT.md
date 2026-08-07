@@ -36,7 +36,7 @@ The required audit order produced the following result.
 
 | Stage | Finding | Resolution |
 | --- | --- | --- |
-| Source base color/texture | Mushnub, Wizard common, and high-detail Demon use vertex colors rather than base-color textures. Their source colors are intact. | Preserve vertex colors and source material color; no texture repainting. |
+| Source base color/texture | The original GLBs use multiple material base colors. Pipeline `1.1.0` baked those already-linear colors through Blender's `color_srgb` setter, applying a second conversion and reducing median luminance to about 17% of the original. The earlier audit compared processed GLBs without the originals and incorrectly described their colors as intact. | Pipeline `1.1.1-color-fidelity` writes through the linear `color` accessor. All 45 hero palettes now retain 99.30–100.49% source luminance and are protected by an original-source baseline gate. |
 | Texture color space | Representative monsters have no base-color texture. The shared policy now explicitly marks any base-color/emissive texture as sRGB for custom-loader safety. | `SRGBColorSpace` for color data only. |
 | Renderer output | Production already used sRGB output. | Retained. |
 | Tone mapping | Production already used ACES Filmic. | Retained. |
@@ -49,7 +49,7 @@ The required audit order produced the following result.
 | Vertex colors | Present and enabled on audited Quaternius sources. | Preserved; never replaced or disabled. |
 | Roughness/metallic/AO | Audited sources were metalness 0 and roughness about 0.72. AO intensity defaulted to 1.0. | Shared bounds: metalness ≤ 0.08, roughness ≥ 0.68, AO intensity ≤ 0.5. |
 
-No source texture or vertex color was manually brightened. The correction is a common, auditable presentation policy.
+No source texture or vertex color is manually brightened. The Blender bake now preserves the original linear palette, while the runtime correction remains a common, auditable presentation policy.
 
 ## Material acceptance
 

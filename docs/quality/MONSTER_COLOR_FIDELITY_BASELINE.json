@@ -1,0 +1,502 @@
+{
+  "format": 1,
+  "sourceArchive": "docs/quality/Ultimate Monsters Bundle-glb.zip",
+  "note": "Linear-space source palette measurements. Regenerate only from the verified original 45-GLB archive.",
+  "entries": {
+    "monster.quaternius.mushnub": {
+      "sourceFile": "Mushnub.glb",
+      "sourceSha256": "04614a9d0db2a00d17cd85f4ef9c54e19cd3692530c0724b46809aa928e161e9",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 678,
+        "saturation": 0.40446799537780703,
+        "value": 0.2576411008027143,
+        "luminance": 0.19680600738861945
+      }
+    },
+    "monster.quaternius.armabee": {
+      "sourceFile": "Armabee.glb",
+      "sourceSha256": "9a47899a2320aa42d5f550598a981c26517c6e27723980f5d2080a557eb88dc2",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 1256,
+        "saturation": 0.1956878112637541,
+        "value": 0.15746852444710244,
+        "luminance": 0.13448933432609878
+      }
+    },
+    "monster.quaternius.orc": {
+      "sourceFile": "Orc.glb",
+      "sourceSha256": "fb5d9da18e16fd3bd6f066692576845d411acf19536d46c7598f5d701b6db19f",
+      "stats": {
+        "meshCount": 11,
+        "sampledVertices": 4382,
+        "saturation": 0.686355512164918,
+        "value": 0.21193648618741606,
+        "luminance": 0.16788343836521855
+      }
+    },
+    "monster.quaternius.dragon-evolved": {
+      "sourceFile": "Dragon Evolved.glb",
+      "sourceSha256": "f660d8f48be4ea3f39639f6206a0181127e7fe7503cb4bad8d07d27d80528f3a",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 4350,
+        "saturation": 0.7933682425045923,
+        "value": 0.22394106266698963,
+        "luminance": 0.11102262861432972
+      }
+    },
+    "monster.quaternius.alien": {
+      "sourceFile": "Alien.glb",
+      "sourceSha256": "9eb262825e32ce95207243890a980ff4722e6fd6c443ef62aac520e3bc996310",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 1430,
+        "saturation": 0.733825324550013,
+        "value": 0.14625342458134868,
+        "luminance": 0.09962088158534116
+      }
+    },
+    "monster.quaternius.birb": {
+      "sourceFile": "Birb.glb",
+      "sourceSha256": "63719ca3ebae056716b7e5380d4294b3a3dcc39f6a4f54dc3e5d1af962c3ca1f",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 2171,
+        "saturation": 0.6028392166684063,
+        "value": 0.24568416776829657,
+        "luminance": 0.13528068004228488
+      }
+    },
+    "monster.quaternius.cactoro": {
+      "sourceFile": "Cactoro.glb",
+      "sourceSha256": "2291a31287306ab430ad4c001dff5fbedba5c79854ad19ddc1c64d5fffc506ab",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 1657,
+        "saturation": 0.8209410344402017,
+        "value": 0.21578882857718756,
+        "luminance": 0.12920191269542608
+      }
+    },
+    "monster.quaternius.cat": {
+      "sourceFile": "Cat.glb",
+      "sourceSha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 1270,
+        "saturation": 0.6984644766450757,
+        "value": 0.2357212614605394,
+        "luminance": 0.1475680915206074
+      }
+    },
+    "monster.quaternius.chicken": {
+      "sourceFile": "Chicken.glb",
+      "sourceSha256": "3390f6f6944210ed9f612bd0010165d1c443c6186638f9fc4380574bd9e5fce1",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 1651,
+        "saturation": 0.39735636666938196,
+        "value": 0.28060853397862917,
+        "luminance": 0.20386133900180028
+      }
+    },
+    "monster.quaternius.fish": {
+      "sourceFile": "Fish.glb",
+      "sourceSha256": "1fdc84f17ce6f69e5812989788dec6f14860e48e281afbdb6a9b26cf0540d569",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 1827,
+        "saturation": 0.7341396101333184,
+        "value": 0.2800561175347761,
+        "luminance": 0.17561981837057367
+      }
+    },
+    "monster.quaternius.green-blob": {
+      "sourceFile": "Green Blob.glb",
+      "sourceSha256": "31c46edd6306e4ab21bec4608b41003baa74f430f27d357b90c9b6401d88a584",
+      "stats": {
+        "meshCount": 3,
+        "sampledVertices": 803,
+        "saturation": 0.48708635527321,
+        "value": 0.11356094886072136,
+        "luminance": 0.09559057782052421
+      }
+    },
+    "monster.quaternius.green-spiky-blob": {
+      "sourceFile": "Green Spiky Blob.glb",
+      "sourceSha256": "ad5e8b1cdf8c0d328b4b44537d3da8fa98119a9a99fb6163e2f325dbb8bbecc1",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 2671,
+        "saturation": 0.27185112363241565,
+        "value": 0.24458661895853406,
+        "luminance": 0.20206475017661746
+      }
+    },
+    "monster.quaternius.mushnub-evolved": {
+      "sourceFile": "Mushnub Evolved.glb",
+      "sourceSha256": "fe364b07af250c48073c319c0b4460239ca39daab37269a4e23217be46a3331c",
+      "stats": {
+        "meshCount": 8,
+        "sampledVertices": 2008,
+        "saturation": 0.62715214378686,
+        "value": 0.3523768467348128,
+        "luminance": 0.23612653543656584
+      }
+    },
+    "monster.quaternius.ninja": {
+      "sourceFile": "Ninja.glb",
+      "sourceSha256": "327c9ead9999cd25dbcda757c6c16be0cb1baee9bad224b99c917b4a9a00d15a",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 1332,
+        "saturation": 0.29164258734755,
+        "value": 0.2123117558616171,
+        "luminance": 0.1527468905765658
+      }
+    },
+    "monster.quaternius.orc-enemy": {
+      "sourceFile": "Orc Enemy.glb",
+      "sourceSha256": "7cd4898ef9f64c65bc6f84b718e723550a42709f40e0b38487f976bfc47e893b",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 1771,
+        "saturation": 0.6588550773951439,
+        "value": 0.23503181640477352,
+        "luminance": 0.15984158969714538
+      }
+    },
+    "monster.quaternius.pigeon": {
+      "sourceFile": "Pigeon.glb",
+      "sourceSha256": "df8ae4e405a14d7b7d9f9354039b39be0dfe0ac5b53d373b5b660af33deaf96c",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 1229,
+        "saturation": 0.5591335437243753,
+        "value": 0.2421627241558872,
+        "luminance": 0.13517971088239045
+      }
+    },
+    "monster.quaternius.pink-blob": {
+      "sourceFile": "Pink Blob.glb",
+      "sourceSha256": "34bb111a7931bb957f992e127d71fac321aaeea1bdcc7da56fa5aba55c83d783",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 581,
+        "saturation": 0.3875276608788658,
+        "value": 0.2329916055129902,
+        "luminance": 0.16678644459719788
+      }
+    },
+    "monster.quaternius.wizard": {
+      "sourceFile": "Wizard.glb",
+      "sourceSha256": "fb577146c7624e001222f0efaed6fb553b2fadff181f1a8d2585c3940a5d1a25",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 1050,
+        "saturation": 0.6047849583352276,
+        "value": 0.15809850912008966,
+        "luminance": 0.1256028235654121
+      }
+    },
+    "monster.quaternius.yeti": {
+      "sourceFile": "Yeti.glb",
+      "sourceSha256": "20aaa4fc5fc3b9fe30b6109f88061f2d6f49e03b26a51ebee08f50bd1c26caaf",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 1410,
+        "saturation": 0.45688369292983894,
+        "value": 0.3058614811589214,
+        "luminance": 0.234549288878825
+      }
+    },
+    "monster.quaternius.alien-high-detail": {
+      "sourceFile": "Alien-RRliSQBP7r.glb",
+      "sourceSha256": "746d9caf75897297dfd76678c55dc3dfe84e5b9e6ce816276db300cea11c27bb",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 4227,
+        "saturation": 0.7338564826308429,
+        "value": 0.13308704888608078,
+        "luminance": 0.07662539261795905
+      }
+    },
+    "monster.quaternius.alpaking": {
+      "sourceFile": "Alpaking.glb",
+      "sourceSha256": "f1a7a128256db5fede6018a715d4a92d8e2841bbddb3a49e390ce8da3f647ca7",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 1308,
+        "saturation": 0.4682438808979672,
+        "value": 0.19798607882810046,
+        "luminance": 0.1575974831771731
+      }
+    },
+    "monster.quaternius.alpaking-evolved": {
+      "sourceFile": "Alpaking Evolved.glb",
+      "sourceSha256": "d96b4ffd4cce49cc031d26931639953ebdfa28d0f9713577e69261c0e7f1ba39",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 3128,
+        "saturation": 0.5854697155797626,
+        "value": 0.22528027100077666,
+        "luminance": 0.16788816570976267
+      }
+    },
+    "monster.quaternius.armabee-evolved": {
+      "sourceFile": "Armabee Evolved.glb",
+      "sourceSha256": "61a48cfba610e46abba0c98f5371d331f60ed087a55a335580cbf27ba4b3d190",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 1916,
+        "saturation": 0.2971190230456659,
+        "value": 0.1918766964615822,
+        "luminance": 0.15330977685023167
+      }
+    },
+    "monster.quaternius.blue-demon": {
+      "sourceFile": "Blue Demon.glb",
+      "sourceSha256": "6a8e743deba6f43f0f9b1e702016b04ddba1d3bf73b7101d2c86d64ae526f87c",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3221,
+        "saturation": 0.7213427699491158,
+        "value": 0.175936526660245,
+        "luminance": 0.11210257164238847
+      }
+    },
+    "monster.quaternius.bunny": {
+      "sourceFile": "Bunny.glb",
+      "sourceSha256": "4a71eb8a80a573560fd93b39cd3c547c978d54ddd288b63000667df757dd50a2",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 4545,
+        "saturation": 0.299656741382767,
+        "value": 0.34244687689716213,
+        "luminance": 0.313230366624369
+      }
+    },
+    "monster.quaternius.cactoro-high-detail": {
+      "sourceFile": "Cactoro-IGn9lhdama.glb",
+      "sourceSha256": "8a332118f7c688c23e3d5d7d6058e9bbf961c8fe4d1ecdf3f4b3d12dbe91dc84",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3830,
+        "saturation": 0.8098625563580575,
+        "value": 0.20144999754072873,
+        "luminance": 0.14157261368557922
+      }
+    },
+    "monster.quaternius.demon": {
+      "sourceFile": "Demon.glb",
+      "sourceSha256": "9b235359e2e28a8000a92de055ab9c8a9ed123da279461d452357dbbc30de117",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 2886,
+        "saturation": 0.6091520048145926,
+        "value": 0.12383582763185393,
+        "luminance": 0.05827872481166608
+      }
+    },
+    "monster.quaternius.demon-high-detail": {
+      "sourceFile": "Demon-LnfIziKv4o.glb",
+      "sourceSha256": "7da854e1d43428b89b1afca0feca3f323b869b1d8ed7df74d17354260b607262",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 4167,
+        "saturation": 0.6174789935418266,
+        "value": 0.11650635720681439,
+        "luminance": 0.05114143274095549
+      }
+    },
+    "monster.quaternius.dino": {
+      "sourceFile": "Dino.glb",
+      "sourceSha256": "19b9a3841ebfd7595da9cd595b74e231da29730fe8030a2d17a021bc26b563ef",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3067,
+        "saturation": 0.746265332859675,
+        "value": 0.18547850977999883,
+        "luminance": 0.09636409684677041
+      }
+    },
+    "monster.quaternius.dragon": {
+      "sourceFile": "Dragon.glb",
+      "sourceSha256": "d8a12f3f819e86518f5a44984db611ffaaa800895da33928d66519e629615705",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 2740,
+        "saturation": 0.718867926930186,
+        "value": 0.2157003349366251,
+        "luminance": 0.11626767550644072
+      }
+    },
+    "monster.quaternius.fish-high-detail": {
+      "sourceFile": "Fish-ypEYhCImAB.glb",
+      "sourceSha256": "a04abb34053ec7b7080ca8e32ad6e8775e7b4d4b03e2cd2ef27a01e87c82fcca",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3667,
+        "saturation": 0.83139619001586,
+        "value": 0.2624716177640647,
+        "luminance": 0.15675840505965052
+      }
+    },
+    "monster.quaternius.frog": {
+      "sourceFile": "Frog.glb",
+      "sourceSha256": "e649e23848548c74f22a22071ebcd5ddcf78254a9f4ce94417078a7431482309",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 2734,
+        "saturation": 0.8334955577192732,
+        "value": 0.23592926693866312,
+        "luminance": 0.14942174649546908
+      }
+    },
+    "monster.quaternius.ghost": {
+      "sourceFile": "Ghost.glb",
+      "sourceSha256": "4ed7656e2155d47b7d5fe08f31a7e764d79255f477d90040e4472552d7d5ac68",
+      "stats": {
+        "meshCount": 3,
+        "sampledVertices": 1768,
+        "saturation": 0.5922804990436895,
+        "value": 0.10082706441308426,
+        "luminance": 0.07647560655230441
+      }
+    },
+    "monster.quaternius.ghost-skull": {
+      "sourceFile": "Ghost Skull.glb",
+      "sourceSha256": "d1e2268fe9621583ff879d6e6e3ace80b0a6a2373ec0139a8139c88fe6e4d942",
+      "stats": {
+        "meshCount": 2,
+        "sampledVertices": 2407,
+        "saturation": 0.7210794072427907,
+        "value": 0.12743102569995107,
+        "luminance": 0.08939305200555088
+      }
+    },
+    "monster.quaternius.glub": {
+      "sourceFile": "Glub.glb",
+      "sourceSha256": "afa0ae7178b047cd3c210fd864aebc8b64e5608a951efc4f073bf538cb04929c",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 1350,
+        "saturation": 0.29858135032933014,
+        "value": 0.15378129284277003,
+        "luminance": 0.12370613694040719
+      }
+    },
+    "monster.quaternius.glub-evolved": {
+      "sourceFile": "Glub Evolved.glb",
+      "sourceSha256": "cc85f0fe7fa65b9fcbe35fddfc38f28ba564b20533a520b42f2bbb339903a878",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 2426,
+        "saturation": 0.31320132019873337,
+        "value": 0.1614786971146233,
+        "luminance": 0.12716981691805848
+      }
+    },
+    "monster.quaternius.goleling": {
+      "sourceFile": "Goleling.glb",
+      "sourceSha256": "fe6b5a04aef77aa9b38afee216802823b543d2409674bc86bd8bd152cb8cebce",
+      "stats": {
+        "meshCount": 4,
+        "sampledVertices": 2250,
+        "saturation": 0.6648987764876587,
+        "value": 0.17618704178018701,
+        "luminance": 0.1436406819564398
+      }
+    },
+    "monster.quaternius.goleling-evolved": {
+      "sourceFile": "Goleling Evolved.glb",
+      "sourceSha256": "d397a35eeacbf64cd068d626fa82e8099dc2ae2155df051224c4b575a04f034d",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3629,
+        "saturation": 0.7012321337781936,
+        "value": 0.23827460587494842,
+        "luminance": 0.1690793376130637
+      }
+    },
+    "monster.quaternius.hywirl": {
+      "sourceFile": "Hywirl.glb",
+      "sourceSha256": "90b8f9f252999e71c1bd4bfa76bb219c577a1ecfb10294ca0eb41f903a60d8bd",
+      "stats": {
+        "meshCount": 3,
+        "sampledVertices": 1704,
+        "saturation": 0.6752470273128123,
+        "value": 0.2590871666844479,
+        "luminance": 0.1211630956279365
+      }
+    },
+    "monster.quaternius.monkroose": {
+      "sourceFile": "Monkroose.glb",
+      "sourceSha256": "f09adddaba213130b844807cd3cc7cd951abb155fbb08400798152d34acbd3d8",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 3355,
+        "saturation": 0.763793780530841,
+        "value": 0.2690303963055243,
+        "luminance": 0.181926481740291
+      }
+    },
+    "monster.quaternius.mushroom-king": {
+      "sourceFile": "Mushroom King.glb",
+      "sourceSha256": "45bbb9d659697d0127be159af0a58fae3fe8eef430adacaf994efcf0769b2e09",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 3369,
+        "saturation": 0.59808978830643,
+        "value": 0.27266829515981206,
+        "luminance": 0.19510213918882582
+      }
+    },
+    "monster.quaternius.ninja-high-detail": {
+      "sourceFile": "Ninja-xGYmeDpfTu.glb",
+      "sourceSha256": "f9d38ed5156252a675b40a16c8a01795c16b78b464edbde1ab9fc46951ae420e",
+      "stats": {
+        "meshCount": 7,
+        "sampledVertices": 3742,
+        "saturation": 0.3015199740674718,
+        "value": 0.1672680732898139,
+        "luminance": 0.1204679001116642
+      }
+    },
+    "monster.quaternius.squidle": {
+      "sourceFile": "Squidle.glb",
+      "sourceSha256": "a7c3492fbac79102c550f27306d0b07f5ab8b472f2ace9a78756a293c22d02c2",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 2790,
+        "saturation": 0.7223942562156656,
+        "value": 0.20661111257529707,
+        "luminance": 0.10345035370312246
+      }
+    },
+    "monster.quaternius.tribal": {
+      "sourceFile": "Tribal.glb",
+      "sourceSha256": "f42e476a67d5c3ffdfdd5dbcb29e9b9b6aaf235d118640f8fb4f2a40c4907951",
+      "stats": {
+        "meshCount": 5,
+        "sampledVertices": 3490,
+        "saturation": 0.6819513299996636,
+        "value": 0.20839040273464254,
+        "luminance": 0.1320158982630109
+      }
+    },
+    "monster.quaternius.yeti-high-detail": {
+      "sourceFile": "Yeti-ceRHrn8HHE.glb",
+      "sourceSha256": "789fcdd3d32a1bf6ceaa0e30f9ac5d8d2c52d15fa0181d4d1d980a1b2a2ac869",
+      "stats": {
+        "meshCount": 6,
+        "sampledVertices": 3331,
+        "saturation": 0.38149369318280096,
+        "value": 0.2717245206255292,
+        "luminance": 0.2267074179777746
+      }
+    }
+  }
+}

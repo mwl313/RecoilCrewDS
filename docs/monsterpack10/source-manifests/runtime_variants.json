@@ -54,18 +54,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:43.044136+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.423506+00:00",
       "id": "model.quaternius.mushnub.hero",
       "sourceModelId": "monster.quaternius.mushnub",
       "sourceFile": "Mushnub.glb",
       "sourceSha256": "04614a9d0db2a00d17cd85f4ef9c54e19cd3692530c0724b46809aa928e161e9",
       "variant": "hero",
       "outputFile": "exports/hero/mushnub.hero.glb",
-      "outputSha256": "cfc1f574c80d0a21115a1cf147e85d9916cea9cb57a8114651e45886ddbdd455",
+      "outputSha256": "a98839e2f2088f9fea2722482986aeb3f612abe5484f4d950e1beedbd552e8ce",
       "outputFileBytes": 76736,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "b32adf0227b24333bd1fe8aa72ed05ed7782af260c23bf9a536ef39083bd41b8",
+      "processingSignature": "de7cafc7055644b765b339b74d8b14ff35e353627f92d423a6fc4e477c7fc4a0",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -117,10 +117,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -178,18 +175,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.800720+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.490514+00:00",
       "id": "model.quaternius.mushnub.commonNear",
       "sourceModelId": "monster.quaternius.mushnub",
       "sourceFile": "Mushnub.glb",
       "sourceSha256": "04614a9d0db2a00d17cd85f4ef9c54e19cd3692530c0724b46809aa928e161e9",
       "variant": "commonNear",
       "outputFile": "exports/common-near/mushnub.common-near.glb",
-      "outputSha256": "c4295b98f7c3b3a22d3b1d37aee40e975c0baafc610273627a54debe5ec54a89",
+      "outputSha256": "d3ac5e370b31122be673669a978fa1f3b6c474290367c3b9604227657e4ebcae",
       "outputFileBytes": 67176,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "565fe7f9c39e57c7afa763c949a69ecf3dd5d01b0259965770ac7d7ccc60d1d7",
+      "processingSignature": "c8c608b38ccf76d53f5d91ba803ea9018f5b8d21ec7793c0bfa05c58ec1ff3c4",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -248,10 +245,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -302,18 +296,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.671167+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.426461+00:00",
       "id": "model.quaternius.mushnub.commonFar",
       "sourceModelId": "monster.quaternius.mushnub",
       "sourceFile": "Mushnub.glb",
       "sourceSha256": "04614a9d0db2a00d17cd85f4ef9c54e19cd3692530c0724b46809aa928e161e9",
       "variant": "commonFar",
       "outputFile": "exports/common-far/mushnub.common-far.glb",
-      "outputSha256": "56ade5f77bf78a06792e0f76942137a583218969c0852908998a4733b36499af",
+      "outputSha256": "b5931a37398f4860cd0b39deaf09b20cbbb151b2bc0d1a672b0a9595e139d221",
       "outputFileBytes": 13432,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0c528769b785bb767e75795ef26b9f629b264846412522e38ca45ef51cd71533",
+      "processingSignature": "557879787637c0111a03d57a151c81a46ffc7fac6332a72f1331837e7a0ae31a",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -353,10 +347,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -407,18 +398,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.830660+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.451808+00:00",
       "id": "model.quaternius.mushnub.aggregate",
       "sourceModelId": "monster.quaternius.mushnub",
       "sourceFile": "Mushnub.glb",
       "sourceSha256": "04614a9d0db2a00d17cd85f4ef9c54e19cd3692530c0724b46809aa928e161e9",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/mushnub.aggregate.glb",
-      "outputSha256": "bccbabc232c93bdd13c41534632811d17c13f6372bebe21c742d23819dc645d9",
+      "outputSha256": "195f1b9cab89624b2fec7806dd24d49164118d994194cb629c8dc9b5dd3fe8ab",
       "outputFileBytes": 5596,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "4405351788ba79fe568ec625a82bc5cdcba9e895f8507837f84bfb856eea7214",
+      "processingSignature": "5d00039643a85712dd5d82cd47b085a92a359cd19c1d51cf861697dc7f17f0b2",
       "settings": {
         "representativePose": {
           "action": null,
@@ -458,10 +449,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -521,18 +509,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:38.104802+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.608106+00:00",
       "id": "model.quaternius.armabee.hero",
       "sourceModelId": "monster.quaternius.armabee",
       "sourceFile": "Armabee.glb",
       "sourceSha256": "9a47899a2320aa42d5f550598a981c26517c6e27723980f5d2080a557eb88dc2",
       "variant": "hero",
       "outputFile": "exports/hero/armabee.hero.glb",
-      "outputSha256": "620f09eff43b1249ecf62ec3d5994ba5fe874e77e20f0d84d4bedd17cbbfac5c",
+      "outputSha256": "c7955c25252aef933fd72ab683aef23c59176c1f898a7bc4ce65ad9e2cdb06d1",
       "outputFileBytes": 164116,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "4bec73362641acd8b045b5554c8cbc64a6fe853ee925727c19a45e6bf0d14b52",
+      "processingSignature": "1a0f449ddcbb6fb12cb1dcdd5602d8ba41bf283330bfb481f51e1b98331b05ea",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -584,10 +572,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -644,18 +629,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.321380+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.997116+00:00",
       "id": "model.quaternius.armabee.commonNear",
       "sourceModelId": "monster.quaternius.armabee",
       "sourceFile": "Armabee.glb",
       "sourceSha256": "9a47899a2320aa42d5f550598a981c26517c6e27723980f5d2080a557eb88dc2",
       "variant": "commonNear",
       "outputFile": "exports/common-near/armabee.common-near.glb",
-      "outputSha256": "208e5e81de5e3498e75ec398e24b0b7c9ee0f9872e21d224282df9bf8def7b6b",
+      "outputSha256": "4150e0257efd7029adb070fd380fa6f260ab318a02021a11752cfeb1d10bf97c",
       "outputFileBytes": 143404,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "c7c1f2298368e29be160bcf13b79fbc861f72462cb88a973a25e29d0b4db9c09",
+      "processingSignature": "e6aa5f0923ae0411d0ff2c2706bf08ed38c54f547ecdcc0a1baf139fe1a09c05",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -714,10 +699,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -768,18 +750,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.316356+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.061998+00:00",
       "id": "model.quaternius.armabee.commonFar",
       "sourceModelId": "monster.quaternius.armabee",
       "sourceFile": "Armabee.glb",
       "sourceSha256": "9a47899a2320aa42d5f550598a981c26517c6e27723980f5d2080a557eb88dc2",
       "variant": "commonFar",
       "outputFile": "exports/common-far/armabee.common-far.glb",
-      "outputSha256": "ae70a0afd96a7421239a02d7b83dc3c645801192947c1740cc81b7d7c56824f2",
+      "outputSha256": "09c228bfe4fc0667611222a6cdfd85d1f46b92d22681ffe3f162038ed7be8f33",
       "outputFileBytes": 18428,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "24274d319b8cec6192ec17cdc6af61813898f4ddc2c93402ac37b18ca98aa375",
+      "processingSignature": "f9c5921f4dbff3fc3522b405935e05d46c92194057dcb758007a9805b9b43900",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Flying_Idle",
@@ -819,10 +801,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -873,18 +852,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.552567+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.097034+00:00",
       "id": "model.quaternius.armabee.aggregate",
       "sourceModelId": "monster.quaternius.armabee",
       "sourceFile": "Armabee.glb",
       "sourceSha256": "9a47899a2320aa42d5f550598a981c26517c6e27723980f5d2080a557eb88dc2",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/armabee.aggregate.glb",
-      "outputSha256": "be606c39604b82dc194242448f99fda69fe7fe939d3e236f0e402673c1308115",
+      "outputSha256": "aa07836832396a03b115e5964c1b2fd5c5cf7634917284cad997ce258c4f5723",
       "outputFileBytes": 6280,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "ced919ee1d06b6b98fbc472f87646640d0c67afd7dccb99d7c950058e2126461",
+      "processingSignature": "ab1beace37e626c4627bfe6123b75c187116a82b30f7199fade987a868737edc",
       "settings": {
         "representativePose": {
           "action": null,
@@ -924,10 +903,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -993,18 +969,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.083150+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.410350+00:00",
       "id": "model.quaternius.orc.hero",
       "sourceModelId": "monster.quaternius.orc",
       "sourceFile": "Orc.glb",
       "sourceSha256": "fb5d9da18e16fd3bd6f066692576845d411acf19536d46c7598f5d701b6db19f",
       "variant": "hero",
       "outputFile": "exports/hero/orc.hero.glb",
-      "outputSha256": "cb6f8c8002a1959e6db4603748f6a06cfe34472d5ebe99556433e08247382389",
+      "outputSha256": "2bdd5344056ba40652e8366cd001cc654af07beb4235dc84f3f1575c6a8cebaa",
       "outputFileBytes": 727776,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "b5084f2b318bb9f40341a106309d881f9350d8412f16ba7912bacea2da1c766c",
+      "processingSignature": "e328e0ecc00d18c26537244ebce2d6ed0bffac10eac44d9af7286a899f4f64a2",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -1056,10 +1032,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -1119,18 +1092,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:40.750650+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:18.136377+00:00",
       "id": "model.quaternius.dragon-evolved.hero",
       "sourceModelId": "monster.quaternius.dragon-evolved",
       "sourceFile": "Dragon Evolved.glb",
       "sourceSha256": "f660d8f48be4ea3f39639f6206a0181127e7fe7503cb4bad8d07d27d80528f3a",
       "variant": "hero",
       "outputFile": "exports/hero/dragon-evolved.hero.glb",
-      "outputSha256": "dcbe928c7cf79702a3905095a1ded7b4ef216c89e479d712c88a56b24ff17731",
+      "outputSha256": "9a0837c4c1cd6697859a17f1f0592fd6a3805c030402a68cd191f621f49c709d",
       "outputFileBytes": 545944,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "6041a71eebfc776b0392193746ac15d9b421a7841ae646d51633a3cb9d585d31",
+      "processingSignature": "55a020c2a9914bc84e9c9f0d7f1bacd12c47b777a9e97a7fad05e7ddc6d320f7",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -1182,10 +1155,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -1246,18 +1216,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.388778+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.003017+00:00",
       "id": "model.quaternius.alien.hero",
       "sourceModelId": "monster.quaternius.alien",
       "sourceFile": "Alien.glb",
       "sourceSha256": "9eb262825e32ce95207243890a980ff4722e6fd6c443ef62aac520e3bc996310",
       "variant": "hero",
       "outputFile": "exports/hero/alien.hero.glb",
-      "outputSha256": "2c0643964975f8812b5e558a54158dc31d58e5dc9091f0d4be2e34473cbac423",
+      "outputSha256": "f01470db6a224c55fecb415b3e3c951b1765764874111e31296cbd17eea9ee4a",
       "outputFileBytes": 125860,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "6d6cf91e89d8d2edaa9dcd64b86f86dd0eb8802627b2ab23400c1bbbd993d677",
+      "processingSignature": "285126c793c30ad5eca631d6d034e433c8a5ff1c04242149408c04981d589a6e",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -1309,10 +1279,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -1370,18 +1337,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.134527+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.827448+00:00",
       "id": "model.quaternius.alien.commonNear",
       "sourceModelId": "monster.quaternius.alien",
       "sourceFile": "Alien.glb",
       "sourceSha256": "9eb262825e32ce95207243890a980ff4722e6fd6c443ef62aac520e3bc996310",
       "variant": "commonNear",
       "outputFile": "exports/common-near/alien.common-near.glb",
-      "outputSha256": "b4729f9b6deba482f7485f2014923c8e3957993e68392476351ced733f88beac",
+      "outputSha256": "a928282894676803fbd4a2d4c7438b0e993deb58265acd38aa9b43ef98452662",
       "outputFileBytes": 115880,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "ad7cf9b9b7da43038312c61c8ff62f75c50ffd3068f8d0c456ec25b52b816cf5",
+      "processingSignature": "4623bf8a8e52e6b1a711ec10819360255c913e1e86cd1240a1b6c3171934be6a",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -1440,10 +1407,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -1494,18 +1458,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.197261+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.926428+00:00",
       "id": "model.quaternius.alien.commonFar",
       "sourceModelId": "monster.quaternius.alien",
       "sourceFile": "Alien.glb",
       "sourceSha256": "9eb262825e32ce95207243890a980ff4722e6fd6c443ef62aac520e3bc996310",
       "variant": "commonFar",
       "outputFile": "exports/common-far/alien.common-far.glb",
-      "outputSha256": "ae84d081a560ff7c03d97d66a27639db6c1401390a15d7cda28e8eee9f77ff07",
+      "outputSha256": "5aa17e13219606d1c7c851025ad534e248ef932c489064cc91c7e3c4c5c30b14",
       "outputFileBytes": 21728,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "e19d0676576f63cf16badc3c516c7ef4ba4f9b7d394188afc0c0dc94848b090a",
+      "processingSignature": "8c80f04e731ece8d36a94787abe8ee77f2652a835b7ab17160d12b2162b4c59f",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -1545,10 +1509,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -1599,18 +1560,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.453051+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:11.997235+00:00",
       "id": "model.quaternius.alien.aggregate",
       "sourceModelId": "monster.quaternius.alien",
       "sourceFile": "Alien.glb",
       "sourceSha256": "9eb262825e32ce95207243890a980ff4722e6fd6c443ef62aac520e3bc996310",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/alien.aggregate.glb",
-      "outputSha256": "88d74dba8013b768f8761c72ec1258328c59bb956632a9ee736a42ce1e141318",
+      "outputSha256": "d6811b733d9d575f37354442a1bade4df167d2a5de5ba6cd55667f3618bb4dc4",
       "outputFileBytes": 5692,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d42dff56fca76f8531d3b4dcfd68ffdcff315010faf5aafbaf0911fdac84b044",
+      "processingSignature": "62f7cb7a50d2f16f384aa74d0016daf548ac45cd7e374f09606d278feb4f7a12",
       "settings": {
         "representativePose": {
           "action": null,
@@ -1650,10 +1611,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -1714,18 +1672,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:38.323019+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.825023+00:00",
       "id": "model.quaternius.birb.hero",
       "sourceModelId": "monster.quaternius.birb",
       "sourceFile": "Birb.glb",
       "sourceSha256": "63719ca3ebae056716b7e5380d4294b3a3dcc39f6a4f54dc3e5d1af962c3ca1f",
       "variant": "hero",
       "outputFile": "exports/hero/birb.hero.glb",
-      "outputSha256": "b5b76863351c1ee74587a7b98c3f9e3f9f1c8f5a3aeccc6cdd32bd4bcb2b823a",
+      "outputSha256": "f968c1db43479b650988cabf2804c83ff2a279de835267cc8cd944ee60f090bc",
       "outputFileBytes": 165760,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "3e3f9ffd2cc6c17f82c6ac02567df54925a33c534bb83a1c50d7142d7ac0129f",
+      "processingSignature": "953c07b1435575dd72283c983148e90c084c83753c5d97934261f602ed440637",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -1777,10 +1735,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -1841,18 +1796,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.190729+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:16.630072+00:00",
       "id": "model.quaternius.cactoro.hero",
       "sourceModelId": "monster.quaternius.cactoro",
       "sourceFile": "Cactoro.glb",
       "sourceSha256": "2291a31287306ab430ad4c001dff5fbedba5c79854ad19ddc1c64d5fffc506ab",
       "variant": "hero",
       "outputFile": "exports/hero/cactoro.hero.glb",
-      "outputSha256": "54bfd016a32b9820942b5056a3e13b930c0246cbbf01aaa989050c771b1a5280",
+      "outputSha256": "e0d126c19891a73522393c3e29ae8ce518ced37a01b461f13751e9ff2d1ac1cd",
       "outputFileBytes": 136756,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d939af4bc4e4f9623c02a536166e5f9f5671137537003dc78f161948f906b8fd",
+      "processingSignature": "b33bcc3fbf3fa2f2fc826a0a8e5666ed75e5de0c4ea4c318aed27554075a8826",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -1904,10 +1859,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -1965,18 +1917,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.400890+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.069229+00:00",
       "id": "model.quaternius.cactoro.commonNear",
       "sourceModelId": "monster.quaternius.cactoro",
       "sourceFile": "Cactoro.glb",
       "sourceSha256": "2291a31287306ab430ad4c001dff5fbedba5c79854ad19ddc1c64d5fffc506ab",
       "variant": "commonNear",
       "outputFile": "exports/common-near/cactoro.common-near.glb",
-      "outputSha256": "4951b2e0ad85b5e50dd1170189e93ec661d625cb05d455d54fce19278d9146b2",
+      "outputSha256": "5addbe3caaabb7ae61d2c5b52e494d3213e40b89cad84c6d07399864dd29baa6",
       "outputFileBytes": 126752,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "6202f9eb1c4d2a274fd810d39eb96e7a59a172c92be20f7d9b30537f7d02dd38",
+      "processingSignature": "34f1562b7ceac75bf42d26b36f2a4c9206cd3931b203589c8f776f7b38aa1fd6",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -2035,10 +1987,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -2089,18 +2038,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.385631+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.127907+00:00",
       "id": "model.quaternius.cactoro.commonFar",
       "sourceModelId": "monster.quaternius.cactoro",
       "sourceFile": "Cactoro.glb",
       "sourceSha256": "2291a31287306ab430ad4c001dff5fbedba5c79854ad19ddc1c64d5fffc506ab",
       "variant": "commonFar",
       "outputFile": "exports/common-far/cactoro.common-far.glb",
-      "outputSha256": "5b08e060ee00c1bc76afe07a8d9cffcfb044dc3277c6cbfeecc536f4684a3672",
+      "outputSha256": "c1b5146bbf484f66cef132b82ad2e8f8048f01202ef7c09ed0623a9e4292a3e7",
       "outputFileBytes": 25372,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "87e8086db9d850c0df4b8eb1c1743c9725a33f9ec4ec6981e9ac4452b6b8e5fb",
+      "processingSignature": "90c42628f7fd38fa54932329ca51013b8e0049d945a033c1a2aa106dca5368eb",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -2140,10 +2089,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2194,18 +2140,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.599815+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.148430+00:00",
       "id": "model.quaternius.cactoro.aggregate",
       "sourceModelId": "monster.quaternius.cactoro",
       "sourceFile": "Cactoro.glb",
       "sourceSha256": "2291a31287306ab430ad4c001dff5fbedba5c79854ad19ddc1c64d5fffc506ab",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/cactoro.aggregate.glb",
-      "outputSha256": "7493a3dedbc99cb6fb4a38ffa5433eb1e137ded303a8be07336cf39b655e28b6",
+      "outputSha256": "48477e906625929acd4ab8ada5e4c6b41441ed23f941747979d4f282637e74eb",
       "outputFileBytes": 7996,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "61834210e868728566cf9524ad350b56f6ea75ede132033af6e1ad97023b5414",
+      "processingSignature": "54b467f67cadcfc2e7ae661985d73ca560d6afbc7655dc1bb2e816203a9fa0c7",
       "settings": {
         "representativePose": {
           "action": null,
@@ -2245,10 +2191,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2309,18 +2252,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.573403+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:16.960349+00:00",
       "id": "model.quaternius.cat.hero",
       "sourceModelId": "monster.quaternius.cat",
       "sourceFile": "Cat.glb",
       "sourceSha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
       "variant": "hero",
       "outputFile": "exports/hero/cat.hero.glb",
-      "outputSha256": "9e0e6a2c8eaa73cfbcd28fb35cc44a8591112f4cf1d1df3266e389e795cf06e8",
+      "outputSha256": "17fe57e884549327dd1e523a2fbb50e18a6340050c4e33db54be69489bc0c063",
       "outputFileBytes": 110520,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "75ba8436018dbaf4ecc5af2dab52e030477be247bb2a31201a665c68b01f73dd",
+      "processingSignature": "af0439f5935a030159f1828cf8e22d6393809c8b845cb65fc97ab136b91cb4c2",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -2372,10 +2315,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2433,18 +2373,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.499977+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.142593+00:00",
       "id": "model.quaternius.cat.commonNear",
       "sourceModelId": "monster.quaternius.cat",
       "sourceFile": "Cat.glb",
       "sourceSha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
       "variant": "commonNear",
       "outputFile": "exports/common-near/cat.common-near.glb",
-      "outputSha256": "ce4d33cf2c3c4bba93bcab3b5fa86fec41b56d79bb8e731ecdfb41525525bd67",
+      "outputSha256": "1ef8e61df533ca2d57b80b03e1ec5e7b472f5b3041e990d85f260839f25492cd",
       "outputFileBytes": 100960,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "8bacf974a3a37bdd8ee020bc7396352d5a47ab00e304fcf1a6086dee7d379290",
+      "processingSignature": "3233cb8c0fd07543916dc50039c6b4abf0d84984bc3dd4f1abb6266325e14c34",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -2503,10 +2443,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2557,18 +2494,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.435409+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.191413+00:00",
       "id": "model.quaternius.cat.commonFar",
       "sourceModelId": "monster.quaternius.cat",
       "sourceFile": "Cat.glb",
       "sourceSha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
       "variant": "commonFar",
       "outputFile": "exports/common-far/cat.common-far.glb",
-      "outputSha256": "9ae0fcc317b6b88602ddac13ced4e6ba0b9413d0d65c88a78780df1117ae4c5b",
+      "outputSha256": "7ee30bd263793ab3585cb6c00714994abed009b37d747bc4c26115e39f25b519",
       "outputFileBytes": 24696,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "2ae9579f24118b40b37dd3253e996695595a8d0f66a72efa0418c757e7270da1",
+      "processingSignature": "8f23f5299be7106f6de2256c9b4ab67579c24731a3243b6879fd75430279604f",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -2608,10 +2545,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2662,18 +2596,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.647985+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.198672+00:00",
       "id": "model.quaternius.cat.aggregate",
       "sourceModelId": "monster.quaternius.cat",
       "sourceFile": "Cat.glb",
       "sourceSha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/cat.aggregate.glb",
-      "outputSha256": "2fdaaa2c4260f9f4ca5b7b57faf269591826552b3045cba008be229f5a941e0a",
+      "outputSha256": "f07f302f22b1ec8e6e579d52dfcfe1d65db20993cc92b4343bcd1e0fe9819dd9",
       "outputFileBytes": 8444,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "72bbf57c16a74713d53795459a448e2e838210c4aa7abe7de0228fa9ab1d87bb",
+      "processingSignature": "b68fd8a4e50f87c2ac395c17607a8855d4ad875aa0d9855e888c25a682b882f6",
       "settings": {
         "representativePose": {
           "action": null,
@@ -2713,10 +2647,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2777,18 +2708,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.650254+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:17.057396+00:00",
       "id": "model.quaternius.chicken.hero",
       "sourceModelId": "monster.quaternius.chicken",
       "sourceFile": "Chicken.glb",
       "sourceSha256": "3390f6f6944210ed9f612bd0010165d1c443c6186638f9fc4380574bd9e5fce1",
       "variant": "hero",
       "outputFile": "exports/hero/chicken.hero.glb",
-      "outputSha256": "1bcdc8d40ab91d25d8380ec1ebd51989b884710dc45c043417f13ee5fb3ce296",
+      "outputSha256": "014e67cb11f35839ba2fc4a42653530d1d8a45fb2195cc29d0a0d6e5697e9e43",
       "outputFileBytes": 137044,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "4ed9adb616b4e7bce9f169dee6add0aba87cc33b8c7ec5a0fea01ba99ec65207",
+      "processingSignature": "f94d34e09804cb559f0a3214c0f6b27a1d5aee374d5fdcadbc683b906fe2e7dc",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -2840,10 +2771,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -2901,18 +2829,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.579558+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.221586+00:00",
       "id": "model.quaternius.chicken.commonNear",
       "sourceModelId": "monster.quaternius.chicken",
       "sourceFile": "Chicken.glb",
       "sourceSha256": "3390f6f6944210ed9f612bd0010165d1c443c6186638f9fc4380574bd9e5fce1",
       "variant": "commonNear",
       "outputFile": "exports/common-near/chicken.common-near.glb",
-      "outputSha256": "fb035451c04830941d02fad0321e1e715f6da2a52efd4c1e57efca041ff51889",
+      "outputSha256": "5081d7f7ce05d4e996965d25b4c5c149b5edb4cb4e108fdd7b49b2b4085409fb",
       "outputFileBytes": 127460,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "f1b70be2eca420f5562208daecad01239e944531da60f9f16237ad6bc098acc2",
+      "processingSignature": "03710e3677ae706faa9ce647979665ec91126822fa525ed07bbe9ed19c005c17",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -2971,10 +2899,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -3025,18 +2950,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.496559+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.256169+00:00",
       "id": "model.quaternius.chicken.commonFar",
       "sourceModelId": "monster.quaternius.chicken",
       "sourceFile": "Chicken.glb",
       "sourceSha256": "3390f6f6944210ed9f612bd0010165d1c443c6186638f9fc4380574bd9e5fce1",
       "variant": "commonFar",
       "outputFile": "exports/common-far/chicken.common-far.glb",
-      "outputSha256": "50c7063798699dfab8f2213b41bf7f84981a14266d0fb0e83c29243489bc5093",
+      "outputSha256": "2c844c818f32290a7ab46744ea1b0996c0af18959ba729b6e9f9e8fe184f5a3a",
       "outputFileBytes": 22368,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "9d90d873d5ea7e00d1d1107e46a34a3aeb75fa6fff804927134ce9ae26c2524b",
+      "processingSignature": "aff5f3f893a62facf0fd4b43a24de682c5c21bb7130187daf5fee5f295190b77",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -3076,10 +3001,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -3130,18 +3052,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.693309+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.249455+00:00",
       "id": "model.quaternius.chicken.aggregate",
       "sourceModelId": "monster.quaternius.chicken",
       "sourceFile": "Chicken.glb",
       "sourceSha256": "3390f6f6944210ed9f612bd0010165d1c443c6186638f9fc4380574bd9e5fce1",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/chicken.aggregate.glb",
-      "outputSha256": "d6abe8335f2b52eeaf87a782a206ee1a8ae78d1c48d143ff438136b5efc22a3c",
+      "outputSha256": "84830c384b4c7ec0b4d8a4f744d5841a2967b8e5e554402b975da3da2d6dc60f",
       "outputFileBytes": 6364,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "fdaec69df85285500ba5c0b95cb5243bc2606b4fcae50e52d1ba74819456bf60",
+      "processingSignature": "5a4318b17e2cd1686dc3e914da9e0ab1e71ee4339037a1973d07b146c704affe",
       "settings": {
         "representativePose": {
           "action": null,
@@ -3181,10 +3103,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -3245,18 +3164,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:40.842231+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:18.229939+00:00",
       "id": "model.quaternius.fish.hero",
       "sourceModelId": "monster.quaternius.fish",
       "sourceFile": "Fish.glb",
       "sourceSha256": "1fdc84f17ce6f69e5812989788dec6f14860e48e281afbdb6a9b26cf0540d569",
       "variant": "hero",
       "outputFile": "exports/hero/fish.hero.glb",
-      "outputSha256": "b2cf341b67a41d017cb7d4c8b5765c5909fc94525b4b3d87dfbd5e31ee97f218",
+      "outputSha256": "8d47027c26f2fd62677ea2eaaf797e6b9015ef9afc5f658502fd397bf97b60d6",
       "outputFileBytes": 150940,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "77795545ebb599c56781b4fa41e438d999e2998dd5093929bc169a831e46aa55",
+      "processingSignature": "ef3c9a664aa2a1a8d357a7ae8474da2e2be0261c5daaf27b166503884022011a",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -3308,10 +3227,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 3,
         "recommendedMaximumVisibleCount": null,
@@ -3372,18 +3288,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.347637+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.619982+00:00",
       "id": "model.quaternius.green-blob.hero",
       "sourceModelId": "monster.quaternius.green-blob",
       "sourceFile": "Green Blob.glb",
       "sourceSha256": "31c46edd6306e4ab21bec4608b41003baa74f430f27d357b90c9b6401d88a584",
       "variant": "hero",
       "outputFile": "exports/hero/green-blob.hero.glb",
-      "outputSha256": "485e60e814d0902d4b2408b2e0667a1da531fa2687284dc6064eff9e246d93dc",
+      "outputSha256": "075d3d653cec34f5378d7cdf7aa92423c897e39bdf3a3fa2357faf446d5b67f0",
       "outputFileBytes": 86024,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "6de2fb24fa81ed8530f837b07cab31c2705c53e665c09dcebcd9f9065fc1181f",
+      "processingSignature": "266bac47324366c78e85a1c3e2804b89b5fc1e60c1d0231249aea847d3519f6a",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -3435,10 +3351,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -3496,18 +3409,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.738341+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.411966+00:00",
       "id": "model.quaternius.green-blob.commonNear",
       "sourceModelId": "monster.quaternius.green-blob",
       "sourceFile": "Green Blob.glb",
       "sourceSha256": "31c46edd6306e4ab21bec4608b41003baa74f430f27d357b90c9b6401d88a584",
       "variant": "commonNear",
       "outputFile": "exports/common-near/green-blob.common-near.glb",
-      "outputSha256": "b19b80c30f32e53381d7ad23d13a18f46a0e14efc7cd9c4d2106c2ba6507bb4a",
+      "outputSha256": "b5db752259f4e447d9614291c412f99d748c375a540bda6c8642c222b3e5876c",
       "outputFileBytes": 76464,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "b0390dce115e65711583adfcee2127a6083e5c9dd04bd4483a126a17ef8ff795",
+      "processingSignature": "3dad3226aa81696ff5811aa47093416ddcdc21cdcce5cac56a9f769b4aa2e4bd",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -3566,10 +3479,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -3620,18 +3530,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.605253+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.369590+00:00",
       "id": "model.quaternius.green-blob.commonFar",
       "sourceModelId": "monster.quaternius.green-blob",
       "sourceFile": "Green Blob.glb",
       "sourceSha256": "31c46edd6306e4ab21bec4608b41003baa74f430f27d357b90c9b6401d88a584",
       "variant": "commonFar",
       "outputFile": "exports/common-far/green-blob.common-far.glb",
-      "outputSha256": "98ddb3cf8dac66e313874f7eeb07ee04c8f26309b16b1965a0aac88fe17c6485",
+      "outputSha256": "cf8ff2991bada3d7c623292019c2ba43d111fd4af2473dee88c3f54f85616ec0",
       "outputFileBytes": 16660,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "35791ad4795a56cbfb1cb7de5983648f4f7928299f0488b4405d2db47e209fcf",
+      "processingSignature": "c578889f947520c44a99858338aa6a64625d7adc0031bbebf22d50d82205c6d8",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -3671,10 +3581,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -3725,18 +3632,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.785395+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.364686+00:00",
       "id": "model.quaternius.green-blob.aggregate",
       "sourceModelId": "monster.quaternius.green-blob",
       "sourceFile": "Green Blob.glb",
       "sourceSha256": "31c46edd6306e4ab21bec4608b41003baa74f430f27d357b90c9b6401d88a584",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/green-blob.aggregate.glb",
-      "outputSha256": "2056131edbb67cadf1dd88cbc1a3ec2725858253c9522a8e5a84963fb4e5f641",
+      "outputSha256": "b5974ad98b28a73c63786402006d525f4a7303b87ae14d84a9e42c20e126ed09",
       "outputFileBytes": 5364,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "332ee2b594f7e4f0d4141709aa8eecccbe80a0e372757722570175449517b4ce",
+      "processingSignature": "9e384aaec265690fa4823083f25663d6bd4431a0017dfe0c262bf4a351ef9e81",
       "settings": {
         "representativePose": {
           "action": null,
@@ -3776,10 +3683,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -3840,18 +3744,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.447556+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.811478+00:00",
       "id": "model.quaternius.green-spiky-blob.hero",
       "sourceModelId": "monster.quaternius.green-spiky-blob",
       "sourceFile": "Green Spiky Blob.glb",
       "sourceSha256": "ad5e8b1cdf8c0d328b4b44537d3da8fa98119a9a99fb6163e2f325dbb8bbecc1",
       "variant": "hero",
       "outputFile": "exports/hero/green-spiky-blob.hero.glb",
-      "outputSha256": "041c20a62f8696b6a3d53d6d353b1153c513334c423ea6573d296fe843fd1379",
+      "outputSha256": "566363f5e3327bc2a5a0bcf5b6f633df7ca0f75ee84ca879c1505af3a87791f3",
       "outputFileBytes": 203164,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "3f3e752ec100d078c5372fe72ec5a1a03027ac71c5f7dfdd6fdc57786d452bc9",
+      "processingSignature": "07994b0d315eb1ee0afb7cca2010a0a769072941e0f9b3eb5ef7e299dfd168c8",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -3903,10 +3807,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -3967,18 +3868,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:43.129713+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.498905+00:00",
       "id": "model.quaternius.mushnub-evolved.hero",
       "sourceModelId": "monster.quaternius.mushnub-evolved",
       "sourceFile": "Mushnub Evolved.glb",
       "sourceSha256": "fe364b07af250c48073c319c0b4460239ca39daab37269a4e23217be46a3331c",
       "variant": "hero",
       "outputFile": "exports/hero/mushnub-evolved.hero.glb",
-      "outputSha256": "af5dbafbc6a24103ba89bd20936d20872bf1ee1f6987299e1cc53b27247ef53d",
+      "outputSha256": "75ddea7ebe618f5b4407e66f669be8b8cd471392a12387d57a1fbc0572fa577c",
       "outputFileBytes": 159684,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "670270580d0a83a4fcc1f8f55da0a033e60d4c53a2fe2bd610ea2eb3b3b3c9c4",
+      "processingSignature": "b6a0284633819b8347fe75b5bd04d6188ec75ce5d7341c9f57c7cc1f3783d26e",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -4030,10 +3931,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 3,
         "recommendedMaximumVisibleCount": null,
@@ -4094,18 +3992,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:43.498276+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.852613+00:00",
       "id": "model.quaternius.ninja.hero",
       "sourceModelId": "monster.quaternius.ninja",
       "sourceFile": "Ninja.glb",
       "sourceSha256": "327c9ead9999cd25dbcda757c6c16be0cb1baee9bad224b99c917b4a9a00d15a",
       "variant": "hero",
       "outputFile": "exports/hero/ninja.hero.glb",
-      "outputSha256": "fc762ed999b09e3d1669b56e2b2b619d8ea4d8dd69a0e8fc0c71688833811da4",
+      "outputSha256": "a8a717118a03bf4019bbd545d82822a91bb25510d32de379d98a7096cbe19e34",
       "outputFileBytes": 115884,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "44c73c5e2feb2831e79dbbb5b36ea558986d0892e2a3b9be935aae0ec59d2496",
+      "processingSignature": "8061c2fb2c3e6292a05200fde4a1a7f801378a81a24de2d1c03e5e73fd6de239",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -4157,10 +4055,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4218,18 +4113,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.880726+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.572733+00:00",
       "id": "model.quaternius.ninja.commonNear",
       "sourceModelId": "monster.quaternius.ninja",
       "sourceFile": "Ninja.glb",
       "sourceSha256": "327c9ead9999cd25dbcda757c6c16be0cb1baee9bad224b99c917b4a9a00d15a",
       "variant": "commonNear",
       "outputFile": "exports/common-near/ninja.common-near.glb",
-      "outputSha256": "20534ba2783f1093109115c99996b5c86d57bcf47804e943cbc2cc6b981ab53c",
+      "outputSha256": "fc913c93b1725c2589d589a7d98ca02c7000489963951c1b5725d845fc752e68",
       "outputFileBytes": 106324,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "f2c82d75db8c13180ad5a184b77ce0186ad7e23a3a5d4e091db5df3bc5094f9c",
+      "processingSignature": "795c2f0243b1c2e7c4eb6710d4ecd64becfe51102e8b46ced43af5c9cf48ba1e",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -4288,10 +4183,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4342,18 +4234,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.731952+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.478809+00:00",
       "id": "model.quaternius.ninja.commonFar",
       "sourceModelId": "monster.quaternius.ninja",
       "sourceFile": "Ninja.glb",
       "sourceSha256": "327c9ead9999cd25dbcda757c6c16be0cb1baee9bad224b99c917b4a9a00d15a",
       "variant": "commonFar",
       "outputFile": "exports/common-far/ninja.common-far.glb",
-      "outputSha256": "342d58f6c7250fe3a752c3e8d46be3efe5710027ef9411e1c44d49cf7cfc15fc",
+      "outputSha256": "7cb7b176924e8bc2de1585f30330ecfb3690965262b6a68134f3aa01af8735e4",
       "outputFileBytes": 20664,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "923b4b213eddfadf647b6251cec5a1214722278e3d857c29ec6dd568d4e1900a",
+      "processingSignature": "ed16ef3e0c4786574072706fb9bd6dd10d7d8707abe95ac7746e6e13d46ae9b1",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -4393,10 +4285,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4447,18 +4336,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.878041+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.525298+00:00",
       "id": "model.quaternius.ninja.aggregate",
       "sourceModelId": "monster.quaternius.ninja",
       "sourceFile": "Ninja.glb",
       "sourceSha256": "327c9ead9999cd25dbcda757c6c16be0cb1baee9bad224b99c917b4a9a00d15a",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/ninja.aggregate.glb",
-      "outputSha256": "5560a9a832430dfdcb2f93b82dcbb92ee053ebe4ed547f3c41ca46732f65df08",
+      "outputSha256": "5486b5267bdb85da1a104eac6dcc942e3301ad5ff702ee7f74777f142b81ec3d",
       "outputFileBytes": 6752,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "bbf34cd194632840c44828d1a0f04737550478358b9b8189f2f87844ff25add8",
+      "processingSignature": "b08fc1225dfa3b683cf9f875db7a4c789425d7399e3e09e7a3a94672c348db32",
       "settings": {
         "representativePose": {
           "action": null,
@@ -4498,10 +4387,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4562,18 +4448,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.167807+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.540206+00:00",
       "id": "model.quaternius.orc-enemy.hero",
       "sourceModelId": "monster.quaternius.orc-enemy",
       "sourceFile": "Orc Enemy.glb",
       "sourceSha256": "7cd4898ef9f64c65bc6f84b718e723550a42709f40e0b38487f976bfc47e893b",
       "variant": "hero",
       "outputFile": "exports/hero/orc-enemy.hero.glb",
-      "outputSha256": "782080c6b7f72962214f58afe80e3b936f6d037d68d7550cec9e4a43036e4409",
+      "outputSha256": "f15d55fe2f575fc7e8e0cc8971877f5e1f24cf5133b41644ea3418e0ca44bff6",
       "outputFileBytes": 139652,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0b105ace73dd9d1f9dcf88a73e79dc470aa5aa528188cf3f32cbf984daf35fea",
+      "processingSignature": "e2ed9e32f485fdfc9a4535500f68be2620645b27d42a9e272c20157ae53476f2",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -4625,10 +4511,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4686,18 +4569,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.971528+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.652637+00:00",
       "id": "model.quaternius.orc-enemy.commonNear",
       "sourceModelId": "monster.quaternius.orc-enemy",
       "sourceFile": "Orc Enemy.glb",
       "sourceSha256": "7cd4898ef9f64c65bc6f84b718e723550a42709f40e0b38487f976bfc47e893b",
       "variant": "commonNear",
       "outputFile": "exports/common-near/orc-enemy.common-near.glb",
-      "outputSha256": "9925781d936e4be2f622730c10b3557b5e995effb016525fa8660ad854c416db",
+      "outputSha256": "b83118b80a9e49cc6668d081615d237bfb231bd1b2375a57cbabafc1aeafbbf9",
       "outputFileBytes": 130072,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "200d5c05094853bc421c4c7c91a22512b7c51bccb7e344f8c3cd233917bec687",
+      "processingSignature": "fdb9ca85f1335e2dcf0b789a747a3adaa9fc50508c1c830aeac5956d8a9e1bdc",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -4756,10 +4639,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4810,18 +4690,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.797411+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.529984+00:00",
       "id": "model.quaternius.orc-enemy.commonFar",
       "sourceModelId": "monster.quaternius.orc-enemy",
       "sourceFile": "Orc Enemy.glb",
       "sourceSha256": "7cd4898ef9f64c65bc6f84b718e723550a42709f40e0b38487f976bfc47e893b",
       "variant": "commonFar",
       "outputFile": "exports/common-far/orc-enemy.common-far.glb",
-      "outputSha256": "544946b7d7e55afe7c2b879bde60946a95deb1d5862660874209c29da0186ea5",
+      "outputSha256": "1e0616f9be98ecae691a55e389f3e5a791b392a022ed7197462215045a249332",
       "outputFileBytes": 28984,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0c7c446d9c5822d2b3c975c7d6f912715b1fdfdfd1d74efc284dfe68109b5b96",
+      "processingSignature": "ad6048680d053d50d29a6d8424218a8b41810bc154a961fcb43b09ebda982325",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -4861,10 +4741,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -4915,18 +4792,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.930168+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.597758+00:00",
       "id": "model.quaternius.orc-enemy.aggregate",
       "sourceModelId": "monster.quaternius.orc-enemy",
       "sourceFile": "Orc Enemy.glb",
       "sourceSha256": "7cd4898ef9f64c65bc6f84b718e723550a42709f40e0b38487f976bfc47e893b",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/orc-enemy.aggregate.glb",
-      "outputSha256": "e605abd83156d939f647d3352e6544a120e68b17a05802644a18f95d04af82b4",
+      "outputSha256": "e2fe9557c581d1dc77649c6e13118b0fc9d0705a1618c2cebe5c8912b75f58d6",
       "outputFileBytes": 10456,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "f61a4cf55cdd22a30b3bfd6f6cdf2611e3ff55bde0fbe3990633a14385a2e806",
+      "processingSignature": "0687af743feba1bb49521e4cab7ba79b558e5520ce7d6b917acb2ab3e5f50ad1",
       "settings": {
         "representativePose": {
           "action": null,
@@ -4966,10 +4843,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5030,18 +4904,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.244385+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.611422+00:00",
       "id": "model.quaternius.pigeon.hero",
       "sourceModelId": "monster.quaternius.pigeon",
       "sourceFile": "Pigeon.glb",
       "sourceSha256": "df8ae4e405a14d7b7d9f9354039b39be0dfe0ac5b53d373b5b660af33deaf96c",
       "variant": "hero",
       "outputFile": "exports/hero/pigeon.hero.glb",
-      "outputSha256": "be75faba005d4d5ea53834c3cc6fc263eeaf21f63b0ef86f448d996d546cc115",
+      "outputSha256": "2e111f66fb3819302b4a0f2bb76f50932d92e4ae7133bc401388ee387339ad88",
       "outputFileBytes": 110664,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "627e880952cbb96d22d1c74913a5ecad78c3608df8be3e11aeeb00fd2bea541b",
+      "processingSignature": "576793cf3a57cd6fbe4edcacd375dbca33bc066716d2caddb66708d1e4316922",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -5093,10 +4967,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5154,18 +5025,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.062843+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.723431+00:00",
       "id": "model.quaternius.pigeon.commonNear",
       "sourceModelId": "monster.quaternius.pigeon",
       "sourceFile": "Pigeon.glb",
       "sourceSha256": "df8ae4e405a14d7b7d9f9354039b39be0dfe0ac5b53d373b5b660af33deaf96c",
       "variant": "commonNear",
       "outputFile": "exports/common-near/pigeon.common-near.glb",
-      "outputSha256": "a914d2257aa2bc08028127f2c7b866dba645423a591a9465db926bcb173ff4be",
+      "outputSha256": "fb98ae741d1532b6a4fb78db78b48f3403a2f34fcb4d596da01f8ac0dc054d9a",
       "outputFileBytes": 101104,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d3c8e94d53615f220b78e304d2c16ec6b91cd0948c4cb03a3c4629aa61efd08b",
+      "processingSignature": "369f7a2d3aa485d90aa5d237634171606099ce1e70a1730857d683b950435ed4",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -5224,10 +5095,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5278,18 +5146,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.857529+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.592092+00:00",
       "id": "model.quaternius.pigeon.commonFar",
       "sourceModelId": "monster.quaternius.pigeon",
       "sourceFile": "Pigeon.glb",
       "sourceSha256": "df8ae4e405a14d7b7d9f9354039b39be0dfe0ac5b53d373b5b660af33deaf96c",
       "variant": "commonFar",
       "outputFile": "exports/common-far/pigeon.common-far.glb",
-      "outputSha256": "875ac75cc7bd9a6bb86a1f2ba78dca12f9ae73bc20e05e094162d5d9b6bb70d6",
+      "outputSha256": "f37b2d4512d435f51bf0ae878c5c356c22108c5ff9230db663461111ed68e334",
       "outputFileBytes": 17920,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d9fc5c10516dc73cf2d791d40ca0f53edeb2cefaf3d7d4a99ce69ac43faf1fa6",
+      "processingSignature": "4df04597b1f446048b53912533e4a7c4ca43c0260a60b87bc2946957a215d7ee",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -5329,10 +5197,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5383,18 +5248,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.990140+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.663944+00:00",
       "id": "model.quaternius.pigeon.aggregate",
       "sourceModelId": "monster.quaternius.pigeon",
       "sourceFile": "Pigeon.glb",
       "sourceSha256": "df8ae4e405a14d7b7d9f9354039b39be0dfe0ac5b53d373b5b660af33deaf96c",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/pigeon.aggregate.glb",
-      "outputSha256": "2eb2b51b466d3cdc4665c780bad3b341c74d5c9456a5bc4687a014f0e0db8582",
+      "outputSha256": "613923b1d446335e25057f7048c133cc88645a7e87b73c09a796ea1b96819951",
       "outputFileBytes": 6148,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "4d8e9d8e5d8a6a4ca9c8b6d7a3fe1b6ffdc9e78f3290ec777cb41490edc6e7ff",
+      "processingSignature": "e4a2745efef25140837757047b2804dcd2c727471cfa1f87ee752b346022459d",
       "settings": {
         "representativePose": {
           "action": null,
@@ -5434,10 +5299,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5498,18 +5360,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.316512+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.678543+00:00",
       "id": "model.quaternius.pink-blob.hero",
       "sourceModelId": "monster.quaternius.pink-blob",
       "sourceFile": "Pink Blob.glb",
       "sourceSha256": "34bb111a7931bb957f992e127d71fac321aaeea1bdcc7da56fa5aba55c83d783",
       "variant": "hero",
       "outputFile": "exports/hero/pink-blob.hero.glb",
-      "outputSha256": "a2d866733aa96599a8c973cd6c54030cbcca973494d7228a1646135d07c4f137",
+      "outputSha256": "83f4de83ab86a046643293f1a70dcda2e24b7589c5363f926c530d0fbcc56e04",
       "outputFileBytes": 71396,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "9c5533d2fc65af099088c67c4560cb24ded467206432da74cad26e2bcc227f2a",
+      "processingSignature": "caa7bf0412aa435984b58243bf632f0770e275798c66b6adf4b27f015a6bcd10",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -5561,10 +5423,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -5622,18 +5481,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.141319+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.788088+00:00",
       "id": "model.quaternius.pink-blob.commonNear",
       "sourceModelId": "monster.quaternius.pink-blob",
       "sourceFile": "Pink Blob.glb",
       "sourceSha256": "34bb111a7931bb957f992e127d71fac321aaeea1bdcc7da56fa5aba55c83d783",
       "variant": "commonNear",
       "outputFile": "exports/common-near/pink-blob.common-near.glb",
-      "outputSha256": "a3f58c4cc0f51a7c1bd9261fc4347cdfd59427f6dad56dfd357806da83771485",
+      "outputSha256": "1c1fbe10345e5d0714256806cc73c8da7feea177c137c851659996770684591c",
       "outputFileBytes": 61832,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d0f12645fd2c9a1b8030bcdd78df5f123a9a69fd62eeb42dc75eefc002b20af3",
+      "processingSignature": "a05b623e880d49b7f9582537bc7c5655fea2bddb1aee83813ef6e8bfe4728847",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -5692,10 +5551,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -5746,18 +5602,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.918067+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.649237+00:00",
       "id": "model.quaternius.pink-blob.commonFar",
       "sourceModelId": "monster.quaternius.pink-blob",
       "sourceFile": "Pink Blob.glb",
       "sourceSha256": "34bb111a7931bb957f992e127d71fac321aaeea1bdcc7da56fa5aba55c83d783",
       "variant": "commonFar",
       "outputFile": "exports/common-far/pink-blob.common-far.glb",
-      "outputSha256": "939c8d3f3ac3ff33ee2db36cb7bb66d575f8dddadc896a02946561cf2a2af3b4",
+      "outputSha256": "507496951cf81695748ae3ef52683ab20e4e0f80ef97f05ddc741ae0b09d89e4",
       "outputFileBytes": 13812,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d3ff032c1c37459e79b028d6a1bbfa8b8683eef901890176bf59427720875835",
+      "processingSignature": "268d39767f3bf55e14a82b73985a8aaac75ccab8e5662629c6a9a639f73cba46",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -5797,10 +5653,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5851,18 +5704,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.040376+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.744046+00:00",
       "id": "model.quaternius.pink-blob.aggregate",
       "sourceModelId": "monster.quaternius.pink-blob",
       "sourceFile": "Pink Blob.glb",
       "sourceSha256": "34bb111a7931bb957f992e127d71fac321aaeea1bdcc7da56fa5aba55c83d783",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/pink-blob.aggregate.glb",
-      "outputSha256": "fb64391ce621d129e3e5bf96b357c62d1b6e3d0b114a9a6cba5d819c80ed3dbb",
+      "outputSha256": "934e41d4517a7872fd68a7954e8e87404158f1e70e503ea56e77d19c178d5f87",
       "outputFileBytes": 5692,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "b4c86a7d149c072538ee579857159556948ad8dfe11b8a1448e84c7e5255ccbb",
+      "processingSignature": "9953112bfc38352b280fa6f0ef35b3f84119834517bb37bce3d27c06f17a7d73",
       "settings": {
         "representativePose": {
           "action": null,
@@ -5902,10 +5755,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -5966,18 +5816,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.786783+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:22.062700+00:00",
       "id": "model.quaternius.wizard.hero",
       "sourceModelId": "monster.quaternius.wizard",
       "sourceFile": "Wizard.glb",
       "sourceSha256": "fb577146c7624e001222f0efaed6fb553b2fadff181f1a8d2585c3940a5d1a25",
       "variant": "hero",
       "outputFile": "exports/hero/wizard.hero.glb",
-      "outputSha256": "303681e2f6d345ca5a3338b8f0ffbe465136384f12dec4e0c8e28861466c692f",
+      "outputSha256": "65adac28d8f2c13f2058e314edc5adf8ebf94ce436e841e944ecaa72485c6083",
       "outputFileBytes": 99776,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "8b8e756c4cc9315b72e18da907c81cb96ba8985dc885e10af9273be41eb2ead7",
+      "processingSignature": "64af931f06170dd11b43c610299c3803fc38724066461d732a21439a6e1154b3",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -6029,10 +5879,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -6090,18 +5937,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.219615+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.855018+00:00",
       "id": "model.quaternius.wizard.commonNear",
       "sourceModelId": "monster.quaternius.wizard",
       "sourceFile": "Wizard.glb",
       "sourceSha256": "fb577146c7624e001222f0efaed6fb553b2fadff181f1a8d2585c3940a5d1a25",
       "variant": "commonNear",
       "outputFile": "exports/common-near/wizard.common-near.glb",
-      "outputSha256": "8992f1538492cc87f08fa2a114aefe409040bb93f1c4342998a741bec8d6bff1",
+      "outputSha256": "e4206904a0d85258b94742e1c5a559d65faf78be3e868f1cf22d9bd56da1149e",
       "outputFileBytes": 90216,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "10ba4bc84dd391b46b0ec303c9345025224fd7f7fc42086affca68f16b19d490",
+      "processingSignature": "80acc33eb2bbbde4238da88477645d84cb235a197d6c1157c85ae6df28995272",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -6160,10 +6007,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
@@ -6214,18 +6058,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.979439+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.702421+00:00",
       "id": "model.quaternius.wizard.commonFar",
       "sourceModelId": "monster.quaternius.wizard",
       "sourceFile": "Wizard.glb",
       "sourceSha256": "fb577146c7624e001222f0efaed6fb553b2fadff181f1a8d2585c3940a5d1a25",
       "variant": "commonFar",
       "outputFile": "exports/common-far/wizard.common-far.glb",
-      "outputSha256": "7d7716b22c32b7b96cc76b6aeeef2848c50e6e1edbdf4813ad6b51c775dc362a",
+      "outputSha256": "1278981dad735cf2f6eafd9dda06034f0fa88fdd5f1beef2bcbe61149c4af77f",
       "outputFileBytes": 21020,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "2e294c72448966684f70100ca1dc6d3e3a861487c2a48bcaaf963a2e06c65a46",
+      "processingSignature": "a3f8fbee8eb93b00aa0aa3fc3c7e0248a7fecd2a750218e02a457fb805448a73",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -6265,10 +6109,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6319,18 +6160,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.092023+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.802356+00:00",
       "id": "model.quaternius.wizard.aggregate",
       "sourceModelId": "monster.quaternius.wizard",
       "sourceFile": "Wizard.glb",
       "sourceSha256": "fb577146c7624e001222f0efaed6fb553b2fadff181f1a8d2585c3940a5d1a25",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/wizard.aggregate.glb",
-      "outputSha256": "b257cb4d94e03e9ae4e9d08bb611aead5ba8ad370f0f2b15c127490045a95914",
+      "outputSha256": "e22b6340e6fce8d3f3b450d47c5f7377ccbd1bf9ead5eb500b784c71817eb1ad",
       "outputFileBytes": 7136,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "392616f2e69ccb06a3cce5028b1467c4fb1f54a1ba88cba36ae5f356cb0427c2",
+      "processingSignature": "8c0f006be37c8baa4c7e3af3b30c333825e33bb1dad3c532137cc86c58e8983a",
       "settings": {
         "representativePose": {
           "action": null,
@@ -6370,10 +6211,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6434,18 +6272,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.864451+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:22.132854+00:00",
       "id": "model.quaternius.yeti.hero",
       "sourceModelId": "monster.quaternius.yeti",
       "sourceFile": "Yeti.glb",
       "sourceSha256": "20aaa4fc5fc3b9fe30b6109f88061f2d6f49e03b26a51ebee08f50bd1c26caaf",
       "variant": "hero",
       "outputFile": "exports/hero/yeti.hero.glb",
-      "outputSha256": "d965e69db8f3273913b86511f7f17c39fefd4075c15954f3909d4eccacb17f6d",
+      "outputSha256": "14744dcd578a2f3d244164d4096510be87e0e19585e23210705cc01502dfb6f3",
       "outputFileBytes": 120056,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "bd037632492b1f6a57921b01a8a3d132c692562e5eebb4d6a2455075699aeb61",
+      "processingSignature": "85a8c95130972af5f29f37955866a1f627e3050f9cc97675554f7aab703736b3",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -6497,10 +6335,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6558,18 +6393,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.297263+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.924000+00:00",
       "id": "model.quaternius.yeti.commonNear",
       "sourceModelId": "monster.quaternius.yeti",
       "sourceFile": "Yeti.glb",
       "sourceSha256": "20aaa4fc5fc3b9fe30b6109f88061f2d6f49e03b26a51ebee08f50bd1c26caaf",
       "variant": "commonNear",
       "outputFile": "exports/common-near/yeti.common-near.glb",
-      "outputSha256": "0a8db0f6a96e4e64a434e8a697fbdc389581db0f19f9d61b5301082a3c19eb93",
+      "outputSha256": "d6886601830d8bd6170f60a29f72d60c26ef9bbe1fb47c6479abde2335bda8a4",
       "outputFileBytes": 110496,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "f672df568d576a4164176d6ad9685c0e45ef70da52ec10e2fcd6722653cfc045",
+      "processingSignature": "7fa82dea2f44b80d925add64ea321f5cb520c2dfe206d28eeb7a39ec2bfa333c",
       "settings": {
         "family": "simpleGround",
         "materialConversion": {
@@ -6628,10 +6463,7 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6682,18 +6514,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.044340+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.755484+00:00",
       "id": "model.quaternius.yeti.commonFar",
       "sourceModelId": "monster.quaternius.yeti",
       "sourceFile": "Yeti.glb",
       "sourceSha256": "20aaa4fc5fc3b9fe30b6109f88061f2d6f49e03b26a51ebee08f50bd1c26caaf",
       "variant": "commonFar",
       "outputFile": "exports/common-far/yeti.common-far.glb",
-      "outputSha256": "35a4d5eff5e9b6673b0d01584e7ddc00dbd0d76a319266c7efecbfb70e60b221",
+      "outputSha256": "2b55ae94445043b1698bb17a3545bc7b0300a6e61d4aa5e08e5badc6ec423e34",
       "outputFileBytes": 22228,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "1d908232b9923939127f3c7112be2faf00eb3e93c927c5e1db548e3e89fefb31",
+      "processingSignature": "35e71891efa20ad6012150956a4f6d9c1627c94921edf0aec7f340c298883b66",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Idle",
@@ -6733,10 +6565,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6787,18 +6616,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.143182+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.860429+00:00",
       "id": "model.quaternius.yeti.aggregate",
       "sourceModelId": "monster.quaternius.yeti",
       "sourceFile": "Yeti.glb",
       "sourceSha256": "20aaa4fc5fc3b9fe30b6109f88061f2d6f49e03b26a51ebee08f50bd1c26caaf",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/yeti.aggregate.glb",
-      "outputSha256": "b6aa934ee9232b5a0d81d92ca10b1baf05429f952e2d69c1a1a1efca7ba2a60f",
+      "outputSha256": "14abdce62fc68a0b053d2f3bf9b03c405a77f2740aaab493c4abe3637c078987",
       "outputFileBytes": 8252,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "3948a32af2de52f7a234079235d715fca67ac1caa8dabcb466c4da904d2c5944",
+      "processingSignature": "fc67bc1c4c0aad1ee803631d58bb8f9758a7e788ed101d4a361f958c6feda9a0",
       "settings": {
         "representativePose": {
           "action": null,
@@ -6838,10 +6667,7 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation.",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
@@ -6907,18 +6733,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.761060+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.292734+00:00",
       "id": "model.quaternius.alien-high-detail.hero",
       "sourceModelId": "monster.quaternius.alien-high-detail",
       "sourceFile": "Alien-RRliSQBP7r.glb",
       "sourceSha256": "746d9caf75897297dfd76678c55dc3dfe84e5b9e6ce816276db300cea11c27bb",
       "variant": "hero",
       "outputFile": "exports/hero/alien-high-detail.hero.glb",
-      "outputSha256": "1f50390745d820afd9ffc3b909b3f381ef0c0bd2e147f95a43c2fd7e704ed3f8",
+      "outputSha256": "b1d7dac9b785dd35aea42146c7fd00146a928e94c4fcc2fa2a8d6dd042252916",
       "outputFileBytes": 719400,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "b6a5ea4e0deb41fc3497f3482cb93983cfbf6db5858513f6832dc785fbb26414",
+      "processingSignature": "21ddba2c99e4cdbb6efb42f4e9ce034cd1557815cdb1756d629506489da19cff",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -6970,16 +6796,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.alpaking.hero": {
       "validationStatus": "machine_pass",
@@ -7033,18 +6856,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.869579+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.388042+00:00",
       "id": "model.quaternius.alpaking.hero",
       "sourceModelId": "monster.quaternius.alpaking",
       "sourceFile": "Alpaking.glb",
       "sourceSha256": "f1a7a128256db5fede6018a715d4a92d8e2841bbddb3a49e390ce8da3f647ca7",
       "variant": "hero",
       "outputFile": "exports/hero/alpaking.hero.glb",
-      "outputSha256": "99fe8781e8a79bc58775b35e1b5837654a525316bca3298c1845242cc2542b9a",
+      "outputSha256": "3d6f0b480d9db48adeeaca17a189c26c2775765cadbfb7d5389b52f751dcf2d3",
       "outputFileBytes": 168172,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d55c6b9f03f9c77e3f72e8855b3a220c9787d79c2504a0440af132591fa1ecf5",
+      "processingSignature": "7d08da5170e3cee6f6f0260b9c001c16bb4e73d1495d17bb466ce27cc24a5c98",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -7096,16 +6919,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.alpaking.commonNear": {
       "validationStatus": "machine_pass",
@@ -7156,18 +6976,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.228267+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.911052+00:00",
       "id": "model.quaternius.alpaking.commonNear",
       "sourceModelId": "monster.quaternius.alpaking",
       "sourceFile": "Alpaking.glb",
       "sourceSha256": "f1a7a128256db5fede6018a715d4a92d8e2841bbddb3a49e390ce8da3f647ca7",
       "variant": "commonNear",
       "outputFile": "exports/common-near/alpaking.common-near.glb",
-      "outputSha256": "222b62e57f65c8e28815e5495061de791c368d2e68f63001aea4abf4f4cd01dc",
+      "outputSha256": "9b40bd9a88bb65d4ffea0cb183f43c7354facef7913ffe74e247ea59ff4a1adc",
       "outputFileBytes": 147460,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0ac56201265e77e4ada04e399bf44ade9421c40ba12a9d11a23aa861388d6d65",
+      "processingSignature": "9e32cac913e2472a60b162a84a2b4a9d54818e641bcb36f242a16d19be0b1418",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -7226,16 +7046,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "limited nearby mixers; target-engine benchmark required",
         "recommendedRole": "near common"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.alpaking.commonFar": {
       "validationStatus": "machine_pass",
@@ -7280,18 +7097,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.252634+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.991529+00:00",
       "id": "model.quaternius.alpaking.commonFar",
       "sourceModelId": "monster.quaternius.alpaking",
       "sourceFile": "Alpaking.glb",
       "sourceSha256": "f1a7a128256db5fede6018a715d4a92d8e2841bbddb3a49e390ce8da3f647ca7",
       "variant": "commonFar",
       "outputFile": "exports/common-far/alpaking.common-far.glb",
-      "outputSha256": "c0a0f6431db382f388a9f0348861643779ef8191059af22b0ee18895d2e5e03b",
+      "outputSha256": "0073c0897114359c29ef4e35b83576cc5919260bc7ab1586c5597a1cc69e115f",
       "outputFileBytes": 20040,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "57b8088dacc6b039b745b48af271529327a749b963cd6a87a28dace6295b69a4",
+      "processingSignature": "fee951fd773c4f08589c90609b34afa894837dcc6aaf5ae010d80bc9ad6f5c25",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Flying_Idle",
@@ -7331,16 +7148,13 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "potentially hundreds; target-engine benchmark required",
         "recommendedRole": "distant common"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.alpaking.aggregate": {
       "validationStatus": "machine_pass",
@@ -7385,18 +7199,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.504504+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.044504+00:00",
       "id": "model.quaternius.alpaking.aggregate",
       "sourceModelId": "monster.quaternius.alpaking",
       "sourceFile": "Alpaking.glb",
       "sourceSha256": "f1a7a128256db5fede6018a715d4a92d8e2841bbddb3a49e390ce8da3f647ca7",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/alpaking.aggregate.glb",
-      "outputSha256": "c176026bd691baeaff415fdf7f113f6452b2c2865e8cf5ea39a22cc4a8a4f425",
+      "outputSha256": "8ad7ae3e8dbe1f315f3492a45f613c4a348ec2396ee1e89f177fd7916cdb0f7b",
       "outputFileBytes": 5452,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "30f4ae82fdb116ee4e8a3be92787da54feef5b99c289ecd4e83f72d7da7742e4",
+      "processingSignature": "279599c8410d913ef326b634803dcc72b2cdf13635803d873284561254a605c9",
       "settings": {
         "representativePose": {
           "action": null,
@@ -7436,16 +7250,13 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "large distant groups; target-engine benchmark required",
         "recommendedRole": "aggregate crowd proxy"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.alpaking-evolved.hero": {
       "validationStatus": "machine_pass",
@@ -7499,18 +7310,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:37.993694+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.494793+00:00",
       "id": "model.quaternius.alpaking-evolved.hero",
       "sourceModelId": "monster.quaternius.alpaking-evolved",
       "sourceFile": "Alpaking Evolved.glb",
       "sourceSha256": "d96b4ffd4cce49cc031d26931639953ebdfa28d0f9713577e69261c0e7f1ba39",
       "variant": "hero",
       "outputFile": "exports/hero/alpaking-evolved.hero.glb",
-      "outputSha256": "11b9821b8f20998dd3c8aed47ec9a036dfb16da84ed91d476829a12978b7a192",
+      "outputSha256": "4717b9423d8d589cb79953fabc072419496c4cd634ec50a0dfb416060a57973e",
       "outputFileBytes": 275744,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "cabe5022ecbbd8ef5ad36368e01fcdec5f258d08a98a3a268f169784dff47e99",
+      "processingSignature": "8ae8cece91b4841137780eace72b7b62a03ebdbc9e7b9a5b9243466cdbf5ae48",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -7562,16 +7373,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.armabee-evolved.hero": {
       "validationStatus": "machine_pass",
@@ -7625,18 +7433,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:38.214445+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:15.729405+00:00",
       "id": "model.quaternius.armabee-evolved.hero",
       "sourceModelId": "monster.quaternius.armabee-evolved",
       "sourceFile": "Armabee Evolved.glb",
       "sourceSha256": "61a48cfba610e46abba0c98f5371d331f60ed087a55a335580cbf27ba4b3d190",
       "variant": "hero",
       "outputFile": "exports/hero/armabee-evolved.hero.glb",
-      "outputSha256": "9c652ab7e102356cf6ae885eabbe3c757f2fb4b13989ddb6b2e7df359c82c51b",
+      "outputSha256": "e8bab882858469a1dcdd041fdb82eef587d329e245c7efb3592a848d0fdeed24",
       "outputFileBytes": 204196,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "d397561e04a0ee122b4c30d3651cf2481f3f8fadaafc5dd829cc9229c72ec4cc",
+      "processingSignature": "f154525602329364e7029429126c437c830fd2fc23831b825706f6cb42e9d365",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -7688,16 +7496,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.blue-demon.hero": {
       "validationStatus": "machine_pass",
@@ -7758,18 +7563,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:38.726095+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:16.260824+00:00",
       "id": "model.quaternius.blue-demon.hero",
       "sourceModelId": "monster.quaternius.blue-demon",
       "sourceFile": "Blue Demon.glb",
       "sourceSha256": "6a8e743deba6f43f0f9b1e702016b04ddba1d3bf73b7101d2c86d64ae526f87c",
       "variant": "hero",
       "outputFile": "exports/hero/blue-demon.hero.glb",
-      "outputSha256": "36403c67895fda910d8acaf1ee85fc94a1d8a933604baeeee1c33aa95ba87bf8",
+      "outputSha256": "adeb66358004c3e5e2bcad8c60776ca5d26d7fe15fb914271053a66cf39a2821",
       "outputFileBytes": 676608,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "a608fcd6be04d067ca3a56c81b790f07e9f66f7a4d9525af07a4d06054347c90",
+      "processingSignature": "fff8fa2e63b0122725b91e88719838c516edc7f118ff089c8a1532c4933a36f4",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -7821,16 +7626,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.bunny.hero": {
       "validationStatus": "machine_pass",
@@ -7890,18 +7692,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.092739+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:16.553815+00:00",
       "id": "model.quaternius.bunny.hero",
       "sourceModelId": "monster.quaternius.bunny",
       "sourceFile": "Bunny.glb",
       "sourceSha256": "4a71eb8a80a573560fd93b39cd3c547c978d54ddd288b63000667df757dd50a2",
       "variant": "hero",
       "outputFile": "exports/hero/bunny.hero.glb",
-      "outputSha256": "8612731d8c9bd4ae4535bfcc50340e1e546ca33921fdcdbf1b90ed42295a3298",
+      "outputSha256": "dd11f8ee2281d7dbf969bebb2b974ec0cc2a7cf16d53a3258530b7167e5c5a44",
       "outputFileBytes": 815008,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "06398b20cf019175981ae2cfdad02a3dd08e118a9d4d793df9279bd603c67b8a",
+      "processingSignature": "2151b96bda1cfc3f8dbfa483ecd7d36c64e1ce6bd95dd470dc08a14524aad072",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -7953,16 +7755,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.cactoro-high-detail.hero": {
       "validationStatus": "machine_pass",
@@ -8022,18 +7821,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.496065+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:16.874482+00:00",
       "id": "model.quaternius.cactoro-high-detail.hero",
       "sourceModelId": "monster.quaternius.cactoro-high-detail",
       "sourceFile": "Cactoro-IGn9lhdama.glb",
       "sourceSha256": "8a332118f7c688c23e3d5d7d6058e9bbf961c8fe4d1ecdf3f4b3d12dbe91dc84",
       "variant": "hero",
       "outputFile": "exports/hero/cactoro-high-detail.hero.glb",
-      "outputSha256": "02c61a1bc9bbef6e8581a337aff46c45f63fb528b1af01f60b04c057d4789e10",
+      "outputSha256": "768839ea5cde21f2f0213db829ce62e46f2adf5b4883dd4b4511e468e483c6db",
       "outputFileBytes": 693820,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "a9fc70beeaf06f91d32e46f7592e96635d64aa4edcb3e430cef79f56030d44b2",
+      "processingSignature": "88b85f28ca306df960900347560bb0c549d4d532b7a6d7b5bff2ef15e9ab7dda",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -8085,16 +7884,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.demon.hero": {
       "validationStatus": "machine_pass",
@@ -8148,18 +7944,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:39.861795+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:17.322016+00:00",
       "id": "model.quaternius.demon.hero",
       "sourceModelId": "monster.quaternius.demon",
       "sourceFile": "Demon.glb",
       "sourceSha256": "9b235359e2e28a8000a92de055ab9c8a9ed123da279461d452357dbbc30de117",
       "variant": "hero",
       "outputFile": "exports/hero/demon.hero.glb",
-      "outputSha256": "a8ccee5a71cec4bb0766177dfa2e7d42e638753fcd558c7560a53b61da64f422",
+      "outputSha256": "c712f1f43d2e53d459f73254626192e7c68bd3b885179e3a99be00a2463055dc",
       "outputFileBytes": 422572,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "7f6d0b477a77446c1da4e7183235dfaec8a28fd03dcaa567ee87a47113135805",
+      "processingSignature": "9d9574cc2e69572a5c5f7bfc16b8a8fff730ce41f6179d6ca33109850559e4ab",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -8211,16 +8007,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 3,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.demon-high-detail.hero": {
       "validationStatus": "machine_pass",
@@ -8280,18 +8073,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:40.154068+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:17.554946+00:00",
       "id": "model.quaternius.demon-high-detail.hero",
       "sourceModelId": "monster.quaternius.demon-high-detail",
       "sourceFile": "Demon-LnfIziKv4o.glb",
       "sourceSha256": "7da854e1d43428b89b1afca0feca3f323b869b1d8ed7df74d17354260b607262",
       "variant": "hero",
       "outputFile": "exports/hero/demon-high-detail.hero.glb",
-      "outputSha256": "164f1fc5ab88cd8b1abb1772b4e0afe49915dfca5f3c04614b4443c5161d5593",
+      "outputSha256": "e6e3a211a6d394c368f094ca9556c0dea2033f3abf19db29d4259db7a8c56dba",
       "outputFileBytes": 713340,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "65ae22706c46d50b269898f3ab9ea69cd93ebc8875a7b2989f24904d82bee8a1",
+      "processingSignature": "15c89666a69e57b5eeecf4648359e4f1865feb6d6a0826770fd900080e6b00ca",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -8343,16 +8136,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.dino.hero": {
       "validationStatus": "machine_pass",
@@ -8412,18 +8202,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:40.424703+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:17.797975+00:00",
       "id": "model.quaternius.dino.hero",
       "sourceModelId": "monster.quaternius.dino",
       "sourceFile": "Dino.glb",
       "sourceSha256": "19b9a3841ebfd7595da9cd595b74e231da29730fe8030a2d17a021bc26b563ef",
       "variant": "hero",
       "outputFile": "exports/hero/dino.hero.glb",
-      "outputSha256": "534b41d9308b4c85493c12ba4b8d3fa03e80626161b58b8e390c130975c80fa6",
+      "outputSha256": "73980a6ee2422f3edfda8fcd61e7590d478b3d77fabb249f0898a91e98ba3a22",
       "outputFileBytes": 646116,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0b5c87aa7f9737a002327e94b902322a34a33cea40120ed60f7d9214e92afcf9",
+      "processingSignature": "25cda597cf4ee2014879cd0723645014f29e2c66c98c86a6149b95a7234f36fc",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -8475,16 +8265,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.dragon.hero": {
       "validationStatus": "machine_pass",
@@ -8538,18 +8325,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:40.551754+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:17.904088+00:00",
       "id": "model.quaternius.dragon.hero",
       "sourceModelId": "monster.quaternius.dragon",
       "sourceFile": "Dragon.glb",
       "sourceSha256": "d8a12f3f819e86518f5a44984db611ffaaa800895da33928d66519e629615705",
       "variant": "hero",
       "outputFile": "exports/hero/dragon.hero.glb",
-      "outputSha256": "282a3daea27be8f33ee186c7a109e991fcf3a4607ef57dcdd5913264e31b02b5",
+      "outputSha256": "2d857a259077fa3303c739153d6518da4aabee1dfb148197fe104a72f34cd311",
       "outputFileBytes": 255836,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "bff0a7f612625a1caeaf3c0406251255cc94acb32f697113ca95fee1e8fd4a0a",
+      "processingSignature": "ba8f0b47f0d817d93039963d7c96e6059588800ba0b97e133c88f46fd84a40b4",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -8601,16 +8388,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.fish-high-detail.hero": {
       "validationStatus": "machine_pass",
@@ -8670,18 +8454,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:41.159455+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:18.512675+00:00",
       "id": "model.quaternius.fish-high-detail.hero",
       "sourceModelId": "monster.quaternius.fish-high-detail",
       "sourceFile": "Fish-ypEYhCImAB.glb",
       "sourceSha256": "a04abb34053ec7b7080ca8e32ad6e8775e7b4d4b03e2cd2ef27a01e87c82fcca",
       "variant": "hero",
       "outputFile": "exports/hero/fish-high-detail.hero.glb",
-      "outputSha256": "6fde1d6df07be43b6f34e215d5abcef586f95b8e44e3713a7386367dcf9914d7",
+      "outputSha256": "7885b6752ce3e60c0cd7990307cae071c03bfd3b4986d385aa6fb989a42d357a",
       "outputFileBytes": 686984,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0ff54333e9b58214708b0d3ddc6aa075c29f8ea6004d2d2bfbaff797d2ce1a86",
+      "processingSignature": "9f910e7189e1edc863d9062b0e6524a8a50df2e3eae4c90ff4861ed2f4d9dcd8",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -8733,16 +8517,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.frog.hero": {
       "validationStatus": "machine_pass",
@@ -8802,18 +8583,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:41.419256+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:18.800758+00:00",
       "id": "model.quaternius.frog.hero",
       "sourceModelId": "monster.quaternius.frog",
       "sourceFile": "Frog.glb",
       "sourceSha256": "e649e23848548c74f22a22071ebcd5ddcf78254a9f4ce94417078a7431482309",
       "variant": "hero",
       "outputFile": "exports/hero/frog.hero.glb",
-      "outputSha256": "fb39ef35290fe1fcca2f62dedb2763c0de26ede02019758a114e9547044c5ee3",
+      "outputSha256": "5d36faf96aceb6cce57c69a71d029ca5b7c1a151a8781ab683ca383a036ff90d",
       "outputFileBytes": 626500,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "f7c8420a299eb487e47c71ee4a0285d4f2a3df8a956d35b3e4b35af0201eccbf",
+      "processingSignature": "4f638cfe3ec222367f0af7beb7ba145b9ed9eef8e18bda22ec477b8bb5d4e2f3",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -8865,16 +8646,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.ghost.hero": {
       "validationStatus": "machine_pass",
@@ -8928,18 +8706,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:41.573270+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:18.944313+00:00",
       "id": "model.quaternius.ghost.hero",
       "sourceModelId": "monster.quaternius.ghost",
       "sourceFile": "Ghost.glb",
       "sourceSha256": "4ed7656e2155d47b7d5fe08f31a7e764d79255f477d90040e4472552d7d5ac68",
       "variant": "hero",
       "outputFile": "exports/hero/ghost.hero.glb",
-      "outputSha256": "f211aeb3ed8b8d5658e2d46f2196b7a3b187e8c6b0bcf85fa331dc3f5e3b624d",
+      "outputSha256": "c76c381a4f7ea06b8f38bbd77242b360aaa009b009b993043a5e970d95306f73",
       "outputFileBytes": 331516,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "fa9a6333df8ec74f2b2187e843e64b45ae8e7cea9021b5c362a7c6366a050484",
+      "processingSignature": "92018b5277f0148b17f50b83cb0af6ef69b484e041ffd3534d14593ad6fe2d8f",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -8991,16 +8769,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.ghost-skull.hero": {
       "validationStatus": "machine_pass",
@@ -9054,18 +8829,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:41.792178+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.093998+00:00",
       "id": "model.quaternius.ghost-skull.hero",
       "sourceModelId": "monster.quaternius.ghost-skull",
       "sourceFile": "Ghost Skull.glb",
       "sourceSha256": "d1e2268fe9621583ff879d6e6e3ace80b0a6a2373ec0139a8139c88fe6e4d942",
       "variant": "hero",
       "outputFile": "exports/hero/ghost-skull.hero.glb",
-      "outputSha256": "fb0300241b1eae2a46a4e0f5c9663b45863506e6168001140cabd4c5748a5e8d",
+      "outputSha256": "9a52a684b867d6f69c2217130f261b7b12f96ea4073683370adb622e887c1622",
       "outputFileBytes": 364696,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "e8829b1452fb84cc5dd6ade34453560f0aecccea1c36705fde0cd469cc4ee96b",
+      "processingSignature": "55f941a449792ff3884e66358602127cb3bb77a5089b75839c838f3bbd896e34",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -9117,16 +8892,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.glub.hero": {
       "validationStatus": "machine_pass",
@@ -9180,18 +8952,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:41.904310+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.182584+00:00",
       "id": "model.quaternius.glub.hero",
       "sourceModelId": "monster.quaternius.glub",
       "sourceFile": "Glub.glb",
       "sourceSha256": "afa0ae7178b047cd3c210fd864aebc8b64e5608a951efc4f073bf538cb04929c",
       "variant": "hero",
       "outputFile": "exports/hero/glub.hero.glb",
-      "outputSha256": "8dbb9e21705616671c0920f1b34d63dc57af4114a317185b58bf578671d72c38",
+      "outputSha256": "d038918928f500515dc1513c36edadc04ac7afa6986656fccfff2d4b1e3f27aa",
       "outputFileBytes": 170492,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "5ee85873692bd1ed0bcdd40396a2879ad3479bf584acdea1ade7274d728f3d45",
+      "processingSignature": "b10472148107529e58a0c55fbd4b180f747f41a57cd5783e74b83c0c4bff74ba",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -9243,16 +9015,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.glub.commonNear": {
       "validationStatus": "machine_pass",
@@ -9303,18 +9072,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:36.667565+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:14.319207+00:00",
       "id": "model.quaternius.glub.commonNear",
       "sourceModelId": "monster.quaternius.glub",
       "sourceFile": "Glub.glb",
       "sourceSha256": "afa0ae7178b047cd3c210fd864aebc8b64e5608a951efc4f073bf538cb04929c",
       "variant": "commonNear",
       "outputFile": "exports/common-near/glub.common-near.glb",
-      "outputSha256": "130cc2f11b9450754be72fc6e88c8007b7d8e148faa14b6e5557a047f61b0681",
+      "outputSha256": "c1766c28da3903c3c5db001713fe79c58f8b6729265523824060684823768116",
       "outputFileBytes": 149776,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "577db9f8dfd8b13b53b82addc62a55d802984eb707fd83beb51686181a7b3caa",
+      "processingSignature": "31162e46584986e3fe49659a028dd326058bd03edfcdc5d9aa3b30018650bf72",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -9373,16 +9142,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "limited nearby mixers; target-engine benchmark required",
         "recommendedRole": "near common"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.glub.commonFar": {
       "validationStatus": "machine_pass",
@@ -9427,18 +9193,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:35.556711+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:13.313454+00:00",
       "id": "model.quaternius.glub.commonFar",
       "sourceModelId": "monster.quaternius.glub",
       "sourceFile": "Glub.glb",
       "sourceSha256": "afa0ae7178b047cd3c210fd864aebc8b64e5608a951efc4f073bf538cb04929c",
       "variant": "commonFar",
       "outputFile": "exports/common-far/glub.common-far.glb",
-      "outputSha256": "1a77fb432ecfcc2a6e0ae05e03ecc6c3195eb399f3f088694502121c57984b71",
+      "outputSha256": "50af92762c507bb33004fef44d95d3eb3abc08aee1b258254839b795dfe7973a",
       "outputFileBytes": 20808,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "1381652bc7bdc6bf31ceafe08236047634df90c81a2581a6d5d1ce7e420fb638",
+      "processingSignature": "9715abd875095f359c299c939f97de23a136f7a72d180320e7f1d225b230782e",
       "settings": {
         "representativePose": {
           "action": "CharacterArmature|Flying_Idle",
@@ -9478,16 +9244,13 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "potentially hundreds; target-engine benchmark required",
         "recommendedRole": "distant common"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.glub.aggregate": {
       "validationStatus": "machine_pass",
@@ -9532,18 +9295,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:34.738497+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:12.299670+00:00",
       "id": "model.quaternius.glub.aggregate",
       "sourceModelId": "monster.quaternius.glub",
       "sourceFile": "Glub.glb",
       "sourceSha256": "afa0ae7178b047cd3c210fd864aebc8b64e5608a951efc4f073bf538cb04929c",
       "variant": "aggregate",
       "outputFile": "exports/aggregate/glub.aggregate.glb",
-      "outputSha256": "b938aaba78687c043ea370110affde1811451168a5ef1561e71c201af63dd24e",
+      "outputSha256": "4117cef467c0fa4112b0b12283f0ed15bffec7f1b4f0f377bf20dc71dbb709a7",
       "outputFileBytes": 5796,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "ed584952c31bbab7ee1f967aba7a7011d11c9360a276f0a2e97fa45579adfee1",
+      "processingSignature": "93016cbf38267e3e2d4f1642856fdd624a7a0fd1696de3c70f463c60e1a37f46",
       "settings": {
         "representativePose": {
           "action": null,
@@ -9583,16 +9346,13 @@
           ]
         }
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "large distant groups; target-engine benchmark required",
         "recommendedRole": "aggregate crowd proxy"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.glub-evolved.hero": {
       "validationStatus": "machine_pass",
@@ -9646,18 +9406,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.023690+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.276777+00:00",
       "id": "model.quaternius.glub-evolved.hero",
       "sourceModelId": "monster.quaternius.glub-evolved",
       "sourceFile": "Glub Evolved.glb",
       "sourceSha256": "cc85f0fe7fa65b9fcbe35fddfc38f28ba564b20533a520b42f2bbb339903a878",
       "variant": "hero",
       "outputFile": "exports/hero/glub-evolved.hero.glb",
-      "outputSha256": "e9832a22ec00b295fef723e00904c6791831265c6e53e5accd6dda5fe02f90c1",
+      "outputSha256": "86767edc8c571575763fc5e47a4e57dc7bf8ee07d00a1a4d2031d642bc9f6b73",
       "outputFileBytes": 238160,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "37326003a8f465a1941d7b5ee3aa1b60cca0804957e480fc3477187283955f02",
+      "processingSignature": "4c85758218633d3bb809e37a7bcb886861f1247466171bc6dbc282cabacc39f7",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -9709,16 +9469,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.goleling.hero": {
       "validationStatus": "machine_pass",
@@ -9772,18 +9529,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.147048+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.368504+00:00",
       "id": "model.quaternius.goleling.hero",
       "sourceModelId": "monster.quaternius.goleling",
       "sourceFile": "Goleling.glb",
       "sourceSha256": "fe6b5a04aef77aa9b38afee216802823b543d2409674bc86bd8bd152cb8cebce",
       "variant": "hero",
       "outputFile": "exports/hero/goleling.hero.glb",
-      "outputSha256": "0fa7fdeda2d89e46d623ec33a56ed28bdca1ab4b4265ec488f1bd6d367b5bbce",
+      "outputSha256": "3b961474a5f5a7e11a8200d003980c61b18fd3b8db5778883bc39b7fee5899e9",
       "outputFileBytes": 224652,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "fa7c2dd8cf6e3ded0118d178551b8f8efc8801f057db28f786d0882f3a9adb82",
+      "processingSignature": "05666e257d40983557f452ee26b4f319ea1b133c886b9e1c03980762d8a30d55",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -9835,16 +9592,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.goleling-evolved.hero": {
       "validationStatus": "machine_pass",
@@ -9898,18 +9652,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.264580+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:19.469680+00:00",
       "id": "model.quaternius.goleling-evolved.hero",
       "sourceModelId": "monster.quaternius.goleling-evolved",
       "sourceFile": "Goleling Evolved.glb",
       "sourceSha256": "d397a35eeacbf64cd068d626fa82e8099dc2ae2155df051224c4b575a04f034d",
       "variant": "hero",
       "outputFile": "exports/hero/goleling-evolved.hero.glb",
-      "outputSha256": "c40dc1bd5d48291e3d54ad76c8bc35a2654e72749d4b1bc89dfe433e487a5d5e",
+      "outputSha256": "e8b2d3d95be31b43caaab09d47513793c1354723a1f5b6a3bb5aa4cf1b65af19",
       "outputFileBytes": 309220,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "ea20b861fa6fe4d53f01e4f78389cf81b06c2a0404bba979fe44ff0ff75f548b",
+      "processingSignature": "03313bfd40d5148d302a99f0e57c3f39810f9df68cddf19c3c109bb818f946f6",
       "settings": {
         "family": "compactFlying",
         "materialConversion": {
@@ -9961,16 +9715,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.hywirl.hero": {
       "validationStatus": "machine_pass",
@@ -10024,18 +9775,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.681825+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.041760+00:00",
       "id": "model.quaternius.hywirl.hero",
       "sourceModelId": "monster.quaternius.hywirl",
       "sourceFile": "Hywirl.glb",
       "sourceSha256": "90b8f9f252999e71c1bd4bfa76bb219c577a1ecfb10294ca0eb41f903a60d8bd",
       "variant": "hero",
       "outputFile": "exports/hero/hywirl.hero.glb",
-      "outputSha256": "4e98f4ffdefa996d53c9aad48ea625c4d223c85907873d1fa6ebea6ec3dfd3ab",
+      "outputSha256": "1b2b31ac9f72059dbcf5a9f98dee95ed2b66aadf07514f7aa8f6b7559cfa25ba",
       "outputFileBytes": 328872,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "9396207ed61eea3fe8fe6e6c234734de872d89171f5a585efee2a51e64760d15",
+      "processingSignature": "4fca32eaf2c6969f7117be4956ec1f16a6276a06a899a28f8c9c90158f147790",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -10087,16 +9838,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.monkroose.hero": {
       "validationStatus": "machine_pass",
@@ -10156,18 +9904,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:42.962502+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.353416+00:00",
       "id": "model.quaternius.monkroose.hero",
       "sourceModelId": "monster.quaternius.monkroose",
       "sourceFile": "Monkroose.glb",
       "sourceSha256": "f09adddaba213130b844807cd3cc7cd951abb155fbb08400798152d34acbd3d8",
       "variant": "hero",
       "outputFile": "exports/hero/monkroose.hero.glb",
-      "outputSha256": "ff865d8e9430384f15c6cf4757223ef49ddf57022bb47b0dd99b146ba81a3338",
+      "outputSha256": "50fe4842b983771ec72fbb761011f70cec160ae24f07d8ef4ac42a105f20590c",
       "outputFileBytes": 666188,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "94afd117718dc5b4ae91d3256d065597b2e1256fcf68bde03f8ed54b1ea20df6",
+      "processingSignature": "27691966344c62abb55d124c00fb110104ef126e98bae09e94bf32dba7e58795",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -10219,16 +9967,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.mushroom-king.hero": {
       "validationStatus": "machine_pass",
@@ -10288,18 +10033,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:43.420873+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:20.733991+00:00",
       "id": "model.quaternius.mushroom-king.hero",
       "sourceModelId": "monster.quaternius.mushroom-king",
       "sourceFile": "Mushroom King.glb",
       "sourceSha256": "45bbb9d659697d0127be159af0a58fae3fe8eef430adacaf994efcf0769b2e09",
       "variant": "hero",
       "outputFile": "exports/hero/mushroom-king.hero.glb",
-      "outputSha256": "c1db2a8fdfe4b78cdfde7a163ae2a754c9d28e720f5369949da81c86e641c04d",
+      "outputSha256": "cec255f41fea20d1c0d927b1490a7e0d4191e0b5de7c0ae0342fa9646348be15",
       "outputFileBytes": 668532,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "64297f998729e66d4342a37be81afcead7e581cca9ce998d91515ecd23d7d1ca",
+      "processingSignature": "d779acb0b469079687e1bc6b6547b5d3c7b97bf8c41a57bf630855c4e25d60f8",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -10351,16 +10096,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 2,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.ninja-high-detail.hero": {
       "validationStatus": "machine_pass",
@@ -10420,18 +10162,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:43.818711+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.133357+00:00",
       "id": "model.quaternius.ninja-high-detail.hero",
       "sourceModelId": "monster.quaternius.ninja-high-detail",
       "sourceFile": "Ninja-xGYmeDpfTu.glb",
       "sourceSha256": "f9d38ed5156252a675b40a16c8a01795c16b78b464edbde1ab9fc46951ae420e",
       "variant": "hero",
       "outputFile": "exports/hero/ninja-high-detail.hero.glb",
-      "outputSha256": "a01345be3191e814026ef3e2851bc3574a7df82be51f32f70006d7fe76e433d3",
+      "outputSha256": "f0d2b3468f49459f0ffb1b363be89ab63e587737acc9523ef5179585cc9a668a",
       "outputFileBytes": 686756,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "881c8652f3543a026115091c470b06ad3c157174e6e58fd0e412854523fda3ed",
+      "processingSignature": "fb775371bbce99e6150331833a8029b7bdf8ca0b3f1647c780fe3859f4bfc2d1",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -10483,16 +10225,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.squidle.hero": {
       "validationStatus": "machine_pass",
@@ -10546,18 +10285,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.543470+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.836793+00:00",
       "id": "model.quaternius.squidle.hero",
       "sourceModelId": "monster.quaternius.squidle",
       "sourceFile": "Squidle.glb",
       "sourceSha256": "a7c3492fbac79102c550f27306d0b07f5ab8b472f2ace9a78756a293c22d02c2",
       "variant": "hero",
       "outputFile": "exports/hero/squidle.hero.glb",
-      "outputSha256": "fdf67716afb5a3462512d358c7ef532aae213ef64a14ae814a0800704ce56ee2",
+      "outputSha256": "4be68319014d55cdc17f77d78f681e4605489b991a2ad3c7c9eedd9d76a7b51a",
       "outputFileBytes": 418012,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "260eb96e8e494a67d488f3bea10b7fb0c991d029e13cfcbd4f83695f7c7bd2fc",
+      "processingSignature": "9ddfbb356063462c51f6abae42b9b586c6f52ff73ab43d50436380d0008b3f20",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -10609,16 +10348,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.tribal.hero": {
       "validationStatus": "machine_pass",
@@ -10672,18 +10408,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:44.709672+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:21.990767+00:00",
       "id": "model.quaternius.tribal.hero",
       "sourceModelId": "monster.quaternius.tribal",
       "sourceFile": "Tribal.glb",
       "sourceSha256": "f42e476a67d5c3ffdfdd5dbcb29e9b9b6aaf235d118640f8fb4f2a40c4907951",
       "variant": "hero",
       "outputFile": "exports/hero/tribal.hero.glb",
-      "outputSha256": "f1afb3caa136eec7ff7a7bf53a414e938135e1aa4b9a6801d9f6a5cf0a48eca1",
+      "outputSha256": "5a551eab62dc834fd45200842bc96f9f5e7ca2a8fe912f6cc1bc59510c8c54f2",
       "outputFileBytes": 432908,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "9678a397be2a6d22b5cadafa073233fe13d7789d29bab44c538e619cd60b75a7",
+      "processingSignature": "6f531456d0c14028405e6686cd149ee03ad9f9592f8f785580cb42eb513b8c2d",
       "settings": {
         "family": "extendedFlying",
         "materialConversion": {
@@ -10735,16 +10471,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     },
     "model.quaternius.yeti-high-detail.hero": {
       "validationStatus": "machine_pass",
@@ -10804,18 +10537,18 @@
         "cameraCount": 0,
         "lightCount": 0
       },
-      "validatedAtUtc": "2026-08-04T19:21:45.160724+00:00",
+      "validatedAtUtc": "2026-08-07T01:05:22.396623+00:00",
       "id": "model.quaternius.yeti-high-detail.hero",
       "sourceModelId": "monster.quaternius.yeti-high-detail",
       "sourceFile": "Yeti-ceRHrn8HHE.glb",
       "sourceSha256": "789fcdd3d32a1bf6ceaa0e30f9ac5d8d2c52d15fa0181d4d1d980a1b2a2ac869",
       "variant": "hero",
       "outputFile": "exports/hero/yeti-high-detail.hero.glb",
-      "outputSha256": "9bd0cf30d44168a0d8eed83e9ada0e6821af6ca6e92147f88d0f1317bc5e47b6",
+      "outputSha256": "20a82f846d8a4c6602142c83e68baf2b2cdf43be4ac0e9b9fdedb90b2d8034a5",
       "outputFileBytes": 666400,
-      "pipelineVersion": "1.1.0",
+      "pipelineVersion": "1.1.1-color-fidelity",
       "blenderVersion": "5.2.0 LTS",
-      "processingSignature": "0511d6f8f6bef4d39db2108b7e9600425dd08f914905e51551bf357f5e7a66f2",
+      "processingSignature": "11a734da5133e7d2cde7d7558ab64503f77c6b6244da8ad292acb7c4204ec2b0",
       "settings": {
         "family": "humanoid",
         "materialConversion": {
@@ -10867,16 +10600,13 @@
           "socket.shadow"
         ]
       },
-      "reviewStatus": "accepted",
+      "reviewStatus": "pending",
       "performanceGuidance": {
         "estimatedDrawCalls": 1,
         "recommendedMaximumVisibleCount": null,
         "visibleCountGuidance": "small active count; target-engine benchmark required",
         "recommendedRole": "elite, boss, specialist, or quality reference"
-      },
-      "reviewedAtUtc": "2026-08-04T19:18:34.547852+00:00",
-      "reviewScope": "all",
-      "reviewNotes": "Reviewed final hero, common-near, common-far, aggregate, and near/far comparison sheets; all 45 turntables; four rig-family animation samples; elite and boss candidates; outliers; and the Blender overview. Colours, silhouettes, front readability, grounding or hover offsets, and representative core poses are acceptable. All 90 reviewed variants already pass machine validation."
+      }
     }
   }
 }

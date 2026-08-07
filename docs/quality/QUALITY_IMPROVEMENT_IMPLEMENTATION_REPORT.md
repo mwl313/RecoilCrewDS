@@ -47,6 +47,14 @@ Implemented:
 
 Findings, exact lighting/material values, evidence, and acceptance coverage are in [MONSTER_PRESENTATION_AUDIT.md](MONSTER_PRESENTATION_AUDIT.md).
 
+### Source-color fidelity correction
+
+After the original Quaternius GLBs became available, a source-to-runtime comparison exposed a preprocessing defect that the earlier processed-to-processed audit could not detect. Blender's Principled Base Color values were already linear, but pipeline `1.1.0` assigned them through `color_srgb`, applying a second sRGB-to-linear conversion and darkening every vertex-colored model.
+
+The complete pack was regenerated in Blender 5.2 LTS with pipeline `1.1.1-color-fidelity`, which writes the baked values through Blender's linear `Color` property. All 90 runtime variants were re-imported. The importer still applies the established runtime transform repairs for Demon High Detail, Orc, and Mushroom King, and now rejects any pack that does not declare the corrected pipeline version.
+
+The committed 45-model source baseline and validator measure vertex colors in linear space. Corrected hero/source ratios are saturation `0.9771–1.0088`, value `0.9931–1.0081`, and luminance `0.9930–1.0049`. Runtime gallery review confirmed the Elite Demon is upright, grounded, brightly colored, skinned, and animating; its semantic hierarchy and bounds contract also passed all nine elite-alignment tests. Reproduction and acceptance details are in [MONSTER_MODEL_PREPROCESSING_GUIDE.md](MONSTER_MODEL_PREPROCESSING_GUIDE.md).
+
 ## Phase C — complete
 
 Implemented:
@@ -113,8 +121,9 @@ All required current commands were available under their listed names and passed
 - `npm run test:animation`: 15 files / 95 tests
 - `npm run test:animation:benchmark`: passed and returned to zero live mixers
 - `npm run validate:enemy-animations`: 0 errors, 0 warnings
+- `npm run validate:monster-colors`: 45/45 source palettes passed
 - `npm run validate:monsterpack-import`: 90/90 hashes and GLBs valid
-- `npm run test:monsterpack-import`: 11 files / 38 tests
+- `npm run test:monsterpack-import`: 12 files / 39 tests
 - `npm run test:monsterpack-rendering`: 1 Playwright browser benchmark passed
 - `npm run test:maps`: 31 tests plus 64/64 deterministic report runs
 - `npm run test:maplab`: 7 files / 32 tests
