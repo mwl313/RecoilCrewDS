@@ -91,23 +91,28 @@ export const TPS_CAMERA_CONTROL_MAX_PITCH = (86 * Math.PI) / 180;
 export const TPS_CAMERA_CONTROL_MIN_PITCH = -TPS_CAMERA_CONTROL_MAX_PITCH;
 export const TPS_CAMERA_YAW_ATTENUATION_START_PITCH = (78 * Math.PI) / 180;
 export const TPS_CAMERA_YAW_ATTENUATION_END_PITCH = (84 * Math.PI) / 180;
+/** Never discard horizontal look intent, even while weapon yaw is pole-locked. */
+export const TPS_CAMERA_MIN_YAW_INPUT_SCALE = 0.3;
+/** Generous one-RAF guards: preserve flicks without accepting multi-turn spikes. */
+export const TPS_CAMERA_MAX_YAW_INPUT_STEP = (75 * Math.PI) / 180;
+export const TPS_CAMERA_MAX_PITCH_INPUT_STEP = (45 * Math.PI) / 180;
 
 function smoothstep01(value: number): number {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
 }
 
-/** Horizontal look has no directional meaning at a vertical pole. */
+/** Slow horizontal look near a vertical pole without trapping the player. */
 export function cameraPoleYawInputScale(pitch: number): number {
   const absolutePitch = Math.abs(pitch);
   if (absolutePitch <= TPS_CAMERA_YAW_ATTENUATION_START_PITCH) return 1;
-  if (absolutePitch >= TPS_CAMERA_YAW_ATTENUATION_END_PITCH) return 0;
+  if (absolutePitch >= TPS_CAMERA_YAW_ATTENUATION_END_PITCH) return TPS_CAMERA_MIN_YAW_INPUT_SCALE;
   const t = (
     absolutePitch - TPS_CAMERA_YAW_ATTENUATION_START_PITCH
   ) / (
     TPS_CAMERA_YAW_ATTENUATION_END_PITCH - TPS_CAMERA_YAW_ATTENUATION_START_PITCH
   );
-  return 1 - smoothstep01(t);
+  return 1 - smoothstep01(t) * (1 - TPS_CAMERA_MIN_YAW_INPUT_SCALE);
 }
 
 export interface CameraPose {
@@ -126,6 +131,8 @@ export interface CameraFollowDiagnostics {
   lookPitch: number;
   boomPitch: number;
   groundClearanceAdjustment: number;
+  shoulderOffset: number;
+  collisionSafetyOverride: boolean;
   cameraUpdateCount: number;
 }
 
@@ -156,6 +163,7 @@ const scratchRight = new THREE.Vector3();
 const scratchUp = new THREE.Vector3(0, 1, 0);
 const scratchAnchor = new THREE.Vector3();
 const scratchDesired = new THREE.Vector3();
+const scratchCenteredDesired = new THREE.Vector3();
 const scratchEye = new THREE.Vector3();
 const scratchProposedEye = new THREE.Vector3();
 const scratchExpandedCollider = new THREE.Box3();
@@ -171,6 +179,8 @@ const AIM_COLLIDER_EPSILON = 1e-4;
 const CAMERA_COLLISION_SKIN = 0.04;
 const CAMERA_EMERGENCY_MIN_DISTANCE = 0.15;
 const CAMERA_SAFETY_BACKTRACK_STEPS = 24;
+const CAMERA_SHOULDER_CLEARANCE_ADVANTAGE = 0.2;
+const SPEED_FOV_FOLLOW_SECONDS = 0.12;
 
 function candidatesOf(
   source: CameraCollisionSource,
@@ -211,9 +221,31 @@ function placeCameraEye(
   return adjustment;
 }
 
+function cameraPathSafeDistance(
+  anchor: THREE.Vector3,
+  desiredEye: THREE.Vector3,
+  colliders: readonly CameraCollider[],
+  cameraRadius: number,
+  outDirection?: THREE.Vector3,
+): { length: number; safeDistance: number } {
+  const direction = outDirection ?? scratchAimDir;
+  direction.copy(desiredEye).sub(anchor);
+  const length = direction.length();
+  let safeDistance = length;
+  if (length <= 1e-5) return { length, safeDistance };
+  direction.divideScalar(length);
+  for (const collider of colliders) {
+    const t = rayAabbT(anchor, direction, expandedCameraBox(collider, cameraRadius));
+    if (t !== null && t > 0.05 && t < safeDistance) {
+      safeDistance = Math.max(CAMERA_EMERGENCY_MIN_DISTANCE, t - CAMERA_COLLISION_SKIN);
+    }
+  }
+  return { length, safeDistance };
+}
+
 export class TpsCameraController {
   readonly camera: THREE.PerspectiveCamera;
-  /** Unbounded horizontal yaw (radians). */
+  /** Normalized horizontal yaw intent (radians). */
   yaw = 0;
   /** Clamped vertical pitch (radians). */
   pitch = 0.12;
@@ -231,6 +263,8 @@ export class TpsCameraController {
   private lastColliding = false;
   private lastBoomPitch = 0;
   private lastGroundClearanceAdjustment = 0;
+  private currentShoulderOffset: number;
+  private lastCollisionSafetyOverride = false;
   private cameraUpdateCount = 0;
   private inputDiagnostics: CameraInputDiagnostics = {
     dx: 0,
@@ -247,6 +281,7 @@ export class TpsCameraController {
     this.tuning = { ...DEFAULT_TPS_TUNING, ...tuning };
     this.camera = new THREE.PerspectiveCamera(this.tuning.fov, 16 / 9, 0.1, 220);
     this.currentDistance = this.tuning.distance;
+    this.currentShoulderOffset = this.tuning.shoulderOffset;
     // Default: camera behind a chassis facing +Z.
     this.yaw = 0;
     this.pitch = this.tuning.minPitch * 0.2;
@@ -299,6 +334,8 @@ export class TpsCameraController {
       lookPitch: this.pitch,
       boomPitch: this.lastBoomPitch,
       groundClearanceAdjustment: this.lastGroundClearanceAdjustment,
+      shoulderOffset: this.currentShoulderOffset,
+      collisionSafetyOverride: this.lastCollisionSafetyOverride,
       cameraUpdateCount: this.cameraUpdateCount,
     };
   }
@@ -330,13 +367,23 @@ export class TpsCameraController {
     if (this.recentering) this.recentering = false; // user input cancels recenter
     const sx = this.tuning.invertMouseX ? -1 : 1;
     const sy = this.tuning.invertMouseY ? -1 : 1;
+    const pitchDelta = clamp(
+      -dy * sy * this.tuning.sensitivityY,
+      -TPS_CAMERA_MAX_PITCH_INPUT_STEP,
+      TPS_CAMERA_MAX_PITCH_INPUT_STEP,
+    );
     const nextPitch = clamp(
-      this.pitch + -dy * sy * this.tuning.sensitivityY,
+      this.pitch + pitchDelta,
       this.tuning.minPitch,
       this.tuning.maxPitch,
     );
     const yawScale = cameraPoleYawInputScale(nextPitch);
-    this.yaw -= dx * sx * this.tuning.sensitivityX * yawScale;
+    const yawDelta = clamp(
+      -dx * sx * this.tuning.sensitivityX,
+      -TPS_CAMERA_MAX_YAW_INPUT_STEP,
+      TPS_CAMERA_MAX_YAW_INPUT_STEP,
+    );
+    this.yaw = wrapAngle(this.yaw + yawDelta * yawScale);
     this.pitch = nextPitch;
     this.inputDiagnostics = {
       dx,
@@ -355,6 +402,32 @@ export class TpsCameraController {
     this.recenterTargetYaw = chassisYaw;
     this.recenterTargetPitch = 0.12;
     this.recentering = true;
+  }
+
+  /** Clear view/collision state at match, rematch, reconnect, and role boundaries. */
+  resetTransientState(): void {
+    this.yaw = 0;
+    this.pitch = this.tuning.minPitch * 0.2;
+    this.recentering = false;
+    this.currentDistance = this.tuning.distance;
+    this.currentShoulderOffset = this.tuning.shoulderOffset;
+    this.initialized = false;
+    this.followInitialized = false;
+    this.lastColliding = false;
+    this.lastCollisionSafetyOverride = false;
+    this.lastGroundClearanceAdjustment = 0;
+    this.inputDiagnostics = {
+      dx: 0,
+      dy: 0,
+      yawBefore: this.yaw,
+      yawAfter: this.yaw,
+      pitchBefore: this.pitch,
+      pitchAfter: this.pitch,
+      yawScale: cameraPoleYawInputScale(this.pitch),
+      accepted: true,
+    };
+    this.camera.fov = this.tuning.fov;
+    this.camera.updateProjectionMatrix();
   }
 
   update(dt: number, colliders: CameraCollisionSource, speedRatio = 0): CameraPose {
@@ -390,6 +463,7 @@ export class TpsCameraController {
     if (this.recentering) {
       const k = 1 - Math.exp(-safeDt / Math.max(0.001, this.tuning.recenterSeconds));
       this.yaw += angleDiff(this.yaw, this.recenterTargetYaw) * k;
+      this.yaw = wrapAngle(this.yaw);
       this.pitch += (this.recenterTargetPitch - this.pitch) * k;
       if (Math.abs(angleDiff(this.yaw, this.recenterTargetYaw)) < 0.004 && Math.abs(this.pitch - this.recenterTargetPitch) < 0.004) {
         this.yaw = this.recenterTargetYaw;
@@ -418,10 +492,58 @@ export class TpsCameraController {
       this.smoothedFollow.y + this.tuning.anchorHeight,
       this.smoothedFollow.z,
     );
-    const desiredEye = scratchDesired
+    const fullShoulderEye = scratchDesired
       .copy(anchor)
       .add(scratchEye.set(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
       .addScaledVector(right, this.tuning.shoulderOffset)
+      .addScaledVector(boomForward, -this.tuning.distance);
+
+    // A right-shoulder camera should tuck toward the centerline at corners
+    // instead of collapsing the whole boom when the centered path is clear.
+    const centeredEye = scratchCenteredDesired
+      .copy(anchor)
+      .add(scratchEye.set(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
+      .addScaledVector(boomForward, -this.tuning.distance);
+    const fullPathLength = fullShoulderEye.distanceTo(anchor);
+    const centeredPathLength = centeredEye.distanceTo(anchor);
+    const candidates = candidatesOf(
+      colliders,
+      anchor,
+      Math.max(fullPathLength, centeredPathLength) + this.tuning.cameraRadius,
+    );
+    const fullPath = cameraPathSafeDistance(
+      anchor,
+      fullShoulderEye,
+      candidates,
+      this.tuning.cameraRadius,
+    );
+    const centeredPath = cameraPathSafeDistance(
+      anchor,
+      centeredEye,
+      candidates,
+      this.tuning.cameraRadius,
+    );
+    const fullClearance = fullPath.length > 1e-5 ? fullPath.safeDistance / fullPath.length : 1;
+    const centeredClearance = centeredPath.length > 1e-5
+      ? centeredPath.safeDistance / centeredPath.length
+      : 1;
+    const targetShoulderOffset = centeredClearance > fullClearance + CAMERA_SHOULDER_CLEARANCE_ADVANTAGE
+      ? 0
+      : this.tuning.shoulderOffset;
+    if (targetShoulderOffset < this.currentShoulderOffset) {
+      // Moving 65 cm to the center is far less disruptive than collapsing a
+      // five-metre boom, and immediately clears the corner overlap.
+      this.currentShoulderOffset = targetShoulderOffset;
+    } else {
+      const shoulderRelease = expFollow(safeDt, this.tuning.collisionReleaseSeconds);
+      this.currentShoulderOffset += (
+        targetShoulderOffset - this.currentShoulderOffset
+      ) * shoulderRelease;
+    }
+    const desiredEye = fullShoulderEye
+      .copy(anchor)
+      .add(scratchEye.set(0, this.tuning.shoulderHeight + this.tuning.verticalArm, 0))
+      .addScaledVector(right, this.currentShoulderOffset)
       .addScaledVector(boomForward, -this.tuning.distance);
 
     // Swept-sphere collision: candidates from the spatial index carry
@@ -432,9 +554,6 @@ export class TpsCameraController {
     const boomLen = rayLen;
     let targetDistance = boomLen;
     let hardSafeDistance = boomLen;
-    const candidates = rayLen > 1e-5
-      ? candidatesOf(colliders, anchor, boomLen + this.tuning.cameraRadius)
-      : [];
     if (rayLen > 1e-5) {
       rayDir.divideScalar(rayLen);
       for (const c of candidates) {
@@ -515,6 +634,7 @@ export class TpsCameraController {
       ? CAMERA_EMERGENCY_MIN_DISTANCE
       : Math.min(this.tuning.minimumDistance, this.currentDistance);
     this.currentDistance = clamp(nextDistance, distanceFloor, boomLen);
+    this.lastCollisionSafetyOverride = safetyOverride;
 
     const eye = scratchEye;
     this.lastGroundClearanceAdjustment = placeCameraEye(
@@ -531,7 +651,8 @@ export class TpsCameraController {
     this.camera.quaternion.setFromEuler(new THREE.Euler(this.pitch, this.yaw + Math.PI, 0, 'YXZ'));
     const targetFov = this.tuning.fov + (this.tuning.speedFovBonus ?? 0) * speedRatio;
     if (Math.abs(this.camera.fov - targetFov) > 0.01) {
-      this.camera.fov = targetFov;
+      const fovK = expFollow(safeDt, SPEED_FOV_FOLLOW_SECONDS);
+      this.camera.fov += (targetFov - this.camera.fov) * fovK;
       this.camera.updateProjectionMatrix();
     }
     this.lastColliding = targetDistance < boomLen - 0.001;

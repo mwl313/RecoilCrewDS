@@ -102,7 +102,7 @@ let lobbyChat: LobbyChatMessage[] = [];
 
 const params = new URLSearchParams(window.location.search);
 const TEST_MODE = params.has('test');
-const DEBUG_MODE = (params.has('debug') || TEST_MODE) && !params.has('nodebug');
+const DEBUG_MODE = params.has('debug') && !params.has('nodebug');
 const FORCED_SEED = params.has('seed') ? Number(params.get('seed')) : null;
 const FORCED_MAP_ID = (() => {
   const value = params.get('map');

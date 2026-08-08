@@ -149,6 +149,9 @@ describe('client rig factory', () => {
       const rig = service.tankRig(custom);
       expect(rig.turret.position.y).toBe(2);
       expect(rig.barrel.position.y).toBe(1);
+      expect(rig.barrel.name).toBe('tankBarrelPivot');
+      expect(rig.barrel.children[0]?.scale.z).toBeCloseTo(2, 6);
+      expect(rig.barrel.children[0]?.position.z).toBeCloseTo(0.06724223494529724, 6);
       expect(rig.rigDefinition).toEqual(custom);
       // Shared math and the built hierarchy agree at a nonzero pose.
       rig.chassis.position.set(3, 1, -2);

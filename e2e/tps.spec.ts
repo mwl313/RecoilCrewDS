@@ -98,10 +98,13 @@ test('Gunner mouse uses the same non-inverted directions', async ({ browser }) =
   await b.waitForTimeout(100);
   expect((await cameraState(b)).yaw - y0).toBeGreaterThan(0.2);
 
-  await b.evaluate(() => {
-    const canvas = document.querySelector('canvas#game-canvas');
-    canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: 20_000 }));
-  });
+  for (let i = 0; i < 3; i++) {
+    await b.evaluate(() => {
+      const canvas = document.querySelector('canvas#game-canvas');
+      canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: 20_000 }));
+    });
+    await b.waitForTimeout(50);
+  }
   await b.waitForFunction((limit) => {
     const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
     return Math.abs(state.pitch + limit) < 1e-5;
@@ -116,7 +119,7 @@ test('Gunner mouse uses the same non-inverted directions', async ({ browser }) =
     canvas?.dispatchEvent(new MouseEvent('mousemove', { movementX: 1000, movementY: 0 }));
   });
   await b.waitForTimeout(100);
-  expect((await cameraState(b)).yaw).toBeCloseTo(lockedCamera.yaw, 6);
+  expect((await cameraState(b)).yaw).toBeLessThan(lockedCamera.yaw - 0.2);
   await ctxA.close();
   await ctxB.close();
 });
@@ -156,7 +159,10 @@ test('Single Player vertical lock keeps the camera and turret stable at both pol
     return { camera: api.cameraState(), turret: api.turretSpaces() };
   });
 
-  await move(0, 20_000);
+  for (let i = 0; i < 3; i++) {
+    await move(0, 20_000);
+    await page.waitForTimeout(50);
+  }
   await page.waitForFunction((limit) => {
     const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
     return Math.abs(state.pitch + limit) < 1e-5;
@@ -178,12 +184,15 @@ test('Single Player vertical lock keeps the camera and turret stable at both pol
   await move(-900, 0);
   await page.waitForTimeout(100);
   const rotated = await fullState();
-  expect(Math.abs(rotated.camera.yaw - yawBefore)).toBeLessThan(1e-6);
+  expect(rotated.camera.yaw - yawBefore).toBeGreaterThan(0.2);
   expect(rotated.camera.follow.cameraUpdateCount).toBeGreaterThan(updatesBefore);
   expect(rotated.camera.aim.resolvedWorldYaw).toBeCloseTo(down.camera.aim.resolvedWorldYaw, 6);
   expect(rotated.turret.desiredPitch).toBeCloseTo(-Math.PI / 2, 4);
 
-  await move(0, -40_000);
+  for (let i = 0; i < 4; i++) {
+    await move(0, -40_000);
+    await page.waitForTimeout(50);
+  }
   await page.waitForFunction((limit) => {
     const state = (window as unknown as { __recoil: { cameraState(): { pitch: number } } }).__recoil.cameraState();
     return Math.abs(state.pitch - limit) < 1e-5;

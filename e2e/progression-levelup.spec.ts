@@ -30,9 +30,12 @@ test('single player collects XP, levels up, chooses a card, and resumes', async 
   expect(state.teamProgression.level).toBe(2);
   await expect(page.locator('#progression-overlay')).toBeVisible();
   await expect(page.locator('#progression-overlay button')).toHaveCount(3);
-  expect(await page.evaluate(() =>
-    (window as unknown as { __recoil: { inputState(): { locked: boolean } } }).__recoil.inputState().locked,
-  )).toBe(true);
+  expect(await page.evaluate(() => {
+    const input = (window as unknown as {
+      __recoil: { inputState(): { locked: boolean; context: string } };
+    }).__recoil.inputState();
+    return input;
+  })).toMatchObject({ locked: true, context: 'progressionUpgrade' });
 
   // Pointer-lock-safe direct selection never needs Escape or a DOM cursor.
   await page.keyboard.press('Digit2');
@@ -41,7 +44,21 @@ test('single player collects XP, levels up, chooses a card, and resumes', async 
     return s?.matchFlow === 'playing';
   });
   expect(await page.evaluate(() =>
-    (window as unknown as { __recoil: { inputState(): { locked: boolean; buttons: string[] } } }).__recoil.inputState(),
-  )).toMatchObject({ locked: true, buttons: [] });
+    (window as unknown as {
+      __recoil: { inputState(): { locked: boolean; buttons: string[]; context: string } };
+    }).__recoil.inputState(),
+  )).toMatchObject({ locked: true, buttons: [], context: 'gameplay' });
   await expect(page.locator('#progression-overlay')).toBeHidden();
+
+  const yawBefore = await page.evaluate(() =>
+    (window as unknown as { __recoil: { cameraState(): { yaw: number } } }).__recoil.cameraState().yaw,
+  );
+  await page.evaluate(() => {
+    document.querySelector('#game-canvas')?.dispatchEvent(
+      new MouseEvent('mousemove', { movementX: 200, movementY: 0 }),
+    );
+  });
+  await expect.poll(() => page.evaluate(() =>
+    (window as unknown as { __recoil: { cameraState(): { yaw: number } } }).__recoil.cameraState().yaw,
+  )).toBeLessThan(yawBefore - 0.3);
 });

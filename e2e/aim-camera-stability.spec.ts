@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { TPS_CAMERA_CONTROL_MAX_PITCH } from '../src/client/tpsCamera';
 
 test('60-second real-pointer-lock aim and driving qualification stays continuous', async ({ page }) => {
   test.setTimeout(150_000);
@@ -14,7 +15,7 @@ test('60-second real-pointer-lock aim and driving qualification stays continuous
   await page.waitForFunction(() => document.pointerLockElement !== null, undefined, { timeout: 5_000 });
   await page.keyboard.down('w');
 
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async (cameraPitchLimit) => {
     type CameraState = {
       yaw: number;
       pitch: number;
@@ -45,14 +46,14 @@ test('60-second real-pointer-lock aim and driving qualification stays continuous
       let movementY = Math.cos(i * 0.29) * 2;
       if (i === 60 || i === 64 || i === 68) movementX = i % 2 === 0 ? 900 : -900;
       if (i >= 80 && i < 116) movementY = 10;
-      if (i === 116) movementY = 20_000;
+      if (i >= 114 && i <= 116) movementY = 20_000;
       if (i > 116 && i < 152) {
         movementX = 24;
         movementY = 0;
       }
-      if (i >= 152 && i < 188) movementY = -10;
-      if (i === 188) movementY = -40_000;
-      if (i > 188 && i < 220) {
+      if (i >= 152 && i < 188) movementY = -20;
+      if (i >= 188 && i <= 190) movementY = -40_000;
+      if (i > 190 && i < 220) {
         movementX = -24;
         movementY = 0;
       }
@@ -63,13 +64,16 @@ test('60-second real-pointer-lock aim and driving qualification stays continuous
       if (i === 164) window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyD' }));
       await sleep(250);
       const camera = api.cameraState();
-      samples.push({ camera, extremeInput: [60, 64, 68, 116, 188].includes(i) });
+      samples.push({
+        camera,
+        extremeInput: [60, 64, 68, 114, 115, 116, 188, 189, 190].includes(i),
+      });
       const turret = api.turretSpaces();
-      if (Math.abs(camera.pitch + Math.PI / 2) < 1e-6) {
+      if (Math.abs(camera.pitch + cameraPitchLimit) < 1e-6) {
         sawExactDown = true;
         downTurret = turret.predictedPitch;
       }
-      if (Math.abs(camera.pitch - Math.PI / 2) < 1e-6) {
+      if (Math.abs(camera.pitch - cameraPitchLimit) < 1e-6) {
         sawExactUp = true;
         upTurret = turret.predictedPitch;
       }
@@ -109,7 +113,7 @@ test('60-second real-pointer-lock aim and driving qualification stays continuous
       pointer: api.inputState().pointer,
       locked: document.pointerLockElement !== null,
     };
-  });
+  }, TPS_CAMERA_CONTROL_MAX_PITCH);
   await page.keyboard.up('w');
 
   expect(result.allFinite).toBe(true);

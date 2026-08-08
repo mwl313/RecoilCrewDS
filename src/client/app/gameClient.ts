@@ -1168,7 +1168,11 @@ export class GameClient {
     const selection = latest?.teamProgression.activeSelection;
     if (!selection || latest?.matchFlow !== 'upgradeSelection') return;
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.submitProgressionSelection('single', selection.offerId, cardIndex);
+      const result = this.singlePlayerMatch.submitProgressionSelection('single', selection.offerId, cardIndex);
+      // Single Player authority resolves synchronously. Restore gameplay input
+      // in the same event turn so the first post-overlay mouse delta is not
+      // consumed by the now-closed card selector before the next RAF.
+      if (result.accepted) this.syncProgressionInputContext();
     } else if (this.onSendInput) {
       this.onSendInput({ t: 'selectUpgrade', offerId: selection.offerId, cardIndex });
     }
@@ -1181,7 +1185,13 @@ export class GameClient {
     if (!selection || selection.kind !== 'relic' || latest?.matchFlow !== 'relicSelection') return;
     const acquisitionSequence = selection.relicResult?.acquisitionSequence ?? 0;
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
-      this.singlePlayerMatch.acknowledgeProgressionRelic('single', acquisitionSequence, ['single'], Date.now());
+      const result = this.singlePlayerMatch.acknowledgeProgressionRelic(
+        'single',
+        acquisitionSequence,
+        ['single'],
+        Date.now(),
+      );
+      if (result.accepted) this.syncProgressionInputContext();
     } else if (this.onSendInput) {
       this.onSendInput({ t: 'acknowledgeRelic', acquisitionSequence });
     }

@@ -21,6 +21,8 @@ export class RewardRevealView {
   readonly fx: RewardFxLayer;
   private cardButtons: HTMLButtonElement[] = [];
   private cardReels: HTMLElement[] = [];
+  private cardSymbols: RewardReelSymbol[][] = [];
+  private lastCardCellIndices: number[] = [];
   private selectionTitle: HTMLElement | null = null;
   private fuse: HTMLElement | null = null;
   private peerStatus: HTMLElement | null = null;
@@ -67,6 +69,8 @@ export class RewardRevealView {
     this.selectionHost.replaceChildren();
     this.cardButtons = [];
     this.cardReels = [];
+    this.cardSymbols = [];
+    this.lastCardCellIndices = [];
     this.lastLockedCount = 0;
     this.rewardIdentity = selection.offerId;
     const stage = element('div', 'reward-stage reward-stage--upgrade');
@@ -88,15 +92,20 @@ export class RewardRevealView {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'reward-card';
-    button.dataset['rarity'] = card.rarity;
+    button.dataset['resultRarity'] = card.rarity;
     button.dataset['index'] = String(index);
     button.setAttribute('aria-label', `${index + 1}: ${humanize(card.categoryId)}, ${card.rarity}`);
     const hotkey = element('span', 'reward-card__hotkey', String(index + 1));
     const reelWindow = element('div', 'reward-card__reel-window');
     reelWindow.setAttribute('aria-hidden', 'true');
     const reelTrack = element('div', 'reward-card__reel-track');
-    for (const symbol of buildRewardReelSymbols(identity, index, 'upgrade')) {
+    const symbols = buildRewardReelSymbols(identity, index, 'upgrade');
+    this.cardSymbols.push(symbols);
+    this.lastCardCellIndices.push(-1);
+    button.dataset['rarity'] = symbols[0]?.rarity ?? 'common';
+    for (const symbol of symbols) {
       const cell = element('div', 'reward-card__symbol');
+      cell.dataset['rarity'] = symbol.rarity;
       cell.append(element('span', 'reward-card__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
       reelTrack.appendChild(cell);
     }
@@ -125,10 +134,17 @@ export class RewardRevealView {
     this.relicHost.hidden = true;
     for (let index = 0; index < this.cardButtons.length; index++) {
       const locked = index < timeline.lockedCards;
-      this.cardButtons[index]!.classList.toggle('reward-card--locked', locked);
+      const card = this.cardButtons[index]!;
+      card.classList.toggle('reward-card--locked', locked);
       const frame = rewardReelFrame(timeline.elapsedMs, index, 'upgrade');
       this.cardReels[index]?.style.setProperty('--reward-reel-y', `${frame.translateY}px`);
       this.cardReels[index]?.style.setProperty('--reward-reel-velocity', String(frame.velocity));
+      if (locked) {
+        card.dataset['rarity'] = card.dataset['resultRarity'] ?? 'common';
+      } else if (frame.visibleCellIndex !== this.lastCardCellIndices[index]) {
+        card.dataset['rarity'] = this.cardSymbols[index]?.[frame.visibleCellIndex]?.rarity ?? 'common';
+        this.lastCardCellIndices[index] = frame.visibleCellIndex;
+      }
     }
     for (let index = this.lastLockedCount; index < timeline.lockedCards; index++) {
       const card = this.cardButtons[index];
