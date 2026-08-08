@@ -2,6 +2,12 @@ import { HordePresenceAudio } from './audio/procedural/hordePresenceAudio';
 import { seededVariation, spatialize } from './audio/procedural/proceduralSoundMath';
 import { createProceduralNoiseBuffer } from './audio/procedural/proceduralSoundPrimitives';
 import { describeRecipe, playProceduralRecipe } from './audio/procedural/proceduralSoundRecipes';
+import { SoundtrackController } from './audio/soundtrackController';
+import { SOUNDTRACK_TRACKS } from './audio/soundtrackManifest';
+import {
+  DeferredSoundtrackAutomation,
+  WebAudioSoundtrackAutomation,
+} from './audio/soundtrackWebAudio';
 import type {
   AudioDebugStats,
   ListenerPose,
@@ -65,6 +71,7 @@ export class AudioManager {
   ctx: AudioContext | null = null;
   master: GainNode | null = null;
   musicGain: GainNode | null = null;
+  readonly soundtrack: SoundtrackController;
   private sfxBus: GainNode | null = null;
   private readonly buses = new Map<ProceduralBusName, GainNode>();
   private readonly voiceManager = new ProceduralVoiceManager();
@@ -75,9 +82,6 @@ export class AudioManager {
   private lastDrift = 0;
   private chargeSweep: OscillatorNode | null = null;
   private chargeGain: GainNode | null = null;
-  private musicStep = 0;
-  private musicTimer: ReturnType<typeof setInterval> | null = null;
-  private musicIntensity = 0;
   private noiseBuf: AudioBuffer | null = null;
   private reverb: ConvolverNode | null = null;
   private reverbReturn: GainNode | null = null;
@@ -90,10 +94,31 @@ export class AudioManager {
   private lastRecipe: ProceduralSoundRecipe | null = null;
   private lastWorldDistance = 0;
   private lastPan = 0;
+  private readonly soundtrackMedia: HTMLAudioElement;
+  private readonly soundtrackAutomation = new DeferredSoundtrackAutomation();
+
+  constructor() {
+    this.soundtrackMedia = new Audio();
+    this.soundtrack = new SoundtrackController({
+      tracks: SOUNDTRACK_TRACKS,
+      media: this.soundtrackMedia,
+      automation: this.soundtrackAutomation,
+      beforePlay: () => this.prepareSoundtrackPlayback(),
+    });
+    this.soundtrack.start();
+  }
 
   unlock(): void {
+    this.ensureInitialized();
+    if (this.ctx?.state === 'suspended') {
+      void this.ctx.resume().then(() => this.soundtrack.onUserActivation());
+    } else {
+      void this.soundtrack.onUserActivation();
+    }
+  }
+
+  private ensureInitialized(): void {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended') void this.ctx.resume();
       return;
     }
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -119,17 +144,44 @@ export class AudioManager {
       this.buses.set(name, gain);
     }
 
-    // The legacy procedural music remains independent of SFX. Reward ducking
-    // only touches this music gain and never any combat bus.
-    this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.value = 0.34;
-    this.musicGain.connect(this.master);
+    // Long-form music has its own fade, context/filter, and reward-duck
+    // stages. It joins the master after those stages and never crosses the
+    // procedural SFX buses.
+    const soundtrackSource = this.ctx.createMediaElementSource(this.soundtrackMedia);
+    const trackFadeGain = this.ctx.createGain();
+    const lowPass = this.ctx.createBiquadFilter();
+    const contextGain = this.ctx.createGain();
+    const duckGain = this.ctx.createGain();
+    trackFadeGain.gain.value = 0;
+    lowPass.type = 'lowpass';
+    lowPass.frequency.value = 2_300;
+    lowPass.Q.value = 0.7;
+    contextGain.gain.value = 0.72;
+    duckGain.gain.value = 1;
+    soundtrackSource
+      .connect(trackFadeGain)
+      .connect(lowPass)
+      .connect(contextGain)
+      .connect(duckGain)
+      .connect(this.master);
+    this.musicGain = contextGain;
+    this.soundtrackAutomation.bind(new WebAudioSoundtrackAutomation(
+      this.ctx,
+      trackFadeGain,
+      lowPass,
+      contextGain,
+      duckGain,
+    ));
     this.noiseBuf = createProceduralNoiseBuffer(this.ctx, 2);
     this.createReverb();
     this.startEngine();
     this.startDriftTexture();
     this.horde = new HordePresenceAudio(this.ctx, this.noiseBuf, this.requireBus('worldAmbience'));
-    this.startMusic();
+  }
+
+  private prepareSoundtrackPlayback(): void {
+    this.ensureInitialized();
+    if (this.ctx?.state === 'suspended') void this.ctx.resume();
   }
 
   setListenerPose(pose: ListenerPose): void {
@@ -347,43 +399,13 @@ export class AudioManager {
   }
 
   setMusicIntensity(value: number): void {
-    this.musicIntensity = Math.max(0, Math.min(1.4, value));
+    // Compatibility entrypoint for the gameplay presenter. Long-form music
+    // intensity is driven by scene context rather than the match clock.
+    void value;
   }
 
   duckForReward(opts: { depth: number; attackMs: number; holdMs: number; releaseMs: number }): void {
-    if (!this.ctx || !this.musicGain) return;
-    const t = this.ctx.currentTime;
-    const base = 0.34;
-    const floor = base * Math.max(0, Math.min(1, 1 - opts.depth));
-    this.musicGain.gain.cancelScheduledValues(t);
-    this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
-    this.musicGain.gain.linearRampToValueAtTime(floor, t + opts.attackMs / 1000);
-    this.musicGain.gain.setValueAtTime(floor, t + (opts.attackMs + opts.holdMs) / 1000);
-    this.musicGain.gain.linearRampToValueAtTime(base, t + (opts.attackMs + opts.holdMs + opts.releaseMs) / 1000);
-  }
-
-  private startMusic(): void {
-    if (this.musicTimer) return;
-    this.musicTimer = setInterval(() => this.scheduleMusic(), 90);
-  }
-
-  private scheduleMusic(): void {
-    const ctx = this.ctx;
-    if (!ctx || !this.musicGain || !this.noiseBuf) return;
-    const stepDuration = 0.24;
-    const ahead = ctx.currentTime + 0.25;
-    while (this.musicStep * stepDuration < ahead) {
-      const t = this.musicStep * stepDuration;
-      const step = this.musicStep % 8;
-      const intensity = this.musicIntensity;
-      if (intensity > 0.02) {
-        if (step % 4 === 0) this.blip(150, t, 0.18, 'sine', 0.22 * Math.min(1, intensity), this.musicGain, 42);
-        if (step % 2 === 1) this.noiseHit(t, 7_000, 0.05, 0.055 * intensity, this.musicGain, 'highpass');
-        const bassNotes = [55, 55, 65.4, 55, 49, 49, 65.4, 73.4];
-        if (step % 2 === 0) this.blip(bassNotes[step], t, stepDuration * 1.8, 'triangle', 0.14 * intensity, this.musicGain);
-      }
-      this.musicStep++;
-    }
+    this.soundtrack.duckForReward(opts);
   }
 
   private now(): number {
@@ -609,8 +631,7 @@ export class AudioManager {
   }
 
   dispose(): void {
-    if (this.musicTimer) clearInterval(this.musicTimer);
-    this.musicTimer = null;
+    this.soundtrack.dispose();
     this.voiceManager.dispose();
     this.horde?.dispose();
     this.horde = null;

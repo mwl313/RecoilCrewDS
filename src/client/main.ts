@@ -114,6 +114,7 @@ const FORCED_MAP_ID = (() => {
 hud.bind({
   onBoot: () => {
     audio.unlock();
+    audio.soundtrack.enterContext('menu');
     hud.onUiSound = () => audio.play('ui');
     // A mid-round rejoin can finish while the title-exit choreography is
     // still pending. Never let that delayed callback reopen the menu over an
@@ -128,10 +129,12 @@ hud.bind({
     flow = 'main';
   },
   onCreate: () => {
+    audio.soundtrack.enterContext('menu');
     net.send({ t: 'create', displayName: playerSettings.currentNickname });
     flow = 'create';
   },
   onJoin: (code) => {
+    audio.soundtrack.enterContext('menu');
     if (!code) {
       hud.showScreen('join');
       flow = 'join';
@@ -144,6 +147,7 @@ hud.bind({
     net.send({ t: 'ready', ready: true });
   },
   onOpenSettings: () => {
+    audio.soundtrack.enterContext('menu');
     hud.setSettingsContext({ nicknameDraft: playerSettings.draftNickname, settingsError: '' });
     hud.showScreen('settings');
     flow = 'settings';
@@ -166,11 +170,13 @@ hud.bind({
       return;
     }
     hud.setMainMenuNickname(playerSettings.currentNickname);
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('main');
     flow = 'main';
   },
   onCancelSettings: () => {
     playerSettings.cancel();
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('main');
     flow = 'main';
   },
@@ -207,6 +213,7 @@ hud.bind({
     void startSinglePlayer();
   },
   onHowTo: () => {
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('howto');
   },
   onBack: () => {
@@ -216,6 +223,7 @@ hud.bind({
       lobbyState = null;
       lobbyChat = [];
     }
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('main');
     flow = 'main';
   },
@@ -227,12 +235,14 @@ hud.bind({
     teardownGame();
     lobbyState = null;
     lobbyChat = [];
+    audio.soundtrack.enterContext('menu');
     hud.leaveLobbyToMultiplayer();
     flow = 'main';
   },
   onRetry: () => {
     teardownGame();
     net.reopen();
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('create');
     flow = 'create';
   },
@@ -242,11 +252,13 @@ hud.bind({
     hud.hideLobby();
     lobbyState = null;
     lobbyChat = [];
+    audio.soundtrack.enterContext('menu');
     hud.showScreen('main');
     flow = 'main';
   },
   onResume: () => {
     if (!game) return;
+    void audio.soundtrack.enterMatch({ advance: false });
     hud.setGameScreen(true);
     input.setEnabled(true);
     game.setInputEnabled(true);
@@ -268,6 +280,7 @@ net.onMessage = (msg) => {
       localPlayerId = msg.playerId as string;
       lobbyState = msg.lobby as ClientLobbyState;
       lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
+      syncLobbySoundtrack(lobbyState);
       hud.setCreateCode(roomCode);
       hud.setTheme('driver');
       hud.showLobby(lobbyState, lobbyChat, localPlayerId);
@@ -323,6 +336,7 @@ net.onMessage = (msg) => {
       localPlayerId = msg.playerId as string;
       lobbyState = msg.lobby as ClientLobbyState;
       lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
+      syncLobbySoundtrack(lobbyState);
       hud.setCreateCode(roomCode);
       hud.setTheme(role);
       hud.showLobby(lobbyState, lobbyChat, localPlayerId);
@@ -332,6 +346,7 @@ net.onMessage = (msg) => {
     case 'lobbyState': {
       lobbyState = msg.lobby as ClientLobbyState;
       lobbyChat = (msg.chat as LobbyChatMessage[]) ?? [];
+      syncLobbySoundtrack(lobbyState);
       const localSeat = lobbyState.players.find((player) => player.playerId === localPlayerId)?.seat;
       if (localSeat) {
         role = localSeat;
@@ -349,6 +364,7 @@ net.onMessage = (msg) => {
       peerConnected = !!msg.driverConnected && !!msg.gunnerConnected;
       break;
     case 'countdown':
+      void audio.soundtrack.enterCountdown();
       hud.showScreen('countdown');
       hud.showCountdown(Number(msg.n));
       break;
@@ -407,7 +423,10 @@ net.onMessage = (msg) => {
       void (msg.arena
         ? startOnlineWithArena(role, msg.arena as ArenaMetadata, msg.matchId as string | undefined)
         : startOnline(role, null, msg.matchId as string | undefined))
-        .then(() => hud.hideCountdown())
+        .then(() => {
+          void audio.soundtrack.enterMatch({ advance: true });
+          hud.hideCountdown();
+        })
         .catch(showGameStartupError);
       break;
     case 'snapshot': {
@@ -497,10 +516,12 @@ net.onMessage = (msg) => {
       input.setEnabled(false);
       game?.setInputEnabled(false);
       input.releaseLock();
+      audio.soundtrack.enterContext('results');
       flow = 'results';
       break;
     }
     case 'error':
+      audio.soundtrack.enterContext('menu');
       hud.showJoinError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
       if (flow === 'join') hud.showScreen('join');
       else if (flow === 'create') hud.showCreateError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
@@ -512,10 +533,16 @@ net.onMessage = (msg) => {
   }
 };
 
+function syncLobbySoundtrack(state: ClientLobbyState): void {
+  if (state.phase === 'countdown') void audio.soundtrack.enterCountdown();
+  else audio.soundtrack.enterContext('lobby');
+}
+
 net.onStatus = (connected) => {
   // A network disconnect must never interrupt an active Single Player match.
   if (!connected && sessionKind === 'singlePlayer') return;
   if (!connected && (flow === 'game' || flow === 'results')) {
+    audio.soundtrack.enterContext('menu');
     hud.showError('Connection lost. Retry to rejoin your crew, or play Single Player.');
     input.setEnabled(false);
     game?.setInputEnabled(false);
@@ -524,6 +551,7 @@ net.onStatus = (connected) => {
   } else if (!connected && flow === 'join') {
     hud.showJoinError('Cannot reach the server. Is it running?');
   } else if (!connected && flow === 'create') {
+    audio.soundtrack.enterContext('menu');
     hud.showError('Connection lost. Create your crew again.');
     flow = 'error';
   }
@@ -579,6 +607,7 @@ function showMapError(reason: string): void {
   game?.setInputEnabled(false);
   input.releaseLock();
   flow = 'error';
+  audio.soundtrack.enterContext('menu');
   arenaSession = null;
   mapGateFailed = true;
 }
@@ -600,6 +629,7 @@ function showProtocolError(reason: string): void {
   game?.setInputEnabled(false);
   input.releaseLock();
   flow = 'error';
+  audio.soundtrack.enterContext('menu');
   arenaSession = null;
   mapGateFailed = true;
 }
@@ -611,6 +641,7 @@ function showGameStartupError(error: unknown): void {
   document.getElementById('game-canvas')?.remove();
   hud.showError('Unable to initialize game assets. Reload and try again.');
   flow = 'error';
+  audio.soundtrack.enterContext('menu');
   mapGateFailed = true;
 }
 
@@ -623,7 +654,12 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
       input.setEnabled(true);
       game.setInputEnabled(true);
       flow = 'game';
-      if (results) flow = 'results';
+      if (results) {
+        flow = 'results';
+        audio.soundtrack.enterContext('results');
+      } else {
+        void audio.soundtrack.enterMatch({ advance: false });
+      }
       return;
     }
   }
@@ -638,7 +674,12 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
     game.applyArenaSession(session);
   }
   await startOnline(role, session.world, matchId);
-  if (results) flow = 'results';
+  if (results) {
+    flow = 'results';
+    audio.soundtrack.enterContext('results');
+  } else {
+    void audio.soundtrack.enterMatch({ advance: false });
+  }
 }
 
 async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string): Promise<void> {
@@ -667,8 +708,6 @@ async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string):
 async function startSinglePlayer(): Promise<void> {
   teardownGame();
   sessionKind = 'singlePlayer';
-  hud.showScreen('countdown');
-  flow = 'countdown';
   const spModeId = resolveSinglePlayerModeId(params.get('mode'), TEST_MODE);
   const session = buildSinglePlayerSession(spModeId);
   arenaSession = session.metadata ? session : null;
@@ -694,6 +733,7 @@ async function startSinglePlayer(): Promise<void> {
     hud.showSinglePlayerResults(results as never, outcome);
     input.releaseLock();
     flow = 'results';
+    audio.soundtrack.enterContext('results');
   };
   game.suppressAutoInput = TEST_MODE;
   if (TEST_MODE && params.get('urbanView') === 'overview' && session.arena?.urbanLayout) {
@@ -705,8 +745,12 @@ async function startSinglePlayer(): Promise<void> {
     }, 250);
   }
   hud.setTheme('singlePlayer');
+  await audio.soundtrack.enterCountdown();
+  hud.showScreen('countdown');
+  flow = 'countdown';
   await runCountdownSequence((value) => hud.showCountdown(value));
   game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
+  void audio.soundtrack.enterMatch({ advance: true });
   hud.setGameScreen(true);
   hud.hideCountdown();
   inGame = true;
@@ -778,6 +822,7 @@ function showPause() {
   game?.setInputEnabled(false);
   hud.setPauseContext(sessionKind === 'singlePlayer');
   hud.showScreen('pause');
+  audio.soundtrack.enterContext('pause');
 }
 
 function onLockChange(locked: boolean) {
@@ -894,6 +939,7 @@ if (TEST_MODE) {
     cameraState: () => game?.getCameraState() ?? null,
     audioStats: () => game?.audioDiagnostics() ?? audio.debugStats(),
     audioPlay: (recipe: ProceduralSoundRecipe) => audio.playLocal(recipe, { seed: 0x51f15e }),
+    soundtrack: () => audio.soundtrack.debugState(),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,
@@ -1068,4 +1114,7 @@ if (TEST_MODE) {
       pendingChecksumOverride = value;
     },
   };
+  window.setInterval(() => {
+    document.body.dataset.soundtrack = JSON.stringify(audio.soundtrack.debugState());
+  }, 100);
 }
