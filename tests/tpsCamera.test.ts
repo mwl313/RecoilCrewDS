@@ -4,6 +4,9 @@ import {
   TpsCameraController,
   TPS_CAMERA_CONTROL_MAX_PITCH,
   TPS_CAMERA_CONTROL_MIN_PITCH,
+  TPS_CAMERA_MAX_PITCH_INPUT_STEP,
+  TPS_CAMERA_MAX_YAW_INPUT_STEP,
+  TPS_CAMERA_MIN_YAW_INPUT_SCALE,
   TPS_CAMERA_YAW_ATTENUATION_END_PITCH,
   cameraPoleYawInputScale,
   computeWorldAim,
@@ -39,6 +42,7 @@ const TUNING: TpsCameraTuning = {
   verticalFollowUpSeconds: 0.2,
   verticalFollowDownSeconds: 0.13,
   maxVerticalLag: 2,
+  speedFovBonus: 5.5,
 };
 
 function box(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) {
@@ -65,23 +69,25 @@ describe('TPS camera direction conventions', () => {
     expect(TUNING.invertMouseY).toBe(false);
   });
 
-  it('yaw is unbounded across repeated rotations', () => {
+  it('bounds one-frame yaw spikes and keeps stored yaw normalized', () => {
     const cam = new TpsCameraController(TUNING);
     cam.applyMouseDelta((-3 * Math.PI * 2) / TUNING.sensitivityX, 0);
-    expect(cam.yaw).toBeGreaterThan(Math.PI * 4);
+    expect(cam.yaw).toBeCloseTo(TPS_CAMERA_MAX_YAW_INPUT_STEP, 6);
     cam.applyMouseDelta((6 * Math.PI * 2) / TUNING.sensitivityX, 0);
-    expect(cam.yaw).toBeLessThan(-Math.PI * 4);
+    expect(cam.yaw).toBeCloseTo(0, 6);
+    expect(Math.abs(cam.yaw)).toBeLessThanOrEqual(Math.PI);
   });
 
   it('pitch clamps smoothly at the configured limits', () => {
     const cam = new TpsCameraController(TUNING);
-    cam.applyMouseDelta(0, -100000);
+    for (let i = 0; i < 4; i++) cam.applyMouseDelta(0, -100000);
     expect(cam.pitch).toBeCloseTo(TUNING.maxPitch);
-    cam.applyMouseDelta(0, 100000);
+    for (let i = 0; i < 4; i++) cam.applyMouseDelta(0, 100000);
     expect(cam.pitch).toBeCloseTo(TUNING.minPitch);
+    expect(TPS_CAMERA_MAX_PITCH_INPUT_STEP).toBeLessThan(Math.PI / 2);
   });
 
-  it('smoothly removes horizontal camera spin at a vertical lock', () => {
+  it('slows horizontal look at a vertical lock without trapping either direction', () => {
     const cam = new TpsCameraController({
       ...TUNING,
       minPitch: TPS_CAMERA_CONTROL_MIN_PITCH,
@@ -94,9 +100,29 @@ describe('TPS camera direction conventions', () => {
     const yawBeforeLock = cam.yaw;
     cam.pitch = -TPS_CAMERA_YAW_ATTENUATION_END_PITCH;
     cam.applyMouseDelta(1000, 0);
-    expect(cameraPoleYawInputScale(cam.pitch)).toBe(0);
-    expect(cam.getInputDiagnostics().yawScale).toBe(0);
-    expect(cam.yaw).toBe(yawBeforeLock);
+    expect(cameraPoleYawInputScale(cam.pitch)).toBe(TPS_CAMERA_MIN_YAW_INPUT_SCALE);
+    expect(cam.getInputDiagnostics().yawScale).toBe(TPS_CAMERA_MIN_YAW_INPUT_SCALE);
+    expect(cam.yaw).toBeLessThan(yawBeforeLock);
+    const afterRight = cam.yaw;
+    cam.applyMouseDelta(-1000, 0);
+    expect(cam.yaw).toBeCloseTo(yawBeforeLock, 6);
+    expect(cam.yaw).toBeGreaterThan(afterRight);
+  });
+
+  it('keeps both diagonal directions recoverable at the pole threshold', () => {
+    const cam = new TpsCameraController({
+      ...TUNING,
+      minPitch: TPS_CAMERA_CONTROL_MIN_PITCH,
+      maxPitch: TPS_CAMERA_CONTROL_MAX_PITCH,
+    });
+    cam.pitch = (-83.5 * Math.PI) / 180;
+    const beforeRight = cam.yaw;
+    cam.applyMouseDelta(500, 100);
+    expect(cam.yaw).toBeLessThan(beforeRight - 0.2);
+
+    const beforeLeft = cam.yaw;
+    cam.applyMouseDelta(-500, -100);
+    expect(cam.yaw).toBeGreaterThan(beforeLeft + 0.2);
   });
 
   it('gunner tuning can aim near-vertical for cannon takeoffs', () => {
@@ -105,9 +131,9 @@ describe('TPS camera direction conventions', () => {
       minPitch: -Math.PI / 2,
       maxPitch: Math.PI / 2,
     });
-    gunner.applyMouseDelta(0, 100000);
+    for (let i = 0; i < 4; i++) gunner.applyMouseDelta(0, 100000);
     expect(gunner.pitch).toBeCloseTo(-Math.PI / 2, 6);
-    gunner.applyMouseDelta(0, -100000);
+    for (let i = 0; i < 4; i++) gunner.applyMouseDelta(0, -100000);
     expect(gunner.pitch).toBeCloseTo(Math.PI / 2, 6);
   });
 
@@ -265,10 +291,39 @@ describe('TPS camera rig placement', () => {
     expect(releasedDistance).toBeLessThan(TUNING.distance);
   });
 
+  it('centers the shoulder at a corner instead of collapsing a clear boom', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, []);
+    const before = cam.camera.position.clone();
+    const sideWall = [box(0.35, 0, -6, 1.2, 5, 0)];
+
+    cam.update(1 / 60, sideWall);
+
+    const diagnostics = cam.getFollowDiagnostics();
+    expect(diagnostics.shoulderOffset).toBeCloseTo(0, 6);
+    expect(diagnostics.distance).toBeGreaterThan(TUNING.distance - 0.3);
+    expect(diagnostics.collisionSafetyOverride).toBe(false);
+    expect(cam.camera.position.distanceTo(before)).toBeLessThan(1);
+  });
+
+  it('smooths speed FOV changes instead of zooming in one frame', () => {
+    const cam = new TpsCameraController(TUNING);
+    cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
+    cam.update(1 / 60, [], 0);
+    const before = cam.camera.fov;
+    cam.update(1 / 60, [], 1);
+    const afterOneFrame = cam.camera.fov;
+    expect(afterOneFrame).toBeGreaterThan(before);
+    expect(afterOneFrame).toBeLessThan(TUNING.fov + (TUNING.speedFovBonus ?? 0));
+    for (let i = 0; i < 120; i++) cam.update(1 / 60, [], 1);
+    expect(Math.abs(cam.camera.fov - (TUNING.fov + (TUNING.speedFovBonus ?? 0)))).toBeLessThan(0.02);
+  });
+
   it('never places the camera below the floor, even at maximum upward pitch', () => {
     const cam = new TpsCameraController(TUNING);
     cam.setFollowPose(new THREE.Vector3(0, 0, 0), 0);
-    cam.applyMouseDelta(0, -100000);
+    for (let i = 0; i < 4; i++) cam.applyMouseDelta(0, -100000);
     cam.update(1 / 30, []);
     expect(cam.camera.position.y).toBeGreaterThanOrEqual(TUNING.cameraRadius * 0.8);
   });

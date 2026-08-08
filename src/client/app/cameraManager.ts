@@ -123,6 +123,8 @@ export class CameraManager {
   }
 
   resetTransientState(): void {
+    this.driverCam.resetTransientState();
+    this.gunnerCam.resetTransientState();
     for (const state of [this.driverAimState, this.gunnerAimState]) {
       state.poleActive = false;
       state.lockedWorldYaw = undefined;

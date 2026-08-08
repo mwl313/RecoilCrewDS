@@ -6,7 +6,7 @@ import { MapLabLayerManager, registerDefaultLayers, type MapLabRenderContext } f
 
 /**
  * Game F3 mapgen overlay: a metadata panel + the shared debug layers.
- * Enabled via `?debug=1` (or test mode). Rendering never mutates
+ * Enabled explicitly via `?debug=1`. Rendering never mutates
  * authoritative data.
  */
 export class DebugOverlay {

@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { ProgressionOverlay } from '../../src/client/progression/progressionOverlay';
+import { buildRewardReelSymbols, rewardReelFrame } from '../../src/client/progression/rewardReelAnimator';
 import type { MatchState } from '../../src/shared/types';
 
 const mounted: ProgressionOverlay[] = [];
@@ -182,6 +183,23 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
     expect(timer.textContent).toContain('AUTO 2');
     expect(selectionHost.querySelectorAll('button').length).toBe(buttonCount);
     expect(selectionHost.querySelectorAll('button')[0]).toBe(firstButton);
+  });
+
+  it('colors spinning upgrade cards from the visible reel symbol before revealing the result rarity', () => {
+    const { overlay, selectionHost } = mount();
+    const state = fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: upgradeSelection() } });
+    overlay.update(state, 'single', 0);
+    const cards = [...selectionHost.querySelectorAll<HTMLButtonElement>('.reward-card')];
+    const firstSymbols = buildRewardReelSymbols('offer-1', 0, 'upgrade');
+
+    overlay.update(state, 'single', 700);
+    const spinningFrame = rewardReelFrame(700, 0, 'upgrade');
+    expect(cards[0]?.dataset['rarity']).toBe(firstSymbols[spinningFrame.visibleCellIndex]?.rarity);
+    expect(cards[0]?.dataset['resultRarity']).toBe('epic');
+
+    overlay.update(state, 'single', 1_500);
+    expect(cards[0]?.classList.contains('reward-card--locked')).toBe(true);
+    expect(cards[0]?.dataset['rarity']).toBe('epic');
   });
 
   it('formats absolute combat upgrades in display units without scaling percentages', () => {

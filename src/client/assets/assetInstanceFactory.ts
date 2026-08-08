@@ -11,6 +11,12 @@ import type { ProjectAssetDefinition } from '../../shared/presentation/schemas';
 import type { TankRigDefinition } from '../../shared/content/schemas/tank';
 import { DEFAULT_TANK_RIG } from '../../shared/vehicle/tankRigTypes';
 
+// The shipped barrel mesh has a small 0.067242-unit section behind its pivot.
+// Moving the lengthened visual forward by that amount keeps its rear edge in
+// the original position instead of pushing it through the back of the turret.
+const DEFAULT_BARREL_REAR_EXTENT = 0.06724223494529724;
+const DEFAULT_BARREL_VISUAL_LENGTH_SCALE = 2;
+
 /**
  * Produces runtime instances from semantic ids. Models are cloned from cached
  * prototypes and transformed by manifest metadata; VFX/UI/audio specs come
@@ -120,7 +126,14 @@ export class AssetInstanceFactory {
   buildTankRig(rig: TankRigDefinition = DEFAULT_TANK_RIG): TankRig {
     const chassis = this.instanceModel(rig.chassisAssetId);
     const turret = this.instanceModel(rig.turretAssetId);
-    const barrel = this.instanceModel(rig.barrelAssetId);
+    const barrelVisual = this.instanceModel(rig.barrelAssetId);
+    const barrel = new THREE.Group();
+    barrel.name = 'tankBarrelPivot';
+    barrel.add(barrelVisual);
+    if (rig.barrelAssetId === DEFAULT_TANK_RIG.barrelAssetId) {
+      barrelVisual.scale.z *= DEFAULT_BARREL_VISUAL_LENGTH_SCALE;
+      barrelVisual.position.z += DEFAULT_BARREL_REAR_EXTENT;
+    }
     turret.position.set(rig.turretPivot[0], rig.turretPivot[1], rig.turretPivot[2]);
     chassis.add(turret);
     barrel.position.set(rig.barrelPivot[0], rig.barrelPivot[1], rig.barrelPivot[2]);
