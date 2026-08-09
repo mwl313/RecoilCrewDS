@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { INVINCIBILITY_SHIELD_BASE_OPACITY } from '../presentation/invincibilityShieldVisual';
 import type { EnemyState, PickupState, ShellState } from '../../shared/types';
 import type { EntityViewFactory } from './entityViewFactory';
 import {
@@ -87,7 +88,13 @@ export class EntityViewRegistry {
     this.truckMarker.visible = false;
     this.shieldMesh = new THREE.Mesh(
       new THREE.SphereGeometry(2.2, 20, 14),
-      new THREE.MeshBasicMaterial({ color: 0x5eeaff, transparent: true, opacity: 0.24, depthWrite: false, side: THREE.DoubleSide }),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: INVINCIBILITY_SHIELD_BASE_OPACITY,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
     );
     this.shieldMesh.visible = false;
     scene.add(this.shieldMesh);

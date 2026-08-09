@@ -22,12 +22,20 @@ export class RelicInventory {
     return this.state.teamProgression.relicStacks[relicId] ?? 0;
   }
 
+  canAcquire(relic: RelicDefinition): boolean {
+    const maximumStacks = relic.stackPolicy === 'unique'
+      ? 1
+      : (relic.maximumStacks ?? Number.POSITIVE_INFINITY);
+    return this.getStack(relic.id) < maximumStacks;
+  }
+
   add(relic: RelicDefinition): RelicAcquireResult {
     const stacks = this.state.teamProgression.relicStacks;
     const current = stacks[relic.id] ?? 0;
-    if (relic.stackPolicy === 'unique' && current > 0) {
-      const replacementXp = relic.duplicateReplacement?.amount
-        ?? this.definition.duplicateUniqueRelicXp;
+    if (!this.canAcquire(relic)) {
+      const replacementXp = relic.stackPolicy === 'unique'
+        ? (relic.duplicateReplacement?.amount ?? this.definition.duplicateUniqueRelicXp)
+        : 0;
       return {
         relicId: relic.id,
         stackCount: current,

@@ -508,11 +508,19 @@ describe('SceneFlowPresenter overlay visibility', () => {
     expect(root.classList.contains('is-victory')).toBe(true);
     expect(root.classList.contains('is-defeat')).toBe(false);
     expect(container.querySelector('#results-heading')?.textContent).toBe('VICTORY');
+    const singlePlayerStatLabels = [...container.querySelectorAll('#results-stats .results-stat span')]
+      .map((node) => node.textContent);
+    expect(singlePlayerStatLabels).toEqual(['BEST COMBO', 'CHARGED SHOTS', 'FULL CHARGE', 'KILLS']);
 
     flow.showSinglePlayerResults(results, 'defeat');
     expect(root.classList.contains('is-victory')).toBe(false);
     expect(root.classList.contains('is-defeat')).toBe(true);
     expect(container.querySelector('#results-heading')?.textContent).toBe('GAME OVER');
+
+    flow.showResults(results, { driver: false, gunner: false, modifier: 'none' }, 'victory');
+    const crewStatLabels = [...container.querySelectorAll('#results-stats .results-stat span')]
+      .map((node) => node.textContent);
+    expect(crewStatLabels).toEqual(['BEST COMBO', 'CHARGED SHOTS', 'FULL CHARGE', 'KILLS', 'CREW LINKS']);
   });
 });
 

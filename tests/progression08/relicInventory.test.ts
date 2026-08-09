@@ -36,4 +36,16 @@ describe('relic inventory (progression08)', () => {
     // The capability stays because a different source still grants it.
     expect(m.state.build.capabilities).toContain('tank.zeroDashCooldown');
   });
+
+  it('does not add a third FRIENDLY SHIELD stack', () => {
+    const m = makeMatch();
+    const inventory = new RelicInventory(m.state, def, (id, source) => m.systems.capabilities.grant(id, source));
+    const friendlyShield = CLIENT_CONTENT_PACK.getRelic('relic.friendly_shield');
+
+    expect(friendlyShield.maximumStacks).toBe(2);
+    expect(inventory.add(friendlyShield).stackCount).toBe(1);
+    expect(inventory.add(friendlyShield).stackCount).toBe(2);
+    expect(inventory.add(friendlyShield).stackCount).toBe(2);
+    expect(inventory.getStack(friendlyShield.id)).toBe(2);
+  });
 });

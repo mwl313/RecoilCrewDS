@@ -154,6 +154,21 @@ describe('dash-only contact combat (Combat 05 M1)', () => {
     expect(bug.hp).toBe(100);
   });
 
+  it('does not hit an enemy above the physical tank contact volume', () => {
+    const m = new Match('dash-vertical-volume');
+    placeTank(m);
+    const bug = adjacentBug(m);
+    bug.hp = 100;
+    bug.y = m.state.tank.y + 5;
+    m.state.tank.dashState = 'burst';
+    m.state.tank.dashDamageT = 0.2;
+    m.runtime.systems.enemySpatial.rebuild(m.state.enemies);
+
+    m.runtime.systems.contact.update();
+
+    expect(bug.hp).toBe(100);
+  });
+
   it('enemy contact damage to the tank remains unchanged', () => {
     const m = new Match('enemy-contact');
     placeTank(m);

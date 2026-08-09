@@ -12,21 +12,21 @@
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  --damage-color: rgba(255,56,44,.55);
+  --damage-color: rgba(255,35,28,.82);
 }
-.tank-damage-feedback[data-tier='light'] { --damage-opacity: .19; }
-.tank-damage-feedback[data-tier='medium'] { --damage-opacity: .3; }
-.tank-damage-feedback[data-tier='heavy'] { --damage-opacity: .44; }
-.tank-damage-feedback[data-tier='boss'] { --damage-opacity: .52; --damage-color: rgba(255,32,66,.68); }
-.tank-damage-feedback[data-side='left'] { background: linear-gradient(90deg,var(--damage-color),transparent 34%); }
-.tank-damage-feedback[data-side='right'] { background: linear-gradient(270deg,var(--damage-color),transparent 34%); }
-.tank-damage-feedback[data-side='center'] { background: radial-gradient(ellipse at center,transparent 46%,var(--damage-color) 100%); }
-.tank-damage-feedback--active { animation: tank-damage-edge 260ms ease-out both; }
-.tank-damage-feedback--reduced.tank-damage-feedback--active { animation-duration: 150ms; }
+.tank-damage-feedback[data-tier='light'] { --damage-opacity: .38; }
+.tank-damage-feedback[data-tier='medium'] { --damage-opacity: .58; }
+.tank-damage-feedback[data-tier='heavy'] { --damage-opacity: .78; }
+.tank-damage-feedback[data-tier='boss'] { --damage-opacity: .9; --damage-color: rgba(255,18,48,.9); }
+.tank-damage-feedback[data-side='left'] { background: linear-gradient(90deg,var(--damage-color),transparent 44%); }
+.tank-damage-feedback[data-side='right'] { background: linear-gradient(270deg,var(--damage-color),transparent 44%); }
+.tank-damage-feedback[data-side='center'] { background: radial-gradient(ellipse at center,transparent 34%,var(--damage-color) 100%); }
+.tank-damage-feedback--active { animation: tank-damage-edge 340ms ease-out both; }
+.tank-damage-feedback--reduced.tank-damage-feedback--active { animation-duration: 180ms; }
 .tank-damage-punch { animation: tank-damage-hud-punch 180ms cubic-bezier(.18,.82,.2,1) both; }
 
 @keyframes tank-damage-edge {
-  0% { opacity: var(--damage-opacity); filter: saturate(1.2) contrast(1.08); }
+  0% { opacity: var(--damage-opacity); filter: saturate(1.55) contrast(1.14); }
   100% { opacity: 0; filter: none; }
 }
 @keyframes tank-damage-hud-punch {

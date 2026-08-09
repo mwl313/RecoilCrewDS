@@ -52,6 +52,19 @@ describe('ROADKILL contact rule (progression08)', () => {
     expect(m.systems.progression.telemetry.roadkillHits).toBe(0);
   });
 
+  it('does not hit an enemy above the physical tank contact volume', () => {
+    const { m, e } = contactMatch();
+    e.y = m.state.tank.y + 5;
+    m.state.teamProgression.relicStacks['relic.roadkill'] = 1;
+    m.systems.capabilities.grant('tank.roadkillContact', 'relic:relic.roadkill');
+    const hp = e.hp;
+
+    m.systems.contact.update();
+
+    expect(e.hp).toBe(hp);
+    expect(m.systems.progression.telemetry.roadkillHits).toBe(0);
+  });
+
   it('additional stacks add +25% coefficient per stack', () => {
     const { m, e } = contactMatch();
     m.state.teamProgression.relicStacks['relic.roadkill'] = 3;

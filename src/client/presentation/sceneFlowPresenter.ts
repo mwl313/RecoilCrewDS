@@ -433,9 +433,7 @@ export class SceneFlowPresenter {
         { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
         { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
         { label: 'KILLS', value: String(results.kills) },
-        { label: 'SCRAP', value: String(results.scrapCollected) },
         { label: 'CREW LINKS', value: String(results.links) },
-        { label: 'WIPEOUTS', value: String(results.wipeouts) },
       ],
     });
     this.updateRematch(rematch);
@@ -457,8 +455,6 @@ export class SceneFlowPresenter {
         { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
         { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
         { label: 'KILLS', value: String(results.kills) },
-        { label: 'SCRAP', value: String(results.scrapCollected) },
-        { label: 'WIPEOUTS', value: String(results.wipeouts) },
       ],
     });
     this.ensureRuntimeFor('scene.results');

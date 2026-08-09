@@ -36,15 +36,17 @@ describe('unique relic rolling and activation limits', () => {
     }
   });
 
-  it('filters every owned unique before authoritative chest candidate selection', () => {
+  it('filters every maxed relic before authoritative chest candidate selection', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'unique-eligibility');
     for (const relicId of uniqueIds) m.state.teamProgression.relicStacks[relicId] = 1;
+    m.state.teamProgression.relicStacks['relic.friendly_shield'] = 2;
+    const maxedIds = [...uniqueIds, 'relic.friendly_shield'];
     for (let index = 0; index < 24; index++) {
       const chest = m.systems.progression.spawnChest('mapStart', 20 + index, 20);
       chest.lifecycle = 'closed';
       const offer = m.openProgressionChest(chest.id, 1_000 + index * 10_000);
       expect(offer).not.toBeNull();
-      expect(uniqueIds).not.toContain(offer!.candidates[0].relicId as typeof uniqueIds[number]);
+      expect(maxedIds).not.toContain(offer!.candidates[0].relicId);
       m.checkProgressionTimeout(1_651 + index * 10_000);
       const active = m.state.teamProgression.activeSelection!;
       m.skipProgressionRelic(active.relicResult!.acquisitionSequence, active.continueAllowedAtWallMs! + 1);

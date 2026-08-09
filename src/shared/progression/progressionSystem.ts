@@ -493,12 +493,17 @@ export class ProgressionSystem {
     const pool = this.ctx.rules.relicPoolIds
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
-    const eligible = pool.filter((relic) => relic.stackPolicy !== 'unique' || !this.inventory.has(relic.id));
-    const fallbackPool = eligible.length > 0 ? eligible : pool;
+    const eligible = pool.filter((relic) => this.inventory.canAcquire(relic));
+    // A fully exhausted unique-only fixture can still resolve through the
+    // authored duplicate-XP path. Finite non-unique relics never re-enter once
+    // their authored stack ceiling has been reached.
+    const fallbackPool = eligible.length > 0
+      ? eligible
+      : pool.filter((relic) => relic.stackPolicy === 'unique');
     const candidates = fallbackPool.filter((relic) => relic.rarity === rarity);
     // Deterministic rarity fallback: preserve the rolled rarity whenever it
     // has an eligible candidate, otherwise draw only from remaining eligible
-    // content in canonical pool order. Owned uniques never re-enter.
+    // content in canonical pool order. Maxed finite relics never re-enter.
     const pickPool = candidates.length > 0 ? candidates : fallbackPool;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];

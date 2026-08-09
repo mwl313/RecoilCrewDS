@@ -4,8 +4,8 @@
   "life": 30,
   "magnet": {
     "baseRadius": 10,
-    "minimumPullSpeed": 4,
-    "maximumPullSpeed": 18,
+    "minimumPullSpeed": 20,
+    "maximumPullSpeed": 90,
     "accelerationExponent": 1.5,
     "collectRadius": 1.15
   }

@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '19e1f2acb0dce8a905579a8800f6b220f97d7f75d2af401e62bdb4167bd2cee4';
+export const CONTENT_PACK_SOURCE_HASH = '6226f3092cf315852d039b4052d78cc896bea9a4e5407a893e6b50dd7234bd88';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = 'fe7f545b40373250cfc8e968765827e3b66b16b06e319bf454b75f5cbb09ab3b';
+export const CONTENT_PACK_HASH = '78109877ff305d4af5ac2d6f6db6edd5c0d5d08b4b8d20a1bebd2462aa98eaf2';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -275,7 +275,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "levelCurve.mainStagePrototype", definition: {"id":"levelCurve.mainStagePrototype","label":"Main Stage Prototype Level Curve","description":"Prototype tuning only; final curve will be set after enemy design and population density are finished.","behaviors":[],"thresholds":[20,45,75,110,150,195,245,300],"overflowRule":"repeatLastDelta","maximumLevel":99} },
   ],
   "xpPickupDefinitions": [
-    { id: "xpPickup.default", definition: {"id":"xpPickup.default","label":"Default XP Shard Pickup","behaviors":[],"life":30,"magnet":{"baseRadius":10,"minimumPullSpeed":4,"maximumPullSpeed":18,"accelerationExponent":1.5,"collectRadius":1.15}} },
+    { id: "xpPickup.default", definition: {"id":"xpPickup.default","label":"Default XP Shard Pickup","behaviors":[],"life":30,"magnet":{"baseRadius":10,"minimumPullSpeed":20,"maximumPullSpeed":90,"accelerationExponent":1.5,"collectRadius":1.15}} },
   ],
   "upgradeRarityTables": [
     { id: "rarity.upgrade.default", definition: {"id":"rarity.upgrade.default","label":"Default Upgrade Rarity Table","behaviors":[],"rarities":{"common":0.5,"rare":0.3,"epic":0.15,"legendary":0.05}} },
@@ -323,7 +323,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "relic.dash_refund", definition: {"id":"relic.dash_refund","label":"DASH REFUND","description":"Dash hits refund 30% of dash cooldown (clamp 0).","behaviors":[],"rarity":"rare","role":"driver","iconId":"relic.dashRefund","tags":["onDashHit","dash"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.dashHitCooldownReduction","parameters":{"percentPerStack":30}}]} },
     { id: "relic.death_mark", definition: {"id":"relic.death_mark","label":"DEATH MARK","description":"Cannon kills explode for area damage (+25% per stack).","behaviors":[],"rarity":"epic","role":"gunner","iconId":"relic.deathMark","tags":["onKill","cannon","area"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.cannonKillExplosion","parameters":{"radius":4,"damageBase":20,"damagePerStack":5}}]} },
     { id: "relic.double_jump", definition: {"id":"relic.double_jump","label":"DOUBLE JUMP","description":"Jump count +1.","behaviors":[],"rarity":"common","role":"driver","iconId":"relic.doubleJump","tags":["passive","jump"],"stackPolicy":"addFlat","capabilityId":"tank.extraJump","effects":[{"templateId":"relicEffect.capability","parameters":{"capabilityId":"tank.extraJump"}},{"templateId":"relicEffect.extraJumps","parameters":{"countPerStack":1}}]} },
-    { id: "relic.friendly_shield", definition: {"id":"relic.friendly_shield","label":"FRIENDLY SHIELD","description":"Cannon self-damage -50% (two stacks: 0).","behaviors":[],"rarity":"common","role":"crew","iconId":"relic.friendlyShield","tags":["passive","survival"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.incomingDamageReduction","parameters":{"percentPerStack":50,"source":"cannon"}}]} },
+    { id: "relic.friendly_shield", definition: {"id":"relic.friendly_shield","label":"FRIENDLY SHIELD","description":"Cannon self-damage -50% (two stacks: 0).","behaviors":[],"rarity":"common","role":"crew","iconId":"relic.friendlyShield","tags":["passive","survival"],"stackPolicy":"addPercent","maximumStacks":2,"effects":[{"templateId":"relicEffect.incomingDamageReduction","parameters":{"percentPerStack":50,"source":"cannon"}}]} },
     { id: "relic.glass_cannon", definition: {"id":"relic.glass_cannon","label":"GLASS CANNON","description":"All outgoing damage +20%, incoming damage +15%.","behaviors":[],"rarity":"epic","role":"crew","iconId":"relic.glassCannon","tags":["passive","tradeoff"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.outgoingDamageMultiplier","parameters":{"percentPerStack":20}},{"templateId":"relicEffect.incomingDamageReduction","parameters":{"percentPerStack":-15}}]} },
     { id: "relic.ground_pound", definition: {"id":"relic.ground_pound","label":"GROUND POUND","description":"Landing damages nearby enemies (3 m, 10 damage) and knocks them back.","behaviors":[],"rarity":"rare","role":"driver","iconId":"relic.groundPound","tags":["onLand","area"],"stackPolicy":"addFlat","effects":[{"templateId":"relicEffect.groundPound","parameters":{"radius":3,"damageBase":10,"damagePerStack":10,"knockback":4}}]} },
     { id: "relic.he_payload", definition: {"id":"relic.he_payload","label":"HE PAYLOAD","description":"Cannon splash radius +30% and knockback +30%.","behaviors":[],"rarity":"rare","role":"gunner","iconId":"relic.hePayload","tags":["passive","cannon"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.cannonRadiusAndKnockbackPercent","parameters":{"radiusPercentPerStack":30,"knockbackPercentPerStack":30}}]} },

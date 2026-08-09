@@ -26,6 +26,7 @@ import {
   isPlayerCannonShell,
   PlayerCannonProjectilePresenter,
 } from '../prediction/projectilePresenter';
+import { resolveInvincibilityShieldVisual } from '../presentation/invincibilityShieldVisual';
 
 export interface InputSource {
   key(name: string): boolean;
@@ -256,7 +257,10 @@ export class NetworkStatePresenter {
       this.tankRig.barrel.rotation.x = -frame.turret.pitch;
     }
     deps.registry.shieldMesh.position.copy(pos).add(new THREE.Vector3(0, 1.2, 0));
-    deps.registry.shieldMesh.visible = t.shieldedT > 0;
+    const shieldVisual = resolveInvincibilityShieldVisual(t.shieldedT, deps.time());
+    deps.registry.shieldMesh.visible = shieldVisual.visible;
+    const shieldMaterial = deps.registry.shieldMesh.material as THREE.MeshBasicMaterial;
+    shieldMaterial.opacity = shieldVisual.opacity;
 
     const registry = deps.registry;
     const seen = new Set<number>();

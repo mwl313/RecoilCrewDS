@@ -1,5 +1,6 @@
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState } from '../types';
+import { intervalOverlapsTankHurtCapsule, resolveTankHurtCapsule } from './tankHurtVolume';
 
 /**
  * Authoritative tank-vs-enemy contact combat (Combat 05 M1).
@@ -28,6 +29,7 @@ export class TankContactCombat {
     const dashDamage = tankCfg.dashContactDamage;
     const knockback = tankCfg.dashContactKnockback;
     const perTargetCooldown = Math.max(0.001, tankCfg.dashContactPerTargetCooldown);
+    const tankContactCapsule = resolveTankHurtCapsule(t);
 
     // Prune expired per-target entries so the map never grows unbounded.
     for (const [id, at] of [...this.lastDashHit]) {
@@ -52,6 +54,9 @@ export class TankContactCombat {
       const r = this.ctx.enemies.radiusFor(e);
       const d = Math.hypot(e.x - t.x, e.z - t.z);
       if (d > r + tankR + 0.4) continue;
+      const dimensions = this.ctx.enemies.dimensionsFor(e);
+      const collisionHeight = dimensions?.collisionHeight ?? r * 2;
+      if (!intervalOverlapsTankHurtCapsule(e.y, e.y + collisionHeight, tankContactCapsule)) continue;
       // Normal contact: zero enemy damage by design (contactDamage = 0).
       if (dashActive) {
         const last = this.lastDashHit.get(e.id);

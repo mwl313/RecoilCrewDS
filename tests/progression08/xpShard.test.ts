@@ -31,6 +31,8 @@ describe('XP shards and magnet collection (progression08)', () => {
     const t = m.state.tank;
     const magnet = m.rules.resolver.resolve('progression.magnetRadius');
     expect(magnet).toBe(10);
+    expect(m.rules.xpPickupContent?.magnet.minimumPullSpeed).toBe(20);
+    expect(m.rules.xpPickupContent?.magnet.maximumPullSpeed).toBe(90);
     m.systems.xpShards.spawn(1, t.x + 8.8, t.z);
     m.systems.xpShards.spawn(1, t.x + 9.6, t.z);
     const near = m.state.xpShards[0];

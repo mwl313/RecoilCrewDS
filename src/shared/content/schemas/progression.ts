@@ -292,6 +292,7 @@ export const relicSchema = z
     description: z.string().min(1),
     tags: z.array(z.string().min(1)).optional(),
     stackPolicy: z.enum(RELIC_STACK_POLICY),
+    maximumStacks: z.number().int().positive().optional(),
     capabilityId: z.string().min(1).optional(),
     effects: z
       .array(

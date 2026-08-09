@@ -125,6 +125,9 @@ describe('entity factory and registry', () => {
       expect(rig.group).toBeDefined();
       expect(rig.materials.length).toBeGreaterThan(0);
       const registry = new EntityViewRegistry(scene, factory);
+      const shieldMaterial = registry.shieldMesh.material as THREE.MeshBasicMaterial;
+      expect(shieldMaterial.color.getHex()).toBe(0xffffff);
+      expect(shieldMaterial.opacity).toBe(0.14);
       expect(registry.upsertFodder(bug, 0)).toBe(true);
       registry.createEnemy({ ...bug, id: 2, type: 'rammer' });
       registry.createPickup({ id: 1, kind: 'normal', x: 0, y: 0, z: 0, life: 1, collected: false });
