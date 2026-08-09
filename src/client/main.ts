@@ -750,6 +750,12 @@ async function startSinglePlayer(): Promise<void> {
   flow = 'countdown';
   await runCountdownSequence((value) => hud.showCountdown(value));
   game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
+  if (TEST_MODE && params.has('enemyReadabilityQualification')) {
+    setupEnemyReadabilityQualification(
+      params.get('enemyReadabilityQualification'),
+      params.has('enemyReadabilityOrdinaryOnly'),
+    );
+  }
   void audio.soundtrack.enterMatch({ advance: true });
   hud.setGameScreen(true);
   hud.hideCountdown();
@@ -759,6 +765,44 @@ async function startSinglePlayer(): Promise<void> {
   game.setInputEnabled(true);
   input.requestLock();
   attachDebugOverlay();
+}
+
+/** Test-only deterministic visual fixture for the readability workstream. */
+function setupEnemyReadabilityQualification(requestedCount: string | null, ordinaryOnly: boolean): void {
+  const match = game?.singlePlayerMatch;
+  if (!match) return;
+  const allRepresentativeIds = [
+    'enemy.quaternius.ninja',
+    'enemy.quaternius.tribal',
+    'enemy.quaternius.dino',
+    'enemy.quaternius.alien-high-detail',
+    'enemy.quaternius.demon-high-detail',
+  ];
+  const representativeIds = ordinaryOnly
+    ? allRepresentativeIds.slice(0, 3)
+    : allRepresentativeIds;
+  const parsedCount = Number(requestedCount);
+  const count = Number.isFinite(parsedCount)
+    ? Math.max(representativeIds.length, Math.min(200, Math.floor(parsedCount)))
+    : representativeIds.length;
+  const tank = match.state.tank;
+  tank.shieldedT = Math.max(tank.shieldedT, 120);
+  const spawned: string[] = [];
+  for (let index = 0; index < count; index++) {
+    const defId = representativeIds[index % representativeIds.length];
+    const def = match.runtime.rules.enemies.get(defId);
+    if (!def) continue;
+    const column = index % 10;
+    const row = Math.floor(index / 10);
+    const x = tank.x + (column - 4.5) * 4.8;
+    const z = tank.z + 12 + row * 4.8;
+    if (match.runtime.systems.enemies.spawnEnemyDef(def, x, z)) spawned.push(defId);
+  }
+  document.body.dataset.enemyReadabilityQualification = JSON.stringify({
+    count: spawned.length,
+    representativeIds,
+    ordinaryOnly,
+  });
 }
 
 async function createGame(world: ArenaWorld): Promise<GameClient> {

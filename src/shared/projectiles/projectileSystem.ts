@@ -3,6 +3,7 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { ShellCombatPayload, ShellState } from '../types';
 import { createBuiltinProjectileBehaviors } from './projectileBehaviors';
 import { ProjectileBehaviorRegistry } from './projectileBehaviorRegistry';
+import { projectileWithinVerticalBody } from '../enemies/enemyCollisionGeometry';
 
 /**
  * Authoritative projectile system: spawns shells for weapons, advances every
@@ -142,8 +143,16 @@ export class ProjectileSystem {
         const nearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, 4.7);
         for (const e of nearby) {
           if (!e.alive || e.type === 'gunTower') continue;
-          const rr = this.ctx.enemies.radiusFor(e) + 0.7;
-          if (dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
+          const projectileRadius = 0.7;
+          const dimensions = this.ctx.enemies.dimensionsFor(e);
+          const rr = (dimensions?.collisionRadius ?? this.ctx.enemies.radiusFor(e)) + projectileRadius;
+          const withinHeight = !dimensions || projectileWithinVerticalBody(
+            sh.y,
+            projectileRadius,
+            e.y,
+            dimensions.collisionHeight,
+          );
+          if (withinHeight && dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
             exploded = true;
             break;
           }

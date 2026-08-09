@@ -369,6 +369,7 @@ export class NetworkStatePresenter {
       if (!seen.has(id)) registry.removeEnemy(id);
     }
     registry.sweepFodder(seen);
+    registry.syncGroundPresence(frame.enemies, t.x, t.z, deps.time());
     netcodeMetrics.animationMs = performance.now() - animationStartedAt;
 
     const seenPickups = new Set<number>();

@@ -534,7 +534,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const d = runtime.distToTank || Math.hypot(dx, dz) || 1;
       const toX = dx / d;
       const toZ = dz / d;
-      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
+      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius;
       const tankRadius = ctx.rules.config.arena.tankRadius;
       const geometry = resolveMonsterEngagementGeometry({
         enemyRadius,
@@ -622,7 +622,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (!runtime.meleeReserved) return;
       const s = ctx.state;
       const geometry = resolveMonsterEngagementGeometry({
-        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius,
         tankRadius: ctx.rules.config.arena.tankRadius,
         authoredAttackReach: attack.range,
       });
@@ -691,7 +691,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
         const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
-        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
         ctx.projectiles.spawn(
           socket.x,
           socket.y,
@@ -752,7 +752,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (pattern.type === 'ranged' && runtime.distToTank > pattern.range) return;
       if (pattern.type === 'melee') {
         const geometry = resolveMonsterEngagementGeometry({
-          enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+          enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius,
           tankRadius: ctx.rules.config.arena.tankRadius,
           authoredAttackReach: pattern.range,
         });
@@ -772,7 +772,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         runtime.attackRuntime = atk;
         if (pattern.type === 'ranged') {
           e.telegraph = pattern.telegraphTime;
-          const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+          const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
           pushEvent(ctx, 'bossTelegraph', socket.x, socket.y, socket.z, {
             id: e.id,
             kind: 'boss',
@@ -808,7 +808,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const dx = s.tank.x - e.x;
         const dz = s.tank.z - e.z;
         const d = Math.hypot(dx, dz) || 1;
-        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
         ctx.projectiles.spawn(
           socket.x,
           socket.y,

@@ -18,7 +18,10 @@ import {
   resolveMonsterSpawnLock,
 } from '../monsters/monsterDifficulty';
 import { monsterLevelForPhase, type MonsterPhaseConfig } from '../monsters/monsterPhase';
-import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
+import {
+  resolveMonsterDimensions,
+  type ResolvedMonsterDimensions,
+} from '../monsters/monsterNormalization';
 import { resolveMonsterEngagementGeometry } from '../monsters/engagementGeometry';
 import { updateEnemySemantics } from '../monsters/monsterSemantics';
 import { mulberry32, type Rng } from '../mapgen/prng';
@@ -116,11 +119,18 @@ export class EnemySystem {
   }
 
   radiusFor(enemy: EnemyState): number {
+    const dimensions = this.dimensionsFor(enemy);
+    if (dimensions) return dimensions.collisionRadius;
     const def = this.defFor(enemy);
-    if (isMonster(def)) {
-      return resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
-    }
     return enemyRadius(def);
+  }
+
+  /** Shared physical body used by render, hit, movement, and spawn geometry. */
+  dimensionsFor(enemy: EnemyState): ResolvedMonsterDimensions | undefined {
+    const def = this.defFor(enemy);
+    return isMonster(def)
+      ? resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale)
+      : undefined;
   }
 
   /** Threat contribution used by population budgets (monster-aware). */
@@ -279,7 +289,7 @@ export class EnemySystem {
       const dx = s.tank.x - e.x;
       const dz = s.tank.z - e.z;
       const d = Math.hypot(dx, dz) || 1;
-      const monsterDims = resolveMonsterDimensions(def.id, def.sizeClass, def.tier);
+      const monsterDims = resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale);
       const geometry = resolveMonsterEngagementGeometry({
         enemyRadius: monsterDims.collisionRadius,
         tankRadius: this.ctx.rules.config.arena.tankRadius,

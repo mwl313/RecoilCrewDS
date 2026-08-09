@@ -8,6 +8,30 @@ export interface MonsterSourceDimensions {
   groundSocket: [number, number, number];
 }
 
+/** Generated policy input consumed by the single runtime dimension resolver. */
+export const MONSTER_READABILITY_SIZE_POLICY = {
+  "ordinaryTargetHeights": {
+    "small": 1.2,
+    "medium": 1.8,
+    "large": 2
+  },
+  "preservedBaselineHeights": {
+    "small": 1.02,
+    "medium": 1.53,
+    "large": 1.7
+  },
+  "tierScales": {
+    "fodder": 1,
+    "specialist": 1,
+    "elite": 3,
+    "boss": 5
+  },
+  "readabilityTiers": [
+    "fodder",
+    "specialist"
+  ]
+} as const;
+
 export const MONSTER_DIMENSIONS: Record<string, MonsterSourceDimensions> = {
   "alien": {
     "width": 1.426542,

@@ -16,6 +16,7 @@ import type { EnemyPresentationResolution } from '../animation/enemyPresentation
 import type { ResolvedMonsterDimensions } from '../../shared/monsters/monsterNormalization';
 import type { EnemyAnimationContinuity } from '../animation/enemyAnimationController';
 import type { DistantEnemyMotion } from '../animation/distantEnemyMotion';
+import { EnemyGroundPresenceRenderer } from '../enemies/enemyGroundPresenceRenderer';
 
 export interface EnemyRig {
   group: THREE.Group;
@@ -61,6 +62,7 @@ export class EntityViewRegistry {
   readonly pickupRigs = new Map<number, PickupRig>();
   readonly shellRigs = new Map<number, ShellRig>();
   readonly fodder: InstancedEnemyRenderer;
+  readonly groundPresence: EnemyGroundPresenceRenderer;
   readonly barrelMeshes = new Map<number, THREE.Object3D>();
   truckRig: THREE.Group;
   truckMarker: THREE.Group;
@@ -69,10 +71,16 @@ export class EntityViewRegistry {
   constructor(
     private readonly scene: THREE.Scene,
     private readonly factory: EntityViewFactory,
+    groundHeightAt: (x: number, z: number) => number = () => 0,
   ) {
     this.fodder = new InstancedEnemyRenderer(
       createScrapBugInstancedHost(scene, factory.assets, FODDER_CAPACITY),
       FODDER_CAPACITY,
+    );
+    this.groundPresence = new EnemyGroundPresenceRenderer(
+      scene,
+      GROUND_PRESENCE_CAPACITY,
+      groundHeightAt,
     );
     this.truckRig = new THREE.Group();
     this.truckMarker = factory.makeMarker(0xffd94d, 1.3, scene);
@@ -117,6 +125,15 @@ export class EntityViewRegistry {
     }
   }
 
+  syncGroundPresence(
+    enemies: readonly EnemyState[],
+    focusX: number,
+    focusZ: number,
+    elapsedSeconds: number,
+  ): void {
+    this.groundPresence.sync(enemies, focusX, focusZ, elapsedSeconds);
+  }
+
   createPickup(p: PickupState): PickupRig {
     const rig = this.factory.createPickupRig(p.kind, this.scene);
     this.pickupRigs.set(p.id, rig);
@@ -137,6 +154,7 @@ export class EntityViewRegistry {
     }
     this.enemyRigs.clear();
     this.fodder.reset();
+    this.groundPresence.reset();
     for (const rig of this.pickupRigs.values()) this.scene.remove(rig.group);
     this.pickupRigs.clear();
     for (const rig of this.shellRigs.values()) this.scene.remove(rig.group);
@@ -144,6 +162,11 @@ export class EntityViewRegistry {
     this.truckRig.visible = false;
     this.truckMarker.visible = false;
     this.shieldMesh.visible = false;
+  }
+
+  dispose(): void {
+    this.reset();
+    this.groundPresence.dispose();
   }
 
   removeEnemy(id: number): void {
@@ -209,3 +232,4 @@ export class EntityViewRegistry {
 }
 
 export const FODDER_CAPACITY = 512;
+export const GROUND_PRESENCE_CAPACITY = 512;

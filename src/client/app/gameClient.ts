@@ -196,7 +196,11 @@ export class GameClient {
   ): Promise<GameClient> {
     const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
-    const registry = new EntityViewRegistry(renderWorld.scene, factory);
+    const registry = new EntityViewRegistry(
+      renderWorld.scene,
+      factory,
+      (x, z) => world.groundHeightAt(x, z),
+    );
     const tankRig = assets.tankRig();
     renderWorld.scene.add(tankRig.chassis);
     const truckRig = new THREE.Group();
@@ -1354,7 +1358,7 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.dispose();
     this.world.arena.dispose();
-    this.registry.reset();
+    this.registry.dispose();
     this.progressionOverlay?.dispose();
     this.progressionOverlay = null;
     this.relicInventoryRail?.dispose();

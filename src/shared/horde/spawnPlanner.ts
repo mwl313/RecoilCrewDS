@@ -2,6 +2,7 @@ import type { SpawnPackDefinition } from '../content/schemas/horde';
 import { forkSeed, mulberry32, type Rng } from '../mapgen/prng';
 import type { SystemContext } from '../sim/systems/systemContext';
 import type { SpawnAnchor } from './spawnAnchors';
+import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
 
 export interface SpawnPlan {
   anchor: SpawnAnchor;
@@ -131,21 +132,32 @@ export class SpawnPlanner {
     rng: Rng,
   ): Array<{ x: number; z: number }> {
     const out: Array<{ x: number; z: number }> = [];
+    const clearanceRadii: number[] = [];
     const toTank = Math.atan2(tx - anchor.x, tz - anchor.z);
     const cos = Math.cos(toTank);
     const sin = Math.sin(toTank);
-    const spacing = pack.spacing || 2;
+    const resolvedEntries = pack.entries.flatMap((entry) => {
+      const enemyId = entry.enemyId;
+      const def = enemyId ? this.ctx.enemies.defById(enemyId) : undefined;
+      const clearance = def?.type === 'monster'
+        ? resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).spawnClearanceRadius
+        : 0;
+      return Array.from({ length: entry.count }, () => clearance);
+    });
+    const maximumClearanceDiameter = resolvedEntries.length > 0
+      ? Math.max(...resolvedEntries) * 2
+      : 0;
+    const spacing = Math.max(pack.spacing || 2, maximumClearanceDiameter);
     const radius = pack.radius || 8;
-    for (const entry of pack.entries) {
-      for (let i = 0; i < entry.count; i++) {
-        const offset = this.offsetFor(pack.formation, i, entry.count, spacing, radius, rng, toTank);
-        // Rotate the local offset toward the tank.
-        const lx = offset.x * cos - offset.z * sin;
-        const lz = offset.x * sin + offset.z * cos;
-        out.push({ x: anchor.x + lx, z: anchor.z + lz });
-      }
+    for (let i = 0; i < resolvedEntries.length; i++) {
+      const offset = this.offsetFor(pack.formation, i, resolvedEntries.length, spacing, radius, rng, toTank);
+      // Rotate the local offset toward the tank.
+      const lx = offset.x * cos - offset.z * sin;
+      const lz = offset.x * sin + offset.z * cos;
+      out.push({ x: anchor.x + lx, z: anchor.z + lz });
+      clearanceRadii.push(resolvedEntries[i]);
     }
-    return out;
+    return enforceSpawnClearance(out, clearanceRadii);
   }
 
   private offsetFor(
@@ -159,11 +171,10 @@ export class SpawnPlanner {
   ): { x: number; z: number } {
     switch (formation) {
       case 'line': {
-        const t = count <= 1 ? 0 : (i / (count - 1)) * 2 - 1;
-        return { x: t * spacing * 0.5, z: 0 };
+        return { x: (i - (count - 1) / 2) * spacing, z: 0 };
       }
       case 'column':
-        return { x: 0, z: i * spacing };
+        return { x: 0, z: (i - (count - 1) / 2) * spacing };
       case 'arc': {
         const t = count <= 1 ? 0 : (i / (count - 1)) * Math.PI - Math.PI / 2;
         return { x: Math.cos(t) * radius, z: Math.sin(t) * radius * 0.6 };
@@ -187,6 +198,39 @@ export class SpawnPlanner {
         };
     }
   }
+}
+
+/** Deterministic no-overlap pass driven by each body's resolved clearance. */
+export function enforceSpawnClearance(
+  positions: readonly { x: number; z: number }[],
+  clearanceRadii: readonly number[],
+): Array<{ x: number; z: number }> {
+  const out = positions.map((position) => ({ ...position }));
+  for (let i = 0; i < out.length; i++) {
+    for (let pass = 0; pass < out.length; pass++) {
+      let moved = false;
+      for (let j = 0; j < i; j++) {
+        const required = (clearanceRadii[i] ?? 0) + (clearanceRadii[j] ?? 0);
+        if (required <= 0) continue;
+        let dx = out[i].x - out[j].x;
+        let dz = out[i].z - out[j].z;
+        let distance = Math.hypot(dx, dz);
+        if (distance + 1e-6 >= required) continue;
+        if (distance < 1e-6) {
+          const angle = ((i * 37 + j * 17) % 360) * (Math.PI / 180);
+          dx = Math.sin(angle);
+          dz = Math.cos(angle);
+          distance = 1;
+        }
+        const push = required - distance + 0.001;
+        out[i].x += (dx / distance) * push;
+        out[i].z += (dz / distance) * push;
+        moved = true;
+      }
+      if (!moved) break;
+    }
+  }
+  return out;
 }
 
 function preferredAnchorTypes(packTags: string[], populationClass: string): SpawnAnchorTypeList {
