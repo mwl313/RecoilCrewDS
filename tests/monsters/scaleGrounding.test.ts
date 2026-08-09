@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveMonsterDimensions,
   resolveMonsterDimensionsForDefId,
+  LEGACY_TARGET_HEIGHTS,
   TARGET_HEIGHTS,
   TIER_SCALES,
 } from '../../src/shared/monsters/monsterNormalization';
@@ -9,23 +10,26 @@ import { loadContentPackFromFilesystem } from '../../src/shared/content/contentL
 
 const pack = loadContentPackFromFilesystem('content');
 
-describe('monster scale, collision, and grounding (bug-fix phase 2)', () => {
-  it('normalizes small ordinary to ~1.02 m', () => {
+describe('monster scale, collision, and grounding (readability V1)', () => {
+  it('normalizes small ordinary to exactly 1.20 m', () => {
     const d = resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder');
     expect(d.finalHeight).toBeCloseTo(TARGET_HEIGHTS.small, 4);
     expect(d.tierScale).toBe(1);
+    expect(d.readabilityScale).toBeCloseTo(1.2 / 1.02, 8);
   });
 
   it('scales medium elite to ~4.59 m (1.53 × 3)', () => {
     const d = resolveMonsterDimensions('enemy.quaternius.alien-high-detail', 'medium', 'elite');
-    expect(d.finalHeight).toBeCloseTo(TARGET_HEIGHTS.medium * TIER_SCALES.elite, 4);
+    expect(d.finalHeight).toBeCloseTo(LEGACY_TARGET_HEIGHTS.medium * TIER_SCALES.elite, 4);
     expect(d.finalHeight).toBeCloseTo(4.59, 2);
+    expect(d.readabilityScale).toBe(1);
   });
 
   it('scales large boss to ~8.50 m (1.70 × 5)', () => {
     const d = resolveMonsterDimensions('enemy.quaternius.demon-high-detail', 'large', 'boss');
-    expect(d.finalHeight).toBeCloseTo(TARGET_HEIGHTS.large * TIER_SCALES.boss, 4);
+    expect(d.finalHeight).toBeCloseTo(LEGACY_TARGET_HEIGHTS.large * TIER_SCALES.boss, 4);
     expect(d.finalHeight).toBeCloseTo(8.5, 2);
+    expect(d.readabilityScale).toBe(1);
   });
 
   it('orders colliders boss > elite > ordinary', () => {

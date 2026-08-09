@@ -3,6 +3,13 @@ import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { ShellCombatPayload, ShellState } from '../types';
 import { createBuiltinProjectileBehaviors } from './projectileBehaviors';
 import { ProjectileBehaviorRegistry } from './projectileBehaviorRegistry';
+import { projectileWithinVerticalBody } from '../enemies/enemyCollisionGeometry';
+import { resolveTankHurtCapsule } from '../combat/tankHurtVolume';
+import {
+  firstWorldProjectileImpactToi,
+  pointOnSegment,
+  segmentVerticalCapsuleFirstToi,
+} from './projectileCollision';
 
 /**
  * Authoritative projectile system: spawns shells for weapons, advances every
@@ -87,30 +94,53 @@ export class ProjectileSystem {
     const keep: ShellState[] = [];
     for (const sh of s.shells) {
       sh.life -= dt;
-      sh.x += sh.vx * dt;
-      sh.y += sh.vy * dt;
-      sh.z += sh.vz * dt;
+      const start = { x: sh.x, y: sh.y, z: sh.z };
+      const end = {
+        x: sh.x + sh.vx * dt,
+        y: sh.y + sh.vy * dt,
+        z: sh.z + sh.vz * dt,
+      };
       if (sh.kind === 'cannon') {
         sh.vy -= w.cannonGravity * dt;
       }
-      if (sh.kind === 'tower') {
-        const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
-        if (td < 1.05 && s.tank.deadT <= 0) {
-          this.ctx.damage.applyTank(this.ctx.rules.config.enemies.towerShotDamage, 'tower');
-          pushEvent(this.ctx, 'hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
-            value: this.ctx.rules.config.enemies.towerShotDamage,
-            kind: 'tower',
-          });
+      if (sh.kind === 'enemy') {
+        const projectileRadius = sh.hitRadius ?? 0.6;
+        const capsule = resolveTankHurtCapsule(s.tank);
+        const combinedRadius = sh.tankHitRadius ?? capsule.radius + projectileRadius;
+        const tankToi = s.tank.deadT <= 0
+          ? segmentVerticalCapsuleFirstToi(start, end, capsule, combinedRadius - capsule.radius)
+          : undefined;
+        const worldToi = firstWorldProjectileImpactToi(this.ctx.world, start, end, projectileRadius);
+        // World wins ties so a projectile touching a wall face and the tank
+        // on the same instant can never damage through the wall.
+        if (worldToi !== undefined && (tankToi === undefined || worldToi <= tankToi)) {
+          const impact = pointOnSegment(start, end, worldToi);
+          sh.x = impact.x;
+          sh.y = impact.y;
+          sh.z = impact.z;
+          this.explode(sh);
           continue;
         }
-      }
-      if (sh.kind === 'enemy') {
-        const tankHitRadius = sh.tankHitRadius ?? 1.2;
-        const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
-        if (td < tankHitRadius && s.tank.deadT <= 0) {
+        if (tankToi !== undefined) {
+          const impact = pointOnSegment(start, end, tankToi);
+          sh.x = impact.x;
+          sh.y = impact.y;
+          sh.z = impact.z;
           const damage = sh.combat?.damage ?? 6;
-          this.ctx.damage.applyTank(damage, 'enemy');
-          pushEvent(this.ctx, 'enemyProjectileImpact', s.tank.x, s.tank.y + 1.2, s.tank.z, {
+          this.ctx.damage.applyTank(damage, 'enemy', undefined, {
+            sourcePosition: impact,
+            kind: 'projectile',
+            tier: sh.sourceTier,
+          });
+          this.ctx.eventBus.emit('projectile.impacted', {
+            shellId: sh.id,
+            kind: sh.kind,
+            x: sh.x,
+            y: sh.y,
+            z: sh.z,
+            chargeRatio: sh.chargeRatio,
+          });
+          pushEvent(this.ctx, 'enemyProjectileImpact', sh.x, sh.y, sh.z, {
             value: damage,
             kind: 'enemy',
             id: sh.ownerEnemyId,
@@ -119,6 +149,33 @@ export class ProjectileSystem {
             presentationProfileId: sh.sourcePresentationProfileId,
             eventSequence: sh.sourceAttackSequence,
             attackSemantic: 'projectileImpact',
+          });
+          continue;
+        }
+        sh.x = end.x;
+        sh.y = end.y;
+        sh.z = end.z;
+        if (sh.life <= 0) {
+          this.explode(sh);
+          continue;
+        }
+        keep.push(sh);
+        continue;
+      }
+      sh.x = end.x;
+      sh.y = end.y;
+      sh.z = end.z;
+      if (sh.kind === 'tower') {
+        const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
+        if (td < 1.05 && s.tank.deadT <= 0) {
+          this.ctx.damage.applyTank(this.ctx.rules.config.enemies.towerShotDamage, 'tower', undefined, {
+            sourcePosition: { x: sh.x, y: sh.y, z: sh.z },
+            kind: 'projectile',
+            tier: 'specialist',
+          });
+          pushEvent(this.ctx, 'hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
+            value: this.ctx.rules.config.enemies.towerShotDamage,
+            kind: 'tower',
           });
           continue;
         }
@@ -138,12 +195,20 @@ export class ProjectileSystem {
           }
         }
       }
-      if (!exploded && sh.kind !== 'enemy') {
+      if (!exploded) {
         const nearby = this.ctx.enemySpatial.queryCircle(sh.x, sh.z, 4.7);
         for (const e of nearby) {
           if (!e.alive || e.type === 'gunTower') continue;
-          const rr = this.ctx.enemies.radiusFor(e) + 0.7;
-          if (dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
+          const projectileRadius = 0.7;
+          const dimensions = this.ctx.enemies.dimensionsFor(e);
+          const rr = (dimensions?.collisionRadius ?? this.ctx.enemies.radiusFor(e)) + projectileRadius;
+          const withinHeight = !dimensions || projectileWithinVerticalBody(
+            sh.y,
+            projectileRadius,
+            e.y,
+            dimensions.collisionHeight,
+          );
+          if (withinHeight && dist2(sh.x, sh.z, e.x, e.z) < rr * rr) {
             exploded = true;
             break;
           }
@@ -211,7 +276,10 @@ export class ProjectileSystem {
     const tankD = dist(sh.x, sh.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.5) {
       const tankSplash = combat ? 5 + 7 * (sh.chargeRatio ?? 0) : 5;
-      this.ctx.damage.applyTank(tankSplash, 'splash');
+      this.ctx.damage.applyTank(tankSplash, 'splash', sh.weaponId, {
+        sourcePosition: { x: sh.x, y: sh.y, z: sh.z },
+        kind: 'explosive',
+      });
     }
     // Knockback is a separate effect from damage: radial impulse pushes
     // enemies away (never the tank; content sets tank multiplier to 0).

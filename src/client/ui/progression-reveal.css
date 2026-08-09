@@ -203,6 +203,7 @@
 .reward-card[data-rarity='rare'] { --rarity: #3de6ff; }
 .reward-card[data-rarity='epic'] { --rarity: #bd67ff; }
 .reward-card[data-rarity='legendary'] { --rarity: #ffd64a; }
+.reward-card[data-rarity='neutral'] { --rarity: #9aa3ad; }
 .reward-card::before { position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 4px; content: ''; background: var(--rarity); opacity: .88; }
 .reward-card::after { position: absolute; z-index: 4; inset: 0; content: ''; background: linear-gradient(105deg,transparent 20%,color-mix(in srgb,var(--rarity) 42%,transparent) 48%,transparent 76%); opacity: 0; transform: translateX(-110%); pointer-events: none; }
 .reward-card--locked::after { animation: reward-rarity-sweep 310ms ease-out both; }
@@ -245,6 +246,7 @@
 .reward-relic[data-rarity='rare'] { --rarity: #3de6ff; }
 .reward-relic[data-rarity='epic'] { --rarity: #bd67ff; }
 .reward-relic[data-rarity='legendary'] { --rarity: #ffd64a; }
+.reward-relic[data-rarity='neutral'] { --rarity: #9aa3ad; }
 .reward-relic__roulette-outline { position: absolute; z-index: 6; inset: 0; border: 2px solid var(--rarity); clip-path: var(--ui-cut-lg); opacity: .45; pointer-events: none; }
 .reward-relic__roulette-outline--flash { animation: reward-relic-outline-flash 150ms ease-out both; }
 .reward-relic::before { position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 5px; content: ''; background: var(--rarity); }

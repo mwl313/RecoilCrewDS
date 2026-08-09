@@ -8,6 +8,7 @@ describe('production procedural audio simulation events', () => {
   it('emits semantic ranged telegraph/fire with compact metadata', () => {
     const runtime = MatchRuntime.fromContentPack(pack, 'audio-ranged', 'none', 'mode.mainStage');
     const def = pack.getEnemy('enemy.quaternius.wizard');
+    if (def.type !== 'monster') throw new Error('expected monster');
     const enemy = runtime.systems.enemies.spawnEnemyDef(def, runtime.state.tank.x + 10, runtime.state.tank.z)!;
     const events = [];
     for (let i = 0; i < 360; i++) {
@@ -40,6 +41,7 @@ describe('production procedural audio simulation events', () => {
   it('emits dedicated tank-impact and cannon-impact events', () => {
     const runtime = MatchRuntime.fromContentPack(pack, 'audio-impacts', 'none', 'mode.mainStage');
     const tank = runtime.state.tank;
+    tank.shieldedT = 0;
     runtime.systems.projectiles.spawn(tank.x, tank.y + 0.2, tank.z, 0, 0, 0, 0, 'enemy', 1, undefined, {
       damage: 12,
       splashRadius: 1,
@@ -50,13 +52,17 @@ describe('production procedural audio simulation events', () => {
       sourcePresentationProfileId: 'enemyPresentation.test',
       sourceAttackSequence: 7,
     });
+    const integrityBefore = tank.integrity;
     runtime.step(1 / 60);
-    expect(runtime.takeEvents().find((event) => event.type === 'enemyProjectileImpact')).toMatchObject({
-      id: 99,
-      value: 12,
+    const impactEvents = runtime.takeEvents();
+    expect(impactEvents.find((event) => event.type === 'tankDamageTaken')).toMatchObject({
+      value: integrityBefore - tank.integrity,
+      source: 'enemy',
+      impactKind: 'projectile',
       tier: 'elite',
-      eventSequence: 7,
+      maxIntegrity: runtime.rules.resolver.resolve('tank.maxIntegrity'),
     });
+    expect(impactEvents.filter((event) => event.type === 'tankDamageTaken')).toHaveLength(1);
 
     runtime.systems.projectiles.spawn(tank.x + 5, 0.01, tank.z, 0, 0, 0, 0, 'cannon', 1, undefined, {
       damage: 20,
@@ -75,6 +81,7 @@ describe('production procedural audio simulation events', () => {
   it('emits tier-aware death metadata and presentation-only landing severity', () => {
     const runtime = MatchRuntime.fromContentPack(pack, 'audio-death-landing', 'none', 'mode.mainStage');
     const def = pack.getEnemy('enemy.quaternius.alien-high-detail');
+    if (def.type !== 'monster') throw new Error('expected monster');
     const enemy = runtime.systems.enemies.spawnEnemyDef(def, runtime.state.tank.x + 6, runtime.state.tank.z)!;
     runtime.systems.damage.applyEnemy(enemy, 999_999, 'test');
     expect(runtime.takeEvents().find((event) => event.type === 'kill')).toMatchObject({

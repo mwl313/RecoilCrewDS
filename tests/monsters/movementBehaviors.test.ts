@@ -3,6 +3,7 @@ import { loadContentPackFromFilesystem } from '../../src/shared/content/contentL
 import { Match } from '../../src/shared/sim/match';
 import { createStaticArenaWorld } from '../../src/shared/sim/arenaWorld';
 import { resolveMonsterDimensionsForDefId } from '../../src/shared/monsters/monsterNormalization';
+import { EnemyRuntimeState } from '../../src/shared/enemies/enemyRuntimeState';
 
 const pack = loadContentPackFromFilesystem('content');
 const DT = 1 / 30;
@@ -184,5 +185,97 @@ describe('monster movement and behavior ordering (bug-fix phase 3)', () => {
     m.runtime.systems.damage.applyEnemy(foe, 999999, 'test');
     m.step(DT);
     expect(foe.actionCue?.actionId).toBe('enemy.semantic.death');
+  });
+
+  it('substeps the 14.4 m/s Ninja Boss against a thin obstacle after a large elapsed update', () => {
+    const m = makeMatch();
+    const def = pack.getEnemy('enemy.quaternius.ninja-high-detail.boss');
+    if (def.type !== 'monster') throw new Error('expected monster');
+    const foe = m.runtime.systems.enemies.spawnEnemyDef(def, -22, -10)!;
+    const runtime = new EnemyRuntimeState();
+    runtime.dirX = 1;
+    runtime.speed = 14.4;
+    m.runtime.systems.enemies.behaviors.require('movement.integrate').update(m.runtime.systems, foe, runtime, 1);
+    // bowlC1 spans x=-15.5..-8.5; the boss radius is resolved before entry.
+    expect(foe.x).toBeLessThan(-8.5);
+    expect(foe.speed).toBeLessThanOrEqual(14.4);
+  });
+
+  it('stays stable through a corner and a narrow alley at 30 Hz', () => {
+    const def = pack.getEnemy('enemy.quaternius.ninja-high-detail.boss');
+    if (def.type !== 'monster') throw new Error('expected monster');
+    const corner = makeMatch();
+    const cornerFoe = corner.runtime.systems.enemies.spawnEnemyDef(def, -22, -20)!;
+    const cornerRuntime = new EnemyRuntimeState();
+    cornerRuntime.dirX = Math.SQRT1_2;
+    cornerRuntime.dirZ = Math.SQRT1_2;
+    cornerRuntime.speed = 14.4;
+    for (let tick = 0; tick < 30; tick++) {
+      corner.runtime.systems.enemies.behaviors.require('movement.integrate').update(
+        corner.runtime.systems,
+        cornerFoe,
+        cornerRuntime,
+        DT,
+      );
+    }
+    // The body cannot tunnel through bowlC1's south-west corner.
+    expect(cornerFoe.x < -8.5 || cornerFoe.z < -11.5).toBe(true);
+
+    const alley = makeMatch();
+    const alleyFoe = alley.runtime.systems.enemies.spawnEnemyDef(def, 0, -15)!;
+    const alleyRuntime = new EnemyRuntimeState();
+    alleyRuntime.dirZ = 1;
+    alleyRuntime.speed = 14.4;
+    for (let tick = 0; tick < 30; tick++) {
+      alley.runtime.systems.enemies.behaviors.require('movement.integrate').update(
+        alley.runtime.systems,
+        alleyFoe,
+        alleyRuntime,
+        DT,
+      );
+    }
+    // The boss fits through the center gap without unstable lateral ejection.
+    expect(Math.abs(alleyFoe.x)).toBeLessThan(1.1);
+    expect(alleyFoe.z).toBeGreaterThan(-5);
+  });
+
+  it('substeps featured movement at cliffs and prevents crossing through the tank', () => {
+    const cliffWorld = createStaticArenaWorld();
+    cliffWorld.queryTerrainTransition = (_fromX, _fromZ, toX) => ({
+      fromHeight: 0,
+      toHeight: toX >= 0 ? 4 : 0,
+      delta: toX >= 0 ? 4 : 0,
+      crossesCliffWall: toX >= 0,
+      maxStepUp: 0.45,
+    });
+    const cliffMatch = new Match('elite-cliff', 'none', pack, cliffWorld, 'mode.mainStage');
+    const def = pack.getEnemy('enemy.quaternius.ninja-high-detail.boss');
+    if (def.type !== 'monster') throw new Error('expected monster');
+    const cliffFoe = cliffMatch.runtime.systems.enemies.spawnEnemyDef(def, -8, 0)!;
+    const cliffRuntime = new EnemyRuntimeState();
+    cliffRuntime.dirX = 1;
+    cliffRuntime.speed = 14.4;
+    cliffMatch.runtime.systems.enemies.behaviors.require('movement.integrate').update(
+      cliffMatch.runtime.systems,
+      cliffFoe,
+      cliffRuntime,
+      1,
+    );
+    expect(cliffFoe.x).toBeLessThan(0);
+
+    const tankMatch = makeMatch();
+    const tank = tankMatch.state.tank;
+    const tankFoe = tankMatch.runtime.systems.enemies.spawnEnemyDef(def, tank.x, tank.z + 20)!;
+    const tankRuntime = new EnemyRuntimeState();
+    tankRuntime.dirZ = -1;
+    tankRuntime.speed = 14.4;
+    tankMatch.runtime.systems.enemies.behaviors.require('movement.integrate').update(
+      tankMatch.runtime.systems,
+      tankFoe,
+      tankRuntime,
+      2,
+    );
+    const minimum = resolveMonsterDimensionsForDefId(def.id).collisionRadius + 1.35;
+    expect(Math.hypot(tankFoe.x - tank.x, tankFoe.z - tank.z)).toBeGreaterThanOrEqual(minimum - 0.01);
   });
 });

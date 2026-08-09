@@ -76,15 +76,17 @@ describe('resolved engagement geometry (second-pass)', () => {
     }
   });
 
-  it('elite attack hold keeps the body outside invalid collider overlap', () => {
+  it('mixed Elite attack hold keeps the body outside invalid collider overlap', () => {
     const m = makeMatch();
     step(m, 4);
     const defId = 'enemy.quaternius.ninja-high-detail';
     const def = pack.getEnemy(defId);
-    if (def.type !== 'monster' || def.attack.type !== 'melee') throw new Error('expected melee monster');
+    if (def.type !== 'monster' || def.attack.type !== 'mixed') throw new Error('expected mixed monster');
+    const melee = def.attack.patterns.find((pattern) => pattern.type === 'melee');
+    if (!melee) throw new Error('expected melee pattern');
     const dims = resolveMonsterDimensionsForDefId(defId);
     const effective =
-      dims.collisionRadius + TANK_RADIUS + def.attack.range;
+      dims.collisionRadius + TANK_RADIUS + melee.range;
     const e = m.runtime.systems.enemies.spawnEnemyDef(
       def,
       m.state.tank.x + Math.sin(0.3) * (effective * 1.6),

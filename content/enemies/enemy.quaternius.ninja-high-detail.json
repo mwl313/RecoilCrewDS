@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.ninja-high-detail.hero",
   "stats": {
     "hp": 50,
-    "speed": 4.6,
+    "speed": 9.2,
     "threat": 8
   },
   "rewardClass": "elite",
@@ -18,12 +18,29 @@
     "damage": true
   },
   "attack": {
-    "type": "melee",
-    "damageModel": "contactDps",
-    "contactDps": 11,
-    "rate": 2.2,
-    "range": 2.5,
-    "engagementProfileId": "meleeEngagement.default"
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "slash",
+        "type": "melee",
+        "damage": 5,
+        "rate": 2.2,
+        "range": 2.5
+      },
+      {
+        "id": "shuriken",
+        "type": "ranged",
+        "damage": 11,
+        "rate": 1,
+        "range": 36,
+        "projectileId": "projectile.enemyBoneShot",
+        "visualColor": "#BFC7D5",
+        "telegraphTime": 0.9
+      }
+    ]
   },
   "behaviors": [
     {
@@ -35,23 +52,17 @@
       "parameters": {}
     },
     {
-      "id": "movement.meleeEngagement",
-      "parameters": {
-        "profileId": "meleeEngagement.default"
-      }
-    },
-    {
-      "id": "movement.integrate",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {
-      "id": "attack.meleeCue",
+      "id": "movement.integrate",
       "parameters": {}
     }
   ],
   "spawnTags": [
     "elite",
-    "melee",
+    "mixed",
     "medium"
   ]
 }

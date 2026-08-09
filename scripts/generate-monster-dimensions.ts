@@ -14,6 +14,12 @@ const catalog = JSON.parse(fs.readFileSync('docs/monsterpack10/source-manifests/
 };
 
 type Vec3 = [number, number, number];
+const READABILITY_SIZE_POLICY = {
+  ordinaryTargetHeights: { small: 1.2, medium: 1.8, large: 2 },
+  preservedBaselineHeights: { small: 1.02, medium: 1.53, large: 1.7 },
+  tierScales: { fodder: 1, specialist: 1, elite: 3, boss: 5 },
+  readabilityTiers: ['fodder', 'specialist'],
+} as const;
 const out: Record<string, { width: number; height: number; depth: number; groundOffset: number; projectileSocket: Vec3; groundSocket: Vec3 }> = {};
 for (const model of catalog.models) {
   const hero = model.runtimeVariants.hero;
@@ -57,6 +63,9 @@ export interface MonsterSourceDimensions {
   projectileSocket: [number, number, number];
   groundSocket: [number, number, number];
 }
+
+/** Generated policy input consumed by the single runtime dimension resolver. */
+export const MONSTER_READABILITY_SIZE_POLICY = ${JSON.stringify(READABILITY_SIZE_POLICY, null, 2)} as const;
 
 export const MONSTER_DIMENSIONS: Record<string, MonsterSourceDimensions> = ${JSON.stringify(out, null, 2)};
 

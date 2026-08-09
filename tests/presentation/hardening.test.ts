@@ -289,6 +289,8 @@ describe('Refractor 02 hardening — P1 fixes', () => {
       },
     );
     expect(base.tank.integrityMax).toBe(200);
+    expect(base.tank.integrityText).toBe('1,500 / 2,000');
+    expect(base.tank.integrityLow).toBe(false);
     expect(base.gunner.cooldownRatio).toBeCloseTo(0.6);
     expect(base.gunner.chargeRatio).toBeCloseTo(0.25);
 
@@ -297,6 +299,11 @@ describe('Refractor 02 hardening — P1 fixes', () => {
       { role: 'driver', peerConnected: true, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null },
     );
     expect(fallback.tank.integrityMax).toBe(BASE_CONFIG.tank.maxIntegrity);
+    const percentageLow = projector.project(
+      state({ tank: { integrity: 60 } }),
+      { role: 'driver', peerConnected: true, ping: 0, fps: 60, pointerLocked: true, session: { kind: 'multiplayer', showRoleIdentity: true, showPeerStatus: true }, objective: null, rules: { maxIntegrity: 200 } },
+    );
+    expect(percentageLow.tank.integrityLow).toBe(true);
   });
 
   it('P1-6: the replicated movement block carries weapon values (and modifier changes)', () => {

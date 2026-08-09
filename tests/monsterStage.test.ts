@@ -286,9 +286,9 @@ describe('monster stage timeline', () => {
       expect(dims.height).toBeGreaterThan(0);
     }
     const small = resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder');
-    expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
+    expect(small.normalizedHeight).toBeCloseTo(1.2, 6);
     const elite = resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'elite');
-    expect(elite.collisionRadius).toBeCloseTo(small.collisionRadius * 3, 6);
+    expect(elite.finalHeight).toBeCloseTo(1.02 * 3, 6);
     expect(resolveMonsterDimensions('enemy.quaternius.ninja', 'small', 'fodder')).toBe(small);
     expect(slugFromEnemyId('enemy.quaternius.alien-high-detail.boss')).toBe('alien-high-detail');
     const socketY = resolveProjectileSocketY('enemy.quaternius.wizard', 'medium', 'fodder');

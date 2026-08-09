@@ -19,7 +19,7 @@ describe('monster roster content', () => {
     .map((id) => pack.getEnemy(id))
     .filter((e) => e.type === 'monster');
 
-  it('contains 51 monsters: 39 ordinary + 4+2 elites + 2+4 bosses (cross-role pool)', () => {
+  it('contains 51 monsters: 39 ordinary + 6 elites + 6 bosses', () => {
     expect(monsters).toHaveLength(51);
     const tiers = monsters.reduce<Record<string, number>>((acc, m) => {
       if (m.type !== 'monster') return acc;
@@ -31,23 +31,24 @@ describe('monster roster content', () => {
     expect(tiers.boss).toBe(6);
   });
 
-  it('every ordinary/elite has exactly one melee or ranged attack; bosses are mixed', () => {
+  it('every featured Elite/Boss has melee+ranged mixed patterns; ordinary monsters stay single-pattern', () => {
     for (const m of monsters) {
       if (m.type !== 'monster') continue;
       const attack = m.attack;
-      if (m.tier === 'boss') {
+      if (m.tier === 'boss' || m.tier === 'elite') {
         expect(attack.type).toBe('mixed');
         if (attack.type === 'mixed') {
           expect(attack.patterns.length).toBeGreaterThanOrEqual(2);
+          expect(attack.patterns.some((p) => p.type === 'melee')).toBe(true);
           expect(attack.patterns.some((p) => p.type === 'ranged')).toBe(true);
         }
-        expect(m.levelScaling.damage).toBe(false);
         expect(m.levelScaling.health).toBe(true);
-        expect(m.tierScale).toBe(5);
+        expect(m.levelScaling.damage).toBe(m.tier === 'elite');
+        expect(m.tierScale).toBe(m.tier === 'boss' ? 5 : 3);
       } else {
         expect(['melee', 'ranged']).toContain(attack.type);
         expect(m.levelScaling.damage).toBe(true);
-        expect(m.tierScale).toBe(m.tier === 'elite' ? 3 : 1);
+        expect(m.tierScale).toBe(1);
         if (attack.type === 'melee') {
           expect(attack.damageModel).toBe('contactDps');
           expect(attack.contactDps).toBeGreaterThan(0);
@@ -132,12 +133,12 @@ describe('mode parity and normalization', () => {
       .toBe(2 * monsterXpReward(5, 'ambient', { classes: { ambient: { base: 1, perLevel: 1 }, wave: { base: 2, perLevel: 2 }, elite: { base: 40, perLevel: 8 }, boss: { base: 150, perLevel: 0 } } }, 1));
   });
 
-  it('normalizes to 1.02/1.53/1.70 m and propagates tier scale 1/3/5', () => {
-    expect(TARGET_HEIGHTS).toEqual({ small: 1.02, medium: 1.53, large: 1.7 });
+  it('normalizes ordinary tiers to 1.20/1.80/2.00 m and preserves elite/boss baselines', () => {
+    expect(TARGET_HEIGHTS).toEqual({ small: 1.2, medium: 1.8, large: 2 });
     expect(TIER_SCALES).toEqual({ fodder: 1, specialist: 1, elite: 3, boss: 5 });
     const source = { width: 3, height: 3, depth: 2, groundOffset: 0.5 };
     const small = normalizedEnemyDimensions(source, 'small', 'fodder');
-    expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
+    expect(small.normalizedHeight).toBeCloseTo(1.2, 6);
     expect(small.collisionRadius).toBeCloseTo(0.45 * Math.max(small.normalizedWidth, small.normalizedDepth), 6);
     const boss = normalizedEnemyDimensions(source, 'large', 'boss');
     expect(boss.normalizedHeight).toBeCloseTo(1.7 * 5, 6);

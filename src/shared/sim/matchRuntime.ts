@@ -673,7 +673,10 @@ export class MatchRuntime {
     }
     const tankD = dist(b.x, b.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.6) {
-      this.systems.damage.applyTank(10, 'barrel');
+      this.systems.damage.applyTank(10, 'barrel', undefined, {
+        sourcePosition: { x: b.x, y: 0.8, z: b.z },
+        kind: 'explosive',
+      });
     }
     // Chain reaction.
     for (const other of s.barrels) {
@@ -704,6 +707,9 @@ export class MatchRuntime {
     if (e.type === 'lootTruck') {
       s.truck.active = false;
     }
+    // Maintenance summons remain combat pressure but never enter score,
+    // stats, drops, combo, or reward presentation routing.
+    if (e.ownership?.rewardSuppressed) return;
     const sc = this.cfg.scoring;
     s.stats.kills++;
     if (source === 'dash') s.stats.dashKills++;

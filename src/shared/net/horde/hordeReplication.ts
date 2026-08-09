@@ -20,7 +20,9 @@ import {
   OWNERSHIP_FLAG_BOSS,
   OWNERSHIP_FLAG_ELITE,
   OWNERSHIP_FLAG_LEADER,
+  OWNERSHIP_FLAG_MAINTENANCE,
   OWNERSHIP_FLAG_PURGE,
+  OWNERSHIP_FLAG_REWARD_SUPPRESSED,
   semanticActionIdForIndex,
   semanticActionIndex,
   typeForDefinitionId,
@@ -99,7 +101,20 @@ export class HordeReplicationTracker {
       sectors: [],
       wave,
     };
-    const sectorKey = JSON.stringify(sectors.map((s) => [s.sectorId, s.count, s.centerX, s.centerZ, s.waveId]));
+    const sectorKey = JSON.stringify(
+      sectors.map((s) => [
+        s.sectorId,
+        s.count,
+        s.centerX,
+        s.centerZ,
+        s.flowDx,
+        s.flowDz,
+        s.waveId,
+        s.leaderId,
+        s.maintenanceSummon,
+        s.rewardSuppressed,
+      ]),
+    );
     if (sectorKey !== this.lastSectors) {
       block.sectors = sectors.map(encodeSector);
       this.lastSectors = sectorKey;
@@ -285,6 +300,11 @@ export class HordeReplicationClient {
           packInstanceId: 0,
           spawnAnchorId: null,
           purgeOnLeaderDeath: (ownershipFlags & OWNERSHIP_FLAG_PURGE) !== 0,
+          maintenanceSummon: (ownershipFlags & OWNERSHIP_FLAG_MAINTENANCE) !== 0,
+          rewardSuppressed: (ownershipFlags & OWNERSHIP_FLAG_REWARD_SUPPRESSED) !== 0,
+          ...((ownershipFlags & OWNERSHIP_FLAG_MAINTENANCE) !== 0 && leaderId !== 0
+            ? { summonedByLeaderId: leaderId }
+            : {}),
           ...((ownershipFlags & OWNERSHIP_FLAG_LEADER) !== 0 ? { leaderId: enemy.id } : {}),
           ...(formationRoleIndex > 0
             ? {

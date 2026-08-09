@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { XpShardState } from '../../shared/types';
+import { XP_PRESENTATION_COLOR } from '../../shared/presentation/combatDisplayUnits';
 
 /**
  * Bounded instanced XP-shard presentation (second-pass fix).
@@ -43,14 +44,14 @@ export class XpShardRenderer {
   private readonly dummy = new THREE.Object3D();
   private readonly pops = new Map<number, { x: number; y: number; z: number; t: number }>();
   private readonly lastSeen = new Map<number, XpShardState>();
-  private readonly liveColor = new THREE.Color(0x8fe8ff);
+  private readonly liveColor = new THREE.Color(XP_PRESENTATION_COLOR);
   private readonly popColor = new THREE.Color(1, 0.92, 0.45);
   private readonly overflowColor = new THREE.Color(1, 0.45, 0.2);
 
   constructor(scene: THREE.Scene) {
     const geometry = new THREE.OctahedronGeometry(0.2, 0);
     const material = new THREE.MeshBasicMaterial({
-      color: 0x8fe8ff,
+      color: XP_PRESENTATION_COLOR,
       transparent: true,
       opacity: 1,
       depthWrite: false,

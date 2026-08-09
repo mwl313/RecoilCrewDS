@@ -5,6 +5,7 @@ import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
 import type { WeaponRuntimeState } from './weaponRuntimeState';
 import { computeWeaponMountWorldPose, resolveTerrainSafeMuzzle } from '../vehicle/tankRigGeometry';
 import { resolveCannonShotProfile } from './cannonShotProfile';
+import { rayVerticalBodyHitDistance } from '../enemies/enemyCollisionGeometry';
 
 /**
  * World muzzle origin + direction resolved from the shared tank rig
@@ -69,6 +70,26 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
       let bestEnemy: (typeof s.enemies)[number] | null = null;
       for (const e of s.enemies) {
         if (!e.alive || e.type === 'gunTower') continue;
+        const dimensions = ctx.enemies.dimensionsFor(e);
+        if (dimensions) {
+          const hitT = rayVerticalBodyHitDistance(
+            { x: muzzle.x, y: muzzle.y, z: muzzle.z },
+            { x: nx, y: ny, z: nz },
+            {
+              x: e.x,
+              groundY: e.y,
+              z: e.z,
+              radius: dimensions.collisionRadius,
+              height: dimensions.collisionHeight,
+            },
+            bestT,
+          );
+          if (hitT !== null && hitT < bestT) {
+            bestT = hitT;
+            bestEnemy = e;
+          }
+          continue;
+        }
         const r = ctx.enemies.radiusFor(e) + 0.45;
         const ox = e.x - muzzle.x;
         const oy = e.y + 0.6 - muzzle.y;

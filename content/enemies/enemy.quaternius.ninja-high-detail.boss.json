@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.ninja-high-detail.hero",
   "stats": {
     "hp": 200,
-    "speed": 4.8,
+    "speed": 14.4,
     "threat": 45
   },
   "rewardClass": "boss",
@@ -52,7 +52,7 @@
       "parameters": {}
     },
     {
-      "id": "attack.bossCue",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {

@@ -8,6 +8,11 @@ export interface ProgressionTelemetry {
   levelsPerStage: number;
   upgradePickRates: Record<string, number>;
   rarityDistribution: Record<string, number>;
+  relicRarityResolutions: Array<{
+    requestedRarity: string;
+    resolvedRarity: string;
+    fallbackUsed: boolean;
+  }>;
   chestsPerStage: number;
   relicDistribution: Record<string, number>;
   roadkillHits: number;
@@ -28,6 +33,7 @@ export interface ProgressionTelemetry {
   activeChestPeak: number;
   mapSpawnAttempts: number;
   mapSpawnCandidateFailures: number;
+  rewardSuppressedKills: number;
 }
 
 export function createProgressionTelemetry(): ProgressionTelemetry {
@@ -40,6 +46,7 @@ export function createProgressionTelemetry(): ProgressionTelemetry {
     levelsPerStage: 0,
     upgradePickRates: {},
     rarityDistribution: {},
+    relicRarityResolutions: [],
     chestsPerStage: 0,
     relicDistribution: {},
     roadkillHits: 0,
@@ -60,5 +67,6 @@ export function createProgressionTelemetry(): ProgressionTelemetry {
     activeChestPeak: 0,
     mapSpawnAttempts: 0,
     mapSpawnCandidateFailures: 0,
+    rewardSuppressedKills: 0,
   };
 }

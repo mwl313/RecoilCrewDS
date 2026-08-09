@@ -4,9 +4,10 @@ import { loadContentPackFromFilesystem } from '../src/shared/content/contentLoad
 import { isMonster } from '../src/shared/enemies/monsterCompat';
 
 const pack = loadContentPackFromFilesystem('content');
+const roster = pack.getEnemyGameplayRoster('enemyGameplayRoster.quaternius.mainStage');
 
 describe('monster projectile colors', () => {
-  it('assigns a unique authored color to every projectile-firing monster', () => {
+  it('uses identity-matched colors for Elite/Boss pairs without changing unrelated shooter colors', () => {
     const shooters: Array<{ id: string; color: string }> = [];
     for (const id of pack.ids('enemies')) {
       const enemy = pack.getEnemy(id);
@@ -21,8 +22,15 @@ describe('monster projectile colors', () => {
       }
     }
 
-    expect(shooters).toHaveLength(22);
-    expect(new Set(shooters.map(({ color }) => color)).size).toBe(shooters.length);
+    expect(shooters).toHaveLength(26);
+    expect(new Set(shooters.map(({ color }) => color)).size).toBe(20);
+
+    const colorById = new Map(shooters.map(({ id, color }) => [id, color]));
+    for (const identity of roster.featuredIdentities) {
+      expect(colorById.get(identity.eliteEnemyId), identity.eliteEnemyId).toBe(
+        colorById.get(identity.bossEnemyId),
+      );
+    }
   });
 
   it('uses the authored enemy color for both the projectile glow and core', () => {

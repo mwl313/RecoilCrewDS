@@ -2,7 +2,7 @@
  * Model-size normalization (Monster System M4).
  *
  * Raw GLB dimensions never define gameplay size. Every model is normalized
- * to a target base height by size class, then tier scale is applied:
+ * to a tier-aware target base height by size class, then tier scale is applied:
  *
  *   normalizationScale = targetHeight / sourceNeutralPoseHeight
  *   finalScale        = normalizationScale × tierScale × optionalVariantScale
@@ -12,24 +12,31 @@
  * The full per-model normalized cache (from the monster pack catalog) is a
  * generated-content follow-up; this module is the single math authority.
  */
-export const TARGET_HEIGHTS: Record<'small' | 'medium' | 'large', number> = {
-  small: 1.02,
-  medium: 1.53,
-  large: 1.7,
-};
-
-export const TIER_SCALES: Record<'fodder' | 'specialist' | 'elite' | 'boss', number> = {
-  fodder: 1,
-  specialist: 1,
-  elite: 3,
-  boss: 5,
-};
+export type MonsterSizeClass = 'small' | 'medium' | 'large';
+export type MonsterTier = 'fodder' | 'specialist' | 'elite' | 'boss';
 
 import {
   ENEMY_DEFINITION_SIZE_TIER,
+  MONSTER_READABILITY_SIZE_POLICY,
   MONSTER_DIMENSIONS,
 } from '../../generated/monsterDimensions.generated';
 import type { EnemyPresentationProfileDefinition } from '../animation/animationProfileTypes';
+
+/** Pre-readability baselines retained by elite and boss definitions. */
+export const LEGACY_TARGET_HEIGHTS: Readonly<Record<MonsterSizeClass, number>> =
+  MONSTER_READABILITY_SIZE_POLICY.preservedBaselineHeights;
+
+/** Exact clean physical targets for ordinary (fodder/specialist) monsters. */
+export const TARGET_HEIGHTS: Readonly<Record<MonsterSizeClass, number>> =
+  MONSTER_READABILITY_SIZE_POLICY.ordinaryTargetHeights;
+
+export const TIER_SCALES: Readonly<Record<MonsterTier, number>> =
+  MONSTER_READABILITY_SIZE_POLICY.tierScales;
+
+export function targetBaseHeightForTier(sizeClass: MonsterSizeClass, tier: MonsterTier): number {
+  const readable = (MONSTER_READABILITY_SIZE_POLICY.readabilityTiers as readonly string[]).includes(tier);
+  return readable ? TARGET_HEIGHTS[sizeClass] : LEGACY_TARGET_HEIGHTS[sizeClass];
+}
 
 export interface NormalizedEnemyDimensions {
   targetHeight: number;
@@ -55,6 +62,8 @@ export interface ResolvedMonsterDimensions extends NormalizedEnemyDimensions {
   targetBaseHeight: number;
   normalizationScale: number;
   tierScale: number;
+  /** Ordinary-only multiplier relative to the legacy base; 1 for elite/boss. */
+  readabilityScale: number;
   variantScale: number;
   finalScale: number;
   finalWidth: number;
@@ -66,11 +75,11 @@ export interface ResolvedMonsterDimensions extends NormalizedEnemyDimensions {
 
 export function normalizedEnemyDimensions(
   sourceBounds: { width: number; height: number; depth: number; groundOffset: number },
-  sizeClass: 'small' | 'medium' | 'large',
-  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  sizeClass: MonsterSizeClass,
+  tier: MonsterTier,
   optionalVariantScale = 1,
 ): NormalizedEnemyDimensions {
-  const targetHeight = TARGET_HEIGHTS[sizeClass];
+  const targetHeight = targetBaseHeightForTier(sizeClass, tier);
   const sourceHeight = Math.max(0.01, sourceBounds.height);
   const normalizationScale = targetHeight / sourceHeight;
   const finalScale = normalizationScale * TIER_SCALES[tier] * optionalVariantScale;
@@ -104,13 +113,14 @@ export function resolvedMonsterDimensions(
     projectileSocket?: [number, number, number];
     groundSocket?: [number, number, number];
   },
-  sizeClass: 'small' | 'medium' | 'large',
-  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  sizeClass: MonsterSizeClass,
+  tier: MonsterTier,
   optionalVariantScale = 1,
 ): ResolvedMonsterDimensions {
   const base = normalizedEnemyDimensions(source, sizeClass, tier, optionalVariantScale);
   const tierScale = TIER_SCALES[tier];
-  const normalizationScale = TARGET_HEIGHTS[sizeClass] / Math.max(0.01, source.height);
+  const targetBaseHeight = targetBaseHeightForTier(sizeClass, tier);
+  const normalizationScale = targetBaseHeight / Math.max(0.01, source.height);
   const finalScale = normalizationScale * tierScale * optionalVariantScale;
   const projectile = source.projectileSocket ?? [0, source.height * 0.7, 0];
   const ground = source.groundSocket ?? [0, 0, 0];
@@ -127,9 +137,10 @@ export function resolvedMonsterDimensions(
     sourceHeight: source.height,
     sourceDepth: source.depth,
     sourceGroundOffset: source.groundOffset,
-    targetBaseHeight: TARGET_HEIGHTS[sizeClass],
+    targetBaseHeight,
     normalizationScale,
     tierScale,
+    readabilityScale: targetBaseHeight / LEGACY_TARGET_HEIGHTS[sizeClass],
     variantScale: optionalVariantScale,
     finalScale,
     finalWidth: base.normalizedWidth,
@@ -154,11 +165,11 @@ const dimensionCache = new Map<string, ResolvedMonsterDimensions>();
  */
 export function resolveMonsterDimensions(
   enemyId: string,
-  sizeClass: 'small' | 'medium' | 'large',
-  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  sizeClass: MonsterSizeClass,
+  tier: MonsterTier,
   optionalVariantScale = 1,
 ): ResolvedMonsterDimensions {
-  const key = `${enemyId}|${sizeClass}|${tier}`;
+  const key = `${enemyId}|${sizeClass}|${tier}|${optionalVariantScale}`;
   const cached = dimensionCache.get(key);
   if (cached) return cached;
   const source = MONSTER_DIMENSIONS[slugFromEnemyId(enemyId)];
@@ -187,19 +198,21 @@ export function resolveMonsterDimensionsForDefId(
 /** Authored projectile socket offset, normalized with the gameplay body. */
 export function resolveProjectileSocketOffset(
   enemyId: string,
-  sizeClass: 'small' | 'medium' | 'large',
-  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  sizeClass: MonsterSizeClass,
+  tier: MonsterTier,
+  optionalVariantScale = 1,
 ): [number, number, number] {
-  return resolveMonsterDimensions(enemyId, sizeClass, tier).projectileSocket;
+  return resolveMonsterDimensions(enemyId, sizeClass, tier, optionalVariantScale).projectileSocket;
 }
 
 /** Compatibility accessor for consumers that need only authored socket Y. */
 export function resolveProjectileSocketY(
   enemyId: string,
-  sizeClass: 'small' | 'medium' | 'large',
-  tier: 'fodder' | 'specialist' | 'elite' | 'boss',
+  sizeClass: MonsterSizeClass,
+  tier: MonsterTier,
+  optionalVariantScale = 1,
 ): number {
-  return resolveProjectileSocketOffset(enemyId, sizeClass, tier)[1];
+  return resolveProjectileSocketOffset(enemyId, sizeClass, tier, optionalVariantScale)[1];
 }
 
 /**

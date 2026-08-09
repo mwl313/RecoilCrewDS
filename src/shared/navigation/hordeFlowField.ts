@@ -78,6 +78,14 @@ export class HordeFlowField {
     return true;
   }
 
+  /** Persistent recovery may request an immediate route refresh. */
+  forceRefresh(tankX: number, tankZ: number): void {
+    this.lastTankCellX = this.cellX(tankX);
+    this.lastTankCellZ = this.cellZ(tankZ);
+    this.refreshCooldown = 1 / Math.max(0.5, this.policy.fieldRefreshHz);
+    this.rebuild(tankX, tankZ);
+  }
+
   direction(x: number, z: number): { x: number; z: number } | null {
     const i = this.indexAt(x, z);
     if (i < 0 || !Number.isFinite(this.costs[i])) return null;

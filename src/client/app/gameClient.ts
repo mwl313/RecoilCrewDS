@@ -44,6 +44,7 @@ import { ProgressionInputContext } from '../progression/progressionInputContext'
 import { EnemyWorldUiLayer } from '../worldUi/enemyWorldUiLayer';
 import { TacticalDrawer } from '../tactical/tacticalDrawer';
 import { presentRelicDescription } from '../../shared/presentation/relicDescriptionPresentation';
+import { TankDamageFeedbackLayer } from '../presentation/tankDamageFeedback';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -101,7 +102,9 @@ export class GameClient {
   private relicChestRenderer: RelicChestWorldRenderer | null = null;
   private enemyWorldUi: EnemyWorldUiLayer | null = null;
   private tacticalDrawer: TacticalDrawer | null = null;
+  private readonly tankDamageFeedback: TankDamageFeedbackLayer;
   private latestSectors: AggregateSectorRecord[] = [];
+  private readonly singlePlayerSectorBuffer: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
@@ -153,6 +156,7 @@ export class GameClient {
     quality: QualityManager;
     tankRig: TankRig;
     arenaWorld: ArenaWorld;
+    tankDamageFeedback: TankDamageFeedbackLayer;
   }) {
     this.assets = deps.assets;
     this.container = deps.container;
@@ -168,6 +172,7 @@ export class GameClient {
     this.input = deps.input;
     this.progressionInput = new ProgressionInputContext(deps.input);
     this.arenaWorld = deps.arenaWorld;
+    this.tankDamageFeedback = deps.tankDamageFeedback;
     this.aggregateSectors = new AggregateSectorRenderer(
       deps.world.scene,
       this.assets,
@@ -195,7 +200,11 @@ export class GameClient {
   ): Promise<GameClient> {
     const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
-    const registry = new EntityViewRegistry(renderWorld.scene, factory);
+    const registry = new EntityViewRegistry(
+      renderWorld.scene,
+      factory,
+      (x, z) => world.groundHeightAt(x, z),
+    );
     const tankRig = assets.tankRig();
     renderWorld.scene.add(tankRig.chassis);
     const truckRig = new THREE.Group();
@@ -214,6 +223,7 @@ export class GameClient {
     let gameRef: GameClient | null = null;
     const prediction = new PredictionController('driver', { send: (msg) => gameRef?.onSendInput?.(msg) });
     prediction.setGround(world);
+    const tankDamageFeedback = new TankDamageFeedbackLayer(container);
     const deps = {
       container,
       assets,
@@ -228,12 +238,13 @@ export class GameClient {
       quality: null as unknown as QualityManager,
       tankRig,
       arenaWorld: world,
+      tankDamageFeedback,
     };
     const router = new PresentationEventRouter(assets, renderWorld.vfx, audio, cameras, {
       isPresented: (seq) => gameRef?.isActionPresented(seq) ?? false,
       confirm: (seq) => gameRef?.confirmAction(seq),
       reject: (seq) => gameRef?.rejectAction(seq),
-    });
+    }, tankDamageFeedback);
     const quality = new QualityManager({
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
@@ -422,6 +433,14 @@ export class GameClient {
    * fallback (never hardcoded presentation numbers).
    */
   getHudRules(): { maxIntegrity: number; cannonCooldown: number; chargeTapMaxSeconds: number; chargeFullSeconds: number } {
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      return {
+        maxIntegrity: this.singlePlayerMatch.runtime.rules.resolver.resolve('tank.maxIntegrity'),
+        cannonCooldown: this.singlePlayerMatch.runtime.rules.resolver.resolve('match.cannonCooldown'),
+        chargeTapMaxSeconds: this.singlePlayerMatch.runtime.rules.config.weapons.chargeTapMaxSeconds,
+        chargeFullSeconds: this.singlePlayerMatch.runtime.rules.config.weapons.chargeFullSeconds,
+      };
+    }
     const block = this.prediction.movementRules();
     const tank = block?.tank;
     const weapon = block?.weapon;
@@ -471,12 +490,30 @@ export class GameClient {
     boss: number;
     special: number;
     global: number;
+    ordinaryGlobal: number;
     within45: number;
     within70: number;
+    ordinaryWithin45: number;
+    ordinaryWithin70: number;
     close: number;
     ranged: number;
     specialist: number;
     sectors: number;
+    sectorMovement: number;
+    recycledPerSecond: number;
+    recycleReason: string;
+    globalDeficit: number;
+    nearbyDeficit: number;
+    nearbyTargetMinimum: number;
+    nearbyTargetMaximum: number;
+    angularCounts: number[];
+    lastDirections: string[];
+    pendingSubgroups: number;
+    maintenanceSummons: number;
+    persistentRecovery: string;
+    rewardSuppressedKills: number;
+    clearRate: number;
+    clearRateIncomeMultiplier: number;
     entityTarget: number;
     threatTarget: number;
     spawnIncome: number;
@@ -520,12 +557,32 @@ export class GameClient {
       boss: counts.boss + sectorTally.byClass.boss.entities,
       special: counts.special + sectorTally.byClass.special.entities,
       global: density.globalEnemyCount,
+      ordinaryGlobal: density.globalOrdinaryCount,
       within45: density.nearbyEnemyCount45,
       within70: density.nearbyEnemyCount70,
+      ordinaryWithin45: density.nearbyOrdinaryCount45,
+      ordinaryWithin70: density.nearbyOrdinaryCount70,
       close: density.close,
       ranged: density.ranged,
       specialist: density.specialist,
       sectors: systems.hordeSectors.sectors.size,
+      sectorMovement: density.sectorMovementProgress,
+      recycledPerSecond: density.recycledUnitsPerSecond,
+      recycleReason: density.recycleReason,
+      globalDeficit: density.globalOrdinaryDeficit,
+      nearbyDeficit: density.nearbyOrdinaryDeficit,
+      nearbyTargetMinimum: density.nearbyTargetMinimum,
+      nearbyTargetMaximum: density.nearbyTargetMaximum,
+      angularCounts: density.angularSectorCounts,
+      lastDirections: density.lastAnchorDirections,
+      pendingSubgroups: density.pendingSubgroups,
+      maintenanceSummons: density.maintenanceSummonCount,
+      persistentRecovery: Object.entries(density.persistentRecoveryStage)
+        .map(([id, state]) => `${id}:${state}`)
+        .join(',') || '-',
+      rewardSuppressedKills: density.rewardSuppressedKills,
+      clearRate: density.clearRatePerSecond,
+      clearRateIncomeMultiplier: density.clearRateIncomeMultiplier,
       entityTarget: horde.currentEntityTarget,
       threatTarget: horde.currentThreatTarget,
       spawnIncome: horde.currentSpawnIncome,
@@ -597,6 +654,7 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.reset();
     this.enemyWorldUi?.reset();
+    this.router.reset();
     this.tacticalDrawer?.close();
     this.singlePlayerAcc = 0;
     this.resetSinglePlayerRenderPose();
@@ -641,17 +699,34 @@ export class GameClient {
     this.presenter.setSnapshot(msg as never);
   }
 
-  private collectAggregateSectors(): AggregateSectorRecord[] {
+  private collectAggregateSectors(): readonly AggregateSectorRecord[] {
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
       const sectors = this.singlePlayerMatch.runtime.systems.hordeSectors.sectors;
-      return [...sectors.values()].map((s) => ({
-        sectorId: s.sectorId,
-        x: s.centerX,
-        z: s.centerZ,
-        count: s.count,
-        enemyDefId: s.enemyDefId,
-        presentationSeed: s.presentationSeed,
-      }));
+      let index = 0;
+      for (const sector of sectors.values()) {
+        let record = this.singlePlayerSectorBuffer[index];
+        if (!record) {
+          record = {
+            sectorId: sector.sectorId,
+            x: sector.centerX,
+            z: sector.centerZ,
+            count: sector.count,
+            enemyDefId: sector.enemyDefId,
+            presentationSeed: sector.presentationSeed,
+          };
+          this.singlePlayerSectorBuffer.push(record);
+        } else {
+          record.sectorId = sector.sectorId;
+          record.x = sector.centerX;
+          record.z = sector.centerZ;
+          record.count = sector.count;
+          record.enemyDefId = sector.enemyDefId;
+          record.presentationSeed = sector.presentationSeed;
+        }
+        index++;
+      }
+      this.singlePlayerSectorBuffer.length = index;
+      return this.singlePlayerSectorBuffer;
     }
     return this.latestSectors;
   }
@@ -667,6 +742,7 @@ export class GameClient {
       ev,
       this.cameras.activeCam.camera,
       this.presenter.latest?.enemies ?? [],
+      this.presenter.latest?.matchFlow ?? 'playing',
     );
     this.router.handleEvent(ev);
   }
@@ -704,7 +780,7 @@ export class GameClient {
       this.singlePlayerPreviousTank = { ...m.state.tank };
       m.step(step);
       for (const ev of m.takeEvents()) {
-        this.enemyWorldUi?.handleEvent(ev, this.cameras.activeCam.camera, m.state.enemies);
+        this.enemyWorldUi?.handleEvent(ev, this.cameras.activeCam.camera, m.state.enemies, m.state.matchFlow);
         this.router.handleEvent(ev);
         this.onHudEvent?.(ev);
       }
@@ -726,6 +802,7 @@ export class GameClient {
     const dt = dtRaw * (this.slowMo > 0 ? 0.32 : 1);
     this.slowMo = Math.max(0, this.slowMo - dtRaw);
     this.cameras.tickShake(dtRaw);
+    this.router.update(now);
 
     this.syncProgressionInputContext();
 
@@ -789,13 +866,15 @@ export class GameClient {
       this.onFrame?.(latest);
       this.updateProgressionOverlay();
       this.relicInventoryRail?.update(latest);
-      this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
+      const sectors = this.collectAggregateSectors();
+      this.aggregateSectors.update(sectors, latest.tank.x, latest.tank.z);
       this.relicChestRenderer?.sync(latest.chests, latest.time, Date.now(), dtRaw);
-      this.tacticalDrawer?.update(
-        latest,
-        renderTank ?? this.presenter.getRenderTank(),
-        this.session.kind === 'singlePlayer' ? 'single' : this.role,
-      );
+      this.tacticalDrawer?.update({
+        state: latest,
+        tank: renderTank ?? this.presenter.getRenderTank(),
+        role: this.session.kind === 'singlePlayer' ? 'single' : this.role,
+        sectors,
+      });
     }
 
     this.pollGunnerActions();
@@ -846,6 +925,7 @@ export class GameClient {
       this.cameras.activeCam.camera,
       renderTank,
       performance.now(),
+      latest?.matchFlow ?? 'playing',
     );
     this.renderFrame();
   };
@@ -1322,6 +1402,13 @@ export class GameClient {
     return this.tacticalDrawer?.diagnostics() ?? null;
   }
 
+  worldFeedbackDiagnostics(): { queued: number; popups: Array<{ kind: string; amount: number; source: string }> } {
+    return {
+      queued: this.enemyWorldUi?.queuedCount ?? 0,
+      popups: this.enemyWorldUi?.popups.items.map(({ kind, amount, source }) => ({ kind, amount, source })) ?? [],
+    };
+  }
+
   setApronEnabledForTest(enabled: boolean): void {
     this.world.setApronEnabled(enabled);
     this.world.resetQualityDiagnostics();
@@ -1334,7 +1421,7 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.dispose();
     this.world.arena.dispose();
-    this.registry.reset();
+    this.registry.dispose();
     this.progressionOverlay?.dispose();
     this.progressionOverlay = null;
     this.relicInventoryRail?.dispose();
@@ -1343,6 +1430,7 @@ export class GameClient {
     this.relicChestRenderer = null;
     this.enemyWorldUi?.dispose();
     this.enemyWorldUi = null;
+    this.tankDamageFeedback.dispose();
     this.tacticalDrawer?.dispose();
     this.tacticalDrawer = null;
     this.world.dispose();

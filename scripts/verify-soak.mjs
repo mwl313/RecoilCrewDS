@@ -2,7 +2,8 @@
 /**
  * Long-run netcode soak (network03): runs full 90-second rounds back to back
  * against the local server and requires every round to complete with a
- * positive score, JACKPOT, rematch, and a healthy snapshot count.
+ * a positive kill count, rematch, and a healthy snapshot count. Production
+ * monster definitions do not use the legacy scrapBug/rammer/tower score table.
  *
  * Usage: node scripts/verify-soak.mjs [rounds] [ws://host:port]
  */

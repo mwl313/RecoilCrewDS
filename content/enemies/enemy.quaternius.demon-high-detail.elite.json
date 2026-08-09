@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
   "stats": {
     "hp": 65,
-    "speed": 3.2,
+    "speed": 6.4,
     "threat": 8
   },
   "rewardClass": "elite",
@@ -18,12 +18,29 @@
     "damage": true
   },
   "attack": {
-    "type": "melee",
-    "damageModel": "contactDps",
-    "contactDps": 11,
-    "rate": 1.9,
-    "range": 2.5,
-    "engagementProfileId": "meleeEngagement.default"
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "punch",
+        "type": "melee",
+        "damage": 5.7894736842105265,
+        "rate": 1.9,
+        "range": 2.5
+      },
+      {
+        "id": "fireball",
+        "type": "ranged",
+        "damage": 11,
+        "rate": 1,
+        "range": 40,
+        "projectileId": "projectile.enemyFireball",
+        "visualColor": "#FF3B30",
+        "telegraphTime": 1
+      }
+    ]
   },
   "behaviors": [
     {
@@ -35,23 +52,17 @@
       "parameters": {}
     },
     {
-      "id": "movement.meleeEngagement",
-      "parameters": {
-        "profileId": "meleeEngagement.default"
-      }
-    },
-    {
-      "id": "movement.integrate",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {
-      "id": "attack.meleeCue",
+      "id": "movement.integrate",
       "parameters": {}
     }
   ],
   "spawnTags": [
     "elite",
-    "melee",
+    "mixed",
     "medium"
   ]
 }

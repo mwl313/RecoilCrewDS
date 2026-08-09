@@ -1,12 +1,14 @@
 import { angleLerp, clamp, dist } from '../math';
 import { pushEvent, type SystemContext } from '../sim/systems/systemContext';
 import type { EnemyState } from '../types';
-import { behaviorParam, EnemyBehaviorRegistry } from './enemyBehaviorRegistry';
+import type { MixedAttackPattern, MonsterEnemyDefinition } from '../content/schemas/enemy';
+import { behaviorParam, EnemyBehaviorRegistry, type EnemyBehavior } from './enemyBehaviorRegistry';
 import type { EnemyRuntimeState } from './enemyRuntimeState';
 import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 import { enemySpeed, isMonster } from './monsterCompat';
 import {
   advanceAttackCycle,
+  selectCyclicUsablePattern,
   startAttackCycle,
 } from '../monsters/monsterAttack';
 import {
@@ -21,6 +23,14 @@ import {
   DEFAULT_MELEE_MOVEMENT_PROFILE,
   RANGED_HOLD_PROFILE,
 } from '../monsters/movementProfiles';
+import {
+  directionToTankHurtCenter,
+  intervalOverlapsTankHurtCapsule,
+  resolveTankHurtCapsule,
+} from '../combat/tankHurtVolume';
+import { isPersistentThreat } from './enemyClassification';
+
+const FEATURED_MOVEMENT_SUBSTEP_METERS = 0.55;
 
 /**
  * Built-in enemy behavior primitives. Each is a straight port of the legacy
@@ -124,6 +134,18 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         runtime.dirX = flow.x;
         runtime.dirZ = flow.z;
       }
+      // Recovery raises direct/alternate route priority without changing
+      // authored movement speed.
+      if (runtime.persistentRecoveryStage >= 2) {
+        const directBlend = runtime.persistentRecoveryStage === 2 ? 0.18 : 0.28;
+        runtime.dirX = runtime.dirX * (1 - directBlend) + directX * directBlend;
+        runtime.dirZ = runtime.dirZ * (1 - directBlend) + directZ * directBlend;
+      }
+      if (runtime.persistentRecoveryStage >= 3 && flow) {
+        const side = e.id % 2 === 0 ? 1 : -1;
+        runtime.dirX += -flow.z * side * 0.2;
+        runtime.dirZ += flow.x * side * 0.2;
+      }
       const def = ctx.enemies.defFor(e);
       runtime.speed = behaviorParam(def, 'movement.flowSeek', 'speed', 3.2);
       // Stuck detection: require net progress toward the tank.
@@ -149,7 +171,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       } else if (runtime.stuckT > stuckTime * 2.5) {
         // Last resort: despawn/refund only when invisible and safe so a
         // trapped enemy cannot consume the population cap indefinitely.
-        if (d > 30) {
+        if (d > 30 && !isPersistentThreat(e)) {
           ctx.enemies.purge((c) => c.id === e.id);
         }
       }
@@ -180,6 +202,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       // Impulse-driven motion owns position while the enemy is airborne.
       if (ctx.enemyImpulses.isAirborne(e)) return;
       const r = ctx.enemies.radiusFor(e);
+      const def = ctx.enemies.defFor(e);
       // Final speed ordering: authored speed → progression/relic modifier →
       // integration. The modifier is applied here, immediately before
       // displacement, so debuffs always change movement.
@@ -188,25 +211,46 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         : 1;
       const ml = Math.hypot(runtime.dirX, runtime.dirZ) || 1;
       const speed = runtime.speed * speedMultiplier;
-      const nx = e.x + (runtime.dirX / ml) * speed * dt;
-      const nz = e.z + (runtime.dirZ / ml) * speed * dt;
-      if (ctx.world.queryTerrainTransition) {
-        const tr = ctx.world.queryTerrainTransition(e.x, e.z, nx, nz);
-        if (tr && !canTraverseGroundStep(tr)) {
-          // Cliff/step guard: ground enemies cannot snap upward through
-          // cliffs; they stay put (bounded recovery behaviors handle traps).
+      const featured = isMonster(def) && (def.tier === 'elite' || def.tier === 'boss');
+      const startX = e.x;
+      const startZ = e.z;
+      const substeps = featured
+        ? Math.max(1, Math.ceil(Math.abs(speed * dt) / FEATURED_MOVEMENT_SUBSTEP_METERS))
+        : 1;
+      const stepDistance = speed * dt / substeps;
+      for (let step = 0; step < substeps; step++) {
+        const nx = e.x + (runtime.dirX / ml) * stepDistance;
+        const nz = e.z + (runtime.dirZ / ml) * stepDistance;
+        if (ctx.world.queryTerrainTransition) {
+          const tr = ctx.world.queryTerrainTransition(e.x, e.z, nx, nz);
+          if (tr && !canTraverseGroundStep(tr)) break;
+        }
+        const nextY = ctx.world.groundHeightAt(nx, nz);
+        const col = ctx.world.resolveCircle(nx, nz, r, nextY);
+        if (featured) {
+          const tankSafe = stopBeforeTank(
+            e.x,
+            e.z,
+            col.x,
+            col.z,
+            ctx.state.tank.x,
+            ctx.state.tank.z,
+            r + ctx.rules.config.arena.tankRadius,
+          );
+          e.x = tankSafe.x;
+          e.z = tankSafe.z;
           e.y = ctx.world.groundHeightAt(e.x, e.z);
-          e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
-          return;
+          if (col.hit || tankSafe.hit) break;
+        } else {
+          e.x = col.x;
+          e.z = col.z;
+          e.y = nextY;
         }
       }
-      e.x = nx;
-      e.z = nz;
-      e.y = ctx.world.groundHeightAt(e.x, e.z);
       e.yaw = angleLerp(e.yaw, Math.atan2(runtime.dirX, runtime.dirZ), clamp(dt * 6, 0, 1));
-      const col = ctx.world.resolveCircle(e.x, e.z, r, e.y);
-      e.x = col.x;
-      e.z = col.z;
+      // Only featured threats opt into the additional authoritative cadence
+      // signal; locomotion playback remains bounded by animation profiles.
+      if (featured) e.speed = dt > 0 ? Math.hypot(e.x - startX, e.z - startZ) / dt : 0;
     },
   });
 
@@ -224,7 +268,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         // Enemy-to-tank contact attack (unchanged). Tank offense is owned by
         // TankContactCombat (Dash-only); normal contact deals zero enemy
         // damage and speed alone can no longer kill.
-        ctx.damage.applyTank(damage, 'bug');
+        ctx.damage.applyTank(damage, 'bug', undefined, {
+          sourcePosition: { x: e.x, y: e.y, z: e.z },
+          kind: 'collision',
+        });
         pushEvent(ctx, 'crash', e.x, e.y, e.z, { value: damage });
         e.x -= runtime.dirX * 0.8;
         e.z -= runtime.dirZ * 0.8;
@@ -304,7 +351,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             break;
           }
           if (d < r + ctx.rules.config.arena.tankRadius + 0.5 && t.deadT <= 0) {
-            ctx.damage.applyTank(damage, 'rammer');
+            ctx.damage.applyTank(damage, 'rammer', undefined, {
+              sourcePosition: { x: e.x, y: e.y, z: e.z },
+              kind: 'collision',
+            });
             const nx = dx / d;
             const nz = dz / d;
             t.vx += nx * knockback;
@@ -534,7 +584,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const d = runtime.distToTank || Math.hypot(dx, dz) || 1;
       const toX = dx / d;
       const toZ = dz / d;
-      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius;
+      const enemyRadius = resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius;
       const tankRadius = ctx.rules.config.arena.tankRadius;
       const geometry = resolveMonsterEngagementGeometry({
         enemyRadius,
@@ -622,14 +672,19 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       if (!runtime.meleeReserved) return;
       const s = ctx.state;
       const geometry = resolveMonsterEngagementGeometry({
-        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
+        enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius,
         tankRadius: ctx.rules.config.arena.tankRadius,
         authoredAttackReach: attack.range,
       });
       if (runtime.distToTank > geometry.effectiveAttackDistance) {
-        runtime.speed *= 0.6;
         return;
       }
+      const dimensions = resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale);
+      if (!intervalOverlapsTankHurtCapsule(
+        e.y,
+        e.y + dimensions.collisionHeight,
+        resolveTankHurtCapsule(s.tank),
+      )) return;
       let atk = runtime.attackRuntime;
       if (!atk || !atk.active) {
         atk = startAttackCycle(s.time, attack.rate, attack.attackCueNormalized, runtime.attackSequence);
@@ -638,8 +693,12 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       const res = advanceAttackCycle(atk, s.time, () => {
         const scaledDps = e.monster?.scaledContactDps ?? attack.contactDps;
         const damagePerHit = scaledDps / attack.rate;
-        if (s.tank.deadT <= 0) {
-          ctx.damage.applyTank(damagePerHit, 'bug');
+        if (s.tank.deadT <= 0 && meleePatternUsable(ctx, e, def, attack.range)) {
+          ctx.damage.applyTank(damagePerHit, 'bug', undefined, {
+            sourcePosition: { x: e.x, y: e.y, z: e.z },
+            kind: 'melee',
+            tier: def.tier,
+          });
           pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
             id: e.id,
             value: damagePerHit,
@@ -687,18 +746,16 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         e.telegraph = 0;
         const projectile = ctx.rules.projectiles.get(attack.projectileId);
         if (!projectile) return;
-        const dx = s.tank.x - e.x;
-        const dz = s.tank.z - e.z;
-        const d = Math.hypot(dx, dz) || 1;
         const damage = e.monster?.scaledProjectileDamage ?? attack.damage;
-        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
+        const aim = directionToTankHurtCenter(socket, resolveTankHurtCapsule(s.tank));
         ctx.projectiles.spawn(
           socket.x,
           socket.y,
           socket.z,
-          dx / d,
-          0,
-          dz / d,
+          aim.x,
+          aim.y,
+          aim.z,
           projectile.speed,
           'enemy',
           projectile.life,
@@ -738,124 +795,195 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
     },
   });
 
-  registry.register({
-    id: 'attack.bossCue',
-    update(ctx, e, runtime) {
-      const def = ctx.enemies.defFor(e);
-      if (!isMonster(def)) return;
-      const attack = def.attack;
-      if (attack.type !== 'mixed') return;
-      const s = ctx.state;
-      const patterns = attack.patterns;
-      if (patterns.length === 0) return;
-      const pattern = patterns[runtime.attackSequence % patterns.length];
-      if (pattern.type === 'ranged' && runtime.distToTank > pattern.range) return;
-      if (pattern.type === 'melee') {
-        const geometry = resolveMonsterEngagementGeometry({
-          enemyRadius: resolveMonsterDimensions(def.id, def.sizeClass, def.tier).collisionRadius,
-          tankRadius: ctx.rules.config.arena.tankRadius,
-          authoredAttackReach: pattern.range,
-        });
-        if (runtime.distToTank > geometry.effectiveAttackDistance) {
-          runtime.speed *= 0.6;
-          return;
-        }
-        // Melee hold: stop moving at the resolved attack distance so the
-        // boss body never overlaps the tank while the pattern is melee.
-        runtime.dirX = 0;
-        runtime.dirZ = 0;
-        runtime.speed = 0;
-      }
-      let atk = runtime.attackRuntime;
-      if (!atk || !atk.active || atk.patternId !== pattern.id) {
-        atk = startAttackCycle(s.time, pattern.rate, pattern.attackCueNormalized, runtime.attackSequence, pattern.id);
-        runtime.attackRuntime = atk;
-        if (pattern.type === 'ranged') {
-          e.telegraph = pattern.telegraphTime;
-          const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
-          pushEvent(ctx, 'bossTelegraph', socket.x, socket.y, socket.z, {
-            id: e.id,
-            kind: 'boss',
-            tier: def.tier,
-            sizeClass: def.sizeClass,
-            presentationProfileId: def.presentationProfileId,
-            eventSequence: runtime.attackSequence,
-            attackSemantic: 'rangedTelegraph',
-          });
-        }
-      }
-      const res = advanceAttackCycle(atk, s.time, () => {
-        e.telegraph = 0;
-        // Boss damage is fixed (never level-scaled).
-        if (pattern.type === 'melee') {
-          if (s.tank.deadT <= 0) {
-            ctx.damage.applyTank(pattern.damage, 'bug');
-            pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
-              id: e.id,
-              value: pattern.damage,
-              kind: 'boss',
-              tier: def.tier,
-              sizeClass: def.sizeClass,
-              presentationProfileId: def.presentationProfileId,
-              eventSequence: runtime.attackSequence,
-              attackSemantic: 'meleeImpact',
-            });
-          }
-          return;
-        }
-        const projectile = ctx.rules.projectiles.get(pattern.projectileId);
-        if (!projectile) return;
-        const dx = s.tank.x - e.x;
-        const dz = s.tank.z - e.z;
-        const d = Math.hypot(dx, dz) || 1;
-        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier));
-        ctx.projectiles.spawn(
-          socket.x,
-          socket.y,
-          socket.z,
-          dx / d,
-          0,
-          dz / d,
-          projectile.speed,
-          'enemy',
-          projectile.life,
-          undefined,
-          {
-            damage: pattern.damage,
-            splashRadius: projectile.hitRadius,
-            knockbackMax: 0,
-            knockbackMin: 0,
-            knockbackVertical: 0,
-            knockbackRadiusMultiplier: 1,
-            knockbackFalloffExponent: 1,
-            tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
-            team: 'enemy',
-            ownerEnemyId: e.id,
-            visualColor: pattern.visualColor,
-            sourceTier: def.tier,
-            sourceSizeClass: def.sizeClass,
-            sourcePresentationProfileId: def.presentationProfileId,
-            sourceAttackSequence: runtime.attackSequence,
-          },
-        );
-        pushEvent(ctx, 'bossFire', socket.x, socket.y, socket.z, {
+  const updateMixedCue: EnemyBehavior['update'] = (ctx, e, runtime) => {
+    const def = ctx.enemies.defFor(e);
+    if (!isMonster(def) || def.attack.type !== 'mixed') return;
+    const s = ctx.state;
+    const patterns = def.attack.patterns;
+    if (patterns.length === 0) return;
+    let atk = runtime.attackRuntime;
+    const activePattern = atk?.active && atk.patternId
+      ? patterns.find((candidate) => candidate.id === atk!.patternId)
+      : undefined;
+    const pattern = activePattern ?? selectCyclicUsablePattern(
+      patterns,
+      runtime.attackSequence,
+      (candidate) => mixedPatternUsable(ctx, e, def, candidate),
+    );
+    // Outside every pattern's range: pure pursuit at full authored speed,
+    // with no fake cycle and no mutation of deterministic sequence state.
+    if (!pattern) return;
+    if (pattern.type === 'melee') {
+      runtime.dirX = 0;
+      runtime.dirZ = 0;
+      runtime.speed = 0;
+    }
+    if (!atk || !atk.active || atk.patternId !== pattern.id) {
+      atk = startAttackCycle(s.time, pattern.rate, pattern.attackCueNormalized, runtime.attackSequence, pattern.id);
+      runtime.attackRuntime = atk;
+      if (pattern.type === 'ranged') {
+        e.telegraph = pattern.telegraphTime;
+        const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
+        const boss = def.tier === 'boss';
+        pushEvent(ctx, boss ? 'bossTelegraph' : 'enemyTelegraph', socket.x, socket.y, socket.z, {
           id: e.id,
-          kind: 'boss',
+          kind: boss ? 'boss' : 'enemy',
           tier: def.tier,
           sizeClass: def.sizeClass,
           presentationProfileId: def.presentationProfileId,
           eventSequence: runtime.attackSequence,
-          attackSemantic: 'rangedFire',
+          attackSemantic: 'rangedTelegraph',
         });
-      });
-      if (res === 'done') {
-        runtime.attackRuntime = undefined;
-        runtime.attackSequence++;
       }
-    },
-  });
+    }
+    const res = advanceAttackCycle(atk, s.time, () => {
+      e.telegraph = 0;
+      const damageMultiplier = def.tier === 'boss'
+        ? 1
+        : e.monster?.damageMultiplierAtSpawn ?? 1;
+      const damage = pattern.damage * damageMultiplier;
+      if (pattern.type === 'melee') {
+        if (s.tank.deadT <= 0 && meleePatternUsable(ctx, e, def, pattern.range)) {
+          ctx.damage.applyTank(damage, 'bug', undefined, {
+            sourcePosition: { x: e.x, y: e.y, z: e.z },
+            kind: 'melee',
+            tier: def.tier,
+          });
+          pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
+            id: e.id,
+            value: damage,
+            kind: def.tier === 'boss' ? 'boss' : 'monster',
+            tier: def.tier,
+            sizeClass: def.sizeClass,
+            presentationProfileId: def.presentationProfileId,
+            eventSequence: runtime.attackSequence,
+            attackSemantic: 'meleeImpact',
+          });
+        }
+        return;
+      }
+      const projectile = ctx.rules.projectiles.get(pattern.projectileId);
+      if (!projectile) return;
+      const socket = projectileSocketWorld(e.x, e.y, e.z, e.yaw, resolveProjectileSocketOffset(def.id, def.sizeClass, def.tier, def.optionalVariantScale));
+      const aim = directionToTankHurtCenter(socket, resolveTankHurtCapsule(s.tank));
+      ctx.projectiles.spawn(
+        socket.x,
+        socket.y,
+        socket.z,
+        aim.x,
+        aim.y,
+        aim.z,
+        projectile.speed,
+        'enemy',
+        projectile.life,
+        undefined,
+        {
+          damage,
+          splashRadius: projectile.hitRadius,
+          knockbackMax: 0,
+          knockbackMin: 0,
+          knockbackVertical: 0,
+          knockbackRadiusMultiplier: 1,
+          knockbackFalloffExponent: 1,
+          tankHitRadius: projectile.tankHitRadius ?? projectile.hitRadius + 0.6,
+          team: 'enemy',
+          ownerEnemyId: e.id,
+          visualColor: pattern.visualColor,
+          sourceTier: def.tier,
+          sourceSizeClass: def.sizeClass,
+          sourcePresentationProfileId: def.presentationProfileId,
+          sourceAttackSequence: runtime.attackSequence,
+        },
+      );
+      const boss = def.tier === 'boss';
+      pushEvent(ctx, boss ? 'bossFire' : 'enemyFire', socket.x, socket.y, socket.z, {
+        id: e.id,
+        kind: boss ? 'boss' : 'enemy',
+        tier: def.tier,
+        sizeClass: def.sizeClass,
+        presentationProfileId: def.presentationProfileId,
+        eventSequence: runtime.attackSequence,
+        attackSemantic: 'rangedFire',
+      });
+    });
+    if (res === 'done') {
+      runtime.attackRuntime = undefined;
+      runtime.attackSequence++;
+    }
+  };
+
+  registry.register({ id: 'attack.mixedCue', update: updateMixedCue });
+  // Temporary compatibility for content packs still authored with the old id.
+  registry.register({ id: 'attack.bossCue', update: updateMixedCue });
 
   return registry;
+}
+
+function mixedPatternUsable(
+  ctx: SystemContext,
+  e: EnemyState,
+  def: MonsterEnemyDefinition,
+  pattern: MixedAttackPattern,
+): boolean {
+  if (pattern.type === 'ranged') {
+    return Math.hypot(ctx.state.tank.x - e.x, ctx.state.tank.z - e.z) <= pattern.range;
+  }
+  return meleePatternUsable(ctx, e, def, pattern.range);
+}
+
+function meleePatternUsable(
+  ctx: SystemContext,
+  e: EnemyState,
+  def: MonsterEnemyDefinition,
+  authoredRange: number,
+): boolean {
+  const dimensions = resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale);
+  const geometry = resolveMonsterEngagementGeometry({
+    enemyRadius: dimensions.collisionRadius,
+    tankRadius: ctx.rules.config.arena.tankRadius,
+    authoredAttackReach: authoredRange,
+  });
+  const horizontal = Math.hypot(ctx.state.tank.x - e.x, ctx.state.tank.z - e.z);
+  if (horizontal > geometry.effectiveAttackDistance) return false;
+  return intervalOverlapsTankHurtCapsule(
+    e.y,
+    e.y + dimensions.collisionHeight,
+    resolveTankHurtCapsule(ctx.state.tank),
+  );
+}
+
+function stopBeforeTank(
+  fromX: number,
+  fromZ: number,
+  toX: number,
+  toZ: number,
+  tankX: number,
+  tankZ: number,
+  minDistance: number,
+): { x: number; z: number; hit: boolean } {
+  const startDx = fromX - tankX;
+  const startDz = fromZ - tankZ;
+  const startDistance = Math.hypot(startDx, startDz);
+  if (startDistance < minDistance) {
+    const inv = 1 / (startDistance || 1);
+    return {
+      x: tankX + (startDistance > 0 ? startDx * inv : 1) * minDistance,
+      z: tankZ + (startDistance > 0 ? startDz * inv : 0) * minDistance,
+      hit: true,
+    };
+  }
+  const dx = toX - fromX;
+  const dz = toZ - fromZ;
+  const a = dx * dx + dz * dz;
+  if (a <= 1e-12) return { x: toX, z: toZ, hit: false };
+  const b = 2 * (startDx * dx + startDz * dz);
+  const c = startDx * startDx + startDz * startDz - minDistance * minDistance;
+  const discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) return { x: toX, z: toZ, hit: false };
+  const toi = (-b - Math.sqrt(discriminant)) / (2 * a);
+  if (toi < 0 || toi > 1) return { x: toX, z: toZ, hit: false };
+  const safeToi = Math.max(0, toi - 1e-4);
+  return { x: fromX + dx * safeToi, z: fromZ + dz * safeToi, hit: true };
 }
 
 function projectileSocketWorld(
