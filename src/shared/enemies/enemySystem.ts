@@ -30,6 +30,7 @@ import type { SpawnOwnership } from '../horde/spawnOwnership';
 import type { EnemyLodPolicyDefinition } from '../content/schemas/horde';
 import { cancelAttackCycle } from '../monsters/monsterAttack';
 import type { StageEvent } from '../stage/stageTypes';
+import { isPersistentThreat } from './enemyClassification';
 
 /** Wire type -> definition id (documented engine default mapping). */
 const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
@@ -104,6 +105,30 @@ export class EnemySystem {
     return runtime
       ? { action: runtime.semanticAction, sequence: runtime.semanticSequence }
       : { action: 'Idle', sequence: 0 };
+  }
+
+  /** Route-only recovery; preserves the entity and every combat field. */
+  setPersistentRecoveryStage(enemyId: number, stage: 0 | 1 | 2 | 3): void {
+    const runtime = this.runtimes.get(enemyId);
+    if (!runtime) return;
+    runtime.persistentRecoveryStage = stage;
+    runtime.stuckT = 0;
+    runtime.recovered = false;
+    runtime.nextUpdateAt = 0;
+    const enemy = this.ctx.state.enemies.find((candidate) => candidate.id === enemyId);
+    if (enemy?.ownership) {
+      if (stage === 0) delete enemy.ownership.pursuitPriority;
+      else enemy.ownership.pursuitPriority = stage >= 2 ? 2 : 1;
+    }
+  }
+
+  persistentRecoveryStage(enemyId: number): 0 | 1 | 2 | 3 {
+    return this.runtimes.get(enemyId)?.persistentRecoveryStage ?? 0;
+  }
+
+  /** Persistent recovery qualification hook; re-entry must not reset it. */
+  attackSequenceFor(enemyId: number): number {
+    return this.runtimes.get(enemyId)?.attackSequence ?? 0;
   }
 
   defFor(enemy: EnemyState): EnemyDefinition {
@@ -422,7 +447,7 @@ export class EnemySystem {
       tier = 2;
     }
     // Promotion overrides: gameplay-relevant enemies always run at full rate.
-    if (e.ownership?.populationClass === 'boss' || e.ownership?.leaderId === e.id) return 0;
+    if (isPersistentThreat(e)) return 0;
     if (e.telegraph > 0 || e.flash > 0) return 0;
     if (e.state === 'lock' || e.state === 'telegraph' || e.state === 'charge' || e.state === 'fire') return 0;
     const lastImpulse = e.lastImpulseT ?? -9;

@@ -75,6 +75,9 @@ describe('production wave composition (bug-fix phase 1)', () => {
   it('opens wave 1 with roster-mixed entries from every opening pack', { timeout: 30_000 }, () => {
     const m = makeMatch();
     stepUntilPhase(m, 'wave1');
+    // Opening packs reserve atomically at wave-open, then complete their
+    // authored 0/120-220/240-380ms subgroup stagger.
+    step(m, 0.5);
     const horde = m.runtime.systems.horde!;
     expect(horde.currentWaveId).not.toBeNull();
     const waveId = horde.currentWaveId!;
@@ -117,7 +120,7 @@ describe('production wave composition (bug-fix phase 1)', () => {
     step(m, 61);
     killWaveLeader(m);
     stepUntilPhase(m, 'bossWave');
-    step(m, 4.2);
+    step(m, 4.7);
     const stage = m.runtime.systems.stage.state;
     expect(stage.phase).toBe('bossWave');
     const horde = m.runtime.systems.horde!;

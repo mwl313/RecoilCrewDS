@@ -490,12 +490,30 @@ export class GameClient {
     boss: number;
     special: number;
     global: number;
+    ordinaryGlobal: number;
     within45: number;
     within70: number;
+    ordinaryWithin45: number;
+    ordinaryWithin70: number;
     close: number;
     ranged: number;
     specialist: number;
     sectors: number;
+    sectorMovement: number;
+    recycledPerSecond: number;
+    recycleReason: string;
+    globalDeficit: number;
+    nearbyDeficit: number;
+    nearbyTargetMinimum: number;
+    nearbyTargetMaximum: number;
+    angularCounts: number[];
+    lastDirections: string[];
+    pendingSubgroups: number;
+    maintenanceSummons: number;
+    persistentRecovery: string;
+    rewardSuppressedKills: number;
+    clearRate: number;
+    clearRateIncomeMultiplier: number;
     entityTarget: number;
     threatTarget: number;
     spawnIncome: number;
@@ -539,12 +557,32 @@ export class GameClient {
       boss: counts.boss + sectorTally.byClass.boss.entities,
       special: counts.special + sectorTally.byClass.special.entities,
       global: density.globalEnemyCount,
+      ordinaryGlobal: density.globalOrdinaryCount,
       within45: density.nearbyEnemyCount45,
       within70: density.nearbyEnemyCount70,
+      ordinaryWithin45: density.nearbyOrdinaryCount45,
+      ordinaryWithin70: density.nearbyOrdinaryCount70,
       close: density.close,
       ranged: density.ranged,
       specialist: density.specialist,
       sectors: systems.hordeSectors.sectors.size,
+      sectorMovement: density.sectorMovementProgress,
+      recycledPerSecond: density.recycledUnitsPerSecond,
+      recycleReason: density.recycleReason,
+      globalDeficit: density.globalOrdinaryDeficit,
+      nearbyDeficit: density.nearbyOrdinaryDeficit,
+      nearbyTargetMinimum: density.nearbyTargetMinimum,
+      nearbyTargetMaximum: density.nearbyTargetMaximum,
+      angularCounts: density.angularSectorCounts,
+      lastDirections: density.lastAnchorDirections,
+      pendingSubgroups: density.pendingSubgroups,
+      maintenanceSummons: density.maintenanceSummonCount,
+      persistentRecovery: Object.entries(density.persistentRecoveryStage)
+        .map(([id, state]) => `${id}:${state}`)
+        .join(',') || '-',
+      rewardSuppressedKills: density.rewardSuppressedKills,
+      clearRate: density.clearRatePerSecond,
+      clearRateIncomeMultiplier: density.clearRateIncomeMultiplier,
       entityTarget: horde.currentEntityTarget,
       threatTarget: horde.currentThreatTarget,
       spawnIncome: horde.currentSpawnIncome,

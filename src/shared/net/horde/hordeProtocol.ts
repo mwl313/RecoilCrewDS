@@ -46,7 +46,8 @@ export interface HordeSnapshotBlock {
   far: number[][];
   /**
    * Aggregate far sectors: [sectorId, defIndex, count, xq, zq, flowDxq,
-   * flowDzq, classIndex, waveId, threatq].
+   * flowDzq, classIndex, waveId, threatq, leaderId, sectorFlags]. The final
+   * fields are append-only so protocol-12 tactical consumers remain valid.
    */
   sectors: number[][];
   wave: HordeWaveState | null;
@@ -175,6 +176,8 @@ export const OWNERSHIP_FLAG_LEADER = 1;
 export const OWNERSHIP_FLAG_PURGE = 2;
 export const OWNERSHIP_FLAG_BOSS = 4;
 export const OWNERSHIP_FLAG_ELITE = 8;
+export const OWNERSHIP_FLAG_MAINTENANCE = 16;
+export const OWNERSHIP_FLAG_REWARD_SUPPRESSED = 32;
 
 /** Presentation priority: 0 = ordinary, 1 = elite, 2 = boss. */
 export function ownershipPriority(e: EnemyState): 0 | 1 | 2 {
@@ -199,6 +202,8 @@ export function encodeOwnership(e: EnemyState): number[] {
   if (o?.purgeOnLeaderDeath) flags |= OWNERSHIP_FLAG_PURGE;
   if (priority === 2) flags |= OWNERSHIP_FLAG_BOSS;
   if (priority === 1) flags |= OWNERSHIP_FLAG_ELITE;
+  if (o?.maintenanceSummon) flags |= OWNERSHIP_FLAG_MAINTENANCE;
+  if (o?.rewardSuppressed) flags |= OWNERSHIP_FLAG_REWARD_SUPPRESSED;
   return [
     o ? Math.max(0, OWNERSHIP_CLASS_ORDER.indexOf(o.populationClass)) : 0,
     o?.waveId ?? 0,
@@ -245,6 +250,9 @@ export function encodeDelta(e: EnemyState, withVertical = true): number[] {
 }
 
 const CLASS_ORDER: PopulationClass[] = ['ambient', 'wave', 'boss', 'special'];
+const SECTOR_FLAG_PURGE = 1;
+const SECTOR_FLAG_MAINTENANCE = 2;
+const SECTOR_FLAG_REWARD_SUPPRESSED = 4;
 
 export function encodeSector(s: HordeSectorState): number[] {
   return [
@@ -258,11 +266,15 @@ export function encodeSector(s: HordeSectorState): number[] {
     Math.max(0, CLASS_ORDER.indexOf(s.populationClass)),
     s.waveId ?? 0,
     quantizeHp(s.threat),
+    s.leaderId ?? 0,
+    (s.purgeOnLeaderDeath ? SECTOR_FLAG_PURGE : 0) |
+      (s.maintenanceSummon ? SECTOR_FLAG_MAINTENANCE : 0) |
+      (s.rewardSuppressed ? SECTOR_FLAG_REWARD_SUPPRESSED : 0),
   ];
 }
 
 export function decodeSector(rec: number[]): HordeSectorState {
-  const [sectorId, defIndex, count, xq, zq, flowDxq, flowDzq, classIndex, waveId, threatq] = rec;
+  const [sectorId, defIndex, count, xq, zq, flowDxq, flowDzq, classIndex, waveId, threatq, leaderId = 0, sectorFlags = 0] = rec;
   const enemyDefId = enemyDefinitionIdForIndex(defIndex) ?? '';
   return {
     sectorId,
@@ -274,6 +286,10 @@ export function decodeSector(rec: number[]): HordeSectorState {
     flowDz: flowDzq / 100,
     populationClass: CLASS_ORDER[Math.max(0, Math.min(CLASS_ORDER.length - 1, classIndex))] ?? 'ambient',
     waveId: waveId === 0 ? null : waveId,
+    leaderId: leaderId === 0 ? null : leaderId,
+    purgeOnLeaderDeath: (sectorFlags & SECTOR_FLAG_PURGE) !== 0,
+    maintenanceSummon: (sectorFlags & SECTOR_FLAG_MAINTENANCE) !== 0,
+    rewardSuppressed: (sectorFlags & SECTOR_FLAG_REWARD_SUPPRESSED) !== 0,
     threat: dequantizeHp(threatq),
     presentationSeed: sectorId,
   };

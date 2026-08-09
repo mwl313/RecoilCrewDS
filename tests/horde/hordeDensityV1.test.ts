@@ -74,14 +74,22 @@ describe('Horde Density V1 production tuning', () => {
     match.runtime.systems.enemies.spawnEnemyDef(match.runtime.systems.enemies.defById(closeId)!, tank.x + 30, tank.z);
     match.runtime.systems.enemies.spawnEnemyDef(match.runtime.systems.enemies.defById(rangedId)!, tank.x + 60, tank.z);
     match.runtime.systems.enemies.spawnEnemyDef(match.runtime.systems.enemies.defById(specialistId)!, tank.x + 80, tank.z);
-    expect(horde.densityTelemetry()).toEqual({
+    expect(horde.densityTelemetry()).toMatchObject({
       globalEnemyCount: 3,
+      globalOrdinaryCount: 3,
       nearbyEnemyCount45: 1,
       nearbyEnemyCount70: 2,
+      nearbyOrdinaryCount45: 1,
+      nearbyOrdinaryCount70: 2,
       close: 1,
       ranged: 1,
       specialist: 1,
+      sectorCount: 0,
+      pendingSubgroups: 0,
+      maintenanceSummonCount: 0,
+      rewardSuppressedKills: 0,
     });
+    expect(horde.densityTelemetry().angularSectorCounts).toHaveLength(8);
   });
 
   it('retains multiple urban400 anchors capable of an eight-entity pack', () => {

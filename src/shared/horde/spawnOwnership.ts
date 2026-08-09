@@ -17,6 +17,14 @@ export interface SpawnOwnership {
   formationRole?: string;
   /** Replicated presentation priority: 0 none, 1 elite, 2 boss. */
   priority?: 0 | 1 | 2;
+  /** Persistent leader that owns a renewable maintenance minion. */
+  summonedByLeaderId?: number;
+  /** Renewable anti-kite pressure, purged with its owning leader. */
+  maintenanceSummon?: boolean;
+  /** Central kill/progression routing must award nothing for this entity. */
+  rewardSuppressed?: boolean;
+  /** Recovery hint changes pursuit routing only; it never changes speed. */
+  pursuitPriority?: 0 | 1 | 2;
 }
 
 export function isWaveOwned(ownership: SpawnOwnership | undefined, waveId: number | null): boolean {

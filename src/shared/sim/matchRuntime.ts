@@ -707,6 +707,9 @@ export class MatchRuntime {
     if (e.type === 'lootTruck') {
       s.truck.active = false;
     }
+    // Maintenance summons remain combat pressure but never enter score,
+    // stats, drops, combo, or reward presentation routing.
+    if (e.ownership?.rewardSuppressed) return;
     const sc = this.cfg.scoring;
     s.stats.kills++;
     if (source === 'dash') s.stats.dashKills++;

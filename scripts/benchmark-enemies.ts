@@ -17,6 +17,10 @@ import { interpolateMatchState } from '../src/shared/net/interpolation';
 import { HordeReplicationTracker } from '../src/shared/net/horde/hordeReplication';
 import type { EnemyState, MatchState } from '../src/shared/types';
 import type { SpawnOwnership } from '../src/shared/horde/spawnOwnership';
+import { loadContentPackFromFilesystem } from '../src/shared/content/contentLoader';
+import { resolveMapBundle } from '../src/shared/mapgen/profiles';
+import { selectArenaSession } from '../src/shared/mapgen/arenaSession';
+import { buildSpawnAnchors } from '../src/shared/horde/spawnAnchors';
 
 const COUNTS = [100, 150, 200, 300, 500, 750] as const;
 const TICKS = 180;
@@ -52,6 +56,16 @@ interface ScenarioResult {
 
 interface Percentiles { p50: number; p95: number; p99: number }
 
+interface PressureDirectorResult {
+  aggregateEntities: number;
+  sectorCount: number;
+  movedMeters: number;
+  multiAnchorPlanSuccesses: number;
+  directorStep: Percentiles;
+  sectorStep: Percentiles;
+  multiAnchorPlan: Percentiles;
+}
+
 const results: ScenarioResult[] = [];
 console.log('=== Recoil Crew enemy-capacity benchmark ===');
 console.log('count scenario step(p50/p95/p99) AI(p50/p95/p99) interp(p50/p95/p99) replKB/s snapshotKB heapMB growth(E/S/XP)');
@@ -68,8 +82,16 @@ for (const count of COUNTS) {
   }
 }
 
+const pressureDirector = benchmarkPressureDirector();
+console.log(
+  `pressure director p95=${pressureDirector.directorStep.p95.toFixed(3)}ms ` +
+  `sectors=${pressureDirector.sectorStep.p95.toFixed(3)}ms ` +
+  `multiPlan=${pressureDirector.multiAnchorPlan.p95.toFixed(3)}ms ` +
+  `count=${pressureDirector.aggregateEntities}/${pressureDirector.sectorCount}`,
+);
+
 const payload = {
-  format: 2,
+  format: 3,
   capturedAt: new Date().toISOString(),
   runtime: {
     node: process.version,
@@ -80,6 +102,7 @@ const payload = {
     ticksPerScenario: TICKS,
   },
   results,
+  pressureDirector,
 };
 const jsonPath = process.argv.find((arg) => arg.startsWith('--json='))?.slice('--json='.length);
 if (jsonPath) {
@@ -140,6 +163,69 @@ function runScenario(count: number, scenario: 'baseline' | 'combatPressure'): Sc
       shells: final.shells - initial.shells,
       xpShards: final.xpShards - initial.xpShards,
     },
+  };
+}
+
+function benchmarkPressureDirector(): PressureDirectorResult {
+  const content = loadContentPackFromFilesystem('content');
+  const bundle = resolveMapBundle(content, 'map.arena400Primary');
+  const fallback = bundle.map.fallbackMapId ? resolveMapBundle(content, bundle.map.fallbackMapId) : bundle;
+  const session = selectArenaSession({
+    roomCode: 'PRESSBEN',
+    matchIndex: 0,
+    bundle,
+    fallbackBundle: fallback,
+  });
+  const match = new Match('pressure-director-benchmark', 'none', content, session.world, 'mode.mainStage');
+  const systems = match.runtime.systems;
+  const tank = match.state.tank;
+  const defId = systems.monsterSlots!['selected.phase.closeFodder'];
+  const def = systems.enemies.defById(defId)!;
+  systems.flowField!.forceRefresh(tank.x, tank.z);
+  const farAnchors = buildSpawnAnchors(systems.world).anchors
+    .filter((anchor) =>
+      anchor.reachable &&
+      Math.hypot(anchor.x - tank.x, anchor.z - tank.z) > 165 &&
+      Number.isFinite(systems.flowField!.costAt(anchor.x, anchor.z)),
+    )
+    .slice(0, 12);
+  for (let i = 0; i < 240; i++) {
+    const anchor = farAnchors[i % Math.max(1, farAnchors.length)] ?? {
+      x: tank.x + Math.sin(i) * 180,
+      z: tank.z + Math.cos(i) * 180,
+    };
+    systems.enemies.spawnEnemyDef(def, anchor.x + (i % 4) * 0.4, anchor.z + (i % 5) * 0.4);
+  }
+  systems.hordeSectors.update(1, tank.x, tank.z);
+  const aggregateEntities = systems.hordeSectors.tally().entities;
+  const directorSamples: number[] = [];
+  const sectorSamples: number[] = [];
+  for (let i = 0; i < 180; i++) {
+    match.state.time += DT;
+    let t0 = performance.now();
+    systems.horde!.step(DT);
+    directorSamples.push(performance.now() - t0);
+    t0 = performance.now();
+    systems.hordeSectors.update(DT, tank.x, tank.z);
+    sectorSamples.push(performance.now() - t0);
+  }
+  const pack = systems.horde!.resolved.packs.get('pack.production.waveCohort')!;
+  const planSamples: number[] = [];
+  let multiAnchorPlanSuccesses = 0;
+  for (let i = 0; i < 120; i++) {
+    const t0 = performance.now();
+    const plan = systems.spawnPlanner.planMulti(pack, 'wave', { forceOffCamera: true });
+    planSamples.push(performance.now() - t0);
+    if (plan) multiAnchorPlanSuccesses++;
+  }
+  return {
+    aggregateEntities,
+    sectorCount: systems.hordeSectors.sectors.size,
+    movedMeters: round(systems.hordeSectors.movementTelemetry().movedMeters),
+    multiAnchorPlanSuccesses,
+    directorStep: percentiles(directorSamples),
+    sectorStep: percentiles(sectorSamples),
+    multiAnchorPlan: percentiles(planSamples),
   };
 }
 

@@ -33,6 +33,7 @@ export interface ProgressionTelemetry {
   activeChestPeak: number;
   mapSpawnAttempts: number;
   mapSpawnCandidateFailures: number;
+  rewardSuppressedKills: number;
 }
 
 export function createProgressionTelemetry(): ProgressionTelemetry {
@@ -66,5 +67,6 @@ export function createProgressionTelemetry(): ProgressionTelemetry {
     activeChestPeak: 0,
     mapSpawnAttempts: 0,
     mapSpawnCandidateFailures: 0,
+    rewardSuppressedKills: 0,
   };
 }

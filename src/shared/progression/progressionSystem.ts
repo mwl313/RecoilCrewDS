@@ -674,6 +674,12 @@ export class ProgressionSystem {
     enemy.rewardResolved = true;
     const monster = enemy?.monster;
     if (monster) monster.chestRewardResolved = true;
+    if (enemy.ownership?.rewardSuppressed) {
+      if (monster) monster.xpAwarded = true;
+      this.telemetry.rewardSuppressedKills++;
+      this.registry.removeEnemy(payload.enemy.id);
+      return;
+    }
     const ownership = enemy.ownership;
     const rewardClass = normalizedEnemyClass(enemy);
     const isBoss = rewardClass === 'boss';

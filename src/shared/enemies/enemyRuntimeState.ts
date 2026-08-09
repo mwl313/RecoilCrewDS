@@ -31,4 +31,6 @@ export class EnemyRuntimeState {
   semanticAction: EnemySemanticAction = 'Idle';
   semanticSequence = 0;
   deathLocked = false;
+  /** Persistent-threat recovery stage (route/direct/alternate/re-entry). */
+  persistentRecoveryStage: 0 | 1 | 2 | 3 = 0;
 }
