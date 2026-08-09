@@ -102,6 +102,7 @@ export class GameClient {
   private enemyWorldUi: EnemyWorldUiLayer | null = null;
   private tacticalDrawer: TacticalDrawer | null = null;
   private latestSectors: AggregateSectorRecord[] = [];
+  private readonly singlePlayerSectorBuffer: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 
   onSendInput: ((msg: Record<string, unknown>) => void) | null = null;
@@ -641,17 +642,34 @@ export class GameClient {
     this.presenter.setSnapshot(msg as never);
   }
 
-  private collectAggregateSectors(): AggregateSectorRecord[] {
+  private collectAggregateSectors(): readonly AggregateSectorRecord[] {
     if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
       const sectors = this.singlePlayerMatch.runtime.systems.hordeSectors.sectors;
-      return [...sectors.values()].map((s) => ({
-        sectorId: s.sectorId,
-        x: s.centerX,
-        z: s.centerZ,
-        count: s.count,
-        enemyDefId: s.enemyDefId,
-        presentationSeed: s.presentationSeed,
-      }));
+      let index = 0;
+      for (const sector of sectors.values()) {
+        let record = this.singlePlayerSectorBuffer[index];
+        if (!record) {
+          record = {
+            sectorId: sector.sectorId,
+            x: sector.centerX,
+            z: sector.centerZ,
+            count: sector.count,
+            enemyDefId: sector.enemyDefId,
+            presentationSeed: sector.presentationSeed,
+          };
+          this.singlePlayerSectorBuffer.push(record);
+        } else {
+          record.sectorId = sector.sectorId;
+          record.x = sector.centerX;
+          record.z = sector.centerZ;
+          record.count = sector.count;
+          record.enemyDefId = sector.enemyDefId;
+          record.presentationSeed = sector.presentationSeed;
+        }
+        index++;
+      }
+      this.singlePlayerSectorBuffer.length = index;
+      return this.singlePlayerSectorBuffer;
     }
     return this.latestSectors;
   }
@@ -789,13 +807,15 @@ export class GameClient {
       this.onFrame?.(latest);
       this.updateProgressionOverlay();
       this.relicInventoryRail?.update(latest);
-      this.aggregateSectors.update(this.collectAggregateSectors(), latest.tank.x, latest.tank.z);
+      const sectors = this.collectAggregateSectors();
+      this.aggregateSectors.update(sectors, latest.tank.x, latest.tank.z);
       this.relicChestRenderer?.sync(latest.chests, latest.time, Date.now(), dtRaw);
-      this.tacticalDrawer?.update(
-        latest,
-        renderTank ?? this.presenter.getRenderTank(),
-        this.session.kind === 'singlePlayer' ? 'single' : this.role,
-      );
+      this.tacticalDrawer?.update({
+        state: latest,
+        tank: renderTank ?? this.presenter.getRenderTank(),
+        role: this.session.kind === 'singlePlayer' ? 'single' : this.role,
+        sectors,
+      });
     }
 
     this.pollGunnerActions();

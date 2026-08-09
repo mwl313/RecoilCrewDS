@@ -5,8 +5,11 @@ import type { EnemyState } from '../src/shared/types';
 import { buildVisualWorldApronPlan } from '../src/client/environment/visualWorldApron';
 import {
   chassisYawToMiniMapRotation,
+  MINI_MAP_PLAYER_MARKER_STYLE,
   miniMapEnemyMarkerStyle,
   miniMapEnemyThreatClass,
+  miniMapSectorRadius,
+  miniMapSectorShowsCount,
   worldToMiniMap,
 } from '../src/client/tactical/miniMapRenderer';
 import { presentLevelUpgradeSummary } from '../src/client/tactical/statPresentation';
@@ -17,6 +20,9 @@ describe('tactical presentation', () => {
     expect(chassisYawToMiniMapRotation(Math.PI / 2)).toBeCloseTo(Math.PI / 2);
     expect(worldToMiniMap(-100, -100, { minX: -100, maxX: 100, minZ: -100, maxZ: 100 }, 300)).toEqual({ x: 0, y: 0 });
     expect(worldToMiniMap(100, 100, { minX: -100, maxX: 100, minZ: -100, maxZ: 100 }, 300)).toEqual({ x: 300, y: 300 });
+    expect(MINI_MAP_PLAYER_MARKER_STYLE).toMatchObject({
+      fill: '#59e391', tipY: -10.5, halfWidth: 7.5, baseY: 8, notchY: 5.25,
+    });
   });
 
   it('groups and humanizes only replicated level-up contributions', () => {
@@ -47,9 +53,9 @@ describe('tactical presentation', () => {
     expect(miniMapEnemyThreatClass(ordinary)).toBe('ordinary');
     expect(miniMapEnemyThreatClass(elite)).toBe('elite');
     expect(miniMapEnemyThreatClass(boss)).toBe('boss');
-    expect(miniMapEnemyMarkerStyle(ordinary)).toMatchObject({ shape: 'circle', fill: '#d55347', halfSize: 2.5, ringRadius: null });
+    expect(miniMapEnemyMarkerStyle(ordinary)).toMatchObject({ shape: 'circle', fill: '#d55347', stroke: '#2a0e0c', halfSize: 2.5, ringRadius: null });
     expect(miniMapEnemyMarkerStyle(elite)).toMatchObject({ shape: 'diamond', fill: '#b56cff', halfSize: 6, ringRadius: null });
-    expect(miniMapEnemyMarkerStyle(boss)).toMatchObject({ shape: 'diamond', fill: '#ff304d', halfSize: 9, ringRadius: 12 });
+    expect(miniMapEnemyMarkerStyle(boss)).toMatchObject({ shape: 'hex', fill: '#ff304d', halfSize: 9, ringRadius: 12 });
   });
 
   it('treats a semantic wave leader as elite without relying on priority', () => {
@@ -61,6 +67,14 @@ describe('tactical presentation', () => {
       },
     } as unknown as EnemyState;
     expect(miniMapEnemyThreatClass(leader)).toBe('elite');
+  });
+
+  it('uses a clamped square-root sector scale and only labels large aggregates', () => {
+    expect(miniMapSectorRadius(1)).toBe(9);
+    expect(miniMapSectorRadius(4)).toBe(9.5);
+    expect(miniMapSectorRadius(1000)).toBe(16);
+    expect(miniMapSectorShowsCount(8)).toBe(false);
+    expect(miniMapSectorShowsCount(9)).toBe(true);
   });
 });
 
