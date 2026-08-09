@@ -9,6 +9,8 @@
   "reinforcementThreatPerSecond": 3.5,
   "maximumActiveWaveThreat": 100,
   "maximumActiveWaveEntities": 64,
+  "nearbyTargetMinimum": 42,
+  "nearbyTargetMaximum": 56,
   "approachPolicyId": "horde.navigationPolicy.main",
   "rewardTableId": "reward.main",
   "purgeWaveCohortOnLeaderDeath": true

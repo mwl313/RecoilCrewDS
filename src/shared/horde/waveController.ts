@@ -30,7 +30,26 @@ export interface WaveRuntime {
   maximumActiveWaveThreat: number;
   maximumActiveWaveEntities: number;
   reinforcementAccumulator: number;
+  reservedWaveThreat: number;
+  reservedWaveEntities: number;
+  reinforcementPackCursor: number;
   state: 'opening' | 'active' | 'leaderDead' | 'purging' | 'complete';
+}
+
+export interface CohortSpawnOptions {
+  leaderId?: number;
+  maintenanceSummon?: boolean;
+  rewardSuppressed?: boolean;
+}
+
+interface CohortReservation {
+  reservationId: number;
+  waveId: number;
+  packInstanceId: number;
+  remainingEntities: number;
+  remainingThreat: number;
+  reinforcement: boolean;
+  remainingAuthoredCost: number;
 }
 
 /**
@@ -46,6 +65,8 @@ export class WaveController {
   private readonly rewardFired = new Set<number>();
   private readonly accountedDeathIds = new Set<number>();
   private packInstanceCounter = 0;
+  private reservationCounter = 1;
+  private readonly reservations = new Map<number, CohortReservation>();
 
   constructor(
     private readonly ctx: SystemContext,
@@ -69,6 +90,9 @@ export class WaveController {
       maximumActiveWaveThreat: opts.maximumActiveWaveThreat,
       maximumActiveWaveEntities: opts.maximumActiveWaveEntities,
       reinforcementAccumulator: 0,
+      reservedWaveThreat: 0,
+      reservedWaveEntities: 0,
+      reinforcementPackCursor: 0,
       state: 'opening',
     };
     this.waves.set(waveId, runtime);
@@ -232,6 +256,139 @@ export class WaveController {
     return true;
   }
 
+  /**
+   * Reserve a complete pack before subgroup A. Active and global caps see
+   * the reservation immediately; reinforcement reserve is spent exactly
+   * once and may be partially refunded if a deferred subgroup cannot replan.
+   */
+  reserveCohortPack(
+    waveId: number,
+    entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
+    reinforcementThreatCost: number | null = null,
+  ): number | null {
+    const runtime = this.waves.get(waveId);
+    if (!runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return null;
+    const totalCount = entries.reduce((sum, entry) => sum + Math.max(0, entry.count), 0);
+    if (totalCount <= 0) return null;
+    let actualThreat = 0;
+    for (const entry of entries) {
+      if (entry.count < 0) return null;
+      const def = this.ctx.enemies.defById(entry.enemyId);
+      if (!def) return null;
+      actualThreat += enemyThreat(def) * entry.count;
+    }
+    if (reinforcementThreatCost !== null && reinforcementThreatCost > runtime.reinforcementThreatRemaining) return null;
+    if (!this.hasSpawnCapacity(runtime, totalCount, actualThreat)) return null;
+    if (reinforcementThreatCost !== null) runtime.reinforcementThreatRemaining -= reinforcementThreatCost;
+    runtime.reservedWaveEntities += totalCount;
+    runtime.reservedWaveThreat += actualThreat;
+    const reservationId = this.reservationCounter++;
+    this.reservations.set(reservationId, {
+      reservationId,
+      waveId,
+      packInstanceId: this.packInstanceCounter++,
+      remainingEntities: totalCount,
+      remainingThreat: actualThreat,
+      reinforcement: reinforcementThreatCost !== null,
+      remainingAuthoredCost: reinforcementThreatCost ?? 0,
+    });
+    if (reinforcementThreatCost !== null) this.emitWaveEvent('reinforcementSpawned', runtime);
+    return reservationId;
+  }
+
+  spawnReservedCohortSubgroup(
+    reservationId: number,
+    entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
+    positions: Array<{ x: number; z: number }>,
+    options: CohortSpawnOptions = {},
+    authoredCost = 0,
+  ): boolean {
+    const reservation = this.reservations.get(reservationId);
+    const runtime = reservation ? this.waves.get(reservation.waveId) : undefined;
+    if (!reservation || !runtime || runtime.state === 'leaderDead' || runtime.state === 'complete') return false;
+    const totalCount = entries.reduce((sum, entry) => sum + Math.max(0, entry.count), 0);
+    if (totalCount <= 0 || totalCount > reservation.remainingEntities) return false;
+    let actualThreat = 0;
+    for (const entry of entries) {
+      const def = this.ctx.enemies.defById(entry.enemyId);
+      if (!def) return false;
+      actualThreat += enemyThreat(def) * entry.count;
+    }
+    if (actualThreat > reservation.remainingThreat + 1e-6) return false;
+    const leaderId = options.leaderId ?? runtime.leaderId;
+    const leader = this.ctx.state.enemies.find((enemy) => enemy.id === leaderId);
+    if (options.leaderId !== undefined && (!leader || !leader.alive)) return false;
+    const anchor = leader ?? this.ctx.state.tank;
+    let positionIndex = 0;
+    for (const entry of entries) {
+      const def = this.ctx.enemies.defById(entry.enemyId)!;
+      for (let i = 0; i < entry.count; i++) {
+        const position = positions[positionIndex++];
+        const angle = (i / Math.max(1, entry.count)) * Math.PI * 2;
+        this.ctx.enemies.spawnEnemyDef(
+          def,
+          position?.x ?? anchor.x + Math.sin(angle) * (4 + i),
+          position?.z ?? anchor.z + Math.cos(angle) * (4 + i),
+          {
+            populationClass: 'wave',
+            waveId: runtime.waveId,
+            leaderId,
+            packInstanceId: reservation.packInstanceId,
+            spawnAnchorId: null,
+            purgeOnLeaderDeath: true,
+            formationRole: entry.formationRole,
+            ...(options.maintenanceSummon
+              ? { maintenanceSummon: true, summonedByLeaderId: leaderId }
+              : {}),
+            ...(options.rewardSuppressed ? { rewardSuppressed: true } : {}),
+          },
+        );
+      }
+    }
+    reservation.remainingEntities -= totalCount;
+    reservation.remainingThreat = Math.max(0, reservation.remainingThreat - actualThreat);
+    runtime.reservedWaveEntities = Math.max(0, runtime.reservedWaveEntities - totalCount);
+    runtime.reservedWaveThreat = Math.max(0, runtime.reservedWaveThreat - actualThreat);
+    runtime.activeWaveEntities += totalCount;
+    runtime.activeWaveThreat += actualThreat;
+    if (reservation.reinforcement) {
+      reservation.remainingAuthoredCost = Math.max(0, reservation.remainingAuthoredCost - Math.max(0, authoredCost));
+    }
+    if (reservation.remainingEntities === 0) this.reservations.delete(reservationId);
+    return true;
+  }
+
+  refundReservedCohortSubgroup(
+    reservationId: number,
+    entries: Array<{ enemyId: string; count: number; formationRole?: string }>,
+    authoredCost: number,
+  ): boolean {
+    const reservation = this.reservations.get(reservationId);
+    const runtime = reservation ? this.waves.get(reservation.waveId) : undefined;
+    if (!reservation || !runtime) return false;
+    const count = entries.reduce((sum, entry) => sum + Math.max(0, entry.count), 0);
+    let threat = 0;
+    for (const entry of entries) {
+      const def = this.ctx.enemies.defById(entry.enemyId);
+      if (def) threat += enemyThreat(def) * entry.count;
+    }
+    reservation.remainingEntities = Math.max(0, reservation.remainingEntities - count);
+    reservation.remainingThreat = Math.max(0, reservation.remainingThreat - threat);
+    runtime.reservedWaveEntities = Math.max(0, runtime.reservedWaveEntities - count);
+    runtime.reservedWaveThreat = Math.max(0, runtime.reservedWaveThreat - threat);
+    if (reservation.reinforcement) {
+      const refund = Math.min(Math.max(0, authoredCost), reservation.remainingAuthoredCost);
+      runtime.reinforcementThreatRemaining += refund;
+      reservation.remainingAuthoredCost -= refund;
+    }
+    if (reservation.remainingEntities === 0) this.reservations.delete(reservationId);
+    return true;
+  }
+
+  reservationActive(reservationId: number): boolean {
+    return this.reservations.has(reservationId);
+  }
+
   /** Spend from the finite reinforcement reserve (no spending after death). */
   spendReinforcement(
     waveId: number,
@@ -283,13 +440,28 @@ export class WaveController {
     if (runtime.leaderIds.includes(payload.enemy.id)) {
       if (!runtime.defeatedLeaderIds.includes(payload.enemy.id)) {
         runtime.defeatedLeaderIds.push(payload.enemy.id);
+        this.purgeMaintenanceForLeader(runtime, payload.enemy.id);
       }
       if (runtime.defeatedLeaderIds.length === runtime.leaderIds.length) this.finishWave(runtime);
     }
   }
 
+  private purgeMaintenanceForLeader(runtime: WaveRuntime, leaderId: number): void {
+    const sectors = this.ctx.hordeSectors?.purgeLeaderDetailed(leaderId) ?? { entities: 0, threat: 0 };
+    const removed = this.ctx.enemies.purge((enemy) =>
+      enemy.ownership?.maintenanceSummon === true && enemy.ownership.summonedByLeaderId === leaderId,
+    );
+    const removedThreat = removed.reduce(
+      (sum, enemy) => sum + enemyThreat(this.ctx.enemies.defFor(enemy)),
+      sectors.threat,
+    );
+    runtime.activeWaveEntities = Math.max(0, runtime.activeWaveEntities - removed.length - sectors.entities);
+    runtime.activeWaveThreat = Math.max(0, runtime.activeWaveThreat - removedThreat);
+  }
+
   private finishWave(runtime: WaveRuntime): void {
     runtime.state = 'leaderDead';
+    this.cancelReservations(runtime.waveId);
     const removed = this.purge(runtime.waveId);
     runtime.state = 'complete';
     this.emitWaveEvent('wavePurged', runtime, removed);
@@ -327,6 +499,7 @@ export class WaveController {
   purgeWave(waveId: number): number {
     const runtime = this.waves.get(waveId);
     if (!runtime) return 0;
+    this.cancelReservations(waveId);
     return this.purge(waveId);
   }
 
@@ -335,8 +508,8 @@ export class WaveController {
   }
 
   private hasSpawnCapacity(runtime: WaveRuntime, entities: number, threat: number): boolean {
-    if (runtime.activeWaveEntities + entities > runtime.maximumActiveWaveEntities) return false;
-    if (runtime.activeWaveThreat + threat > runtime.maximumActiveWaveThreat) return false;
+    if (runtime.activeWaveEntities + runtime.reservedWaveEntities + entities > runtime.maximumActiveWaveEntities) return false;
+    if (runtime.activeWaveThreat + runtime.reservedWaveThreat + threat > runtime.maximumActiveWaveThreat) return false;
     const limits = this.ctx.horde?.resolved.limits;
     if (!limits) return true;
     const population = new PopulationManager(this.ctx);
@@ -345,6 +518,18 @@ export class WaveController {
     const waveThreat = tally.byClass.wave.threat + tally.byClass.boss.threat;
     if (waveEntities + entities > limits.waveSoftEntityCap) return false;
     if (waveThreat + threat > limits.waveSoftThreatCap) return false;
-    return population.hardCapacity(limits, tally, entities, threat);
+    return population.hardCapacity(limits, tally, entities + runtime.reservedWaveEntities, threat + runtime.reservedWaveThreat);
+  }
+
+  private cancelReservations(waveId: number): void {
+    const runtime = this.waves.get(waveId);
+    for (const [reservationId, reservation] of [...this.reservations]) {
+      if (reservation.waveId !== waveId) continue;
+      this.reservations.delete(reservationId);
+    }
+    if (runtime) {
+      runtime.reservedWaveEntities = 0;
+      runtime.reservedWaveThreat = 0;
+    }
   }
 }

@@ -28,9 +28,20 @@ export const farmingPhaseSchema = z
     threatTargetEnd: nonNegativeNumber,
     spawnIncomeStart: nonNegativeNumber,
     spawnIncomeEnd: nonNegativeNumber,
+    nearbyTargetMinimum: nonNegativeInt.optional(),
+    nearbyTargetMaximum: nonNegativeInt.optional(),
     eligiblePackTags: z.array(z.string().min(1)),
   })
-  .strict();
+  .strict()
+  .superRefine((phase, ctx) => {
+    if (
+      phase.nearbyTargetMinimum !== undefined &&
+      phase.nearbyTargetMaximum !== undefined &&
+      phase.nearbyTargetMinimum > phase.nearbyTargetMaximum
+    ) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'nearby pressure minimum must not exceed maximum' });
+    }
+  });
 
 export const spawnPackAnchorRequirementsSchema = z
   .object({
@@ -107,6 +118,8 @@ export const waveSchema = z
     reinforcementThreatPerSecond: nonNegativeNumber,
     maximumActiveWaveThreat: positiveNumber,
     maximumActiveWaveEntities: positiveNumber,
+    nearbyTargetMinimum: nonNegativeInt.optional(),
+    nearbyTargetMaximum: nonNegativeInt.optional(),
     approachPolicyId: z.string().regex(/^horde\.navigationPolicy\./),
     rewardTableId: z.string().regex(/^reward\./),
     purgeWaveCohortOnLeaderDeath: z.literal(true),
@@ -118,6 +131,13 @@ export const waveSchema = z
         code: z.ZodIssueCode.custom,
         message: 'wave must define exactly one of leaderEnemyId or leaderSlotId',
       });
+    }
+    if (
+      wave.nearbyTargetMinimum !== undefined &&
+      wave.nearbyTargetMaximum !== undefined &&
+      wave.nearbyTargetMinimum > wave.nearbyTargetMaximum
+    ) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'nearby pressure minimum must not exceed maximum' });
     }
   });
 
@@ -133,6 +153,8 @@ export const bossWaveSchema = z
     reinforcementThreatPerSecond: nonNegativeNumber,
     maximumActiveWaveThreat: positiveNumber,
     maximumActiveWaveEntities: positiveNumber,
+    nearbyTargetMinimum: nonNegativeInt.optional(),
+    nearbyTargetMaximum: nonNegativeInt.optional(),
     approachPolicyId: z.string().regex(/^horde\.navigationPolicy\./),
     rewardTableId: z.string().regex(/^reward\./),
     purgeWaveCohortOnLeaderDeath: z.literal(true),
@@ -165,6 +187,13 @@ export const bossWaveSchema = z
         code: z.ZodIssueCode.custom,
         message: 'boss wave must define exactly one of bossEnemyId or bossSlotId',
       });
+    }
+    if (
+      wave.nearbyTargetMinimum !== undefined &&
+      wave.nearbyTargetMaximum !== undefined &&
+      wave.nearbyTargetMinimum > wave.nearbyTargetMaximum
+    ) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'nearby pressure minimum must not exceed maximum' });
     }
   });
 

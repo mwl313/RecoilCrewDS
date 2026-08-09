@@ -8,5 +8,7 @@
   "threatTargetEnd": 95,
   "spawnIncomeStart": 3.2,
   "spawnIncomeEnd": 4.4,
+  "nearbyTargetMinimum": 32,
+  "nearbyTargetMaximum": 46,
   "eligiblePackTags": ["farming"]
 }

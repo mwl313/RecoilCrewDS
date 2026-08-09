@@ -146,4 +146,39 @@ describe('far-horde sector aggregation (M10)', () => {
     client.apply({ ...block, materialize: [], despawn: [], death: [], near: [], mid: [], far: [] }, 0);
     expect(client.sectors.size).toBe(1);
   });
+
+  it('preserves maintenance ownership and reward suppression through abstraction', () => {
+    const m = makeMatch();
+    const systems = m.runtime.systems;
+    const def = m.runtime.rules.enemies.get('enemy.scrapBugHorde')!;
+    const tx = m.state.tank.x;
+    const tz = m.state.tank.z;
+    systems.enemies.spawnEnemyDef(def, tx + 200, tz, ownership({
+      populationClass: 'wave',
+      waveId: 9,
+      leaderId: 77,
+      purgeOnLeaderDeath: true,
+      summonedByLeaderId: 77,
+      maintenanceSummon: true,
+      rewardSuppressed: true,
+    }));
+    systems.hordeSectors.update(1, tx, tz);
+    const sector = [...systems.hordeSectors.sectors.values()][0];
+    expect(sector).toMatchObject({
+      waveId: 9,
+      leaderId: 77,
+      purgeOnLeaderDeath: true,
+      maintenanceSummon: true,
+      rewardSuppressed: true,
+    });
+    systems.hordeSectors.materialize(sector.centerX - 100, sector.centerZ);
+    const restored = m.state.enemies.find((enemy) => enemy.ownership?.summonedByLeaderId === 77);
+    expect(restored?.ownership).toMatchObject({
+      waveId: 9,
+      leaderId: 77,
+      purgeOnLeaderDeath: true,
+      maintenanceSummon: true,
+      rewardSuppressed: true,
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import { pushEvent, type SystemContext } from './systemContext';
+import type { EntityKilledEvent } from '../../damage/damageTypes';
 
 export type ObjectiveEventType =
   | 'kill'
@@ -20,7 +21,12 @@ export class ObjectiveSystem {
   onObjectiveEvent: ((event: ObjectiveEvent) => void) | null = null;
 
   constructor(private readonly ctx: SystemContext) {
-    ctx.eventBus.subscribe('entity.killed', () => this.route('kill'));
+    ctx.eventBus.subscribe('entity.killed', (payload) => {
+      const event = payload as EntityKilledEvent;
+      const enemy = this.ctx.state.enemies.find((candidate) => candidate.id === event.enemy.id);
+      if (enemy?.ownership?.rewardSuppressed) return;
+      this.route('kill');
+    });
     ctx.eventBus.subscribe('pickup.collected', () => this.route('collection'));
   }
 

@@ -28,6 +28,7 @@ import {
   intervalOverlapsTankHurtCapsule,
   resolveTankHurtCapsule,
 } from '../combat/tankHurtVolume';
+import { isPersistentThreat } from './enemyClassification';
 
 const FEATURED_MOVEMENT_SUBSTEP_METERS = 0.55;
 
@@ -133,6 +134,18 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         runtime.dirX = flow.x;
         runtime.dirZ = flow.z;
       }
+      // Recovery raises direct/alternate route priority without changing
+      // authored movement speed.
+      if (runtime.persistentRecoveryStage >= 2) {
+        const directBlend = runtime.persistentRecoveryStage === 2 ? 0.18 : 0.28;
+        runtime.dirX = runtime.dirX * (1 - directBlend) + directX * directBlend;
+        runtime.dirZ = runtime.dirZ * (1 - directBlend) + directZ * directBlend;
+      }
+      if (runtime.persistentRecoveryStage >= 3 && flow) {
+        const side = e.id % 2 === 0 ? 1 : -1;
+        runtime.dirX += -flow.z * side * 0.2;
+        runtime.dirZ += flow.x * side * 0.2;
+      }
       const def = ctx.enemies.defFor(e);
       runtime.speed = behaviorParam(def, 'movement.flowSeek', 'speed', 3.2);
       // Stuck detection: require net progress toward the tank.
@@ -158,7 +171,7 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
       } else if (runtime.stuckT > stuckTime * 2.5) {
         // Last resort: despawn/refund only when invisible and safe so a
         // trapped enemy cannot consume the population cap indefinitely.
-        if (d > 30) {
+        if (d > 30 && !isPersistentThreat(e)) {
           ctx.enemies.purge((c) => c.id === e.id);
         }
       }
