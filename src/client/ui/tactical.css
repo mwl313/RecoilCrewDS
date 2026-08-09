@@ -1,29 +1,92 @@
 .tactical-drawer {
   --drawer-width: clamp(360px, 31vw, 420px);
+  --drawer-gutter: 24px;
+  --drawer-nub-width: 34px;
   position: fixed;
   z-index: 25;
   top: 76px;
   bottom: 24px;
-  left: 24px;
-  width: var(--drawer-width);
+  left: 0;
+  width: calc(var(--drawer-gutter) + var(--drawer-width));
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
   color: #e9eee4;
+  transform: translateX(calc(0px - var(--drawer-gutter) - var(--drawer-width)));
+  opacity: 1;
+  transition: transform 260ms cubic-bezier(.2,.75,.2,1);
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+
+.tactical-drawer__panel {
+  position: absolute;
+  inset: 0 0 0 var(--drawer-gutter);
+  box-sizing: border-box;
+  overflow: hidden;
   background: rgba(10, 15, 17, .94);
   border: 1px solid rgba(149, 171, 171, .44);
   box-shadow: 0 18px 60px rgba(0, 0, 0, .52), inset 0 0 0 1px rgba(255, 255, 255, .025);
   clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
-  transform: translateX(calc(-100% - 42px));
-  opacity: 0;
-  transition: transform 260ms cubic-bezier(.2,.75,.2,1), opacity 180ms ease;
-  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
 }
 
-.tactical-drawer.is-open { transform: translateX(0); opacity: 1; }
+.tactical-drawer.is-open { transform: translateX(0); }
 .tactical-drawer__accent { height: 4px; background: #ffb31a; box-shadow: 0 0 18px rgba(255,179,26,.38); }
 .tactical-drawer[data-role='driver'] .tactical-drawer__accent { background: var(--driver-cyan, #30d6e9); }
 .tactical-drawer[data-role='gunner'] .tactical-drawer__accent { background: var(--gunner-red, #ff554d); }
+
+.tactical-drawer__nub {
+  position: absolute;
+  top: 134px;
+  left: 100%;
+  width: var(--drawer-nub-width);
+  height: 88px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  overflow: hidden;
+  pointer-events: none;
+  color: #dce3d9;
+  background: #11191b;
+  border: 1px solid rgba(149, 171, 171, .58);
+  border-left-color: rgba(149, 171, 171, .34);
+  box-shadow: 7px 9px 22px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .025);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+.tactical-drawer__nub-accent {
+  position: absolute;
+  inset: 9px auto 9px 0;
+  width: 3px;
+  background: #ffb31a;
+}
+.tactical-drawer[data-role='driver'] .tactical-drawer__nub-accent { background: var(--driver-cyan, #30d6e9); }
+.tactical-drawer[data-role='gunner'] .tactical-drawer__nub-accent { background: var(--gunner-red, #ff554d); }
+.tactical-drawer__nub-map {
+  color: #7f9291;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .13em;
+}
+.tactical-drawer__nub kbd {
+  padding: 3px 2px;
+  border-color: #536261;
+  color: #e4e9df;
+  background: #1a2325;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .04em;
+}
+.tactical-drawer__nub-chevron {
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid #aebbb7;
+  border-right: 2px solid #aebbb7;
+  transform: rotate(45deg);
+}
+.tactical-drawer.is-open .tactical-drawer__nub-chevron { transform: rotate(225deg); }
 
 .tactical-drawer__header {
   display: flex;
@@ -54,14 +117,15 @@
 .app-root.tactical-open .hud-survival-cluster { transform: translateX(calc(clamp(360px, 31vw, 420px) + 24px)); transition: transform 260ms cubic-bezier(.2,.75,.2,1); }
 
 @media (max-width: 900px) {
-  .tactical-drawer { --drawer-width: min(390px, 63vw); top: 62px; left: 14px; bottom: 14px; }
+  .tactical-drawer { --drawer-width: min(390px, 63vw); --drawer-gutter: 14px; top: 62px; bottom: 14px; }
+  .tactical-drawer__nub { top: 128px; }
   .tactical-minimap { max-height: 31vh; }
   .tactical-drawer__rows { max-height: calc(100vh - 430px); }
   .app-root.tactical-open .hud-survival-cluster { transform: none; opacity: .25; }
 }
 
 @media (max-width: 620px) {
-  .tactical-drawer { --drawer-width: min(408px, calc(100vw - 28px)); }
+  .tactical-drawer { --drawer-width: min(408px, calc(100vw - 28px - var(--drawer-nub-width))); }
   .tactical-drawer__header { padding: 13px 15px 11px; }
   .tactical-drawer__map-wrap, .tactical-drawer__modifiers { padding-left: 15px; padding-right: 15px; }
   .tactical-minimap { max-height: 30vh; }

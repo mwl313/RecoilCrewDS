@@ -55,7 +55,8 @@ test('production world chest completes proximity open, reveal, HUD, and despawn'
     const state = (window as unknown as { __recoil: { state(): WorldRelicState } }).__recoil.state();
     return state.chests.find((chest) => chest.id === id)!;
   }, chestId);
-  expect((opening.fullyOpenAtWallMs ?? 0) - (opening.openingStartedAtWallMs ?? 0)).toBe(650);
+  // Main Stage tuning was shortened from 0.65s to the current authoritative 0.4s.
+  expect((opening.fullyOpenAtWallMs ?? 0) - (opening.openingStartedAtWallMs ?? 0)).toBe(400);
 
   await page.waitForFunction(() => {
     const state = (window as unknown as { __recoil: { state(): WorldRelicState } }).__recoil.state();

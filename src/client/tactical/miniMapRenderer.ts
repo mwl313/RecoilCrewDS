@@ -1,6 +1,7 @@
 import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 import type { EnemyState, TankState } from '../../shared/types';
 import type { TreasureChestState } from '../../shared/progression/progressionTypes';
+import { isWaveLeader, normalizedEnemyClass } from '../../shared/enemies/enemyClassification';
 
 export interface MiniMapFrame {
   tank: Pick<TankState, 'x' | 'z' | 'yaw'>;
@@ -9,6 +10,47 @@ export interface MiniMapFrame {
 }
 
 interface MapBounds { minX: number; maxX: number; minZ: number; maxZ: number }
+
+export type MiniMapEnemyThreatClass = 'ordinary' | 'elite' | 'boss';
+
+export interface MiniMapEnemyMarkerStyle {
+  shape: 'circle' | 'diamond';
+  halfSize: number;
+  fill: string;
+  stroke: string | null;
+  lineWidth: number;
+  ringRadius: number | null;
+  ringStroke: string | null;
+}
+
+const ENEMY_MARKER_STYLES: Readonly<Record<MiniMapEnemyThreatClass, Readonly<MiniMapEnemyMarkerStyle>>> = {
+  ordinary: {
+    shape: 'circle', halfSize: 2.5, fill: '#d55347', stroke: null,
+    lineWidth: 0, ringRadius: null, ringStroke: null,
+  },
+  elite: {
+    shape: 'diamond', halfSize: 6, fill: '#b56cff', stroke: '#220b2e',
+    lineWidth: 1.75, ringRadius: null, ringStroke: null,
+  },
+  boss: {
+    shape: 'diamond', halfSize: 9, fill: '#ff304d', stroke: '#28060d',
+    lineWidth: 2, ringRadius: 12, ringStroke: 'rgba(241,238,227,.95)',
+  },
+};
+
+/** Semantic encounter class wins; ownership priority is legacy-only fallback. */
+export function miniMapEnemyThreatClass(enemy: EnemyState): MiniMapEnemyThreatClass {
+  const semanticClass = normalizedEnemyClass(enemy);
+  if (semanticClass === 'boss') return 'boss';
+  if (semanticClass === 'elite' || isWaveLeader(enemy)) return 'elite';
+  if (enemy.monster?.rewardClass || enemy.ownership?.populationClass) return 'ordinary';
+  const priority = enemy.ownership?.priority ?? 0;
+  return priority >= 2 ? 'boss' : priority >= 1 ? 'elite' : 'ordinary';
+}
+
+export function miniMapEnemyMarkerStyle(enemy: EnemyState): Readonly<MiniMapEnemyMarkerStyle> {
+  return ENEMY_MARKER_STYLES[miniMapEnemyThreatClass(enemy)];
+}
 
 export function chassisYawToMiniMapRotation(yaw: number): number {
   return Math.PI - yaw;
@@ -83,27 +125,28 @@ export class MiniMapRenderer {
     for (const enemy of frame.enemies) {
       if (!enemy.alive) continue;
       const p = worldToMiniMap(enemy.x, enemy.z, bounds, size);
-      const priority = enemy.ownership?.priority ?? 0;
+      const marker = miniMapEnemyMarkerStyle(enemy);
       ctx.save();
       ctx.translate(p.x, p.y);
-      ctx.fillStyle = priority >= 2 ? '#ff3b32' : priority === 1 ? '#ff705d' : '#d55347';
-      ctx.strokeStyle = '#270807';
-      ctx.lineWidth = 1.5;
-      if (priority >= 1) {
-        const radius = priority >= 2 ? 5.5 : 4;
+      ctx.fillStyle = marker.fill;
+      if (marker.stroke) ctx.strokeStyle = marker.stroke;
+      ctx.lineWidth = marker.lineWidth;
+      if (marker.shape === 'diamond') {
         ctx.rotate(Math.PI / 4);
-        ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
-        ctx.strokeRect(-radius, -radius, radius * 2, radius * 2);
-        if (priority >= 2) {
+        ctx.fillRect(-marker.halfSize, -marker.halfSize, marker.halfSize * 2, marker.halfSize * 2);
+        if (marker.stroke) {
+          ctx.strokeRect(-marker.halfSize, -marker.halfSize, marker.halfSize * 2, marker.halfSize * 2);
+        }
+        if (marker.ringRadius && marker.ringStroke) {
           ctx.rotate(-Math.PI / 4);
           ctx.beginPath();
-          ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(255,179,26,.9)';
+          ctx.arc(0, 0, marker.ringRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = marker.ringStroke;
           ctx.stroke();
         }
       } else {
         ctx.beginPath();
-        ctx.arc(0, 0, 2.25, 0, Math.PI * 2);
+        ctx.arc(0, 0, marker.halfSize, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();

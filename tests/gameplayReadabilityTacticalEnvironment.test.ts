@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { createUrbanLayout } from '../src/shared/mapgen/urbanLayout';
 import type { ArenaWorld } from '../src/shared/sim/arenaWorld';
+import type { EnemyState } from '../src/shared/types';
 import { buildVisualWorldApronPlan } from '../src/client/environment/visualWorldApron';
-import { chassisYawToMiniMapRotation, worldToMiniMap } from '../src/client/tactical/miniMapRenderer';
+import {
+  chassisYawToMiniMapRotation,
+  miniMapEnemyMarkerStyle,
+  miniMapEnemyThreatClass,
+  worldToMiniMap,
+} from '../src/client/tactical/miniMapRenderer';
 import { presentLevelUpgradeSummary } from '../src/client/tactical/statPresentation';
 
 describe('tactical presentation', () => {
@@ -26,6 +32,35 @@ describe('tactical presentation', () => {
     expect(rows.find((row) => row.statId === 'tank.forwardSpeed')?.primary).toBe('×1.32');
     expect(rows.find((row) => row.statId === 'weapon.mgSpread')?.secondary).toBe('18% TIGHTER');
     expect(rows.some((row) => row.label.includes('.'))).toBe(false);
+  });
+
+  it('classifies minimap threats semantically with a distinct marker hierarchy', () => {
+    const enemy = (rewardClass: 'ambient' | 'wave' | 'elite' | 'boss') => ({
+      id: 7,
+      monster: { rewardClass },
+      ownership: { populationClass: 'ambient', priority: 2 },
+    }) as unknown as EnemyState;
+    const ordinary = enemy('ambient');
+    const elite = enemy('elite');
+    const boss = enemy('boss');
+
+    expect(miniMapEnemyThreatClass(ordinary)).toBe('ordinary');
+    expect(miniMapEnemyThreatClass(elite)).toBe('elite');
+    expect(miniMapEnemyThreatClass(boss)).toBe('boss');
+    expect(miniMapEnemyMarkerStyle(ordinary)).toMatchObject({ shape: 'circle', fill: '#d55347', halfSize: 2.5, ringRadius: null });
+    expect(miniMapEnemyMarkerStyle(elite)).toMatchObject({ shape: 'diamond', fill: '#b56cff', halfSize: 6, ringRadius: null });
+    expect(miniMapEnemyMarkerStyle(boss)).toMatchObject({ shape: 'diamond', fill: '#ff304d', halfSize: 9, ringRadius: 12 });
+  });
+
+  it('treats a semantic wave leader as elite without relying on priority', () => {
+    const leader = {
+      id: 19,
+      ownership: {
+        populationClass: 'wave', waveId: 2, leaderId: 19, packInstanceId: 1,
+        spawnAnchorId: null, purgeOnLeaderDeath: true, priority: 0,
+      },
+    } as unknown as EnemyState;
+    expect(miniMapEnemyThreatClass(leader)).toBe('elite');
   });
 });
 

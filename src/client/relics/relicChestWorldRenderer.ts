@@ -14,6 +14,7 @@ interface MaterialBaseline {
 interface ChestVisual {
   root: THREE.Object3D;
   presentation: RelicChestPresentation;
+  beacon: THREE.Group;
   baseScale: THREE.Vector3;
   materials: MaterialBaseline[];
 }
@@ -68,9 +69,13 @@ export class RelicChestWorldRenderer {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
     });
+    const presentation = new RelicChestPresentation(root, { openDurationSeconds: this.policy.openAnimationSeconds });
+    const beacon = createChestBeacon();
+    root.add(beacon);
     const visual: ChestVisual = {
       root,
-      presentation: new RelicChestPresentation(root, { openDurationSeconds: this.policy.openAnimationSeconds }),
+      presentation,
+      beacon,
       baseScale: root.scale.clone(),
       materials,
     };
@@ -87,6 +92,8 @@ export class RelicChestWorldRenderer {
     deltaSeconds: number,
   ): void {
     visual.root.position.set(chest.x, chest.y, chest.z);
+    visual.beacon.visible = chest.lifecycle === 'spawning' || chest.lifecycle === 'closed';
+    visual.beacon.rotation.y += Math.max(0, Number.isFinite(deltaSeconds) ? deltaSeconds : 0) * 1.8;
     let scale = 1;
     let opacity = 1;
     if (chest.lifecycle === 'spawning') {
@@ -130,9 +137,55 @@ export class RelicChestWorldRenderer {
     if (!visual) return;
     this.scene.remove(visual.root);
     visual.presentation.dispose();
+    disposeObjectResources(visual.beacon);
     for (const baseline of visual.materials) baseline.material.dispose();
     this.visuals.delete(id);
   }
+}
+
+function createChestBeacon(): THREE.Group {
+  const beacon = new THREE.Group();
+  beacon.name = 'TreasureChestBeacon';
+  // The catalog doubles the chest root. Keep the original authored beacon
+  // dimensions while lifting it high enough to remain readable above cover.
+  beacon.position.y = 1.55;
+  beacon.scale.setScalar(0.5);
+
+  const gold = new THREE.MeshStandardMaterial({
+    color: 0xffc94a,
+    emissive: 0xffa51f,
+    emissiveIntensity: 2.2,
+    roughness: 0.35,
+    metalness: 0.2,
+    depthTest: true,
+  });
+  const softGold = new THREE.MeshBasicMaterial({
+    color: 0xffdc73,
+    transparent: true,
+    opacity: 0.78,
+    depthTest: true,
+    depthWrite: false,
+  });
+  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), gold);
+  diamond.name = 'TreasureChestBeaconDiamond';
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.035, 8, 24), softGold);
+  ring.name = 'TreasureChestBeaconRing';
+  ring.rotation.x = Math.PI / 2;
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.15, 6), softGold.clone());
+  stem.name = 'TreasureChestBeaconStem';
+  stem.position.y = -0.72;
+  beacon.add(diamond, ring, stem);
+  return beacon;
+}
+
+function disposeObjectResources(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.dispose();
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const material of materials) material.dispose();
+  });
 }
 
 function clamp01(value: number): number {

@@ -48,11 +48,22 @@ describe('relic chest world renderer', () => {
 
     renderer.sync([state('spawning')], 1, 10_000, 0.016);
     const root = scene.getObjectByName('RelicChestWorld.7')!;
+    const beacon = root.getObjectByName('TreasureChestBeacon') as THREE.Group;
     expect(renderer.size).toBe(1);
     expect(root.scale.x).toBeCloseTo(0.001, 5);
     expect(root.position.toArray()).toEqual([10, 2, -4]);
+    expect(beacon.visible).toBe(true);
+    expect(beacon.getObjectByName('TreasureChestBeaconDiamond')).toBeTruthy();
+    expect(beacon.getObjectByName('TreasureChestBeaconRing')).toBeTruthy();
+    expect(beacon.getObjectByName('TreasureChestBeaconStem')).toBeTruthy();
+
+    const beaconRotation = beacon.rotation.y;
+    renderer.sync([state('closed')], 2, 10_100, 0.5);
+    expect(beacon.visible).toBe(true);
+    expect(beacon.rotation.y).toBeGreaterThan(beaconRotation);
 
     renderer.sync([state('opening', { openingStartedAtWallMs: 10_000, fullyOpenAtWallMs: 10_650 })], 2, 10_325, 0.016);
+    expect(beacon.visible).toBe(false);
     const lid = root.getObjectByName('Lid')!;
     const halfwayRotation = lid.rotation.x;
     expect(halfwayRotation).toBeLessThan(0);
@@ -62,6 +73,7 @@ describe('relic chest world renderer', () => {
     expect(createModelInstance).toHaveBeenCalledTimes(1);
 
     renderer.sync([state('revealing')], 2, 11_000, 0.016);
+    expect(beacon.visible).toBe(false);
     expect(lid.rotation.x).toBeCloseTo(THREE.MathUtils.degToRad(-55.791075), 5);
   });
 

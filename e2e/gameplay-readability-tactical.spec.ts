@@ -44,6 +44,27 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
     return false;
   });
 
+  const closedAssembly = await page.locator('#tactical-drawer').evaluate((root) => {
+    const panel = root.querySelector<HTMLElement>('.tactical-drawer__panel')!;
+    const nub = root.querySelector<HTMLElement>('.tactical-drawer__nub')!;
+    const panelRect = panel.getBoundingClientRect();
+    const nubRect = nub.getBoundingClientRect();
+    return {
+      opacity: getComputedStyle(root).opacity,
+      panelRight: panelRect.right,
+      nubLeft: nubRect.left,
+      nubRight: nubRect.right,
+      nubPointerEvents: getComputedStyle(nub).pointerEvents,
+      nubAriaHidden: nub.getAttribute('aria-hidden'),
+    };
+  });
+  expect(Number(closedAssembly.opacity)).toBe(1);
+  expect(closedAssembly.panelRight).toBeLessThanOrEqual(1);
+  expect(closedAssembly.nubLeft).toBeCloseTo(0, 0);
+  expect(closedAssembly.nubRight).toBeGreaterThan(30);
+  expect(closedAssembly.nubPointerEvents).toBe('none');
+  expect(closedAssembly.nubAriaHidden).toBe('true');
+
   const before = await page.evaluate(() =>
     (window as unknown as { __recoil: { state(): { time: number } } }).__recoil.state().time,
   );
@@ -52,6 +73,12 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
   await expect(page.locator('#enemy-world-ui')).toHaveCount(1);
   await expect(page.locator('#tactical-minimap')).toHaveCount(1);
   await page.waitForTimeout(450);
+  const openAssembly = await page.locator('#tactical-drawer').evaluate((root) => {
+    const panelRect = root.querySelector<HTMLElement>('.tactical-drawer__panel')!.getBoundingClientRect();
+    const nubRect = root.querySelector<HTMLElement>('.tactical-drawer__nub')!.getBoundingClientRect();
+    return { panelRight: panelRect.right, nubLeft: nubRect.left };
+  });
+  expect(openAssembly.nubLeft).toBeCloseTo(openAssembly.panelRight, 0);
   const openState = await page.evaluate(() => {
     const hooks = (window as unknown as {
       __recoil: {

@@ -19,16 +19,24 @@ export class TacticalDrawer {
     this.root.className = 'tactical-drawer';
     this.root.setAttribute('aria-hidden', 'true');
     this.root.innerHTML = `
-      <div class="tactical-drawer__accent"></div>
-      <header class="tactical-drawer__header">
-        <div><span class="tactical-drawer__eyebrow">COMBAT INTELLIGENCE</span><h2>TACTICAL</h2></div>
-        <div class="tactical-drawer__meta"><span data-tactical-level>LEVEL 1</span><kbd>TAB // CLOSE</kbd></div>
-      </header>
-      <section class="tactical-drawer__map-wrap"><div class="tactical-drawer__section-title"><span>AREA MAP</span><span>NORTH-UP</span></div></section>
-      <section class="tactical-drawer__modifiers">
-        <div class="tactical-drawer__section-title"><span>LEVEL-UP MODIFIERS</span><span data-tactical-count>0 EFFECTS</span></div>
-        <div class="tactical-drawer__rows"></div>
-      </section>`;
+      <div class="tactical-drawer__panel">
+        <div class="tactical-drawer__accent"></div>
+        <header class="tactical-drawer__header">
+          <div><span class="tactical-drawer__eyebrow">COMBAT INTELLIGENCE</span><h2>TACTICAL</h2></div>
+          <div class="tactical-drawer__meta"><span data-tactical-level>LEVEL 1</span><kbd>TAB // CLOSE</kbd></div>
+        </header>
+        <section class="tactical-drawer__map-wrap"><div class="tactical-drawer__section-title"><span>AREA MAP</span><span>NORTH-UP</span></div></section>
+        <section class="tactical-drawer__modifiers">
+          <div class="tactical-drawer__section-title"><span>LEVEL-UP MODIFIERS</span><span data-tactical-count>0 EFFECTS</span></div>
+          <div class="tactical-drawer__rows"></div>
+        </section>
+      </div>
+      <div class="tactical-drawer__nub" aria-hidden="true">
+        <span class="tactical-drawer__nub-accent"></span>
+        <span class="tactical-drawer__nub-map">MAP</span>
+        <kbd>TAB</kbd>
+        <span class="tactical-drawer__nub-chevron"></span>
+      </div>`;
     this.levelLabel = this.root.querySelector('[data-tactical-level]') as HTMLSpanElement;
     this.upgradeCount = this.root.querySelector('[data-tactical-count]') as HTMLSpanElement;
     this.rows = this.root.querySelector('.tactical-drawer__rows') as HTMLDivElement;

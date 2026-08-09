@@ -17,6 +17,7 @@ describe('persistent relic inventory rail', () => {
     document.body.appendChild(container);
     const rail = new RelicInventoryRail(container, (id) => ({
       label: id === 'relic.alpha' ? 'ALPHA CORE' : 'BETA CORE',
+      description: id === 'relic.alpha' ? 'Max integrity +200.' : 'Unrelated authored copy.',
       rarity: id === 'relic.alpha' ? 'rare' : 'common',
       iconId: `${id}.icon`,
       iconUrl: null,
@@ -24,7 +25,10 @@ describe('persistent relic inventory rail', () => {
 
     rail.update(state({ 'relic.beta': 1, 'relic.alpha': 1 }, ['relic.alpha', 'relic.beta']));
     const cells = [...container.querySelectorAll<HTMLElement>('.relic-rail-cell')];
-    expect(cells.map((cell) => cell.title)).toEqual(['ALPHA CORE', 'BETA CORE']);
+    expect(cells.map((cell) => cell.title)).toEqual([
+      'ALPHA CORE — Max integrity +200.',
+      'BETA CORE — Unrelated authored copy.',
+    ]);
     expect(container.textContent).not.toContain('relic.');
     expect(container.querySelectorAll('img')).toHaveLength(0);
     expect(container.querySelectorAll('.relic-rail-icon--fallback')).toHaveLength(2);
@@ -33,6 +37,7 @@ describe('persistent relic inventory rail', () => {
     rail.update(state({ 'relic.beta': 1, 'relic.alpha': 3 }, ['relic.alpha', 'relic.beta']));
     expect(container.querySelector('.relic-rail-cell')).toBe(alphaCell);
     expect(alphaCell.textContent).toContain('×3');
+    expect(alphaCell.title).toBe('ALPHA CORE ×3 — Max integrity +200.');
     expect(alphaCell.classList.contains('relic-rail-cell--stacked')).toBe(true);
     rail.dispose();
     expect(container.children).toHaveLength(0);

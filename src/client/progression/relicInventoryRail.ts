@@ -3,6 +3,7 @@ import type { UpgradeRarity } from '../../shared/content/schemas/progression';
 
 export interface RelicRailItemInfo {
   label: string;
+  description?: string;
   rarity: UpgradeRarity;
   iconId: string;
   iconUrl: string | null;
@@ -48,6 +49,8 @@ export class RelicInventoryRail {
       } else if (existing.stack !== stack) {
         existing.stack = stack;
         existing.count.textContent = stack >= 2 ? `×${stack}` : '';
+        const info = this.infoFor(relicId);
+        if (info) this.updateAccessibleDescription(existing.root, info, stack);
         existing.root.classList.remove('relic-rail-cell--stacked');
         void existing.root.offsetWidth;
         existing.root.classList.add('relic-rail-cell--stacked');
@@ -67,8 +70,7 @@ export class RelicInventoryRail {
     if (!info) return null;
     const root = document.createElement('div');
     root.className = `relic-rail-cell relic-rail-cell--${info.rarity}`;
-    root.title = `${info.label}${stack >= 2 ? ` ×${stack}` : ''}`;
-    root.setAttribute('aria-label', root.title);
+    this.updateAccessibleDescription(root, info, stack);
     const icon = document.createElement('span');
     icon.className = 'relic-rail-icon';
     if (info.iconUrl) {
@@ -87,6 +89,12 @@ export class RelicInventoryRail {
     root.append(icon, count);
     this.root.appendChild(root);
     return { root, count, stack };
+  }
+
+  private updateAccessibleDescription(root: HTMLElement, info: RelicRailItemInfo, stack: number): void {
+    const description = info.description ? ` — ${info.description}` : '';
+    root.title = `${info.label}${stack >= 2 ? ` ×${stack}` : ''}${description}`;
+    root.setAttribute('aria-label', root.title);
   }
 
   private updateGeometry(): void {

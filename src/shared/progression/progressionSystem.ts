@@ -22,6 +22,7 @@ import { resolveRelicEffectParameters } from './relicEffectParameters';
 import { isCannonSelfDamage, isGunnerWeaponDamage } from '../damage/damageTypes';
 import { isWaveLeader, normalizedEnemyClass } from '../enemies/enemyClassification';
 import type { StageEvent } from '../stage/stageTypes';
+import { repairForMaxIntegrityGain } from './maxIntegrityRewardRepair';
 
 export interface ProgressionDebugState {
   flow: string;
@@ -294,6 +295,7 @@ export class ProgressionSystem {
       const single = this.selection.selectedCard(active, 'single');
       if (single) cards.push(single);
     }
+    const maxIntegrityBefore = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
     for (const card of cards) {
       applyUpgradeCard(
         this.ctx.rules,
@@ -303,6 +305,8 @@ export class ProgressionSystem {
         s.teamProgression.levelUpgradeSummary,
       );
     }
+    const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+    repairForMaxIntegrityGain(s.tank, maxIntegrityBefore, maxIntegrityAfter);
     s.teamProgression.levelUpOffersCompleted++;
     s.teamProgression.activeSelection = null;
     this.teamXp.consumeLevelUp();
@@ -522,6 +526,8 @@ export class ProgressionSystem {
     chest.rewardResolved = true;
     this.chests.open(chest);
     const acquisitionSequence = ++s.teamProgression.relicAcquisitionSequence;
+    const stackBefore = this.inventory.getStack(relic.id);
+    const maxIntegrityBefore = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
     const acquire = this.inventory.add(relic);
     const roll: RelicRollResult = {
       acquisitionSequence,
@@ -536,6 +542,10 @@ export class ProgressionSystem {
     this.telemetry.rarityDistribution[candidate.rarity] = (this.telemetry.rarityDistribution[candidate.rarity] ?? 0) + 1;
     this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
     this.projector.reproject(s.teamProgression);
+    if (acquire.stackCount > stackBefore) {
+      const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+      repairForMaxIntegrityGain(s.tank, maxIntegrityBefore, maxIntegrityAfter);
+    }
     if (acquire.capabilityGranted) {
       this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
     }

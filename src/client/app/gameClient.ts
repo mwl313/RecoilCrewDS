@@ -43,6 +43,7 @@ import { RelicInventoryRail } from '../progression/relicInventoryRail';
 import { ProgressionInputContext } from '../progression/progressionInputContext';
 import { EnemyWorldUiLayer } from '../worldUi/enemyWorldUiLayer';
 import { TacticalDrawer } from '../tactical/tacticalDrawer';
+import { presentRelicDescription } from '../../shared/presentation/relicDescriptionPresentation';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -268,7 +269,15 @@ export class GameClient {
       relicInfo: (relicId) => {
         const relic = gameRef!.contentPack?.getRelic(relicId);
         return relic
-          ? { label: relic.label, description: relic.description, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+          ? {
+              label: relic.label,
+              description: presentRelicDescription(
+                relic,
+                (templateId) => gameRef!.contentPack?.getRelicEffectTemplate(templateId),
+              ),
+              iconId: relic.iconId,
+              iconUrl: gameRef!.assets.assetUrl(relic.iconId),
+            }
           : null;
       },
       rewardSound: (name, detail) => {
@@ -284,7 +293,16 @@ export class GameClient {
     game.relicInventoryRail = new RelicInventoryRail(container, (relicId) => {
       const relic = gameRef!.contentPack?.getRelic(relicId);
       return relic
-        ? { label: relic.label, rarity: relic.rarity, iconId: relic.iconId, iconUrl: gameRef!.assets.assetUrl(relic.iconId) }
+        ? {
+            label: relic.label,
+            description: presentRelicDescription(
+              relic,
+              (templateId) => gameRef!.contentPack?.getRelicEffectTemplate(templateId),
+            ),
+            rarity: relic.rarity,
+            iconId: relic.iconId,
+            iconUrl: gameRef!.assets.assetUrl(relic.iconId),
+          }
         : null;
     });
     game.f4 = new F4Overlay();
