@@ -46,7 +46,7 @@ const ordinaryRangedAttackSchema = z.object({
   attackCueNormalized: cueNormalizedSchema,
 });
 
-const bossPatternSchema = z.discriminatedUnion('type', [
+const mixedAttackPatternSchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string().min(1),
     type: z.literal('melee'),
@@ -74,7 +74,7 @@ const monsterAttackSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('mixed'),
     selection: z.object({ mode: z.literal('orderedCycle') }),
-    patterns: z.array(bossPatternSchema).min(2),
+    patterns: z.array(mixedAttackPatternSchema).min(2),
   }),
 ]);
 
@@ -156,34 +156,42 @@ const monsterEnemySchema = z
       .optional(),
   })
   .superRefine((monster, ctx) => {
-    const ordinary = monster.tier === 'fodder' || monster.tier === 'specialist' || monster.tier === 'elite';
-    const boss = monster.tier === 'boss';
+    const ordinary = monster.tier === 'fodder' || monster.tier === 'specialist';
+    const featured = monster.tier === 'elite' || monster.tier === 'boss';
     if (ordinary && monster.attack.type === 'mixed') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `${monster.id}: ordinary/elite monsters must use exactly one melee or ranged attack`,
+        message: `${monster.id}: fodder/specialist monsters must use exactly one melee or ranged attack`,
       });
     }
-    if (boss) {
+    if (featured) {
       if (monster.attack.type !== 'mixed') {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${monster.id}: bosses require a mixed pattern set`,
+          message: `${monster.id}: elite/boss monsters require a mixed pattern set`,
         });
       } else {
         if (monster.attack.patterns.length < 2) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `${monster.id}: bosses require at least two patterns`,
+            message: `${monster.id}: elite/boss monsters require at least two patterns`,
+          });
+        }
+        if (!monster.attack.patterns.some((p) => p.type === 'melee')) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${monster.id}: elite/boss monsters require at least one melee pattern`,
           });
         }
         if (!monster.attack.patterns.some((p) => p.type === 'ranged')) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `${monster.id}: bosses require at least one ranged pattern`,
+            message: `${monster.id}: elite/boss monsters require at least one ranged pattern`,
           });
         }
       }
+    }
+    if (monster.tier === 'boss') {
       if (monster.levelScaling.damage !== false) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -266,4 +274,6 @@ export const enemySchema = z.discriminatedUnion('type', [
 
 export type EnemyDefinition = z.infer<typeof enemySchema>;
 export type MonsterEnemyDefinition = z.infer<typeof monsterEnemySchema>;
-export type BossAttackPattern = z.infer<typeof bossPatternSchema>;
+export type MixedAttackPattern = z.infer<typeof mixedAttackPatternSchema>;
+/** @deprecated Temporary compatibility alias; mixed patterns are tier-neutral. */
+export type BossAttackPattern = MixedAttackPattern;

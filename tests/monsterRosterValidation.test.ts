@@ -19,7 +19,7 @@ describe('monster roster content', () => {
     .map((id) => pack.getEnemy(id))
     .filter((e) => e.type === 'monster');
 
-  it('contains 51 monsters: 39 ordinary + 4+2 elites + 2+4 bosses (cross-role pool)', () => {
+  it('contains 51 monsters: 39 ordinary + 6 elites + 6 bosses', () => {
     expect(monsters).toHaveLength(51);
     const tiers = monsters.reduce<Record<string, number>>((acc, m) => {
       if (m.type !== 'monster') return acc;
@@ -31,23 +31,24 @@ describe('monster roster content', () => {
     expect(tiers.boss).toBe(6);
   });
 
-  it('every ordinary/elite has exactly one melee or ranged attack; bosses are mixed', () => {
+  it('every featured Elite/Boss has melee+ranged mixed patterns; ordinary monsters stay single-pattern', () => {
     for (const m of monsters) {
       if (m.type !== 'monster') continue;
       const attack = m.attack;
-      if (m.tier === 'boss') {
+      if (m.tier === 'boss' || m.tier === 'elite') {
         expect(attack.type).toBe('mixed');
         if (attack.type === 'mixed') {
           expect(attack.patterns.length).toBeGreaterThanOrEqual(2);
+          expect(attack.patterns.some((p) => p.type === 'melee')).toBe(true);
           expect(attack.patterns.some((p) => p.type === 'ranged')).toBe(true);
         }
-        expect(m.levelScaling.damage).toBe(false);
         expect(m.levelScaling.health).toBe(true);
-        expect(m.tierScale).toBe(5);
+        expect(m.levelScaling.damage).toBe(m.tier === 'elite');
+        expect(m.tierScale).toBe(m.tier === 'boss' ? 5 : 3);
       } else {
         expect(['melee', 'ranged']).toContain(attack.type);
         expect(m.levelScaling.damage).toBe(true);
-        expect(m.tierScale).toBe(m.tier === 'elite' ? 3 : 1);
+        expect(m.tierScale).toBe(1);
         if (attack.type === 'melee') {
           expect(attack.damageModel).toBe('contactDps');
           expect(attack.contactDps).toBeGreaterThan(0);

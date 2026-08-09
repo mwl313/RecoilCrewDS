@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
   "stats": {
     "hp": 75,
-    "speed": 2.6,
+    "speed": 5.2,
     "threat": 8
   },
   "rewardClass": "elite",
@@ -18,41 +18,51 @@
     "damage": true
   },
   "attack": {
-    "type": "ranged",
-    "damage": 15,
-    "rate": 0.5,
-    "range": 38,
-    "preferredRange": 16,
-    "projectileId": "projectile.enemyIceShot",
-    "visualColor": "#2EA8FF",
-    "telegraphTime": 1,
-    "shotCount": 1
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "heavyStrike",
+        "type": "melee",
+        "damage": 10,
+        "rate": 0.75,
+        "range": 2.5
+      },
+      {
+        "id": "iceBolt",
+        "type": "ranged",
+        "damage": 15,
+        "rate": 0.5,
+        "range": 38,
+        "projectileId": "projectile.enemyIceBolt",
+        "visualColor": "#C4F1FF",
+        "telegraphTime": 1
+      }
+    ]
   },
   "behaviors": [
     {
       "id": "movement.trackTank",
-      "parameters": {
-        "preferredRange": 16
-      }
+      "parameters": {}
     },
     {
       "id": "movement.densitySteering",
       "parameters": {}
     },
     {
-      "id": "movement.integrate",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {
-      "id": "attack.projectileCue",
-      "parameters": {
-        "shotCount": 1
-      }
+      "id": "movement.integrate",
+      "parameters": {}
     }
   ],
   "spawnTags": [
     "elite",
-    "ranged",
+    "mixed",
     "medium"
   ]
 }

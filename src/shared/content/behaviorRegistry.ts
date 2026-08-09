@@ -94,7 +94,8 @@ export function createBuiltinBehaviorRegistry(): BehaviorRegistry {
   registry.register({ id: 'attack.projectileBurst', kind: 'attack', description: 'Gun Tower tracking burst fire' });
   registry.register({ id: 'attack.meleeCue', kind: 'attack', description: 'Monster: authoritative contact-DPS melee cue' });
   registry.register({ id: 'attack.projectileCue', kind: 'attack', description: 'Monster: one slow projectile at the normalized cue' });
-  registry.register({ id: 'attack.bossCue', kind: 'attack', description: 'Boss: ordered pattern cycle cue' });
+  registry.register({ id: 'attack.mixedCue', kind: 'attack', description: 'Elite/Boss: ordered valid-pattern cycle cue' });
+  registry.register({ id: 'attack.bossCue', kind: 'attack', description: 'Compatibility alias for attack.mixedCue' });
   registry.register({ id: 'attack.contactRam', kind: 'attack', description: 'Contact ram/damage when touching the tank' });
   registry.register({ id: 'defense.armoredFront', kind: 'defense', description: 'Reduce incoming damage from a facing' });
   registry.register({ id: 'trait.nonAttackingObjective', kind: 'trait', description: 'Marker: objective enemy that does not attack' });

@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.cactoro-high-detail.hero",
   "stats": {
     "hp": 70,
-    "speed": 2.6,
+    "speed": 5.2,
     "threat": 8
   },
   "rewardClass": "elite",
@@ -18,41 +18,51 @@
     "damage": true
   },
   "attack": {
-    "type": "ranged",
-    "damage": 16,
-    "rate": 0.45,
-    "range": 40,
-    "preferredRange": 18,
-    "projectileId": "projectile.enemySpitShot",
-    "visualColor": "#00C98D",
-    "telegraphTime": 1,
-    "shotCount": 1
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "slam",
+        "type": "melee",
+        "damage": 8,
+        "rate": 0.9,
+        "range": 2.5
+      },
+      {
+        "id": "needle",
+        "type": "ranged",
+        "damage": 16,
+        "rate": 0.45,
+        "range": 40,
+        "projectileId": "projectile.enemySpitShot",
+        "visualColor": "#B8FF3D",
+        "telegraphTime": 1
+      }
+    ]
   },
   "behaviors": [
     {
       "id": "movement.trackTank",
-      "parameters": {
-        "preferredRange": 18
-      }
+      "parameters": {}
     },
     {
       "id": "movement.densitySteering",
       "parameters": {}
     },
     {
-      "id": "movement.integrate",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {
-      "id": "attack.projectileCue",
-      "parameters": {
-        "shotCount": 1
-      }
+      "id": "movement.integrate",
+      "parameters": {}
     }
   ],
   "spawnTags": [
     "elite",
-    "ranged",
+    "mixed",
     "medium"
   ]
 }

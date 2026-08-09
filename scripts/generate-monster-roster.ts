@@ -1,6 +1,6 @@
 /**
  * Generates the launch monster roster content:
- * - 45 general monster definitions (39 ordinary + 4 elites + 2 bosses)
+ * - 51 monster definitions (39 ordinary + 6 elites + 6 bosses)
  * - enemy projectile definitions
  * - the production art roster `enemyArtRoster.quaternius.mainStage`
  *
@@ -31,9 +31,11 @@ interface MonsterRow {
   telegraphTime?: number;
   /** Cross-role suffix: '.boss' or '.elite' (featured identity roles). */
   roleSuffix?: string;
-  /** Provisional cross-role boss pattern key. */
-  bossPatternKey?: 'alien' | 'cactoro' | 'fish' | 'ninja';
+  /** Featured identity whose tier-specific mixed repertoire is authored below. */
+  patternKey?: FeaturedIdentity;
 }
+
+type FeaturedIdentity = 'alien' | 'cactoro' | 'fish' | 'ninja' | 'demon' | 'yeti';
 
 // 15 families with common-near/far/aggregate presentation.
 const COMMON_SLUGS = new Set([
@@ -99,30 +101,30 @@ const ORDINARY: MonsterRow[] = [
 ];
 
 const ELITES: MonsterRow[] = [
-  melee('alien-high-detail', 'elite', 'medium', 60, 3.6, 8, 10, 1.8, 2.5, 'elite'),
-  melee('fish-high-detail', 'elite', 'medium', 55, 3.8, 8, 12, 2.0, 2.5, 'elite'),
-  melee('ninja-high-detail', 'elite', 'medium', 50, 4.6, 8, 11, 2.2, 2.5, 'elite'),
-  ranged('cactoro-high-detail', 'elite', 'medium', 70, 2.6, 8, 16, 0.45, 40, 'projectile.enemySpitShot', 1.0, 18),
+  { slug: 'alien-high-detail', tier: 'elite', sizeClass: 'medium', hp: 60, speed: 7.2, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 1.8, range: 2.5, patternKey: 'alien' },
+  { slug: 'fish-high-detail', tier: 'elite', sizeClass: 'medium', hp: 55, speed: 7.6, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 2.0, range: 2.5, patternKey: 'fish' },
+  { slug: 'ninja-high-detail', tier: 'elite', sizeClass: 'medium', hp: 50, speed: 9.2, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 2.2, range: 2.5, patternKey: 'ninja' },
+  { slug: 'cactoro-high-detail', tier: 'elite', sizeClass: 'medium', hp: 70, speed: 5.2, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 0.45, range: 40, patternKey: 'cactoro' },
 ];
 
 const BOSSES: MonsterRow[] = [
   {
-    slug: 'demon-high-detail', tier: 'boss', sizeClass: 'large', hp: 250, speed: 3.2, threat: 50,
-    rewardClass: 'boss', attack: 'mixed', rate: 0.8, range: 4,
+    slug: 'demon-high-detail', tier: 'boss', sizeClass: 'large', hp: 250, speed: 9.6, threat: 50,
+    rewardClass: 'boss', attack: 'mixed', rate: 0.8, range: 4, patternKey: 'demon',
   },
   {
-    slug: 'yeti-high-detail', tier: 'boss', sizeClass: 'large', hp: 280, speed: 2.8, threat: 50,
-    rewardClass: 'boss', attack: 'mixed', rate: 0.6, range: 4,
+    slug: 'yeti-high-detail', tier: 'boss', sizeClass: 'large', hp: 280, speed: 8.4, threat: 50,
+    rewardClass: 'boss', attack: 'mixed', rate: 0.6, range: 4, patternKey: 'yeti',
   },
 ];
 
-const CROSS_BOSS_PATTERNS: Record<string, unknown> = {
+const BOSS_PATTERNS: Record<FeaturedIdentity, unknown> = {
   alien: {
     type: 'mixed',
     selection: { mode: 'orderedCycle' },
     patterns: [
       { id: 'punch', type: 'melee', damage: 28, rate: 0.9, range: 4 },
-      { id: 'spit', type: 'ranged', damage: 20, rate: 0.45, range: 40, projectileId: 'projectile.enemySpitShot', telegraphTime: 1.0 },
+      { id: 'spit', type: 'ranged', damage: 20, rate: 0.45, range: 40, projectileId: 'projectile.enemySpitShot', visualColor: '#7CFF6B', telegraphTime: 1.0 },
     ],
   },
   cactoro: {
@@ -130,7 +132,7 @@ const CROSS_BOSS_PATTERNS: Record<string, unknown> = {
     selection: { mode: 'orderedCycle' },
     patterns: [
       { id: 'slam', type: 'melee', damage: 26, rate: 0.8, range: 4 },
-      { id: 'needle', type: 'ranged', damage: 24, rate: 0.4, range: 40, projectileId: 'projectile.enemySpitShot', telegraphTime: 1.1 },
+      { id: 'needle', type: 'ranged', damage: 24, rate: 0.4, range: 40, projectileId: 'projectile.enemySpitShot', visualColor: '#B8FF3D', telegraphTime: 1.1 },
     ],
   },
   fish: {
@@ -138,7 +140,7 @@ const CROSS_BOSS_PATTERNS: Record<string, unknown> = {
     selection: { mode: 'orderedCycle' },
     patterns: [
       { id: 'bite', type: 'melee', damage: 30, rate: 0.9, range: 4 },
-      { id: 'bubble', type: 'ranged', damage: 18, rate: 0.5, range: 38, projectileId: 'projectile.enemyBoneShot', telegraphTime: 0.9 },
+      { id: 'bubble', type: 'ranged', damage: 18, rate: 0.5, range: 38, projectileId: 'projectile.enemyBoneShot', visualColor: '#F5E6C8', telegraphTime: 0.9 },
     ],
   },
   ninja: {
@@ -146,19 +148,78 @@ const CROSS_BOSS_PATTERNS: Record<string, unknown> = {
     selection: { mode: 'orderedCycle' },
     patterns: [
       { id: 'slash', type: 'melee', damage: 26, rate: 1.0, range: 4 },
-      { id: 'shuriken', type: 'ranged', damage: 18, rate: 0.5, range: 36, projectileId: 'projectile.enemyBoneShot', telegraphTime: 0.9 },
+      { id: 'shuriken', type: 'ranged', damage: 18, rate: 0.5, range: 36, projectileId: 'projectile.enemyBoneShot', visualColor: '#BFC7D5', telegraphTime: 0.9 },
+    ],
+  },
+  demon: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'punch', type: 'melee', damage: 30, rate: 0.8, range: 4 },
+      { id: 'fireball', type: 'ranged', damage: 22, rate: 0.4, range: 40, projectileId: 'projectile.enemyFireball', visualColor: '#FF3B30', telegraphTime: 1.0 },
+    ],
+  },
+  yeti: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'heavyStrike', type: 'melee', damage: 34, rate: 0.6, range: 4 },
+      { id: 'iceBolt', type: 'ranged', damage: 26, rate: 0.3, range: 40, projectileId: 'projectile.enemyIceBolt', visualColor: '#C4F1FF', telegraphTime: 1.2 },
+    ],
+  },
+};
+
+const ELITE_PATTERNS: Record<FeaturedIdentity, unknown> = {
+  alien: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'punch', type: 'melee', damage: 10 / 1.8, rate: 1.8, range: 2.5 },
+      { id: 'spit', type: 'ranged', damage: 10, rate: 1.0, range: 40, projectileId: 'projectile.enemySpitShot', visualColor: '#7CFF6B', telegraphTime: 1.0 },
+    ],
+  },
+  cactoro: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'slam', type: 'melee', damage: 8, rate: 0.9, range: 2.5 },
+      { id: 'needle', type: 'ranged', damage: 16, rate: 0.45, range: 40, projectileId: 'projectile.enemySpitShot', visualColor: '#B8FF3D', telegraphTime: 1.0 },
+    ],
+  },
+  fish: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'bite', type: 'melee', damage: 12 / 2.0, rate: 2.0, range: 2.5 },
+      { id: 'bubble', type: 'ranged', damage: 12, rate: 1.0, range: 38, projectileId: 'projectile.enemyBoneShot', visualColor: '#F5E6C8', telegraphTime: 0.9 },
+    ],
+  },
+  ninja: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'slash', type: 'melee', damage: 11 / 2.2, rate: 2.2, range: 2.5 },
+      { id: 'shuriken', type: 'ranged', damage: 11, rate: 1.0, range: 36, projectileId: 'projectile.enemyBoneShot', visualColor: '#BFC7D5', telegraphTime: 0.9 },
+    ],
+  },
+  demon: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'punch', type: 'melee', damage: 11 / 1.9, rate: 1.9, range: 2.5 },
+      { id: 'fireball', type: 'ranged', damage: 11, rate: 1.0, range: 40, projectileId: 'projectile.enemyFireball', visualColor: '#FF3B30', telegraphTime: 1.0 },
+    ],
+  },
+  yeti: {
+    type: 'mixed', selection: { mode: 'orderedCycle' }, patterns: [
+      { id: 'heavyStrike', type: 'melee', damage: 10, rate: 0.75, range: 2.5 },
+      { id: 'iceBolt', type: 'ranged', damage: 15, rate: 0.5, range: 38, projectileId: 'projectile.enemyIceBolt', visualColor: '#C4F1FF', telegraphTime: 1.0 },
     ],
   },
 };
 
 const CROSS_ROLES: MonsterRow[] = [
-  { slug: 'alien-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 220, speed: 3.4, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, bossPatternKey: 'alien' },
-  { slug: 'cactoro-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 240, speed: 2.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.8, range: 4, bossPatternKey: 'cactoro' },
-  { slug: 'fish-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 210, speed: 3.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, bossPatternKey: 'fish' },
-  { slug: 'ninja-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 200, speed: 4.8, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 1.0, range: 4, bossPatternKey: 'ninja' },
-  { slug: 'demon-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 65, speed: 3.2, threat: 8, rewardClass: 'elite', attack: 'melee', contactDps: 11, rate: 1.9, range: 2.5 },
-  { slug: 'yeti-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 75, speed: 2.6, threat: 8, rewardClass: 'elite', attack: 'ranged', damage: 15, rate: 0.5, range: 38, preferredRange: 16, projectileId: 'projectile.enemyIceShot', telegraphTime: 1.0 },
+  { slug: 'alien-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 220, speed: 10.2, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, patternKey: 'alien' },
+  { slug: 'cactoro-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 240, speed: 8.4, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.8, range: 4, patternKey: 'cactoro' },
+  { slug: 'fish-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 210, speed: 11.4, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 0.9, range: 4, patternKey: 'fish' },
+  { slug: 'ninja-high-detail', roleSuffix: 'boss', tier: 'boss', sizeClass: 'large', hp: 200, speed: 14.4, threat: 45, rewardClass: 'boss', attack: 'mixed', rate: 1.0, range: 4, patternKey: 'ninja' },
+  { slug: 'demon-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 65, speed: 6.4, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 1.9, range: 2.5, patternKey: 'demon' },
+  { slug: 'yeti-high-detail', roleSuffix: 'elite', tier: 'elite', sizeClass: 'medium', hp: 75, speed: 5.2, threat: 8, rewardClass: 'elite', attack: 'mixed', rate: 0.5, range: 38, patternKey: 'yeti' },
 ];
+
+const RANGED_VISUAL_COLORS: Record<string, string> = {
+  'alpaking-evolved': '#4B7BFF', alpaking: '#35D9FF',
+  'armabee-evolved': '#FF8A3D', armabee: '#FFD23F', cactoro: '#42E37D',
+  'ghost-skull': '#8A5CFF', ghost: '#B58CFF', 'glub-evolved': '#FF4FD8',
+  'green-spiky-blob': '#20F28B', hywirl: '#00F0E0', 'mushnub-evolved': '#FF6FB1',
+  pigeon: '#E6C78A', wizard: '#A855F7', yeti: '#69D2FF',
+};
 
 const PROJECTILES: Array<{ id: string; label: string; speed: number; life: number; hitRadius: number; tankHitRadius: number }> = [
   { id: 'projectile.enemyWizardShot', label: 'Wizard Shot', speed: 9, life: 6, hitRadius: 0.6, tankHitRadius: 1.2 },
@@ -198,8 +259,8 @@ function behaviorsFor(row: MonsterRow): Array<{ id: string; parameters?: Record<
   return [
     { id: 'movement.trackTank', parameters: {} },
     { id: 'movement.densitySteering', parameters: {} },
+    { id: 'attack.mixedCue', parameters: {} },
     { id: 'movement.integrate', parameters: {} },
-    { id: 'attack.bossCue', parameters: {} },
   ];
 }
 
@@ -222,31 +283,13 @@ function attackFor(row: MonsterRow): unknown {
       range: row.range,
       preferredRange: row.preferredRange,
       projectileId: row.projectileId,
+      visualColor: RANGED_VISUAL_COLORS[row.slug],
       telegraphTime: row.telegraphTime,
       shotCount: 1,
     };
   }
-  if (row.slug === 'demon-high-detail') {
-    return {
-      type: 'mixed',
-      selection: { mode: 'orderedCycle' },
-      patterns: [
-        { id: 'punch', type: 'melee', damage: 30, rate: 0.8, range: 4 },
-        { id: 'fireball', type: 'ranged', damage: 22, rate: 0.4, range: 40, projectileId: 'projectile.enemyFireball', telegraphTime: 1.0 },
-      ],
-    };
-  }
-  if (row.bossPatternKey) {
-    return CROSS_BOSS_PATTERNS[row.bossPatternKey];
-  }
-  return {
-    type: 'mixed',
-    selection: { mode: 'orderedCycle' },
-    patterns: [
-      { id: 'heavyStrike', type: 'melee', damage: 34, rate: 0.6, range: 4 },
-      { id: 'iceBolt', type: 'ranged', damage: 26, rate: 0.3, range: 40, projectileId: 'projectile.enemyIceBolt', telegraphTime: 1.2 },
-    ],
-  };
+  if (!row.patternKey) throw new Error(`mixed monster '${row.slug}' has no featured identity pattern key`);
+  return row.tier === 'elite' ? ELITE_PATTERNS[row.patternKey] : BOSS_PATTERNS[row.patternKey];
 }
 
 function definitionFor(row: MonsterRow): Record<string, unknown> {
@@ -347,4 +390,4 @@ fs.writeFileSync(
   ) + '\n',
 );
 
-console.log(`generated ${allRows.length} monsters (${ORDINARY.length} ordinary, ${ELITES.length} elites, ${BOSSES.length} bosses), ${PROJECTILES.length} projectiles, production roster`);
+console.log(`generated ${allRows.length} monsters (${ORDINARY.length} ordinary, 6 elites, 6 bosses), ${PROJECTILES.length} projectiles, production roster`);
