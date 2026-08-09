@@ -2,6 +2,14 @@ import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 import type { MatchState, Role, TankState } from '../../shared/types';
 import { MiniMapRenderer } from './miniMapRenderer';
 import { presentLevelUpgradeSummary, type TacticalStatGroup } from './statPresentation';
+import type { AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
+
+export interface TacticalDrawerFrame {
+  state: MatchState;
+  tank: Pick<TankState, 'x' | 'z' | 'yaw'> | null;
+  role: Role | 'single';
+  sectors: readonly AggregateSectorRecord[];
+}
 
 export class TacticalDrawer {
   private readonly root = document.createElement('aside');
@@ -13,6 +21,7 @@ export class TacticalDrawer {
   private openState = false;
   private summarySignature = '';
   private lastYaw = 0;
+  private lastRenderedSectorCount = 0;
 
   constructor(private readonly container: HTMLElement, world: ArenaWorld) {
     this.root.id = 'tactical-drawer';
@@ -56,20 +65,22 @@ export class TacticalDrawer {
 
   rebuild(world: ArenaWorld): void { this.miniMap.rebuild(world); }
 
-  update(state: MatchState, tank: Pick<TankState, 'x' | 'z' | 'yaw'> | null, role: Role | 'single'): void {
+  update({ state, tank, role, sectors }: TacticalDrawerFrame): void {
     this.levelLabel.textContent = `LEVEL ${state.teamProgression.level}`;
     this.root.dataset.role = role;
     if (!this.openState || !tank) return;
     this.lastYaw = tank.yaw;
+    this.lastRenderedSectorCount = sectors.length;
     this.rebuildRows(state);
-    this.miniMap.render({ tank, enemies: state.enemies, chests: state.chests });
+    this.miniMap.render({ tank, enemies: state.enemies, chests: state.chests, sectors });
   }
 
-  diagnostics(): { open: boolean; chassisYaw: number; renderedEffects: number } {
+  diagnostics(): { open: boolean; chassisYaw: number; renderedEffects: number; renderedSectors: number } {
     return {
       open: this.openState,
       chassisYaw: this.lastYaw,
       renderedEffects: Number(this.root.dataset.effectCount ?? 0),
+      renderedSectors: this.lastRenderedSectorCount,
     };
   }
 

@@ -2,11 +2,13 @@ import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 import type { EnemyState, TankState } from '../../shared/types';
 import type { TreasureChestState } from '../../shared/progression/progressionTypes';
 import { isWaveLeader, normalizedEnemyClass } from '../../shared/enemies/enemyClassification';
+import type { AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 
 export interface MiniMapFrame {
   tank: Pick<TankState, 'x' | 'z' | 'yaw'>;
   enemies: readonly EnemyState[];
   chests: readonly TreasureChestState[];
+  sectors: readonly AggregateSectorRecord[];
 }
 
 interface MapBounds { minX: number; maxX: number; minZ: number; maxZ: number }
@@ -14,7 +16,7 @@ interface MapBounds { minX: number; maxX: number; minZ: number; maxZ: number }
 export type MiniMapEnemyThreatClass = 'ordinary' | 'elite' | 'boss';
 
 export interface MiniMapEnemyMarkerStyle {
-  shape: 'circle' | 'diamond';
+  shape: 'circle' | 'diamond' | 'hex';
   halfSize: number;
   fill: string;
   stroke: string | null;
@@ -23,17 +25,27 @@ export interface MiniMapEnemyMarkerStyle {
   ringStroke: string | null;
 }
 
+export const MINI_MAP_PLAYER_MARKER_STYLE = Object.freeze({
+  fill: '#59e391',
+  stroke: '#101416',
+  lineWidth: 2.5,
+  tipY: -10.5,
+  halfWidth: 7.5,
+  baseY: 8,
+  notchY: 5.25,
+});
+
 const ENEMY_MARKER_STYLES: Readonly<Record<MiniMapEnemyThreatClass, Readonly<MiniMapEnemyMarkerStyle>>> = {
   ordinary: {
-    shape: 'circle', halfSize: 2.5, fill: '#d55347', stroke: null,
-    lineWidth: 0, ringRadius: null, ringStroke: null,
+    shape: 'circle', halfSize: 2.5, fill: '#d55347', stroke: '#2a0e0c',
+    lineWidth: .75, ringRadius: null, ringStroke: null,
   },
   elite: {
     shape: 'diamond', halfSize: 6, fill: '#b56cff', stroke: '#220b2e',
     lineWidth: 1.75, ringRadius: null, ringStroke: null,
   },
   boss: {
-    shape: 'diamond', halfSize: 9, fill: '#ff304d', stroke: '#28060d',
+    shape: 'hex', halfSize: 9, fill: '#ff304d', stroke: '#28060d',
     lineWidth: 2, ringRadius: 12, ringStroke: 'rgba(241,238,227,.95)',
   },
 };
@@ -54,6 +66,14 @@ export function miniMapEnemyMarkerStyle(enemy: EnemyState): Readonly<MiniMapEnem
 
 export function chassisYawToMiniMapRotation(yaw: number): number {
   return Math.PI - yaw;
+}
+
+export function miniMapSectorRadius(count: number): number {
+  return Math.min(16, Math.max(9, 7 + Math.sqrt(Math.max(1, count)) * 1.25));
+}
+
+export function miniMapSectorShowsCount(count: number): boolean {
+  return count > 8;
 }
 
 export function worldToMiniMap(x: number, z: number, bounds: MapBounds, size: number): { x: number; y: number } {
@@ -108,6 +128,40 @@ export class MiniMapRenderer {
     ctx.drawImage(this.staticCanvas, 0, 0, size, size);
     const bounds = arenaBounds(this.world);
 
+    for (const sector of frame.sectors) {
+      if (sector.count <= 0 || !withinMapBounds(sector.x, sector.z, bounds)) continue;
+      const p = worldToMiniMap(sector.x, sector.z, bounds, size);
+      const radius = miniMapSectorRadius(sector.count);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.strokeStyle = '#d55347';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([radius * .72, radius * .38]);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#d55347';
+      for (let i = 0; i < 3; i++) {
+        const angle = -Math.PI / 2 + i * Math.PI * 2 / 3;
+        ctx.beginPath();
+        ctx.arc(Math.cos(angle) * 4, Math.sin(angle) * 4, 1.75, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (miniMapSectorShowsCount(sector.count)) {
+        ctx.font = '700 10px Barlow Condensed, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#f2f0df';
+        ctx.strokeStyle = '#101416';
+        ctx.lineWidth = 2.5;
+        const label = `×${sector.count}`;
+        ctx.strokeText(label, radius + 4, 0);
+        ctx.fillText(label, radius + 4, 0);
+      }
+      ctx.restore();
+    }
+
     for (const chest of frame.chests) {
       if (chest.lifecycle === 'despawning') continue;
       const p = worldToMiniMap(chest.x, chest.z, bounds, size);
@@ -123,7 +177,7 @@ export class MiniMapRenderer {
     }
 
     for (const enemy of frame.enemies) {
-      if (!enemy.alive) continue;
+      if (!enemy.alive || !withinMapBounds(enemy.x, enemy.z, bounds)) continue;
       const p = worldToMiniMap(enemy.x, enemy.z, bounds, size);
       const marker = miniMapEnemyMarkerStyle(enemy);
       ctx.save();
@@ -137,17 +191,29 @@ export class MiniMapRenderer {
         if (marker.stroke) {
           ctx.strokeRect(-marker.halfSize, -marker.halfSize, marker.halfSize * 2, marker.halfSize * 2);
         }
-        if (marker.ringRadius && marker.ringStroke) {
-          ctx.rotate(-Math.PI / 4);
-          ctx.beginPath();
-          ctx.arc(0, 0, marker.ringRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = marker.ringStroke;
-          ctx.stroke();
-        }
+      } else if (marker.shape === 'hex') {
+        const h = marker.halfSize;
+        ctx.beginPath();
+        ctx.moveTo(0, -h);
+        ctx.lineTo(h * .82, -h * .36);
+        ctx.lineTo(h * .82, h * .36);
+        ctx.lineTo(0, h);
+        ctx.lineTo(-h * .82, h * .36);
+        ctx.lineTo(-h * .82, -h * .36);
+        ctx.closePath();
+        ctx.fill();
+        if (marker.stroke) ctx.stroke();
       } else {
         ctx.beginPath();
         ctx.arc(0, 0, marker.halfSize, 0, Math.PI * 2);
         ctx.fill();
+        if (marker.stroke) ctx.stroke();
+      }
+      if (marker.ringRadius && marker.ringStroke) {
+        ctx.beginPath();
+        ctx.arc(0, 0, marker.ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = marker.ringStroke;
+        ctx.stroke();
       }
       ctx.restore();
     }
@@ -157,14 +223,14 @@ export class MiniMapRenderer {
     ctx.translate(tank.x, tank.y);
     ctx.rotate(chassisYawToMiniMapRotation(frame.tank.yaw));
     ctx.beginPath();
-    ctx.moveTo(0, -9);
-    ctx.lineTo(6.5, 7);
-    ctx.lineTo(0, 4.5);
-    ctx.lineTo(-6.5, 7);
+    ctx.moveTo(0, MINI_MAP_PLAYER_MARKER_STYLE.tipY);
+    ctx.lineTo(MINI_MAP_PLAYER_MARKER_STYLE.halfWidth, MINI_MAP_PLAYER_MARKER_STYLE.baseY);
+    ctx.lineTo(0, MINI_MAP_PLAYER_MARKER_STYLE.notchY);
+    ctx.lineTo(-MINI_MAP_PLAYER_MARKER_STYLE.halfWidth, MINI_MAP_PLAYER_MARKER_STYLE.baseY);
     ctx.closePath();
-    ctx.fillStyle = '#f2f0df';
-    ctx.strokeStyle = '#101416';
-    ctx.lineWidth = 2.5;
+    ctx.fillStyle = MINI_MAP_PLAYER_MARKER_STYLE.fill;
+    ctx.strokeStyle = MINI_MAP_PLAYER_MARKER_STYLE.stroke;
+    ctx.lineWidth = MINI_MAP_PLAYER_MARKER_STYLE.lineWidth;
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -224,4 +290,8 @@ export class MiniMapRenderer {
 
 function arenaBounds(world: ArenaWorld): MapBounds {
   return world.bounds ?? { minX: -world.half, maxX: world.half, minZ: -world.half, maxZ: world.half };
+}
+
+function withinMapBounds(x: number, z: number, bounds: MapBounds): boolean {
+  return x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ;
 }
