@@ -10,7 +10,7 @@
 import WebSocket from 'ws';
 
 const WS_URL = process.argv[2] || 'ws://localhost:8080/ws';
-const PROTOCOL_VERSION = 18;
+const PROTOCOL_VERSION = 19;
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function client() {
