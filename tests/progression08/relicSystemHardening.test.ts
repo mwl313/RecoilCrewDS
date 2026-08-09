@@ -30,12 +30,13 @@ describe('relic framework hardening', () => {
     );
     m.state.teamProgression.relicStacks['relic.hearty_tank'] = 2;
     m.state.teamProgression.relicStacks['relic.magnet_core'] = 1;
+    const baseMagnetRadius = m.rules.xpPickupContent!.magnet.baseRadius;
     projector.reproject(m.state.teamProgression);
     expect(m.rules.resolver.resolve('tank.maxIntegrity')).toBe(140);
-    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBe(7.5);
+    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBe(baseMagnetRadius * 1.5);
     projector.reset();
     expect(m.rules.resolver.resolve('tank.maxIntegrity')).toBe(100);
-    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBe(5);
+    expect(m.rules.resolver.resolve('progression.magnetRadius')).toBe(baseMagnetRadius);
   });
 
   it('COVERING FIRE clamps at zero and expired per-enemy state is bounded', () => {

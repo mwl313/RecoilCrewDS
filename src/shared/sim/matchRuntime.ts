@@ -673,7 +673,10 @@ export class MatchRuntime {
     }
     const tankD = dist(b.x, b.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.6) {
-      this.systems.damage.applyTank(10, 'barrel');
+      this.systems.damage.applyTank(10, 'barrel', undefined, {
+        sourcePosition: { x: b.x, y: 0.8, z: b.z },
+        kind: 'explosive',
+      });
     }
     // Chain reaction.
     for (const other of s.barrels) {

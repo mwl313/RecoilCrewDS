@@ -59,13 +59,35 @@ export class DamageSystem {
     return { applied: true, killed: false, amount, targetId: e.id };
   }
 
-  applyTank(amount: number, source: DamageSource, weaponId?: string): DamageResult {
+  applyTank(
+    amount: number,
+    source: DamageSource,
+    weaponId?: string,
+    impact: {
+      sourcePosition?: { x: number; y: number; z: number };
+      kind?: 'melee' | 'projectile' | 'collision' | 'explosive' | 'unknown';
+      tier?: 'fodder' | 'specialist' | 'elite' | 'boss';
+    } = {},
+  ): DamageResult {
     const s = this.ctx.state;
     const t = s.tank;
     if (t.deadT > 0 || t.shieldedT > 0) return { applied: false, killed: false, amount: 0, targetId: 'tank' };
     const modified = this.ctx.progression?.modifyTankDamage(amount, source) ?? amount;
     if (modified <= 0) return { applied: false, killed: false, amount: 0, targetId: 'tank' };
+    const integrityBefore = Math.max(0, t.integrity);
     t.integrity = Math.max(0, t.integrity - modified);
+    const actualDamage = Math.max(0, integrityBefore - t.integrity);
+    if (actualDamage <= 0) return { applied: false, killed: false, amount: 0, targetId: 'tank' };
+    pushEvent(this.ctx, 'tankDamageTaken', t.x, t.y + 1.2, t.z, {
+      value: actualDamage,
+      source,
+      tx: impact.sourcePosition?.x,
+      ty: impact.sourcePosition?.y,
+      tz: impact.sourcePosition?.z,
+      impactKind: impact.kind ?? 'unknown',
+      tier: impact.tier,
+      maxIntegrity: Math.max(1, this.ctx.rules.resolver.resolve('tank.maxIntegrity')),
+    });
     pushEvent(this.ctx, 'hit', t.x, t.y, t.z, { value: modified, kind: source });
     this.ctx.eventBus.emit('damage.applied', { targetId: 'tank', targetKind: 'tank', amount: modified, source, weaponId });
     if (t.integrity <= 0) {

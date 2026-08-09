@@ -79,8 +79,10 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * level-up-only cumulative stat summary used by the tactical drawer.
  * Protocol 18: production combat events carry semantic procedural-audio
  * cues plus compact enemy tier/size/profile metadata.
+ * Protocol 19: authoritative reward/integrity/damage feedback events carry
+ * final values, overlay deferral, source position, and resolved max integrity.
  */
-export const PROTOCOL_VERSION = 18;
+export const PROTOCOL_VERSION = 19;
 
 export interface ProtocolEnvelope {
   protocol: number;

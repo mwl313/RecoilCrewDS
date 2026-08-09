@@ -26,13 +26,13 @@ export class RelicInventory {
     const stacks = this.state.teamProgression.relicStacks;
     const current = stacks[relic.id] ?? 0;
     if (relic.stackPolicy === 'unique' && current > 0) {
-      // Authority filters owned uniques before rolling. This defensive guard
-      // is intentionally a no-op, never an XP conversion path.
+      const replacementXp = relic.duplicateReplacement?.amount
+        ?? this.definition.duplicateUniqueRelicXp;
       return {
         relicId: relic.id,
         stackCount: current,
-        duplicateConverted: false,
-        replacementXp: 0,
+        duplicateConverted: replacementXp > 0,
+        replacementXp,
         capabilityGranted: false,
       };
     }

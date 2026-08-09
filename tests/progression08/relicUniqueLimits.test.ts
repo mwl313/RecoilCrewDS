@@ -16,7 +16,7 @@ describe('unique relic rolling and activation limits', () => {
     expect(actual).toEqual([...uniqueIds].sort());
   });
 
-  it.each(uniqueIds)('%s remains stack one and never converts a defensive duplicate add to XP', (relicId) => {
+  it.each(uniqueIds)('%s remains stack one and converts a defensive duplicate add to authored XP', (relicId) => {
     const m = makeMatch('mode.singlePlayerScoreAttack', `unique-${relicId}`);
     const inventory = new RelicInventory(
       m.state,
@@ -28,8 +28,8 @@ describe('unique relic rolling and activation limits', () => {
     const second = inventory.add(relic);
     expect(first.stackCount).toBe(1);
     expect(second.stackCount).toBe(1);
-    expect(second.duplicateConverted).toBe(false);
-    expect(second.replacementXp).toBe(0);
+    expect(second.duplicateConverted).toBe(true);
+    expect(second.replacementXp).toBe(250);
     expect(inventory.getStack(relicId)).toBe(1);
     if (relic.capabilityId) {
       expect(m.systems.capabilities.debugSources()[relic.capabilityId]).toEqual([`relic:${relicId}`]);

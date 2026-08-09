@@ -17,6 +17,9 @@ describe('reward reel presentation animator', () => {
     expect(first).toHaveLength(REWARD_REEL_CELL_COUNT);
     expect(relic).toHaveLength(REWARD_REEL_CELL_COUNT);
     expect(new Set(relic.map((symbol) => symbol.label)).size).toBeGreaterThan(3);
+    expect(new Set(first.map((symbol) => symbol.rarity))).toEqual(new Set(['neutral']));
+    expect(new Set(relic.map((symbol) => symbol.rarity))).toEqual(new Set(['neutral']));
+    expect(relic.some((symbol) => /COMMON|RARE|EPIC|LEGENDARY/.test(symbol.label))).toBe(false);
   });
 
   it('travels through multiple full cells and visibly decelerates before lock', () => {

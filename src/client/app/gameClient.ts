@@ -44,6 +44,7 @@ import { ProgressionInputContext } from '../progression/progressionInputContext'
 import { EnemyWorldUiLayer } from '../worldUi/enemyWorldUiLayer';
 import { TacticalDrawer } from '../tactical/tacticalDrawer';
 import { presentRelicDescription } from '../../shared/presentation/relicDescriptionPresentation';
+import { TankDamageFeedbackLayer } from '../presentation/tankDamageFeedback';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -101,6 +102,7 @@ export class GameClient {
   private relicChestRenderer: RelicChestWorldRenderer | null = null;
   private enemyWorldUi: EnemyWorldUiLayer | null = null;
   private tacticalDrawer: TacticalDrawer | null = null;
+  private readonly tankDamageFeedback: TankDamageFeedbackLayer;
   private latestSectors: AggregateSectorRecord[] = [];
   private readonly singlePlayerSectorBuffer: AggregateSectorRecord[] = [];
   private singlePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
@@ -154,6 +156,7 @@ export class GameClient {
     quality: QualityManager;
     tankRig: TankRig;
     arenaWorld: ArenaWorld;
+    tankDamageFeedback: TankDamageFeedbackLayer;
   }) {
     this.assets = deps.assets;
     this.container = deps.container;
@@ -169,6 +172,7 @@ export class GameClient {
     this.input = deps.input;
     this.progressionInput = new ProgressionInputContext(deps.input);
     this.arenaWorld = deps.arenaWorld;
+    this.tankDamageFeedback = deps.tankDamageFeedback;
     this.aggregateSectors = new AggregateSectorRenderer(
       deps.world.scene,
       this.assets,
@@ -219,6 +223,7 @@ export class GameClient {
     let gameRef: GameClient | null = null;
     const prediction = new PredictionController('driver', { send: (msg) => gameRef?.onSendInput?.(msg) });
     prediction.setGround(world);
+    const tankDamageFeedback = new TankDamageFeedbackLayer(container);
     const deps = {
       container,
       assets,
@@ -233,12 +238,13 @@ export class GameClient {
       quality: null as unknown as QualityManager,
       tankRig,
       arenaWorld: world,
+      tankDamageFeedback,
     };
     const router = new PresentationEventRouter(assets, renderWorld.vfx, audio, cameras, {
       isPresented: (seq) => gameRef?.isActionPresented(seq) ?? false,
       confirm: (seq) => gameRef?.confirmAction(seq),
       reject: (seq) => gameRef?.rejectAction(seq),
-    });
+    }, tankDamageFeedback);
     const quality = new QualityManager({
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
@@ -427,6 +433,14 @@ export class GameClient {
    * fallback (never hardcoded presentation numbers).
    */
   getHudRules(): { maxIntegrity: number; cannonCooldown: number; chargeTapMaxSeconds: number; chargeFullSeconds: number } {
+    if (this.session.kind === 'singlePlayer' && this.singlePlayerMatch) {
+      return {
+        maxIntegrity: this.singlePlayerMatch.runtime.rules.resolver.resolve('tank.maxIntegrity'),
+        cannonCooldown: this.singlePlayerMatch.runtime.rules.resolver.resolve('match.cannonCooldown'),
+        chargeTapMaxSeconds: this.singlePlayerMatch.runtime.rules.config.weapons.chargeTapMaxSeconds,
+        chargeFullSeconds: this.singlePlayerMatch.runtime.rules.config.weapons.chargeFullSeconds,
+      };
+    }
     const block = this.prediction.movementRules();
     const tank = block?.tank;
     const weapon = block?.weapon;
@@ -602,6 +616,7 @@ export class GameClient {
     this.aggregateSectors.reset();
     this.xpShards.reset();
     this.enemyWorldUi?.reset();
+    this.router.reset();
     this.tacticalDrawer?.close();
     this.singlePlayerAcc = 0;
     this.resetSinglePlayerRenderPose();
@@ -689,6 +704,7 @@ export class GameClient {
       ev,
       this.cameras.activeCam.camera,
       this.presenter.latest?.enemies ?? [],
+      this.presenter.latest?.matchFlow ?? 'playing',
     );
     this.router.handleEvent(ev);
   }
@@ -726,7 +742,7 @@ export class GameClient {
       this.singlePlayerPreviousTank = { ...m.state.tank };
       m.step(step);
       for (const ev of m.takeEvents()) {
-        this.enemyWorldUi?.handleEvent(ev, this.cameras.activeCam.camera, m.state.enemies);
+        this.enemyWorldUi?.handleEvent(ev, this.cameras.activeCam.camera, m.state.enemies, m.state.matchFlow);
         this.router.handleEvent(ev);
         this.onHudEvent?.(ev);
       }
@@ -748,6 +764,7 @@ export class GameClient {
     const dt = dtRaw * (this.slowMo > 0 ? 0.32 : 1);
     this.slowMo = Math.max(0, this.slowMo - dtRaw);
     this.cameras.tickShake(dtRaw);
+    this.router.update(now);
 
     this.syncProgressionInputContext();
 
@@ -870,6 +887,7 @@ export class GameClient {
       this.cameras.activeCam.camera,
       renderTank,
       performance.now(),
+      latest?.matchFlow ?? 'playing',
     );
     this.renderFrame();
   };
@@ -1346,6 +1364,13 @@ export class GameClient {
     return this.tacticalDrawer?.diagnostics() ?? null;
   }
 
+  worldFeedbackDiagnostics(): { queued: number; popups: Array<{ kind: string; amount: number; source: string }> } {
+    return {
+      queued: this.enemyWorldUi?.queuedCount ?? 0,
+      popups: this.enemyWorldUi?.popups.items.map(({ kind, amount, source }) => ({ kind, amount, source })) ?? [],
+    };
+  }
+
   setApronEnabledForTest(enabled: boolean): void {
     this.world.setApronEnabled(enabled);
     this.world.resetQualityDiagnostics();
@@ -1367,6 +1392,7 @@ export class GameClient {
     this.relicChestRenderer = null;
     this.enemyWorldUi?.dispose();
     this.enemyWorldUi = null;
+    this.tankDamageFeedback.dispose();
     this.tacticalDrawer?.dispose();
     this.tacticalDrawer = null;
     this.world.dispose();

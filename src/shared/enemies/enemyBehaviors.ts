@@ -224,7 +224,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         // Enemy-to-tank contact attack (unchanged). Tank offense is owned by
         // TankContactCombat (Dash-only); normal contact deals zero enemy
         // damage and speed alone can no longer kill.
-        ctx.damage.applyTank(damage, 'bug');
+        ctx.damage.applyTank(damage, 'bug', undefined, {
+          sourcePosition: { x: e.x, y: e.y, z: e.z },
+          kind: 'collision',
+        });
         pushEvent(ctx, 'crash', e.x, e.y, e.z, { value: damage });
         e.x -= runtime.dirX * 0.8;
         e.z -= runtime.dirZ * 0.8;
@@ -304,7 +307,10 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
             break;
           }
           if (d < r + ctx.rules.config.arena.tankRadius + 0.5 && t.deadT <= 0) {
-            ctx.damage.applyTank(damage, 'rammer');
+            ctx.damage.applyTank(damage, 'rammer', undefined, {
+              sourcePosition: { x: e.x, y: e.y, z: e.z },
+              kind: 'collision',
+            });
             const nx = dx / d;
             const nz = dz / d;
             t.vx += nx * knockback;
@@ -639,7 +645,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         const scaledDps = e.monster?.scaledContactDps ?? attack.contactDps;
         const damagePerHit = scaledDps / attack.rate;
         if (s.tank.deadT <= 0) {
-          ctx.damage.applyTank(damagePerHit, 'bug');
+          ctx.damage.applyTank(damagePerHit, 'bug', undefined, {
+            sourcePosition: { x: e.x, y: e.y, z: e.z },
+            kind: 'melee',
+            tier: def.tier,
+          });
           pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
             id: e.id,
             value: damagePerHit,
@@ -789,7 +799,11 @@ export function createBuiltinEnemyBehaviors(): EnemyBehaviorRegistry {
         // Boss damage is fixed (never level-scaled).
         if (pattern.type === 'melee') {
           if (s.tank.deadT <= 0) {
-            ctx.damage.applyTank(pattern.damage, 'bug');
+            ctx.damage.applyTank(pattern.damage, 'bug', undefined, {
+              sourcePosition: { x: e.x, y: e.y, z: e.z },
+              kind: 'melee',
+              tier: def.tier,
+            });
             pushEvent(ctx, 'enemyMeleeImpact', e.x, e.y + 1, e.z, {
               id: e.id,
               value: pattern.damage,

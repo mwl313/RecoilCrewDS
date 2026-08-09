@@ -1,4 +1,6 @@
 import type { TankState } from '../types';
+import type { SystemContext } from '../sim/systems/systemContext';
+import { applyTankIntegrityGain } from '../damage/tankIntegrityGain';
 
 export interface MaxIntegrityRewardRepairResult {
   maxBefore: number;
@@ -28,6 +30,29 @@ export function repairForMaxIntegrityGain(
     tank.integrity = Math.min(maxAfter, tank.integrity + gained);
   }
 
+  return {
+    maxBefore,
+    maxAfter,
+    gained,
+    repaired: Math.max(0, tank.integrity - integrityBefore),
+  };
+}
+
+/** Context-aware transaction used by authority so gained capacity shares the
+ * same clamping and semantic event seam as every other repair source. */
+export function applyMaxIntegrityRewardRepair(
+  ctx: SystemContext,
+  maxBefore: number,
+  maxAfter: number,
+): MaxIntegrityRewardRepairResult {
+  const tank = ctx.state.tank;
+  const gained = Math.max(0, maxAfter - maxBefore);
+  const integrityBefore = tank.integrity;
+  if (maxAfter < maxBefore) {
+    tank.integrity = Math.min(tank.integrity, maxAfter);
+  } else if (gained > 0 && tank.deadT <= 0) {
+    applyTankIntegrityGain(ctx, gained, 'maxIntegrityReward');
+  }
   return {
     maxBefore,
     maxAfter,

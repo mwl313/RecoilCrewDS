@@ -130,7 +130,7 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     expect(bossM.systems.progression.telemetry.xpCollectedPerMinute).toBeGreaterThan(0);
   });
 
-  it('owned non-stackable relics are ineligible and never grant replacement XP', () => {
+  it('exhausted unique-only pools convert the duplicate through the shared XP path', () => {
     // A fixture pool containing only one unique relic becomes exhausted after
     // the first acquisition; the second chest cannot manufacture a duplicate.
     const { manifest, files } = loadRealPackRecords();
@@ -144,7 +144,12 @@ describe('unified XP grant routing (progression08 hardening)', () => {
     completeRelicReveal(m);
     const c2 = m.systems.progression.spawnChest('map', 4, 4);
     c2.lifecycle = 'closed';
-    expect(m.openProgressionChest(c2.id, 5000)).toBeNull();
-    expect(m.state.teamProgression.totalXpCollected - before).toBe(0);
+    const r2 = revealChest(m, c2, 5000);
+    expect(r2.duplicateConverted).toBe(true);
+    expect(r2.replacementXp).toBe(250);
+    expect(m.state.teamProgression.totalXpCollected - before).toBe(500);
+    expect(m.takeEvents()).toContainEqual(expect.objectContaining({
+      type: 'xpGained', value: 500, kind: 'duplicateRelic', deferUntilPlaying: true,
+    }));
   });
 });

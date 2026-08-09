@@ -12,6 +12,13 @@ import type { ProceduralSoundRecipe } from '../audio/procedural/proceduralSoundT
 import type { VfxSystem } from '../vfx';
 import type { CameraManager } from './cameraManager';
 import type { SimEvent } from '../../shared/types';
+import {
+  classifyTankDamageFeedback,
+  TankDamageCoalescer,
+  tankDamageScreenDirection,
+  type CoalescedTankDamage,
+  type TankDamageFeedbackLayer,
+} from '../presentation/tankDamageFeedback';
 
 export interface ActionPresentationGuard {
   /** True when this actionSeq was already presented locally. */
@@ -24,15 +31,33 @@ export interface ActionPresentationGuard {
 
 /** Routes authoritative simulation events into semantic VFX and sound recipes. */
 export class PresentationEventRouter {
+  private readonly tankDamage = new TankDamageCoalescer(80);
+
   constructor(
     private readonly assets: AssetService,
     private readonly vfx: VfxSystem,
     private readonly audio: AudioManager,
     private readonly camera: CameraManager,
     private readonly actionGuard: ActionPresentationGuard | null = null,
+    private readonly tankDamageLayer: TankDamageFeedbackLayer | null = null,
   ) {}
 
   handleEvent(ev: SimEvent): void {
+    if (ev.type === 'tankDamageTaken' && (ev.value ?? 0) > 0) {
+      const flushed = this.tankDamage.add({
+        actualDamage: ev.value ?? 0,
+        maxIntegrity: ev.maxIntegrity ?? 1,
+        source: ev.source ?? '',
+        impactKind: ev.impactKind,
+        attackerTier: ev.tier,
+        tankX: ev.x ?? 0,
+        tankZ: ev.z ?? 0,
+        sourceX: ev.tx,
+        sourceZ: ev.tz,
+      }, performance.now());
+      if (flushed) this.presentTankDamage(flushed);
+      return;
+    }
     if (ev.type === 'shot') {
       this.handlePlayerShot(ev);
       return;
@@ -43,28 +68,12 @@ export class PresentationEventRouter {
       this.audio.play('enemyHit');
       return;
     }
-    if (ev.type === 'hit' && ev.kind === 'tower') {
-      this.audio.playLocal('enemyProjectileImpact', {
-        seed: this.seed(ev),
-        damage: ev.value,
-        tier: 'specialist',
-        variant: 'legacyTower',
-      });
-      this.camera.addImpulse(this.assets.cameraImpulse('cameraImpulse.towerHit').shake);
-      return;
-    }
     if (ev.type === 'enemyProjectileImpact') {
       this.handleEnemyProjectileImpact(ev);
       return;
     }
     if (ev.type === 'enemyMeleeImpact') {
-      this.audio.playLocal('enemyMeleeImpact', {
-        seed: this.seed(ev),
-        damage: ev.value,
-        tier: resolveEnemyAudioProfile(ev).tier,
-        variant: ev.kind === 'rammer' ? 'rammer' : ev.kind,
-      });
-      this.camera.addImpulse(Math.min(0.65, 0.12 + (ev.value ?? 4) * 0.025));
+      // Tank audio/camera/HUD presentation is owned by tankDamageTaken.
       return;
     }
     if (ev.type === 'kill') {
@@ -147,8 +156,7 @@ export class PresentationEventRouter {
         : ev.kind === 'monster' || ev.kind === 'boss'
           ? 'monsterCollision'
           : 'wallCollision';
-      this.audio.playLocal(recipe, { seed: this.seed(ev), damage: ev.value });
-      this.camera.addImpulse(this.assets.cameraImpulse('cameraImpulse.crash').shake);
+      if ((ev.value ?? 0) <= 0) this.audio.playLocal(recipe, { seed: this.seed(ev), damage: ev.value });
       return;
     }
     if (ev.type === 'tankLanding') {
@@ -165,6 +173,16 @@ export class PresentationEventRouter {
       this.audio.playLocal('dash', { seed: this.seed(ev) });
     }
     // assist/link/score/comboChange are HUD-only.
+  }
+
+  update(now = performance.now()): void {
+    const damage = this.tankDamage.drain(now);
+    if (damage) this.presentTankDamage(damage);
+  }
+
+  reset(): void {
+    this.tankDamage.reset();
+    this.tankDamageLayer?.reset();
   }
 
   private handlePlayerShot(ev: SimEvent): void {
@@ -197,14 +215,25 @@ export class PresentationEventRouter {
       this.playWorld('enemyProjectileImpact', ev, { ...profile, damage: ev.value, variant: 'world', priority: 46 });
       return;
     }
-    this.audio.playLocal('enemyProjectileImpact', {
-      seed: this.seed(ev),
-      damage: ev.value,
-      tier: profile.tier,
-      sizeClass: profile.sizeClass,
-      variant: ev.kind,
+    // Tank audio/camera/HUD presentation is owned by tankDamageTaken.
+  }
+
+  private presentTankDamage(damage: CoalescedTankDamage): void {
+    const tier = classifyTankDamageFeedback(damage.actualDamage, damage.maxIntegrity, damage.attackerTier);
+    const direction = tankDamageScreenDirection(damage, this.camera.activeCam.camera);
+    const impulse = tier === 'LIGHT' ? .18 : tier === 'MEDIUM' ? .38 : tier === 'HEAVY' ? .68 : .82;
+    this.camera.addDamageImpulse(impulse, direction, this.tankDamageLayer?.reducedMotion ?? false);
+    this.tankDamageLayer?.present(tier, direction);
+    const recipe = damage.impactKind === 'melee' || damage.impactKind === 'collision'
+      ? 'enemyMeleeImpact'
+      : 'enemyProjectileImpact';
+    this.audio.playLocal(recipe, {
+      seed: stableEventSeed(damage.hitCount, Math.round(damage.actualDamage * 100), performance.now()),
+      damage: damage.actualDamage,
+      tier: damage.attackerTier,
+      variant: `${damage.impactKind ?? 'unknown'}:${tier.toLowerCase()}`,
+      intensity: Math.min(1.3, .65 + damage.actualDamage / Math.max(1, damage.maxIntegrity) * 3),
     });
-    this.camera.addImpulse(Math.min(0.8, 0.14 + (ev.value ?? 6) * 0.03));
   }
 
   private handleEnemyDeath(ev: SimEvent): void {
@@ -248,7 +277,7 @@ export class PresentationEventRouter {
     }
   }
 
-  private playWorld(recipe: ProceduralSoundRecipe, ev: SimEvent, options: Record<string, unknown> = {}): void {
+  private playWorld(recipe: ProceduralSoundRecipe, ev: SimEvent, options: object = {}): void {
     if (ev.x === undefined || ev.y === undefined || ev.z === undefined) {
       this.audio.playLocal(recipe, { ...options, seed: this.seed(ev) });
       return;
