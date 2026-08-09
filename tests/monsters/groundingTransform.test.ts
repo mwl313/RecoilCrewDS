@@ -191,8 +191,8 @@ describe('monster grounding production transform (second-pass)', () => {
     group.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(group);
     // Y scale must be 0.8 x finalScale, not the X component.
-    expect(box.max.y - box.min.y).toBeCloseTo(1.02 * 0.8, 2);
-    expect(box.max.x - box.min.x).toBeCloseTo(0.51 * 1.2, 2);
+    expect(box.max.y - box.min.y).toBeCloseTo(1.2 * 0.8, 2);
+    expect(box.max.x - box.min.x).toBeCloseTo(0.6 * 1.2, 2);
   });
 
   it('keeps near and far model variants on the same foot plane', () => {

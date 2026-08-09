@@ -132,12 +132,12 @@ describe('mode parity and normalization', () => {
       .toBe(2 * monsterXpReward(5, 'ambient', { classes: { ambient: { base: 1, perLevel: 1 }, wave: { base: 2, perLevel: 2 }, elite: { base: 40, perLevel: 8 }, boss: { base: 150, perLevel: 0 } } }, 1));
   });
 
-  it('normalizes to 1.02/1.53/1.70 m and propagates tier scale 1/3/5', () => {
-    expect(TARGET_HEIGHTS).toEqual({ small: 1.02, medium: 1.53, large: 1.7 });
+  it('normalizes ordinary tiers to 1.20/1.80/2.00 m and preserves elite/boss baselines', () => {
+    expect(TARGET_HEIGHTS).toEqual({ small: 1.2, medium: 1.8, large: 2 });
     expect(TIER_SCALES).toEqual({ fodder: 1, specialist: 1, elite: 3, boss: 5 });
     const source = { width: 3, height: 3, depth: 2, groundOffset: 0.5 };
     const small = normalizedEnemyDimensions(source, 'small', 'fodder');
-    expect(small.normalizedHeight).toBeCloseTo(1.02, 6);
+    expect(small.normalizedHeight).toBeCloseTo(1.2, 6);
     expect(small.collisionRadius).toBeCloseTo(0.45 * Math.max(small.normalizedWidth, small.normalizedDepth), 6);
     const boss = normalizedEnemyDimensions(source, 'large', 'boss');
     expect(boss.normalizedHeight).toBeCloseTo(1.7 * 5, 6);

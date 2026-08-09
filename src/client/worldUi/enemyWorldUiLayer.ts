@@ -6,6 +6,17 @@ import {
   formatCombatDamage,
 } from '../../shared/presentation/combatDisplayUnits';
 
+export function resolveEnemyWorldUiAnchorHeight(enemy: EnemyState): number {
+  if (enemy.defId) {
+    try {
+      return resolveMonsterDimensionsForDefId(enemy.defId).finalHeight + 0.28;
+    } catch {
+      // Legacy/fallback enemies use the conservative generic height.
+    }
+  }
+  return 1.78;
+}
+
 export interface DamagePopup {
   enemyId: number;
   source: string;
@@ -196,15 +207,7 @@ export class EnemyWorldUiLayer {
   }
 
   private anchor(enemy: EnemyState): { x: number; y: number; z: number } {
-    let height = 1.5;
-    if (enemy.defId) {
-      try {
-        height = resolveMonsterDimensionsForDefId(enemy.defId).finalHeight;
-      } catch {
-        // Legacy/fallback enemies use the conservative generic height.
-      }
-    }
-    return { x: enemy.x, y: enemy.y + height + 0.28, z: enemy.z };
+    return { x: enemy.x, y: enemy.y + resolveEnemyWorldUiAnchorHeight(enemy), z: enemy.z };
   }
 
   private project(
