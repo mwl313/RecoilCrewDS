@@ -97,7 +97,11 @@ export class ProjectileSystem {
       if (sh.kind === 'tower') {
         const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
         if (td < 1.05 && s.tank.deadT <= 0) {
-          this.ctx.damage.applyTank(this.ctx.rules.config.enemies.towerShotDamage, 'tower');
+          this.ctx.damage.applyTank(this.ctx.rules.config.enemies.towerShotDamage, 'tower', undefined, {
+            sourcePosition: { x: sh.x, y: sh.y, z: sh.z },
+            kind: 'projectile',
+            tier: 'specialist',
+          });
           pushEvent(this.ctx, 'hit', s.tank.x, s.tank.y + 1.2, s.tank.z, {
             value: this.ctx.rules.config.enemies.towerShotDamage,
             kind: 'tower',
@@ -110,7 +114,11 @@ export class ProjectileSystem {
         const td = dist(sh.x, sh.z, s.tank.x, s.tank.z);
         if (td < tankHitRadius && s.tank.deadT <= 0) {
           const damage = sh.combat?.damage ?? 6;
-          this.ctx.damage.applyTank(damage, 'enemy');
+          this.ctx.damage.applyTank(damage, 'enemy', undefined, {
+            sourcePosition: { x: sh.x, y: sh.y, z: sh.z },
+            kind: 'projectile',
+            tier: sh.sourceTier,
+          });
           pushEvent(this.ctx, 'enemyProjectileImpact', s.tank.x, s.tank.y + 1.2, s.tank.z, {
             value: damage,
             kind: 'enemy',
@@ -220,7 +228,10 @@ export class ProjectileSystem {
     const tankD = dist(sh.x, sh.z, s.tank.x, s.tank.z);
     if (tankD < radius + 1.5) {
       const tankSplash = combat ? 5 + 7 * (sh.chargeRatio ?? 0) : 5;
-      this.ctx.damage.applyTank(tankSplash, 'splash');
+      this.ctx.damage.applyTank(tankSplash, 'splash', sh.weaponId, {
+        sourcePosition: { x: sh.x, y: sh.y, z: sh.z },
+        kind: 'explosive',
+      });
     }
     // Knockback is a separate effect from damage: radial impulse pushes
     // enemies away (never the tank; content sets tank multiplier to 0).

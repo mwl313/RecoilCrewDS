@@ -1,5 +1,8 @@
 /** Player-facing scale for raw combat health and damage values. */
 export const COMBAT_DISPLAY_SCALE = 10;
+/** Shared XP accent used by both authoritative world feedback and 3D shards. */
+export const XP_PRESENTATION_COLOR = '#8fe8ff';
+export const INTEGRITY_GAIN_PRESENTATION_COLOR = '#79dc88';
 
 const NUMBER_FORMATTER = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
@@ -17,6 +20,14 @@ export function formatCombatDisplayValue(value: number): string {
 
 export function formatCombatDamage(actualHpLoss: number): string {
   return `-${formatCombatDisplayValue(Math.abs(actualHpLoss))}`;
+}
+
+export function formatIntegrityGain(actualGain: number): string {
+  return `+${formatCombatDisplayValue(Math.abs(actualGain))}`;
+}
+
+export function formatXpGain(actualGain: number): string {
+  return `+${NUMBER_FORMATTER.format(Math.max(0, Math.round(actualGain)))} XP`;
 }
 
 export type CombatDamagePresentationTier = 'LIGHT' | 'STANDARD' | 'HEAVY' | 'MASSIVE';

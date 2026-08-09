@@ -48,6 +48,7 @@ import { urbanAssetIds } from '../shared/mapgen/urbanLayout';
 import { netcodeMetrics } from './netcode/netcodeMetrics';
 import { resolveGameplayPreloadAssetIds } from './assets/gameplayPreload';
 import { runCountdownSequence } from './presentation/countdownSequence';
+import { applyTankIntegrityGain } from '../shared/damage/tankIntegrityGain';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -1008,6 +1009,21 @@ if (TEST_MODE) {
       openChest: (id: number) =>
         game?.singlePlayerMatch?.runtime.systems.progression.openChest(id, Date.now()),
       skipRelic: () => game?.skipRelicPresentation(),
+    },
+    rewardWorldFeedback: () => game?.worldFeedbackDiagnostics() ?? null,
+    tankFeedback: {
+      damage: (value: number) => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return 0;
+        m.state.tank.shieldedT = 0;
+        m.runtime.damageTank(value, 'test');
+        return m.state.tank.integrity;
+      },
+      repair: (value: number) => {
+        const m = game?.singlePlayerMatch;
+        if (!m) return { requested: value, actual: 0 };
+        return applyTankIntegrityGain(m.runtime.systems, value, 'directRepair');
+      },
     },
     monster: {
       run: () => {

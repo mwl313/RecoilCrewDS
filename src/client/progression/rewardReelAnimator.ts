@@ -11,7 +11,7 @@ export interface RewardReelFrame {
   visibleCellIndex: number;
 }
 
-export type RewardReelRarity = 'common' | 'rare' | 'epic' | 'legendary';
+export type RewardReelRarity = 'neutral' | 'common' | 'rare' | 'epic' | 'legendary';
 
 export const REWARD_REEL_CELL_HEIGHT = 112;
 export const REWARD_REEL_CELL_COUNT = 18;
@@ -20,24 +20,24 @@ export const RELIC_LOCK_TIME = 2_550;
 export const REWARD_TICK_INTERVALS = [36, 38, 41, 44, 48, 53, 59, 67, 77, 90, 106, 126, 150, 180, 215, 260, 300] as const;
 
 const UPGRADE_SYMBOLS: readonly RewardReelSymbol[] = [
-  { glyph: '◈', label: 'ENGINE', rarity: 'rare' },
-  { glyph: '▣', label: 'ARMOR', rarity: 'common' },
-  { glyph: '⌁', label: 'RECOIL', rarity: 'epic' },
-  { glyph: '✦', label: 'CRITICAL', rarity: 'legendary' },
-  { glyph: '⬢', label: 'DASH', rarity: 'rare' },
-  { glyph: '▤', label: 'COOLDOWN', rarity: 'common' },
-  { glyph: '⟡', label: 'RANGE', rarity: 'epic' },
+  { glyph: '◈', label: 'ENGINE', rarity: 'neutral' },
+  { glyph: '▣', label: 'ARMOR', rarity: 'neutral' },
+  { glyph: '⌁', label: 'RECOIL', rarity: 'neutral' },
+  { glyph: '✦', label: 'POWER', rarity: 'neutral' },
+  { glyph: '⬢', label: 'DASH', rarity: 'neutral' },
+  { glyph: '▤', label: 'COOLDOWN', rarity: 'neutral' },
+  { glyph: '⟡', label: 'RANGE', rarity: 'neutral' },
 ] as const;
 
 const RELIC_SYMBOLS: readonly RewardReelSymbol[] = [
-  { glyph: '◇', label: 'COMMON', rarity: 'common' },
-  { glyph: '◈', label: 'RARE', rarity: 'rare' },
-  { glyph: '⬟', label: 'EPIC', rarity: 'epic' },
-  { glyph: '✦', label: 'LEGENDARY', rarity: 'legendary' },
-  { glyph: '⬢', label: 'RARE', rarity: 'rare' },
-  { glyph: '◆', label: 'EPIC', rarity: 'epic' },
-  { glyph: '▣', label: 'COMMON', rarity: 'common' },
-  { glyph: '⟡', label: 'UNKNOWN', rarity: 'common' },
+  { glyph: '◇', label: 'SIGNAL', rarity: 'neutral' },
+  { glyph: '◈', label: 'RELIC', rarity: 'neutral' },
+  { glyph: '⬟', label: 'CORE', rarity: 'neutral' },
+  { glyph: '✦', label: 'ARTIFACT', rarity: 'neutral' },
+  { glyph: '⬢', label: 'MODULE', rarity: 'neutral' },
+  { glyph: '◆', label: 'CACHE', rarity: 'neutral' },
+  { glyph: '▣', label: 'PLATE', rarity: 'neutral' },
+  { glyph: '⟡', label: 'UNKNOWN', rarity: 'neutral' },
 ] as const;
 
 export function buildRewardReelSymbols(identity: string, index: number, kind: 'upgrade' | 'relic'): RewardReelSymbol[] {

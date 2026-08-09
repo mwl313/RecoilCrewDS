@@ -43,6 +43,8 @@ export class CameraManager {
   activeCam: TpsCameraController;
   private shake = 0;
   private shakeTime = 0;
+  private damageLateral = 0;
+  private damageRoll = 0;
   private lastRenderYaw = 0;
   private overviewSize = 0;
   private readonly driverAimState: TpsWeaponAimState = { poleActive: false };
@@ -80,10 +82,19 @@ export class CameraManager {
     this.shake = Math.min(1.6, this.shake + shake);
   }
 
+  addDamageImpulse(shake: number, screenDirection: number, reducedMotion = false): void {
+    const motionScale = reducedMotion ? .32 : 1;
+    this.addImpulse(shake * motionScale);
+    this.damageLateral = clamp(this.damageLateral - screenDirection * shake * .08 * motionScale, -.16, .16);
+    this.damageRoll = clamp(this.damageRoll - screenDirection * shake * .012 * motionScale, -.018, .018);
+  }
+
   tickShake(dtRaw: number): void {
     const dt = Number.isFinite(dtRaw) ? clamp(dtRaw, 0, 0.1) : 0;
     this.shakeTime += dt;
     this.shake = Math.max(0, this.shake - dt * 1.4);
+    this.damageLateral *= Math.exp(-dt * 15);
+    this.damageRoll *= Math.exp(-dt * 18);
   }
 
   recenter(chassisYaw: number): void {
@@ -132,6 +143,8 @@ export class CameraManager {
       state.lockedPoleSign = undefined;
     }
     this.lastAimDiagnostics = null;
+    this.damageLateral = 0;
+    this.damageRoll = 0;
   }
 
   /** Apply mouse deltas + follow pose + collision update for the active rig. */
@@ -189,12 +202,17 @@ export class CameraManager {
 
   /** Continuous, non-accumulating camera shake applied during render. */
   applyShake(): void {
-    if (this.shake <= 0.001) return;
+    if (this.shake <= 0.001 && Math.abs(this.damageLateral) <= .0001 && Math.abs(this.damageRoll) <= .0001) return;
     const s = this.shake;
     const t = this.shakeTime;
     this.activeCam.camera.position.x += Math.sin(t * 37 + 0.3) * s * 0.11;
     this.activeCam.camera.position.y += Math.sin(t * 43 + 1.7) * s * 0.08;
     this.activeCam.camera.position.z += Math.sin(t * 31 + 2.4) * s * 0.11;
+    if (Math.abs(this.damageLateral) > .0001) {
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.activeCam.camera.quaternion);
+      this.activeCam.camera.position.addScaledVector(right, this.damageLateral);
+    }
+    if (Math.abs(this.damageRoll) > .0001) this.activeCam.camera.rotateZ(this.damageRoll);
   }
 }
 

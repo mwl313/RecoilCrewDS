@@ -22,7 +22,8 @@ import { resolveRelicEffectParameters } from './relicEffectParameters';
 import { isCannonSelfDamage, isGunnerWeaponDamage } from '../damage/damageTypes';
 import { isWaveLeader, normalizedEnemyClass } from '../enemies/enemyClassification';
 import type { StageEvent } from '../stage/stageTypes';
-import { repairForMaxIntegrityGain } from './maxIntegrityRewardRepair';
+import { applyMaxIntegrityRewardRepair } from './maxIntegrityRewardRepair';
+import { pushEvent } from '../sim/systems/systemContext';
 
 export interface ProgressionDebugState {
   flow: string;
@@ -190,6 +191,14 @@ export class ProgressionSystem {
       z: position?.z,
     });
     this.advanceProgressionFlow(Date.now());
+    if (result.gained > 0) {
+      const tank = this.ctx.state.tank;
+      pushEvent(this.ctx, 'xpGained', tank.x, tank.y + 2.15, tank.z, {
+        value: result.gained,
+        kind: source,
+        deferUntilPlaying: this.ctx.state.matchFlow !== 'playing',
+      });
+    }
   }
 
   tryStartLevelUp(nowMs: number): boolean {
@@ -306,7 +315,7 @@ export class ProgressionSystem {
       );
     }
     const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
-    repairForMaxIntegrityGain(s.tank, maxIntegrityBefore, maxIntegrityAfter);
+    applyMaxIntegrityRewardRepair(this.ctx, maxIntegrityBefore, maxIntegrityAfter);
     s.teamProgression.levelUpOffersCompleted++;
     s.teamProgression.activeSelection = null;
     this.teamXp.consumeLevelUp();
@@ -485,17 +494,18 @@ export class ProgressionSystem {
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
     const eligible = pool.filter((relic) => relic.stackPolicy !== 'unique' || !this.inventory.has(relic.id));
-    const candidates = eligible.filter((relic) => relic.rarity === rarity);
+    const fallbackPool = eligible.length > 0 ? eligible : pool;
+    const candidates = fallbackPool.filter((relic) => relic.rarity === rarity);
     // Deterministic rarity fallback: preserve the rolled rarity whenever it
     // has an eligible candidate, otherwise draw only from remaining eligible
     // content in canonical pool order. Owned uniques never re-enter.
-    const pickPool = candidates.length > 0 ? candidates : eligible;
+    const pickPool = candidates.length > 0 ? candidates : fallbackPool;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
     const offer: RelicRewardOffer = {
       offerId: `relic-offer-${s.matchId}-${chest.id}`,
       chestId: chest.id,
-      candidates: [{ relicId: relic.id, rarity }],
+      candidates: [{ relicId: relic.id, rarity: relic.rarity }],
       selectionMode: 'automaticSingle',
       selectedIndex: 0,
       resolved: false,
@@ -507,6 +517,11 @@ export class ProgressionSystem {
     chest.fullyOpenAtWallMs = nowMs + (this.chestPolicy?.openAnimationSeconds ?? 0.65) * 1000;
     s.matchFlow = 'relicOpening';
     this.telemetry.chestsClaimed++;
+    this.telemetry.relicRarityResolutions.push({
+      requestedRarity: rarity,
+      resolvedRarity: relic.rarity,
+      fallbackUsed: rarity !== relic.rarity,
+    });
     if (this.telemetry.timeToFirstChestClaim === null) this.telemetry.timeToFirstChestClaim = s.time;
     return offer;
   }
@@ -532,25 +547,28 @@ export class ProgressionSystem {
     const roll: RelicRollResult = {
       acquisitionSequence,
       relicId: relic.id,
-      rarity: candidate.rarity,
+      rarity: relic.rarity,
       duplicateConverted: acquire.duplicateConverted,
       replacementXp: acquire.replacementXp,
       stackCountAfter: acquire.stackCount,
     };
     s.teamProgression.lastRelicResult = roll;
     this.telemetry.relicsAcquired++;
-    this.telemetry.rarityDistribution[candidate.rarity] = (this.telemetry.rarityDistribution[candidate.rarity] ?? 0) + 1;
+    this.telemetry.rarityDistribution[relic.rarity] = (this.telemetry.rarityDistribution[relic.rarity] ?? 0) + 1;
     this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
     this.projector.reproject(s.teamProgression);
     if (acquire.stackCount > stackBefore) {
       const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
-      repairForMaxIntegrityGain(s.tank, maxIntegrityBefore, maxIntegrityAfter);
+      applyMaxIntegrityRewardRepair(this.ctx, maxIntegrityBefore, maxIntegrityAfter);
     }
     if (acquire.capabilityGranted) {
       this.ctx.eventBus.emit('progressionEvent', { type: 'progressionCapabilityChanged', capabilityId: relic.capabilityId });
     }
-    this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: candidate.rarity, duplicateConverted: acquire.duplicateConverted });
+    this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: relic.rarity, duplicateConverted: acquire.duplicateConverted });
     this.beginRelicReveal(roll, nowMs, chest, offer);
+    if (acquire.duplicateConverted && acquire.replacementXp > 0) {
+      this.grantXp(acquire.replacementXp, 'duplicateRelic', s.tank);
+    }
     return roll;
   }
 

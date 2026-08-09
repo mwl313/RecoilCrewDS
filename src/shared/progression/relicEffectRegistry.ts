@@ -1,6 +1,7 @@
 import type { RelicDefinition, RelicEffectType } from '../content/schemas/progression';
 import { statModifier } from '../stats/statModifier';
 import type { SystemContext } from '../sim/systems/systemContext';
+import { applyTankIntegrityGain } from '../damage/tankIntegrityGain';
 import type { ProgressionTelemetry } from './progressionTelemetry';
 
 export type RelicTriggerEvent =
@@ -102,12 +103,6 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
   const num = (params: Record<string, unknown>, key: string): number =>
     typeof params[key] === 'number' ? (params[key] as number) : 0;
 
-  const healTank = (ctx: SystemContext, amount: number): void => {
-    const t = ctx.state.tank;
-    const max = ctx.rules.resolver.resolve('tank.maxIntegrity');
-    t.integrity = Math.min(max, t.integrity + amount);
-  };
-
   registry.register({
     trigger: 'mgBuffOnCannonFire',
     handle(event, ctx, relic, stacks, params, telemetry) {
@@ -161,7 +156,7 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
     trigger: 'cannonKillHeal',
     handle(event, ctx, relic, stacks, params, telemetry) {
       if (event.type !== 'enemyKilled' || event.source !== 'cannon') return;
-      healTank(ctx, num(params, 'amountPerStack') * stacks);
+      applyTankIntegrityGain(ctx, num(params, 'amountPerStack') * stacks, 'cannonKillRepair');
       count(telemetry, relic.id);
     },
   });
@@ -248,7 +243,7 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
     trigger: 'waveClearHeal',
     handle(event, ctx, relic, stacks, params, telemetry) {
       if (event.type !== 'waveCleared') return;
-      healTank(ctx, num(params, 'amountPerStack') * stacks);
+      applyTankIntegrityGain(ctx, num(params, 'amountPerStack') * stacks, 'waveClearRepair');
       count(telemetry, relic.id);
     },
   });
@@ -260,7 +255,8 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
       if (!registry.consumeOnce(relic.id)) return;
       const t = ctx.state.tank;
       const max = ctx.rules.resolver.resolve('tank.maxIntegrity');
-      t.integrity = Math.max(1, max * (num(params, 'integrityPercent') / 100));
+      const targetIntegrity = Math.max(1, max * (num(params, 'integrityPercent') / 100));
+      applyTankIntegrityGain(ctx, targetIntegrity - t.integrity, 'revive', { allowRevive: true });
       t.deadT = 0;
       t.shieldedT = Math.max(t.shieldedT, 1);
       const radius = num(params, 'shockwaveRadius');

@@ -381,7 +381,10 @@ export type SimEventType =
   | 'bossTelegraph'
   | 'bossFire'
   | 'playerCannonImpact'
-  | 'tankLanding';
+  | 'tankLanding'
+  | 'tankIntegrityGain'
+  | 'xpGained'
+  | 'tankDamageTaken';
 
 export interface SimEvent {
   type: SimEventType;
@@ -411,6 +414,12 @@ export interface SimEvent {
   presentationProfileId?: string;
   attackSemantic?: 'rangedTelegraph' | 'rangedFire' | 'chargeTelegraph' | 'meleeImpact' | 'projectileImpact';
   eventSequence?: number;
+  /** Reward feedback that must wait until the gameplay overlay is gone. */
+  deferUntilPlaying?: boolean;
+  /** Resolved max integrity at the authoritative damage instant. */
+  maxIntegrity?: number;
+  /** Semantic tank-impact family used by bounded client feedback. */
+  impactKind?: 'melee' | 'projectile' | 'collision' | 'explosive' | 'unknown';
 }
 
 export interface ClientState {

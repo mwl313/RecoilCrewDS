@@ -55,6 +55,9 @@ describe('max-integrity reward repair', () => {
     });
     expect(m.rules.resolver.resolve('tank.maxIntegrity')).toBe(132);
     expect(m.state.tank.integrity).toBe(75);
+    expect(m.takeEvents()).toContainEqual(expect.objectContaining({
+      type: 'tankIntegrityGain', value: 32, kind: 'maxIntegrityReward', deferUntilPlaying: true,
+    }));
   });
 
   it('repairs each successful HEARTY TANK stack once, never on reprojection', () => {

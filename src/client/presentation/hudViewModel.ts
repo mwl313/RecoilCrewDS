@@ -155,7 +155,7 @@ export function emptyHudViewModel(): HudViewModel {
     tank: {
       integrity: 100,
       integrityMax: 100,
-      integrityText: '1,000',
+      integrityText: '1,000 / 1,000',
       integrityLow: false,
       speed: 0,
       grounded: true,
@@ -351,8 +351,8 @@ export class HudProjector {
       tank: {
         integrity: t.integrity,
         integrityMax: maxIntegrity,
-        integrityText: formatCombatDisplayValue(t.integrity),
-        integrityLow: t.integrity < 35,
+        integrityText: `${formatCombatDisplayValue(t.integrity)} / ${formatCombatDisplayValue(maxIntegrity)}`,
+        integrityLow: t.integrity / Math.max(1, maxIntegrity) < .35,
         speed: Math.round(Math.hypot(t.vx, t.vz) * 3.6),
         grounded: t.grounded,
         dashReady: t.dashCooldown <= 0,

@@ -102,7 +102,7 @@ export class RewardRevealView {
     const symbols = buildRewardReelSymbols(identity, index, 'upgrade');
     this.cardSymbols.push(symbols);
     this.lastCardCellIndices.push(-1);
-    button.dataset['rarity'] = symbols[0]?.rarity ?? 'common';
+    button.dataset['rarity'] = symbols[0]?.rarity ?? 'neutral';
     for (const symbol of symbols) {
       const cell = element('div', 'reward-card__symbol');
       cell.dataset['rarity'] = symbol.rarity;
@@ -142,7 +142,7 @@ export class RewardRevealView {
       if (locked) {
         card.dataset['rarity'] = card.dataset['resultRarity'] ?? 'common';
       } else if (frame.visibleCellIndex !== this.lastCardCellIndices[index]) {
-        card.dataset['rarity'] = this.cardSymbols[index]?.[frame.visibleCellIndex]?.rarity ?? 'common';
+        card.dataset['rarity'] = this.cardSymbols[index]?.[frame.visibleCellIndex]?.rarity ?? 'neutral';
         this.lastCardCellIndices[index] = frame.visibleCellIndex;
       }
     }
@@ -190,7 +190,7 @@ export class RewardRevealView {
     this.relicPlate = element('article', 'reward-relic');
     this.relicSymbols = buildRewardReelSymbols(this.rewardIdentity, 0, 'relic');
     this.lastRelicCellIndex = -1;
-    this.relicPlate.dataset['rarity'] = this.relicSymbols[0]?.rarity ?? 'common';
+    this.relicPlate.dataset['rarity'] = this.relicSymbols[0]?.rarity ?? 'neutral';
     this.relicHost.dataset['rarity'] = this.relicPlate.dataset['rarity'];
     this.relicOutline = element('div', 'reward-relic__roulette-outline');
     const reelWindow = element('div', 'reward-relic__reel-window');
@@ -245,7 +245,7 @@ export class RewardRevealView {
       this.relicPlate?.setAttribute('data-rarity', finalRarity);
       this.relicHost.dataset['rarity'] = finalRarity;
     } else if (frame.visibleCellIndex !== this.lastRelicCellIndex) {
-      const spinningRarity = this.relicSymbols[frame.visibleCellIndex]?.rarity ?? 'common';
+      const spinningRarity = this.relicSymbols[frame.visibleCellIndex]?.rarity ?? 'neutral';
       this.relicPlate?.setAttribute('data-rarity', spinningRarity);
       this.relicHost.dataset['rarity'] = spinningRarity;
       if (this.relicOutline) restartClass(this.relicOutline, 'reward-relic__roulette-outline--flash');
