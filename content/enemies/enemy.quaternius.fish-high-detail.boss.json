@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
   "stats": {
     "hp": 210,
-    "speed": 3.8,
+    "speed": 11.4,
     "threat": 45
   },
   "rewardClass": "boss",
@@ -52,7 +52,7 @@
       "parameters": {}
     },
     {
-      "id": "attack.bossCue",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {

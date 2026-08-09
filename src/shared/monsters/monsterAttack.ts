@@ -65,6 +65,21 @@ export function cancelAttackCycle(runtime: EnemyAttackRuntime): void {
   runtime.cueFired = true;
 }
 
+/** Deterministic ordered preference with cyclic scan-forward fallback. */
+export function selectCyclicUsablePattern<T>(
+  patterns: readonly T[],
+  sequence: number,
+  isUsable: (pattern: T) => boolean,
+): T | undefined {
+  if (patterns.length === 0) return undefined;
+  const preferredIndex = ((sequence % patterns.length) + patterns.length) % patterns.length;
+  for (let offset = 0; offset < patterns.length; offset++) {
+    const pattern = patterns[(preferredIndex + offset) % patterns.length];
+    if (isUsable(pattern)) return pattern;
+  }
+  return undefined;
+}
+
 /**
  * Fit the source Attack clip to the authoritative cycle. The visual clamp
  * never changes gameplay timing.

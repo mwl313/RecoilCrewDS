@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.yeti-high-detail.hero",
   "stats": {
     "hp": 280,
-    "speed": 2.8,
+    "speed": 8.4,
     "threat": 50
   },
   "rewardClass": "boss",
@@ -52,7 +52,7 @@
       "parameters": {}
     },
     {
-      "id": "attack.bossCue",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {

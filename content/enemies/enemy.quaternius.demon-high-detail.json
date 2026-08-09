@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.demon-high-detail.hero",
   "stats": {
     "hp": 250,
-    "speed": 3.2,
+    "speed": 9.6,
     "threat": 50
   },
   "rewardClass": "boss",
@@ -52,7 +52,7 @@
       "parameters": {}
     },
     {
-      "id": "attack.bossCue",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {

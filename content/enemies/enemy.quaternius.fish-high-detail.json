@@ -9,7 +9,7 @@
   "animationProfileId": "enemyAnimation.quaternius.fish-high-detail.hero",
   "stats": {
     "hp": 55,
-    "speed": 3.8,
+    "speed": 7.6,
     "threat": 8
   },
   "rewardClass": "elite",
@@ -18,12 +18,29 @@
     "damage": true
   },
   "attack": {
-    "type": "melee",
-    "damageModel": "contactDps",
-    "contactDps": 12,
-    "rate": 2,
-    "range": 2.5,
-    "engagementProfileId": "meleeEngagement.default"
+    "type": "mixed",
+    "selection": {
+      "mode": "orderedCycle"
+    },
+    "patterns": [
+      {
+        "id": "bite",
+        "type": "melee",
+        "damage": 6,
+        "rate": 2,
+        "range": 2.5
+      },
+      {
+        "id": "bubble",
+        "type": "ranged",
+        "damage": 12,
+        "rate": 1,
+        "range": 38,
+        "projectileId": "projectile.enemyBoneShot",
+        "visualColor": "#F5E6C8",
+        "telegraphTime": 0.9
+      }
+    ]
   },
   "behaviors": [
     {
@@ -35,23 +52,17 @@
       "parameters": {}
     },
     {
-      "id": "movement.meleeEngagement",
-      "parameters": {
-        "profileId": "meleeEngagement.default"
-      }
-    },
-    {
-      "id": "movement.integrate",
+      "id": "attack.mixedCue",
       "parameters": {}
     },
     {
-      "id": "attack.meleeCue",
+      "id": "movement.integrate",
       "parameters": {}
     }
   ],
   "spawnTags": [
     "elite",
-    "melee",
+    "mixed",
     "medium"
   ]
 }
