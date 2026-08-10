@@ -388,6 +388,7 @@ export class GameClient {
       this.world.scene,
       this.assets,
       pack.getRelicChestSpawnPolicy(progression.relicChestSpawnPolicyId),
+      () => this.audio.play('chestOpen'),
     );
   }
 

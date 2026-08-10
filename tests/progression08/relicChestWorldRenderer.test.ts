@@ -103,4 +103,24 @@ describe('relic chest world renderer', () => {
     expect(dispose).toHaveBeenCalled();
     expect(prototypeMaterial.color.getHex()).toBe(0x6f452b);
   });
+
+  it('announces the closed-to-opening transition once but ignores spawn and reconnect reconstruction', () => {
+    const scene = new THREE.Scene();
+    const assets = { createModelInstance: vi.fn(() => ({ root: chestRoot(), source: {}, skinned: false })) } as unknown as AssetService;
+    const policy = CLIENT_CONTENT_PACK.getRelicChestSpawnPolicy('relicChestSpawn.mainStage');
+    const onChestOpened = vi.fn();
+    const renderer = new RelicChestWorldRenderer(scene, assets, policy, onChestOpened);
+
+    renderer.sync([state('spawning')], 1, 900, 0.016);
+    renderer.sync([state('closed')], 2, 1_000, 0.016);
+    expect(onChestOpened).not.toHaveBeenCalled();
+    renderer.sync([state('opening', { openingStartedAtWallMs: 1_016 })], 2.1, 1_016, 0.016);
+    renderer.sync([state('opening', { openingStartedAtWallMs: 1_016 })], 2.2, 1_032, 0.016);
+    expect(onChestOpened).toHaveBeenCalledTimes(1);
+    expect(onChestOpened).toHaveBeenCalledWith(expect.objectContaining({ id: 7, lifecycle: 'opening' }));
+
+    renderer.sync([state('open', { id: 8 })], 2.2, 1_032, 0.016);
+    expect(onChestOpened).toHaveBeenCalledTimes(1);
+    renderer.dispose();
+  });
 });
