@@ -27,7 +27,7 @@ import {
   selectArenaSession,
 } from '../shared/mapgen/arenaSession';
 import { createStaticArenaWorld, type ArenaWorld } from '../shared/sim/arenaWorld';
-import type { MatchState, Role } from '../shared/types';
+import type { MatchState, Role, SimEvent } from '../shared/types';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
@@ -106,6 +106,7 @@ let activeSinglePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 let localPlayerId = '';
 let lobbyState: ClientLobbyState | null = null;
 let lobbyChat: LobbyChatMessage[] = [];
+const landingDebugEvents: SimEvent[] = [];
 
 const params = new URLSearchParams(window.location.search);
 const TEST_MODE = params.has('test');
@@ -525,10 +526,13 @@ net.onMessage = (msg) => {
       });
       break;
     }
-    case 'event':
-      game?.handleEvent(msg.event as never);
-      hud.onEvent(msg.event as never);
+    case 'event': {
+      const event = msg.event as SimEvent;
+      recordLandingDebugEvent(event);
+      game?.handleEvent(event);
+      hud.onEvent(event);
       break;
+    }
     case 'driverInputRelay':
       game?.handleDriverRelay(Number(msg.seq ?? 0), msg.driver as never);
       break;
@@ -844,8 +848,17 @@ async function createGame(world: ArenaWorld): Promise<GameClient> {
   const loaded = assets ?? (await assetsPromise);
   assets = loaded;
   const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined, world);
-  created.onHudEvent = (ev) => hud.onEvent(ev as never);
+  created.onHudEvent = (ev) => {
+    recordLandingDebugEvent(ev);
+    hud.onEvent(ev);
+  };
   return created;
+}
+
+function recordLandingDebugEvent(event: SimEvent): void {
+  if (!TEST_MODE || (event.type !== 'tankLanding' && event.type !== 'groundPoundImpact')) return;
+  landingDebugEvents.push({ ...event });
+  if (landingDebugEvents.length > 64) landingDebugEvents.splice(0, landingDebugEvents.length - 64);
 }
 
 /** ArenaView performs synchronous model lookup, so all lazy map models must exist first. */
@@ -1108,6 +1121,32 @@ if (TEST_MODE) {
     },
     testImpulse: (defId: string, horizontal: number, vertical: number) => {
       net.send({ t: 'testImpulseEnemyByDef', defId, horizontal, vertical });
+    },
+    landing: {
+      events: () => landingDebugEvents.map((event) => ({ ...event })),
+      clear: () => {
+        landingDebugEvents.length = 0;
+      },
+      drop: (heightRaw: number, stacksRaw = 1) => {
+        const height = Math.max(0, Math.min(30, Number.isFinite(heightRaw) ? heightRaw : 0));
+        const stacks = Math.max(0, Math.min(10, Math.floor(Number.isFinite(stacksRaw) ? stacksRaw : 0)));
+        const match = game?.singlePlayerMatch;
+        if (!match) {
+          net.send({ t: 'testDropTank', height, stacks });
+          return;
+        }
+        const runtime = match.runtime;
+        const tank = runtime.state.tank;
+        if (stacks > 0) runtime.state.teamProgression.relicStacks['relic.ground_pound'] = stacks;
+        else delete runtime.state.teamProgression.relicStacks['relic.ground_pound'];
+        tank.vx = 0;
+        tank.vy = 0;
+        tank.vz = 0;
+        tank.y = runtime.world.groundHeightAt(tank.x, tank.z) + height;
+        tank.grounded = false;
+        runtime.resetFallTrackingFromAuthority();
+      },
+      vfx: () => game?.world.vfx.poolDiagnostics() ?? null,
     },
     xp: {
       spawn: (count: number) => {

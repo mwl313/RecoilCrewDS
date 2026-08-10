@@ -41,6 +41,8 @@ const DESCRIPTORS: Record<ProceduralSoundRecipe, RecipeDescriptor> = {
   jump: { bus: 'vehicle', category: 'vehicle', priority: 58, duration: 0.24, maxDistance: 0, reverbSend: 0.025 },
   landingLight: { bus: 'vehicle', category: 'minorImpact', priority: 45, duration: 0.22, maxDistance: 0, reverbSend: 0.035 },
   landingHeavy: { bus: 'vehicle', category: 'minorImpact', priority: 68, duration: 0.38, maxDistance: 0, reverbSend: 0.07 },
+  landingMassive: { bus: 'vehicle', category: 'majorExplosion', priority: 82, duration: 0.72, maxDistance: 0, reverbSend: 0.12 },
+  groundPoundImpact: { bus: 'vehicle', category: 'majorExplosion', priority: 90, duration: 0.82, maxDistance: 0, reverbSend: 0.14 },
   wallCollision: { bus: 'impact', category: 'minorImpact', priority: 48, duration: 0.34, maxDistance: 0, reverbSend: 0.06 },
   monsterCollision: { bus: 'impact', category: 'minorImpact', priority: 42, duration: 0.26, maxDistance: 0, reverbSend: 0.04 },
   truckCollision: { bus: 'impact', category: 'minorImpact', priority: 60, duration: 0.46, maxDistance: 0, reverbSend: 0.08 },
@@ -225,6 +227,20 @@ function playRecipeLayers(runtime: PrimitiveRuntime, recipe: ProceduralSoundReci
       thump(runtime, { at, frequencyStart: 92, frequencyEnd: 42, duration: 0.32, gain: 0.42 });
       metal(runtime, { at: at + 0.008, duration: 0.24, gain: 0.085 });
       crack(runtime, { at: at + 0.01, frequencyStart: 780, frequencyEnd: 260, duration: 0.18, gain: 0.16, q: 0.65 });
+      return;
+    case 'landingMassive':
+      thump(runtime, { at, frequencyStart: 76, frequencyEnd: 34, duration: 0.48, gain: 0.5 * intensity });
+      crack(runtime, { at: at + 0.008, frequencyStart: 1_450, frequencyEnd: 240, duration: 0.24, gain: 0.24 * intensity, q: 0.62 });
+      metal(runtime, { at: at + 0.012, duration: 0.32, gain: 0.1 * intensity, frequencies: [310, 570, 930] });
+      rumble(runtime, { at: at + 0.025, duration: 0.62, gain: 0.3 * intensity, frequencyStart: 62, frequencyEnd: 28 });
+      air(runtime, { at: at + 0.02, frequencyStart: 720, frequencyEnd: 95, duration: 0.52, gain: 0.16 * intensity, type: 'lowpass' });
+      return;
+    case 'groundPoundImpact':
+      thump(runtime, { at, frequencyStart: 68, frequencyEnd: 29, duration: 0.56, gain: 0.56 * intensity });
+      crack(runtime, { at, frequencyStart: 2_100, frequencyEnd: 260, duration: 0.22, gain: 0.3 * intensity, q: 0.58 });
+      metal(runtime, { at: at + 0.01, duration: 0.36, gain: 0.11 * intensity, frequencies: [285, 510, 860, 1_240] });
+      rumble(runtime, { at: at + 0.02, duration: 0.72, gain: 0.36 * intensity, frequencyStart: 58, frequencyEnd: 25 });
+      air(runtime, { at: at + 0.018, frequencyStart: 920, frequencyEnd: 80, duration: 0.65, gain: 0.2 * intensity, type: 'lowpass' });
       return;
     case 'wallCollision':
       thump(runtime, { at, frequencyStart: 105, frequencyEnd: 39, duration: 0.28, gain: 0.4 });

@@ -25,6 +25,8 @@ export type ProceduralSoundRecipe =
   | 'jump'
   | 'landingLight'
   | 'landingHeavy'
+  | 'landingMassive'
+  | 'groundPoundImpact'
   | 'wallCollision'
   | 'monsterCollision'
   | 'truckCollision'
@@ -88,6 +90,8 @@ export interface ProceduralRecipeOptions {
   damage?: number;
   splashRadius?: number;
   visualScale?: number;
+  fallDistance?: number;
+  impactSpeed?: number;
   variant?: string;
 }
 

@@ -1,7 +1,6 @@
 import type { AssetService } from '../assets';
 import type { AudioManager } from '../audio';
 import {
-  classifyLanding,
   resolveEnemyAudioProfile,
   resolveEnemyDeathRecipe,
   resolveEnemyFireRecipe,
@@ -25,6 +24,8 @@ import {
   type MachineGunMuzzlePose,
   type MachineGunPoint,
 } from '../weapons/machineGunPresentation';
+import { presentLanding } from '../presentation/landingPresentation';
+import { presentGroundPoundImpact } from '../presentation/groundPoundPresentation';
 
 export interface ActionPresentationGuard {
   /** True when this actionSeq was already presented locally. */
@@ -178,7 +179,18 @@ export class PresentationEventRouter {
       return;
     }
     if (ev.type === 'tankLanding') {
-      this.audio.playLocal(classifyLanding(ev.value ?? 0), { seed: this.seed(ev), intensity: Math.min(1.3, 0.7 + (ev.value ?? 0) / 18) });
+      presentLanding(ev, {
+        audio: this.audio,
+        camera: this.camera,
+        seed: this.seed(ev),
+        reducedMotion: this.tankDamageLayer?.reducedMotion ?? false,
+      });
+      return;
+    }
+    if (ev.type === 'groundPoundImpact') {
+      // Audio and camera are owned by the paired tankLanding event. This
+      // semantic event owns only radius-truthful world presentation.
+      presentGroundPoundImpact(ev, this.vfx);
       return;
     }
     if (ev.type === 'jump') {

@@ -23,6 +23,7 @@ import type { GunnerActionType } from '../net/protocol';
 import { createNetcodeOpState, recordOp } from './opLog';
 import type { TankImpulseWire } from '../effects/tankImpulseSystem';
 import type { StageEvent } from '../stage/stageTypes';
+import { AuthoritativeFallTracker, classifyLandingTier } from './landingMetrics';
 import type {
   BarrelState,
   DriverInput,
@@ -164,7 +165,7 @@ export class MatchRuntime {
   /** Unified netcode op/ack state (driver seq, gunner seq, impulses). */
   readonly opState = createNetcodeOpState();
   private readonly impulseEvents: TankImpulseWire[] = [];
-  private lastGrounded = true;
+  private readonly fallTracker: AuthoritativeFallTracker;
   private readonly productionMonster: boolean;
   private readonly activeBossEnemyId: string | undefined;
   /** Authoritative simulation tick (increments per step). */
@@ -202,6 +203,7 @@ export class MatchRuntime {
     this.rules = rules ?? MatchRules.fromLegacyConfig(modifier);
     this.world = world ?? createStaticArenaWorld();
     this.state = initialState(matchId, this.rules, this.world);
+    this.fallTracker = new AuthoritativeFallTracker(this.state.tank.grounded, this.state.tank.y);
     this.eventBus = new GameplayEventBus();
     const monsterRun = this.resolveMonsterRun(matchId);
     const monsterSlots = monsterRun
@@ -421,6 +423,12 @@ export class MatchRuntime {
     this.weaponSystem.clearActions();
   }
 
+  /** Authority initialization/teleport seam: synchronize without fabricating a landing. */
+  resetFallTrackingFromAuthority(): void {
+    const tank = this.state.tank;
+    this.fallTracker.reset(tank.grounded, tank.y);
+  }
+
   step(dtRaw: number) {
     if (this.state.phase !== 'running' && this.state.phase !== 'countdown') return;
     // Progression08: authoritative pause during selection — gameplay steps
@@ -502,7 +510,8 @@ export class MatchRuntime {
     }
     if (t.shieldedT > 0) t.shieldedT -= dt;
     const speed = Math.hypot(t.vx, t.vz);
-    const landingSpeed = Math.max(0, -t.vy);
+    const previousY = t.y;
+    const preLandingVy = t.vy;
     const hits = stepTankKinematics(
       t as unknown as TankKinematicState,
       {
@@ -526,16 +535,29 @@ export class MatchRuntime {
       { dashModel: this.rules.packId === 'legacy' ? 'legacyImpulse' : 'stateful' },
     );
     this.systems.progression.notifyAirborneTick(dt, t.grounded);
-    if (!this.lastGrounded && t.grounded) {
-      this.systems.progression.notifyLanded();
+    const landing = this.fallTracker.update({
+      grounded: t.grounded,
+      previousY,
+      y: t.y,
+      preLandingVy,
+    });
+    if (landing) {
+      const groundPound = this.systems.progression.notifyLanded({
+        ...landing,
+        x: t.x,
+        y: t.y,
+        z: t.z,
+      });
       if (this.rules.packId !== 'legacy') {
         this.push('tankLanding', t.x, t.y, t.z, {
-          value: landingSpeed,
-          kind: landingSpeed >= 7.5 ? 'heavy' : 'light',
+          value: landing.impactSpeed,
+          impactSpeed: landing.impactSpeed,
+          fallDistance: landing.fallDistance,
+          kind: classifyLandingTier(landing.fallDistance),
+          groundPound,
         });
       }
     }
-    this.lastGrounded = t.grounded;
     // Hard obstacle crash damage (crusher/factory/wall) at speed.
     if (speed > 10 && hits.length > 0) {
       const hardHit = hits.some((hit) => {
@@ -575,9 +597,11 @@ export class MatchRuntime {
     t.airJumpCapacity = t.airJumpsRemaining;
     t.airDashReuseRemaining = Math.max(0, Math.min(1, Math.floor(this.cfg.tank.airDashCharges)));
     t.airDashReuseCapacity = t.airDashReuseRemaining;
+    t.grounded = true;
     t.deadT = 0;
     t.shieldedT = this.cfg.tank.shieldTime;
     t.integrity = this.cfg.tank.maxIntegrity;
+    this.resetFallTrackingFromAuthority();
     // Face nearest threat.
     let best: EnemyState | null = null;
     let bestD = Infinity;

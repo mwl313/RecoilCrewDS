@@ -3,13 +3,15 @@ import { statModifier } from '../stats/statModifier';
 import type { SystemContext } from '../sim/systems/systemContext';
 import { applyTankIntegrityGain } from '../damage/tankIntegrityGain';
 import type { ProgressionTelemetry } from './progressionTelemetry';
+import { calculateGroundPound, resolveGroundPoundTuning } from './groundPound';
+import { pushEvent } from '../sim/systems/systemContext';
 
 export type RelicTriggerEvent =
   | { type: 'cannonFired' }
   | { type: 'damageApplied'; targetId: number | string; targetKind: string; amount: number; source: string; weaponId?: string }
   | { type: 'enemyKilled'; enemyId: number; source: string; weaponId?: string }
   | { type: 'dashHit'; enemyId: number }
-  | { type: 'landed' }
+  | { type: 'landed'; fallDistance: number; impactSpeed: number; x: number; y: number; z: number }
   | { type: 'airborneTick'; dt: number }
   | { type: 'waveCleared'; waveId: number }
   | { type: 'wipeout' }
@@ -221,20 +223,40 @@ export function createRelicEffectRegistry(): RelicEffectRegistry {
     trigger: 'groundPound',
     handle(event, ctx, relic, stacks, params, telemetry) {
       if (event.type !== 'landed') return;
-      const t = ctx.state.tank;
-      const radius = num(params, 'radius');
-      const damage = num(params, 'damageBase') + num(params, 'damagePerStack') * (stacks - 1);
-      const knockback = num(params, 'knockback');
-      const nearby = ctx.enemySpatial.queryCircle(t.x, t.z, radius + 4);
+      const metrics = calculateGroundPound(event.fallDistance, stacks, resolveGroundPoundTuning(params));
+      if (!metrics) return;
+      // Landing runs before the normal enemy update; refresh once so enemies
+      // spawned or moved late in the previous tick cannot be skipped.
+      ctx.enemySpatial.rebuild(ctx.state.enemies);
+      const nearby = ctx.enemySpatial.queryCircle(
+        event.x,
+        event.z,
+        metrics.radius + ctx.enemies.maximumCollisionRadius,
+      );
       for (const e of nearby) {
         if (!e.alive) continue;
-        const d = Math.hypot(e.x - t.x, e.z - t.z);
-        if (d <= radius + ctx.enemies.radiusFor(e)) {
-          ctx.damage.applyEnemy(e, damage, 'relic');
+        const d = Math.hypot(e.x - event.x, e.z - event.z);
+        if (d <= metrics.radius + ctx.enemies.radiusFor(e)) {
+          ctx.damage.applyEnemy(e, metrics.damage, 'relic');
           const def = ctx.enemies.defFor(e);
-          ctx.enemyImpulses.apply(e, def, d > 0.001 ? (e.x - t.x) / d : 0, d > 0.001 ? (e.z - t.z) / d : 0, knockback, 1.4, 'relic');
+          ctx.enemyImpulses.apply(
+            e,
+            def,
+            d > 0.001 ? (e.x - event.x) / d : 0,
+            d > 0.001 ? (e.z - event.z) / d : 0,
+            metrics.knockback,
+            1.4,
+            'relic',
+          );
         }
       }
+      pushEvent(ctx, 'groundPoundImpact', event.x, event.y, event.z, {
+        radius: metrics.radius,
+        damage: metrics.damage,
+        fallDistance: event.fallDistance,
+        impactSpeed: event.impactSpeed,
+        stacks: metrics.stacks,
+      });
       count(telemetry, relic.id);
     },
   });

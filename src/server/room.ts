@@ -698,6 +698,26 @@ export class RoomManager {
       );
       return;
     }
+    if (t === 'testDropTank') {
+      if (!TEST_DAMAGE_ENABLED || room.phase !== 'running' || !room.match) return;
+      const height = typeof raw.height === 'number' && Number.isFinite(raw.height)
+        ? Math.max(0, Math.min(30, raw.height))
+        : 0;
+      const stacks = typeof raw.stacks === 'number' && Number.isFinite(raw.stacks)
+        ? Math.max(0, Math.min(10, Math.floor(raw.stacks)))
+        : 0;
+      const runtime = room.match.runtime;
+      const tank = runtime.state.tank;
+      if (stacks > 0) runtime.state.teamProgression.relicStacks['relic.ground_pound'] = stacks;
+      else delete runtime.state.teamProgression.relicStacks['relic.ground_pound'];
+      tank.vx = 0;
+      tank.vy = 0;
+      tank.vz = 0;
+      tank.y = runtime.world.groundHeightAt(tank.x, tank.z) + height;
+      tank.grounded = false;
+      runtime.resetFallTrackingFromAuthority();
+      return;
+    }
     if (t === 'leave') {
       this.removeClient(client);
       return;

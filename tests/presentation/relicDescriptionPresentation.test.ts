@@ -21,4 +21,19 @@ describe('relic integrity description presentation', () => {
       CLIENT_CONTENT_PACK.getRelic('relic.iron_will').description,
     );
   });
+
+  it('derives Ground Pound copy values from its effect and exposes the localization key seam', () => {
+    expect(present('relic.ground_pound')).toBe(
+      'Land after falling at least 1.5 m to create a shockwave.\n' +
+      'Greater falls deal more damage and increase the radius, up to 12 m.\n' +
+      'Each stack adds 100 base damage.',
+    );
+    const relic = CLIENT_CONTENT_PACK.getRelic('relic.ground_pound');
+    const localized = presentRelicDescription(
+      relic,
+      (templateId) => CLIENT_CONTENT_PACK.getRelicEffectTemplate(templateId),
+      (key, params) => `${key}:${params.minimumFallDistance}:${params.maximumRadius}:${params.baseDamagePerStack}`,
+    );
+    expect(localized).toBe('relic.relic_ground_pound.description:1.5:12:100');
+  });
 });

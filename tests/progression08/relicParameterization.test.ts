@@ -75,13 +75,25 @@ describe('relic handler parameterization (progression08 hardening)', () => {
 
   it('GROUND POUND damage and knockback come from content', () => {
     const m = matchWithRelic('relic.ground_pound', (relic) => {
-      relic.effects[0].parameters = { radius: 3, damageBase: 25, damagePerStack: 10, knockback: 6 };
+      relic.effects[0].parameters = {
+        minimumFallDistance: 1.5,
+        baseDamagePerStack: 25,
+        fallBonusPerMeter: 0,
+        maximumFallBonus: 0,
+        baseRadius: 3,
+        radiusPerMeter: 0,
+        maximumRadius: 3,
+        baseKnockback: 6,
+        knockbackPerMeter: 0,
+        maximumKnockback: 6,
+      };
     });
     m.state.teamProgression.relicStacks['relic.ground_pound'] = 1;
     const e = spawnEnemy(m, 'enemy.scrapBug', m.state.tank.x + 1.2, m.state.tank.z);
     m.systems.enemySpatial.rebuild(m.state.enemies);
     const hp = e.hp;
-    m.systems.progression.notifyLanded();
+    const t = m.state.tank;
+    m.systems.progression.notifyLanded({ fallDistance: 3, impactSpeed: 8, x: t.x, y: t.y, z: t.z });
     expect(hp - e.hp).toBe(25);
   });
 
