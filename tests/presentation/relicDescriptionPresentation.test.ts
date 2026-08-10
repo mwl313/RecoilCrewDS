@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { CLIENT_CONTENT_PACK } from '../../src/generated/contentPack.generated';
+import { EN_CATALOG, KO_CATALOG } from '../../src/client/localization/catalogs';
+import { RuntimeLocalizationService } from '../../src/client/localization/localizationService';
 import { presentRelicDescription } from '../../src/shared/presentation/relicDescriptionPresentation';
 
 const present = (relicId: string): string => presentRelicDescription(
   CLIENT_CONTENT_PACK.getRelic(relicId),
   (templateId) => CLIENT_CONTENT_PACK.getRelicEffectTemplate(templateId),
+);
+
+const korean = new RuntimeLocalizationService('ko', { en: EN_CATALOG, ko: KO_CATALOG }, null);
+const presentKorean = (relicId: string): string => presentRelicDescription(
+  CLIENT_CONTENT_PACK.getRelic(relicId),
+  (templateId) => CLIENT_CONTENT_PACK.getRelicEffectTemplate(templateId),
+  (key, params, fallback) => korean.t(key, params, fallback),
 );
 
 describe('relic integrity description presentation', () => {
@@ -20,6 +29,28 @@ describe('relic integrity description presentation', () => {
     expect(present('relic.iron_will')).toBe(
       CLIENT_CONTENT_PACK.getRelic('relic.iron_will').description,
     );
+  });
+
+  it('localizes structured integrity descriptions after scaling their authored values', () => {
+    expect(presentKorean('relic.hearty_tank')).toBe(
+      '최대 내구도가 200 증가합니다.\n늘어난 내구도는 즉시 수리됩니다.',
+    );
+    expect(presentKorean('relic.safe_haven')).toBe('웨이브를 클리어하면 내구도를 150 수리합니다.');
+    expect(presentKorean('relic.vampire_rounds')).toBe('주포로 적을 처치하면 내구도를 50 수리합니다.');
+  });
+
+  it('routes the generic heal presenter through a relic-specific localization key', () => {
+    const relic = {
+      ...CLIENT_CONTENT_PACK.getRelic('relic.safe_haven'),
+      id: 'relic.test_heal',
+      effects: [{ templateId: 'relicEffect.heal', parameters: { amount: 7 } }],
+    };
+    const localized = presentRelicDescription(
+      relic,
+      (templateId) => CLIENT_CONTENT_PACK.getRelicEffectTemplate(templateId),
+      (key, params) => `${key}:${params.amount}`,
+    );
+    expect(localized).toBe('relic.relic_test_heal.description:70');
   });
 
   it('derives Ground Pound copy values from its effect and exposes the localization key seam', () => {

@@ -9,7 +9,8 @@ import { SceneActionRegistry } from '../../src/client/presentation/actionRegistr
 import { UiComponentRegistry } from '../../src/client/presentation/componentRegistry';
 import { SceneRuntime } from '../../src/client/presentation/sceneRuntime';
 import { registerDefaultUiComponents } from '../../src/client/presentation/uiComponents';
-import { enemyKey, relicKey, upgradeKey } from '../../src/client/localization/contentKeys';
+import { enemyKey, relicKey, statKey, upgradeKey } from '../../src/client/localization/contentKeys';
+import { formatUpgradeEffect } from '../../src/shared/presentation/statPresentation';
 
 const repo = process.cwd();
 const enCatalog: Readonly<Record<string, string>> = EN_CATALOG;
@@ -34,10 +35,25 @@ describe('localization catalogs', () => {
     }
     for (const upgrade of jsonFiles('content/upgrade-categories')) {
       expect(enCatalog[upgradeKey(String(upgrade.id))]).toBeTruthy();
+      expect(koCatalog[upgradeKey(String(upgrade.id))]).toBeTruthy();
+      for (const effect of upgrade.effects as Array<{ statId: string }>) {
+        expect(enCatalog[statKey(effect.statId)]).toBeTruthy();
+        expect(koCatalog[statKey(effect.statId)]).toBeTruthy();
+      }
     }
     for (const enemy of jsonFiles('content/enemies')) {
       expect(enCatalog[enemyKey(String(enemy.id))]).toBeTruthy();
     }
+  });
+
+  it('formats machine-gun fire-rate effects in Korean', () => {
+    const service = new RuntimeLocalizationService('ko', { en: EN_CATALOG, ko: KO_CATALOG }, null);
+    const translate = (key: string, params?: Record<string, string | number>, fallback?: string) =>
+      service.t(key, params, fallback);
+    expect(formatUpgradeEffect(
+      { statId: 'weapon.mgRate', operation: 'multiply', value: 1.3 },
+      translate,
+    )).toBe('기관총 연사력\n+30%');
   });
 
   it('falls back requested locale to English, then authored copy, and warns once', () => {

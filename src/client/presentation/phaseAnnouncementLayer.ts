@@ -3,7 +3,7 @@ import { LOCALIZATION_CATALOGS } from '../localization/catalogs';
 import { localization as defaultLocalization } from '../localization/localizationService';
 import type { Locale, LocalizationService } from '../localization/localizationTypes';
 
-export type PhaseAnnouncementKind = 'farming' | 'elite' | 'final';
+export type PhaseAnnouncementKind = 'farming' | 'elite' | 'eliteDefeated' | 'final';
 export type PhaseAnnouncementKey = `phase.${PhaseAnnouncementKind}`;
 export type PhaseAnnouncementLocale = Locale;
 
@@ -32,16 +32,18 @@ export interface PhaseAnnouncementLayerOptions {
   scheduler?: PhaseAnnouncementScheduler;
 }
 
-export const PHASE_ANNOUNCEMENT_DURATION_MS = 1_550;
+export const PHASE_ANNOUNCEMENT_DURATION_MS = 2_100;
 
 const IMPACTS: Record<PhaseAnnouncementKind, Omit<PhaseAnnouncementImpact, 'kind' | 'reducedMotion'>> = {
   farming: { intensity: 0.75, cameraImpulse: 0.16 },
   elite: { intensity: 1, cameraImpulse: 0.34 },
+  eliteDefeated: { intensity: 1, cameraImpulse: 0.34 },
   final: { intensity: 1.25, cameraImpulse: 0.58 },
 };
 
 export function phaseAnnouncementForPhase(phase: StagePhase | string): PhaseAnnouncementKind | null {
-  if (phase === 'farming1' || phase === 'farming2' || phase === 'farming3') return 'farming';
+  if (phase === 'farming1') return 'farming';
+  if (phase === 'farming2' || phase === 'farming3') return 'eliteDefeated';
   if (phase === 'wave1' || phase === 'wave2') return 'elite';
   if (phase === 'bossWave') return 'final';
   return null;

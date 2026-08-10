@@ -41,6 +41,7 @@
   "upgrade.stat.weapon_cannonRecoilImpulse": "CANNON RECOIL",
   "upgrade.stat.weapon_mgDamage": "MACHINE GUN DAMAGE",
   "upgrade.stat.weapon_mgRange": "MACHINE GUN RANGE",
+  "upgrade.stat.weapon_mgRate": "MG FIRE RATE",
   "upgrade.stat.weapon_mgSpread": "MACHINE GUN PRECISION",
   "upgrade.group.CREW": "CREW",
   "upgrade.group.DRIVER": "DRIVER",

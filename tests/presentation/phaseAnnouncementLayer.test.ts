@@ -40,7 +40,7 @@ function localization(initial: PhaseAnnouncementLocale = 'en') {
   let locale = initial;
   return {
     locale: () => locale,
-    t: (key: string) => phaseAnnouncementText(locale, key.replace('phase.', '') as 'farming' | 'elite' | 'final'),
+    t: (key: string) => phaseAnnouncementText(locale, key.replace('phase.', '') as 'farming' | 'elite' | 'eliteDefeated' | 'final'),
     setLocale: (next: PhaseAnnouncementLocale) => { locale = next; },
   };
 }
@@ -50,7 +50,7 @@ describe('phase announcement semantic presentation', () => {
     expect([
       'farming1', 'wave1', 'farming2', 'wave2', 'farming3', 'bossWave', 'clear', 'gameOver',
     ].map(phaseAnnouncementForPhase)).toEqual([
-      'farming', 'elite', 'farming', 'elite', 'farming', 'final', null, null,
+      'farming', 'elite', 'eliteDefeated', 'elite', 'eliteDefeated', 'final', null, null,
     ]);
   });
 
@@ -71,9 +71,9 @@ describe('phase announcement semantic presentation', () => {
     }
 
     expect(impacts.map((impact) => impact.kind)).toEqual([
-      'farming', 'elite', 'farming', 'elite', 'farming', 'final',
+      'farming', 'elite', 'eliteDefeated', 'elite', 'eliteDefeated', 'final',
     ]);
-    expect(impacts.map((impact) => impact.intensity)).toEqual([0.75, 1, 0.75, 1, 0.75, 1.25]);
+    expect(impacts.map((impact) => impact.intensity)).toEqual([0.75, 1, 1, 1, 1, 1.25]);
     expect(layer.diagnostics.sequence).toBe(5);
   });
 
@@ -90,7 +90,7 @@ describe('phase announcement semantic presentation', () => {
     expect(impacts).toEqual([]);
 
     layer.observe('match-live', { phase: 'farming3', phaseSequence: 4 });
-    expect(impacts.map((impact) => impact.kind)).toEqual(['farming']);
+    expect(impacts.map((impact) => impact.kind)).toEqual(['eliteDefeated']);
   });
 
   it('resets for a rematch and announces its initial farming phase', () => {
@@ -129,6 +129,15 @@ describe('phase announcement semantic presentation', () => {
     expect(impacts).toHaveLength(1);
   });
 
+  it('announces the second and third farming phases as elite victories', () => {
+    expect(phaseAnnouncementText('en', phaseAnnouncementForPhase('farming2')!))
+      .toBe('ELITE MONSTER DEFEATED');
+    expect(phaseAnnouncementText('en', phaseAnnouncementForPhase('farming3')!))
+      .toBe('ELITE MONSTER DEFEATED');
+    expect(phaseAnnouncementText('ko', phaseAnnouncementForPhase('farming2')!))
+      .toBe('정예 몬스터 처치!');
+  });
+
   it('never intercepts input, attenuates camera intent for reduced motion, and restores HUD state', () => {
     const scheduler = new FakeScheduler();
     const active: boolean[] = [];
@@ -160,5 +169,10 @@ describe('phase announcement semantic presentation', () => {
     expect(css).toContain('@media (max-width: 560px)');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('pointer-events: none');
+    expect(PHASE_ANNOUNCEMENT_DURATION_MS).toBe(2_100);
+    expect(css).toContain('--phase-announcement-duration: 2100ms');
+    expect(css).toContain('animation: phase-announcement-zoom-impact var(--phase-announcement-duration) linear both');
+    expect(css).toContain('scale(.12)');
+    expect(css).toContain('translate3d(-8px, 2px, 0)');
   });
 });

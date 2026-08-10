@@ -41,6 +41,7 @@
   "upgrade.stat.weapon_cannonRecoilImpulse": "주포 반동",
   "upgrade.stat.weapon_mgDamage": "기관총 피해",
   "upgrade.stat.weapon_mgRange": "기관총 사거리",
+  "upgrade.stat.weapon_mgRate": "기관총 연사력",
   "upgrade.stat.weapon_mgSpread": "기관총 정밀도",
   "upgrade.group.CREW": "승무원",
   "upgrade.group.DRIVER": "운전수",

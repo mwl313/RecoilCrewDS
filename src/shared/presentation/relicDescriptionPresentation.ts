@@ -32,25 +32,41 @@ export function presentRelicDescription(
   if (!template) return relic.description;
   const params = resolveRelicEffectParameters(template, effect) as Record<string, unknown>;
   const amount = (key: string): number | null => typeof params[key] === 'number' ? params[key] as number : null;
+  const localizeDescription = (
+    values: Readonly<Record<string, string | number>>,
+    fallback: string,
+  ): string => localize?.(
+    `relic.${relic.id.replace(/[.-]/g, '_')}.description`,
+    values,
+    fallback,
+  ) ?? fallback;
 
   if (
     template.effectType === 'statFlat' &&
     params['statId'] === 'tank.maxIntegrity'
   ) {
     const value = amount('flatPerStack');
-    return value === null ? relic.description : `Max integrity +${formatCombatDisplayValue(value)}.`;
+    if (value === null) return relic.description;
+    const displayAmount = formatCombatDisplayValue(value);
+    return localizeDescription({ amount: displayAmount }, `Max integrity +${displayAmount}.`);
   }
   if (template.effectType === 'cannonKillHeal') {
     const value = amount('amountPerStack');
-    return value === null ? relic.description : `Cannon kills restore ${formatCombatDisplayValue(value)} integrity.`;
+    if (value === null) return relic.description;
+    const displayAmount = formatCombatDisplayValue(value);
+    return localizeDescription({ amount: displayAmount }, `Cannon kills restore ${displayAmount} integrity.`);
   }
   if (template.effectType === 'waveClearHeal') {
     const value = amount('amountPerStack');
-    return value === null ? relic.description : `Wave clear restores ${formatCombatDisplayValue(value)} integrity.`;
+    if (value === null) return relic.description;
+    const displayAmount = formatCombatDisplayValue(value);
+    return localizeDescription({ amount: displayAmount }, `Wave clear restores ${displayAmount} integrity.`);
   }
   if (template.effectType === 'heal') {
     const value = amount('amount');
-    return value === null ? relic.description : `Restore ${formatCombatDisplayValue(value)} integrity.`;
+    if (value === null) return relic.description;
+    const displayAmount = formatCombatDisplayValue(value);
+    return localizeDescription({ amount: displayAmount }, `Restore ${displayAmount} integrity.`);
   }
   if (template.effectType === 'groundPound') {
     const tuning = resolveGroundPoundTuning(params);
@@ -62,7 +78,7 @@ export function presentRelicDescription(
     const fallback = `Land after falling at least ${values.minimumFallDistance} m to create a shockwave.\n` +
       `Greater falls deal more damage and increase the radius, up to ${values.maximumRadius} m.\n` +
       `Each stack adds ${values.baseDamagePerStack} base damage.`;
-    return localize?.('relic.relic_ground_pound.description', values, fallback) ?? fallback;
+    return localizeDescription(values, fallback);
   }
 
   return relic.description;

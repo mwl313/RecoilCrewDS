@@ -604,6 +604,11 @@
       "ko": "정예 몬스터 웨이브 접근 중!"
     },
     {
+      "key": "phase.eliteDefeated",
+      "en": "ELITE MONSTER DEFEATED",
+      "ko": "정예 몬스터 처치!"
+    },
+    {
       "key": "phase.farming",
       "en": "SLAY MONSTERS TO PREPARE FOR THE WAVE",
       "ko": "몬스터를 처치해 웨이브에 대비하라!"
@@ -780,8 +785,8 @@
     },
     {
       "key": "relic.relic_hearty_tank.description",
-      "en": "Increase maximum integrity by 200.\nThe gained capacity is repaired immediately.",
-      "ko": "최대 내구도가 200 증가합니다.\n늘어난 내구도는 즉시 수리됩니다."
+      "en": "Increase maximum integrity by {amount}.\nThe gained capacity is repaired immediately.",
+      "ko": "최대 내구도가 {amount} 증가합니다.\n늘어난 내구도는 즉시 수리됩니다."
     },
     {
       "key": "relic.relic_hearty_tank.name",
@@ -880,8 +885,8 @@
     },
     {
       "key": "relic.relic_safe_haven.description",
-      "en": "Repair 150 integrity when a wave is cleared.",
-      "ko": "웨이브를 클리어하면 내구도를 150 수리합니다."
+      "en": "Repair {amount} integrity when a wave is cleared.",
+      "ko": "웨이브를 클리어하면 내구도를 {amount} 수리합니다."
     },
     {
       "key": "relic.relic_safe_haven.name",
@@ -910,8 +915,8 @@
     },
     {
       "key": "relic.relic_vampire_rounds.description",
-      "en": "Cannon kills repair 50 integrity.",
-      "ko": "주포로 적을 처치하면 내구도를 50 수리합니다."
+      "en": "Cannon kills repair {amount} integrity.",
+      "ko": "주포로 적을 처치하면 내구도를 {amount} 수리합니다."
     },
     {
       "key": "relic.relic_vampire_rounds.name",
@@ -2167,6 +2172,11 @@
       "key": "upgrade.stat.weapon_mgRange",
       "en": "MACHINE GUN RANGE",
       "ko": "기관총 사거리"
+    },
+    {
+      "key": "upgrade.stat.weapon_mgRate",
+      "en": "MG FIRE RATE",
+      "ko": "기관총 연사력"
     },
     {
       "key": "upgrade.stat.weapon_mgSpread",
@@ -4308,8 +4318,8 @@
     }
   ],
   "summary": {
-    "catalogKeyCount": 460,
-    "koreanKeyCount": 460,
+    "catalogKeyCount": 462,
+    "koreanKeyCount": 462,
     "authoredLiteralCount": 317,
     "authoredWithLocalizationKey": 99,
     "missingKoreanKeys": [],
