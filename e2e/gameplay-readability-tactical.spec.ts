@@ -85,7 +85,11 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
         state(): { time: number };
         inputState(): { locked: boolean; context: string };
         tactical(): { open: boolean; chassisYaw: number };
-        quality(): { skySource: string; apron: { enabled: boolean; instances: number; castsShadows: boolean } };
+        quality(): {
+          skySource: string;
+          apron: { enabled: boolean; instances: number; drawCalls: number; castsShadows: boolean };
+          boundary: { enabled: boolean; segmentCount: number; drawCalls: number };
+        };
       };
     }).__recoil;
     return { state: hooks.state(), input: hooks.inputState(), tactical: hooks.tactical(), quality: hooks.quality() };
@@ -94,11 +98,20 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
   expect(openState.input).toMatchObject({ locked: true, context: 'gameplay' });
   expect(openState.tactical.open).toBe(true);
   expect(Number.isFinite(openState.tactical.chassisYaw)).toBe(true);
-  expect(openState.quality.apron).toMatchObject({ enabled: true, castsShadows: false });
-  expect(openState.quality.apron.instances).toBeGreaterThan(0);
+  expect(openState.quality.apron).toMatchObject({
+    enabled: false,
+    instances: 0,
+    drawCalls: 0,
+    castsShadows: false,
+  });
+  expect(openState.quality.boundary).toMatchObject({
+    enabled: true,
+    segmentCount: 868,
+    drawCalls: 4,
+  });
   expect(['procedural', 'authored']).toContain(openState.quality.skySource);
 
-  const apronTiming = await page.evaluate(async () => {
+  const apronCompatibility = await page.evaluate(async () => {
     const hooks = (window as unknown as {
       __recoil: {
         setApronEnabled(enabled: boolean): void;
@@ -107,24 +120,16 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
     }).__recoil;
     const sample = async (enabled: boolean) => {
       hooks.setApronEnabled(enabled);
-      for (let i = 0; i < 12; i++) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const values: number[] = [];
-      let previous = performance.now();
-      for (let i = 0; i < 48; i++) {
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-        const now = performance.now();
-        values.push(now - previous);
-        previous = now;
-      }
-      values.sort((a, b) => a - b);
-      return { rafP50: values[Math.floor(values.length / 2)], diagnostics: hooks.quality() };
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      return hooks.quality();
     };
     const off = await sample(false);
     const on = await sample(true);
-    return { off, on, costRatio: (on.rafP50 - off.rafP50) / Math.max(.001, off.rafP50) };
+    return { off, on };
   });
-  expect(apronTiming.costRatio).toBeLessThanOrEqual(.2);
-  console.info(`[apron-diagnostics] ${JSON.stringify(apronTiming)}`);
+  expect(apronCompatibility.off).toMatchObject({ apron: { enabled: false, instances: 0, drawCalls: 0 } });
+  expect(apronCompatibility.on).toMatchObject({ apron: { enabled: false, instances: 0, drawCalls: 0 } });
+  expect(apronCompatibility.on).toMatchObject({ boundary: { enabled: true, segmentCount: 868 } });
 
   for (const viewport of VIEWPORTS) {
     await page.setViewportSize(viewport);
@@ -159,7 +164,8 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
   await page.keyboard.press('Tab');
   await expect(page.locator('#tactical-drawer')).toHaveClass(/is-open/);
   expect(await page.locator('.tactical-stat-row').count()).toBeGreaterThan(0);
-  await expect(page.locator('.tactical-stat-row__label')).not.toContainText('.');
+  const statLabels = await page.locator('.tactical-stat-row__label').allTextContents();
+  expect(statLabels.every((label) => !label.includes('.'))).toBe(true);
 
   expect(errors).toEqual([]);
 });

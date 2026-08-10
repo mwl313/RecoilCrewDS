@@ -255,7 +255,6 @@ export class GameClient {
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
       setBloomStrength: (s) => renderWorld.setBloomStrength(s),
-      setApronQuality: (q) => renderWorld.setApronQuality(q),
     });
     quality.reset();
     const presenter = new NetworkStatePresenter({

@@ -1,4 +1,5 @@
 import { clamp, pointInBox, resolveCircleBox, type CollisionContact } from './math';
+import { ARENA_ACTOR_BOUNDARY_INSET } from './sim/arenaBounds';
 
 export interface Obstacle {
   id: string;
@@ -162,7 +163,7 @@ export function resolveCircleContacts(x: number, z: number, r: number): { x: num
       contacts.push(res);
     }
   }
-  const half = ARENA.half - 0.5;
+  const half = ARENA.half - ARENA_ACTOR_BOUNDARY_INSET;
   outX = clamp(outX, -half, half);
   outZ = clamp(outZ, -half, half);
   return { x: outX, z: outZ, contacts };

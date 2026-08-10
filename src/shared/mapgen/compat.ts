@@ -23,6 +23,7 @@ import { isCliffWallAt, isDriveableAt, isRequiredTraversalAt, terrainFlagsAt } f
 import { queryTerrainTransition, type TerrainTransition } from './terrainTraversal';
 import { GENERATED_MAP_PROFILES } from '../../generated/mapProfiles.generated';
 import { urbanDriveableSurfaceAt, urbanSurfaceHeightAt, urbanVehicleRampAllowsContact } from './urbanLayout';
+import { ARENA_ACTOR_BOUNDARY_INSET } from '../sim/arenaBounds';
 
 export interface ArenaProps {
   obstacles: Obstacle[];
@@ -366,8 +367,16 @@ export function createArenaQueries(arena: GeneratedArena & { props?: ArenaProps 
         }
       }
       const b = props.bounds ?? arenaBounds;
-      outX = clamp(outX, b.minX + 0.5, b.maxX - 0.5);
-      outZ = clamp(outZ, b.minZ + 0.5, b.maxZ - 0.5);
+      outX = clamp(
+        outX,
+        b.minX + ARENA_ACTOR_BOUNDARY_INSET,
+        b.maxX - ARENA_ACTOR_BOUNDARY_INSET,
+      );
+      outZ = clamp(
+        outZ,
+        b.minZ + ARENA_ACTOR_BOUNDARY_INSET,
+        b.maxZ - ARENA_ACTOR_BOUNDARY_INSET,
+      );
       return { x: outX, z: outZ, contacts };
     },
     rampAt(x: number, z: number): RampDef | undefined {

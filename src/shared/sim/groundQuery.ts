@@ -7,6 +7,13 @@ import {
 } from '../arena';
 import type { CollisionContact } from '../math';
 import type { TerrainTransition } from '../mapgen/terrainTraversal';
+import type { ArenaBounds } from './arenaBounds';
+
+export {
+  ARENA_ACTOR_BOUNDARY_INSET,
+  pointInsideArenaBounds,
+  resolveArenaBounds,
+} from './arenaBounds';
 
 /** Ground/topology queries used by tank kinematics and prediction. */
 export interface GroundQuery {
@@ -20,7 +27,7 @@ export interface GroundQuery {
    * World-space arena bounds. Generated arenas provide exact rectangular
    * bounds; when absent, a square centered on (0,0) with `half` is assumed.
    */
-  bounds?: { minX: number; maxX: number; minZ: number; maxZ: number };
+  bounds?: ArenaBounds;
   resolveCircleContacts(
     x: number,
     z: number,
@@ -43,17 +50,3 @@ export const STATIC_GROUND_QUERY: GroundQuery = {
   half: ARENA.half,
   resolveCircleContacts: staticResolveCircleContacts,
 };
-
-/** Resolve the arena boundary from an explicit bounds or the square default. */
-export function resolveArenaBounds(
-  ground: Pick<GroundQuery, 'half' | 'bounds'>,
-): { minX: number; maxX: number; minZ: number; maxZ: number } {
-  return (
-    ground.bounds ?? {
-      minX: -ground.half,
-      maxX: ground.half,
-      minZ: -ground.half,
-      maxZ: ground.half,
-    }
-  );
-}
