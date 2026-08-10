@@ -2,6 +2,8 @@
 
 > **One tank. Two brains. Zero brakes.**
 
+Play Here: https://mwl313.github.io/RecoilCrewDS/
+
 Recoil Crew is a browser-based action game about sharing one heavily armed tank.
 
 In two-player co-op, the Driver controls the tank while the Gunner controls the turret and weapons. The cannon's recoil can throw the whole vehicle across the battlefield, so every shot can be both an attack and a movement tool.
