@@ -57,7 +57,7 @@ test('English and Korean phase banners remain centered, responsive, and non-bloc
   const cases = [
     { width: 1280, height: 720, kind: 'farming', locale: 'en', text: 'SLAY MONSTERS TO PREPARE FOR THE WAVE', shot: 'farming-en-1280x720.png' },
     { width: 800, height: 720, kind: 'final', locale: 'en', text: 'THE FINAL WAVE IS INCOMING', shot: 'final-en-800x720.png' },
-    { width: 560, height: 720, kind: 'elite', locale: 'ko', text: '정예 몬스터 웨이브 접근 중!', shot: 'elite-ko-560x720.png' },
+    { width: 560, height: 720, kind: 'elite', locale: 'ko', text: '엘리트 몬스터 웨이브 접근 중!', shot: 'elite-ko-560x720.png' },
   ] as const;
 
   for (const entry of cases) {
@@ -104,6 +104,6 @@ test('reduced motion keeps the readable hold while removing slam and shake inten
   await page.waitForTimeout(200);
   await page.screenshot({ path: `${SCREENSHOT_DIR}/final-ko-reduced-motion-1280x720.png` });
 
-  await expect(page.locator('.phase-announcement-layer')).toHaveAttribute('data-active', 'false', { timeout: 2_000 });
+  await expect(page.locator('.phase-announcement-layer')).toHaveAttribute('data-active', 'false', { timeout: 4_000 });
   await expect(page.locator('.app-root')).not.toHaveClass(/phase-announcement-presenting/);
 });

@@ -43,7 +43,7 @@ Total display time is **1,550 ms**:
 
 Reduced-motion mode removes slam, transform, streak, rail, blur, and full camera shake while retaining a 1,550 ms opacity-only readable hold. Camera impulse is multiplied by 0.28 and remains capped at 0.7.
 
-The heading uses `clamp(42px, 7.2vw, 108px)`, Barlow Condensed 900 italic for English, a matte near-black multi-edge outline/shadow, crimson or warning-orange accents, a pale highlight, amber industrial brackets, and a transparent radial/conic impact streak instead of an opaque panel. Korean switches to the localized display font, upright 900 weight, tighter measured tracking, `word-break: keep-all`, and a narrower responsive size. The 560 px breakpoint preserves safe margins and two-line layout.
+The heading uses `clamp(29.4px, 5.04vw, 75.6px)`, Barlow Condensed 900 italic for English, a matte near-black multi-edge outline/shadow, crimson or warning-orange accents, a pale highlight, amber industrial brackets, and a transparent radial/conic impact streak instead of an opaque panel. Korean switches to the localized display font, upright 900 weight, tighter measured tracking, `word-break: keep-all`, and a narrower responsive size. The 560 px breakpoint preserves safe margins and two-line layout.
 
 While active, the legacy `.hud-wave-warning` and `.hud-phase-label` are hidden to prevent duplicate phase messaging. Encounter/leader bars remain visible.
 
@@ -54,7 +54,7 @@ Only the required keys were added through the current per-locale JSON catalog co
 | Key | English | Korean |
 | --- | --- | --- |
 | `phase.farming` | SLAY MONSTERS TO PREPARE FOR THE WAVE | 몬스터를 처치해 웨이브에 대비하라! |
-| `phase.elite` | ELITE MONSTER WAVE INCOMING | 정예 몬스터 웨이브 접근 중! |
+| `phase.elite` | ELITE MONSTER WAVE INCOMING | 엘리트 몬스터 웨이브 접근 중! |
 | `phase.final` | THE FINAL WAVE IS INCOMING | 최종 웨이브 접근 중! |
 
 The presenter requests semantic keys from the runtime localization service; it contains no hardcoded English presentation path. An active banner can refresh when the runtime locale changes without replaying its audiovisual impact.

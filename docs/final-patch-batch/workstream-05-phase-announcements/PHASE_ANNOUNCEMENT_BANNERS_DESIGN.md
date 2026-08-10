@@ -32,7 +32,7 @@ Farming:
 몬스터를 처치해 웨이브에 대비하라!
 
 Elite:
-정예 몬스터 웨이브 접근 중!
+엘리트 몬스터 웨이브 접근 중!
 
 Boss:
 최종 웨이브 접근 중!
@@ -155,7 +155,7 @@ Korean must fit without excessive tracking or synthetic italic.
 Use:
 
 ```css
-font-size: clamp(42px, 7.2vw, 108px)
+font-size: clamp(29.4px, 5.04vw, 75.6px)
 ```
 
 or a measured equivalent.

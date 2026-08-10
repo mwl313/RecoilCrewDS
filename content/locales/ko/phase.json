@@ -1,7 +1,7 @@
 {
   "phase.farming": "몬스터를 제압하라!",
-  "phase.elite": "정예 몬스터 웨이브 접근 중!",
-  "phase.eliteDefeated": "정예 몬스터 처치!",
+  "phase.elite": "엘리트 몬스터 웨이브 접근 중!",
+  "phase.eliteDefeated": "엘리트 몬스터 처치!",
   "phase.final": "최종 웨이브 접근 중!",
   "phase.bossWave": "보스 웨이브",
   "phase.wave1": "웨이브 1",

@@ -601,12 +601,12 @@
     {
       "key": "phase.elite",
       "en": "ELITE MONSTER WAVE INCOMING",
-      "ko": "정예 몬스터 웨이브 접근 중!"
+      "ko": "엘리트 몬스터 웨이브 접근 중!"
     },
     {
       "key": "phase.eliteDefeated",
       "en": "ELITE MONSTER DEFEATED",
-      "ko": "정예 몬스터 처치!"
+      "ko": "엘리트 몬스터 처치!"
     },
     {
       "key": "phase.farming",

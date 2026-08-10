@@ -135,7 +135,7 @@ describe('phase announcement semantic presentation', () => {
     expect(phaseAnnouncementText('en', phaseAnnouncementForPhase('farming3')!))
       .toBe('ELITE MONSTER DEFEATED');
     expect(phaseAnnouncementText('ko', phaseAnnouncementForPhase('farming2')!))
-      .toBe('정예 몬스터 처치!');
+      .toBe('엘리트 몬스터 처치!');
   });
 
   it('uses the concise survive-the-hoard opening copy in both locales', () => {
@@ -170,13 +170,15 @@ describe('phase announcement semantic presentation', () => {
     const css = fs.readFileSync(path.join(ROOT, 'src/client/ui/phase-announcement.css'), 'utf8');
     expect(css).toContain('.phase-announcement-presenting .hud-wave-warning');
     expect(css).toContain('.phase-announcement-presenting .hud-phase-label');
-    expect(css).toMatch(/font:[^;]*clamp\(42px, 7\.2vw, 108px\)/);
+    expect(css).toMatch(/font:[^;]*clamp\(29\.4px, 5\.04vw, 75\.6px\)/);
+    expect(css).toContain('font-size: clamp(26.6px, 8.4vw, 40.6px)');
+    expect(css).toContain('font-size: clamp(23.8px, 7.35vw, 36.4px)');
     expect(css).toContain('@media (max-width: 560px)');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('pointer-events: none');
-    expect(PHASE_ANNOUNCEMENT_DURATION_MS).toBe(2_700);
-    expect(css).toContain('--phase-announcement-duration: 2700ms');
-    expect(css).toContain('18.667%, 63.111% { opacity: 1; }');
+    expect(PHASE_ANNOUNCEMENT_DURATION_MS).toBe(3_700);
+    expect(css).toContain('--phase-announcement-duration: 3700ms');
+    expect(css).toContain('13.622%, 73.081% { opacity: 1; }');
     expect(css).toContain('animation: phase-announcement-zoom-impact var(--phase-announcement-duration) linear both');
     expect(css).toContain('scale(.12)');
     expect(css).toContain('translate3d(-8px, 2px, 0)');
