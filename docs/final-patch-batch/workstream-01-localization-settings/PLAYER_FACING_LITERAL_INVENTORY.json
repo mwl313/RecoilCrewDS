@@ -291,12 +291,12 @@
     {
       "key": "error.connectionLost",
       "en": "Connection lost. Retry to rejoin your crew, or play Single Player.",
-      "ko": "연결이 끊겼습니다. 다시 시도해 승무원에게 합류하거나 싱글 플레이를 시작하세요."
+      "ko": "연결이 끊겼습니다. 다시 시도해 크루에게 합류하거나 싱글 플레이를 시작하세요."
     },
     {
       "key": "error.connectionLostCreate",
       "en": "Connection lost. Create your crew again.",
-      "ko": "연결이 끊겼습니다. 승무원을 다시 생성하세요."
+      "ko": "연결이 끊겼습니다. 크루를 다시 생성하세요."
     },
     {
       "key": "error.gameStartup",
@@ -361,32 +361,32 @@
     {
       "key": "error.server.compatibility",
       "en": "This crew uses incompatible game content. Refresh and try again.",
-      "ko": "이 승무원은 호환되지 않는 게임 콘텐츠를 사용 중입니다. 새로고침한 뒤 다시 시도하세요."
+      "ko": "이 크루는 호환되지 않는 게임 콘텐츠를 사용 중입니다. 새로고침한 뒤 다시 시도하세요."
     },
     {
       "key": "error.server.full",
       "en": "That crew is full.",
-      "ko": "승무원이 가득 찼습니다."
+      "ko": "크루가 가득 찼습니다."
     },
     {
       "key": "error.server.invalid_seat",
       "en": "That crew seat is unavailable.",
-      "ko": "해당 승무원 좌석을 사용할 수 없습니다."
+      "ko": "해당 크루 좌석을 사용할 수 없습니다."
     },
     {
       "key": "error.server.limit",
       "en": "Too many crews are active. Try again shortly.",
-      "ko": "활성화된 승무원이 너무 많습니다. 잠시 후 다시 시도하세요."
+      "ko": "활성화된 크루가 너무 많습니다. 잠시 후 다시 시도하세요."
     },
     {
       "key": "error.server.no_room",
       "en": "Create or join a crew first.",
-      "ko": "먼저 승무원을 생성하거나 합류하세요."
+      "ko": "먼저 크루를 생성하거나 합류하세요."
     },
     {
       "key": "error.server.not_found",
       "en": "Crew not found. Check the code and try again.",
-      "ko": "승무원을 찾을 수 없습니다. 코드를 확인하고 다시 시도하세요."
+      "ko": "크루를 찾을 수 없습니다. 코드를 확인하고 다시 시도하세요."
     },
     {
       "key": "error.server.protocol",
@@ -401,12 +401,12 @@
     {
       "key": "error.server.session",
       "en": "Your crew session expired. Rejoin the crew.",
-      "ko": "승무원 세션이 만료되었습니다. 다시 합류하세요."
+      "ko": "크루 세션이 만료되었습니다. 다시 합류하세요."
     },
     {
       "key": "error.server.started",
       "en": "That crew has already started a run.",
-      "ko": "해당 승무원은 이미 작전을 시작했습니다."
+      "ko": "해당 크루는 이미 작전을 시작했습니다."
     },
     {
       "key": "error.serverUnreachable",
@@ -461,7 +461,7 @@
     {
       "key": "hud.crewLevel",
       "en": "CREW LV {value}",
-      "ko": "승무원 레벨 {value}"
+      "ko": "크루 레벨 {value}"
     },
     {
       "key": "hud.dash",
@@ -1011,7 +1011,7 @@
     {
       "key": "ui.countdown.kicker",
       "en": "CREW LINKED // WAVE SYSTEM ARMED",
-      "ko": "승무원 연결 완료 // 웨이브 시스템 준비"
+      "ko": "크루 연결 완료 // 웨이브 시스템 준비"
     },
     {
       "key": "ui.countdown.ready",
@@ -1051,12 +1051,12 @@
     {
       "key": "ui.create.help",
       "en": "Send this code to your Gunner. The run begins when both crew members lock in.",
-      "ko": "이 코드를 포수에게 보내세요. 두 승무원이 모두 준비하면 작전이 시작됩니다."
+      "ko": "이 코드를 포수에게 보내세요. 두 크루가 모두 준비하면 작전이 시작됩니다."
     },
     {
       "key": "ui.create.kicker",
       "en": "CREW LINK // HOST",
-      "ko": "승무원 연결 // 방장"
+      "ko": "크루 연결 // 방장"
     },
     {
       "key": "ui.create.ready",
@@ -1071,12 +1071,107 @@
     {
       "key": "ui.create.title",
       "en": "CREATE CREW",
-      "ko": "승무원 모집"
+      "ko": "크루 모집"
     },
     {
       "key": "ui.create.waiting",
       "en": "WAITING FOR GUNNER…",
       "ko": "포수를 기다리는 중…"
+    },
+    {
+      "key": "ui.credits.assetPacks",
+      "en": "• Ultimate Monsters\n• Zombie Apocalypse Kit\n• Ultimate Buildings Pack\n• Ultimate Nature Pack\n• Animated Tanks Pack\n• Ultimate RPG Pack",
+      "ko": "• Ultimate Monsters\n• Zombie Apocalypse Kit\n• Ultimate Buildings Pack\n• Ultimate Nature Pack\n• Animated Tanks Pack\n• Ultimate RPG Pack"
+    },
+    {
+      "key": "ui.credits.assetsAdapted",
+      "en": "Selected models were adapted and integrated for Recoil Crew.",
+      "ko": "Selected models were adapted and integrated for Recoil Crew."
+    },
+    {
+      "key": "ui.credits.assetsHeading",
+      "en": "3D ASSETS",
+      "ko": "3D ASSETS"
+    },
+    {
+      "key": "ui.credits.assetsIntro",
+      "en": "Selected models from the following asset packs by Quaternius:",
+      "ko": "Selected models from the following asset packs by Quaternius:"
+    },
+    {
+      "key": "ui.credits.assetsLicense",
+      "en": "Used under Creative Commons CC0 1.0.",
+      "ko": "Used under Creative Commons CC0 1.0."
+    },
+    {
+      "key": "ui.credits.back",
+      "en": "BACK TO MENU",
+      "ko": "BACK TO MENU"
+    },
+    {
+      "key": "ui.credits.copyright",
+      "en": "Recoil Crew © 2026 MinWoo Lim",
+      "ko": "Recoil Crew © 2026 MinWoo Lim"
+    },
+    {
+      "key": "ui.credits.developer",
+      "en": "MinWoo Lim",
+      "ko": "MinWoo Lim"
+    },
+    {
+      "key": "ui.credits.developmentHeading",
+      "en": "GAME DESIGN & DEVELOPMENT",
+      "ko": "GAME DESIGN & DEVELOPMENT"
+    },
+    {
+      "key": "ui.credits.exception",
+      "en": "Except for the third-party materials listed above.",
+      "ko": "Except for the third-party materials listed above."
+    },
+    {
+      "key": "ui.credits.kicker",
+      "en": "RECOIL CREW // ATTRIBUTION RECORD",
+      "ko": "RECOIL CREW // ATTRIBUTION RECORD"
+    },
+    {
+      "key": "ui.credits.musicHeading",
+      "en": "MUSIC",
+      "ko": "MUSIC"
+    },
+    {
+      "key": "ui.credits.musicOrigin",
+      "en": "Generated by MinWoo Lim using Suno Pro while subscribed to a paid plan.",
+      "ko": "Generated by MinWoo Lim using Suno Pro while subscribed to a paid plan."
+    },
+    {
+      "key": "ui.credits.musicRights",
+      "en": "Used under Suno’s granted commercial-use rights.",
+      "ko": "Used under Suno’s granted commercial-use rights."
+    },
+    {
+      "key": "ui.credits.musicTracks",
+      "en": "“Recoil Crew BGM 1” and “Recoil Crew BGM 2”",
+      "ko": "“Recoil Crew BGM 1” and “Recoil Crew BGM 2”"
+    },
+    {
+      "key": "ui.credits.sfxAssets",
+      "en": "No external pre-recorded SFX assets are included.",
+      "ko": "No external pre-recorded SFX assets are included."
+    },
+    {
+      "key": "ui.credits.sfxHeading",
+      "en": "SOUND EFFECTS",
+      "ko": "SOUND EFFECTS"
+    },
+    {
+      "key": "ui.credits.sfxRuntime",
+      "en": "Combat sound effects are synthesized at runtime using the Web Audio API.",
+      "ko": "Combat sound effects are synthesized at runtime using the Web Audio API."
+    },
+    {
+      "key": "ui.credits.title",
+      "en": "CREDITS & ASSET LICENSES",
+      "ko": "CREDITS & ASSET LICENSES"
     },
     {
       "key": "ui.error.mainMenu",
@@ -1141,7 +1236,7 @@
     {
       "key": "ui.howTo.gunnerHelp",
       "en": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links.",
-      "ko": "아래로 사격해 전차를 날리세요. 폭발물을 연쇄 폭발시키고 주포 타이밍을 관리하며 공격을 맞춰 승무원 연계를 쌓으세요."
+      "ko": "아래로 사격해 전차를 날리세요. 폭발물을 연쇄 폭발시키고 주포 타이밍을 관리하며 공격을 맞춰 크루 연계를 쌓으세요."
     },
     {
       "key": "ui.howTo.gunnerIndex",
@@ -1171,7 +1266,7 @@
     {
       "key": "ui.join.kicker",
       "en": "CREW LINK // REMOTE",
-      "ko": "승무원 연결 // 원격"
+      "ko": "크루 연결 // 원격"
     },
     {
       "key": "ui.join.placeholder",
@@ -1186,7 +1281,7 @@
     {
       "key": "ui.join.title",
       "en": "JOIN CREW",
-      "ko": "승무원 합류"
+      "ko": "크루 합류"
     },
     {
       "key": "ui.lobby.acceptRole",
@@ -1196,7 +1291,7 @@
     {
       "key": "ui.lobby.awaiting",
       "en": "AWAITING CREW",
-      "ko": "승무원 대기 중"
+      "ko": "크루 대기 중"
     },
     {
       "key": "ui.lobby.chat",
@@ -1211,7 +1306,7 @@
     {
       "key": "ui.lobby.chatPlaceholder",
       "en": "Message your crew…",
-      "ko": "승무원에게 메시지 보내기…"
+      "ko": "크루에게 메시지 보내기…"
     },
     {
       "key": "ui.lobby.contentUnavailable",
@@ -1236,7 +1331,7 @@
     {
       "key": "ui.lobby.eligible",
       "en": "Both crew members linked — ready for wave",
-      "ko": "승무원 연결 완료 — 웨이브 준비 가능"
+      "ko": "크루 연결 완료 — 웨이브 준비 가능"
     },
     {
       "key": "ui.lobby.gunnerDuty",
@@ -1261,12 +1356,12 @@
     {
       "key": "ui.lobby.leave",
       "en": "LEAVE CREW",
-      "ko": "승무원 떠나기"
+      "ko": "크루 떠나기"
     },
     {
       "key": "ui.lobby.notReady",
       "en": "Crew not ready",
-      "ko": "승무원 준비 미완료"
+      "ko": "크루 준비 미완료"
     },
     {
       "key": "ui.lobby.open",
@@ -1276,12 +1371,12 @@
     {
       "key": "ui.lobby.playerDisconnected",
       "en": "A crew member is reconnecting",
-      "ko": "승무원이 다시 연결하는 중"
+      "ko": "크루가 다시 연결하는 중"
     },
     {
       "key": "ui.lobby.playerNotReady",
       "en": "A player is not ready yet",
-      "ko": "아직 준비하지 않은 승무원이 있습니다"
+      "ko": "아직 준비하지 않은 크루가 있습니다"
     },
     {
       "key": "ui.lobby.readyForWave",
@@ -1316,7 +1411,7 @@
     {
       "key": "ui.lobby.seatsAria",
       "en": "Crew seats",
-      "ko": "승무원 좌석"
+      "ko": "크루 좌석"
     },
     {
       "key": "ui.lobby.send",
@@ -1356,7 +1451,7 @@
     {
       "key": "ui.lobby.waitingForPlayer",
       "en": "Waiting for another crew member",
-      "ko": "다른 승무원을 기다리는 중"
+      "ko": "다른 크루를 기다리는 중"
     },
     {
       "key": "ui.lobby.you",
@@ -1376,7 +1471,12 @@
     {
       "key": "ui.main.createCrew",
       "en": "CREATE CREW",
-      "ko": "승무원 모집"
+      "ko": "크루 모집"
+    },
+    {
+      "key": "ui.main.credits",
+      "en": "CREDITS",
+      "ko": "CREDITS"
     },
     {
       "key": "ui.main.currentNickname",
@@ -1396,7 +1496,7 @@
     {
       "key": "ui.main.joinCrew",
       "en": "JOIN CREW",
-      "ko": "승무원 합류"
+      "ko": "크루 합류"
     },
     {
       "key": "ui.main.kicker",
@@ -1501,7 +1601,7 @@
     {
       "key": "ui.pause.help",
       "en": "Shared chassis is holding position. Resume when the crew is ready.",
-      "ko": "공유 차체가 위치를 유지하고 있습니다. 승무원이 준비되면 계속하세요."
+      "ko": "공유 차체가 위치를 유지하고 있습니다. 크루가 준비되면 계속하세요."
     },
     {
       "key": "ui.pause.kicker",
@@ -1556,7 +1656,7 @@
     {
       "key": "ui.progression.crewReady",
       "en": "CREW READY",
-      "ko": "승무원 준비 완료"
+      "ko": "크루 준비 완료"
     },
     {
       "key": "ui.progression.fastForward",
@@ -1726,7 +1826,7 @@
     {
       "key": "ui.ready.title",
       "en": "CREW LINKED",
-      "ko": "승무원 연결 완료"
+      "ko": "크루 연결 완료"
     },
     {
       "key": "ui.relic.owned",
@@ -1761,7 +1861,7 @@
     {
       "key": "ui.results.crewLinks",
       "en": "CREW LINKS",
-      "ko": "승무원 연계"
+      "ko": "크루 연계"
     },
     {
       "key": "ui.results.debrief",
@@ -1771,7 +1871,7 @@
     {
       "key": "ui.results.defaultCopy",
       "en": "Field run logged. Crew performance is ready for review.",
-      "ko": "야전 기록이 저장되었습니다. 승무원 성과를 확인하세요."
+      "ko": "야전 기록이 저장되었습니다. 크루 성과를 확인하세요."
     },
     {
       "key": "ui.results.defeat",
@@ -1781,7 +1881,7 @@
     {
       "key": "ui.results.defeatCopy",
       "en": "The chassis was destroyed. Refit the crew and return to the field.",
-      "ko": "차체가 파괴되었습니다. 승무원을 재정비하고 전장으로 복귀하세요."
+      "ko": "차체가 파괴되었습니다. 크루를 재정비하고 전장으로 복귀하세요."
     },
     {
       "key": "ui.results.defeatKicker",
@@ -1816,7 +1916,7 @@
     {
       "key": "ui.results.leave",
       "en": "LEAVE CREW",
-      "ko": "승무원 떠나기"
+      "ko": "크루 떠나기"
     },
     {
       "key": "ui.results.mainMenu",
@@ -1832,6 +1932,11 @@
       "key": "ui.results.playAgain",
       "en": "PLAY AGAIN",
       "ko": "다시 플레이"
+    },
+    {
+      "key": "ui.results.rematch",
+      "en": "REMATCH",
+      "ko": "다시하기"
     },
     {
       "key": "ui.results.rematchLoadout",
@@ -1871,7 +1976,7 @@
     {
       "key": "ui.role.crew",
       "en": "CREW",
-      "ko": "승무원"
+      "ko": "크루"
     },
     {
       "key": "ui.role.driver",
@@ -1916,7 +2021,7 @@
     {
       "key": "ui.settings.hint",
       "en": "Shown to your crew in the lobby. Stored on this device only — no account required.",
-      "ko": "로비에서 승무원에게 표시됩니다. 계정 없이 이 기기에만 저장됩니다."
+      "ko": "로비에서 크루에게 표시됩니다. 계정 없이 이 기기에만 저장됩니다."
     },
     {
       "key": "ui.settings.kicker",
@@ -2076,7 +2181,7 @@
     {
       "key": "upgrade.group.CREW",
       "en": "CREW",
-      "ko": "승무원"
+      "ko": "크루"
     },
     {
       "key": "upgrade.group.DRIVER",
@@ -2486,6 +2591,151 @@
       "value": "Copied"
     },
     {
+      "file": "content/scenes/credits.json",
+      "line": 3,
+      "field": "label",
+      "value": "Credits & Asset Licenses"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 38,
+      "field": "text",
+      "value": "RECOIL CREW // ATTRIBUTION RECORD",
+      "localizationKey": "ui.credits.kicker"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 47,
+      "field": "text",
+      "value": "CREDITS & ASSET LICENSES",
+      "localizationKey": "ui.credits.title"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 71,
+      "field": "text",
+      "value": "GAME DESIGN & DEVELOPMENT",
+      "localizationKey": "ui.credits.developmentHeading"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 81,
+      "field": "text",
+      "value": "MinWoo Lim",
+      "localizationKey": "ui.credits.developer"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 97,
+      "field": "text",
+      "value": "3D ASSETS",
+      "localizationKey": "ui.credits.assetsHeading"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 107,
+      "field": "text",
+      "value": "Selected models from the following asset packs by Quaternius:",
+      "localizationKey": "ui.credits.assetsIntro"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 117,
+      "field": "text",
+      "value": "• Ultimate Monsters\n• Zombie Apocalypse Kit\n• Ultimate Buildings Pack\n• Ultimate Nature Pack\n• Animated Tanks Pack\n• Ultimate RPG Pack",
+      "localizationKey": "ui.credits.assetPacks"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 127,
+      "field": "text",
+      "value": "Used under Creative Commons CC0 1.0.",
+      "localizationKey": "ui.credits.assetsLicense"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 137,
+      "field": "text",
+      "value": "Selected models were adapted and integrated for Recoil Crew.",
+      "localizationKey": "ui.credits.assetsAdapted"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 153,
+      "field": "text",
+      "value": "MUSIC",
+      "localizationKey": "ui.credits.musicHeading"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 163,
+      "field": "text",
+      "value": "“Recoil Crew BGM 1” and “Recoil Crew BGM 2”",
+      "localizationKey": "ui.credits.musicTracks"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 173,
+      "field": "text",
+      "value": "Generated by MinWoo Lim using Suno Pro while subscribed to a paid plan.",
+      "localizationKey": "ui.credits.musicOrigin"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 183,
+      "field": "text",
+      "value": "Used under Suno’s granted commercial-use rights.",
+      "localizationKey": "ui.credits.musicRights"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 199,
+      "field": "text",
+      "value": "SOUND EFFECTS",
+      "localizationKey": "ui.credits.sfxHeading"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 209,
+      "field": "text",
+      "value": "Combat sound effects are synthesized at runtime using the Web Audio API.",
+      "localizationKey": "ui.credits.sfxRuntime"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 219,
+      "field": "text",
+      "value": "No external pre-recorded SFX assets are included.",
+      "localizationKey": "ui.credits.sfxAssets"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 236,
+      "field": "text",
+      "value": "Recoil Crew © 2026 MinWoo Lim",
+      "localizationKey": "ui.credits.copyright"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 246,
+      "field": "text",
+      "value": "Except for the third-party materials listed above.",
+      "localizationKey": "ui.credits.exception"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 266,
+      "field": "text",
+      "value": "BACK TO MENU",
+      "localizationKey": "ui.credits.back"
+    },
+    {
+      "file": "content/scenes/credits.json",
+      "line": 282,
+      "field": "label",
+      "value": "Credits"
+    },
+    {
       "file": "content/scenes/error.json",
       "line": 3,
       "field": "label",
@@ -2756,47 +3006,54 @@
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 288,
+      "line": 297,
+      "field": "text",
+      "value": "CREDITS",
+      "localizationKey": "ui.main.credits"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 310,
       "field": "text",
       "value": "CURRENT NICKNAME: ---"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 319,
+      "line": 341,
       "field": "text",
       "value": "CREATE CREW",
       "localizationKey": "ui.main.createCrew"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 341,
+      "line": 363,
       "field": "text",
       "value": "JOIN CREW",
       "localizationKey": "ui.main.joinCrew"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 363,
+      "line": 385,
       "field": "text",
       "value": "GO BACK",
       "localizationKey": "ui.main.back"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 386,
+      "line": 408,
       "field": "text",
       "value": "DRAG TO ROTATE",
       "localizationKey": "ui.main.drag"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 392,
+      "line": 414,
       "field": "text",
       "value": "RC–07"
     },
     {
       "file": "content/scenes/mainMenu.json",
-      "line": 401,
+      "line": 423,
       "field": "label",
       "value": "Idle"
     },
@@ -3014,84 +3271,77 @@
     },
     {
       "file": "content/scenes/results.json",
-      "line": 264,
+      "line": 270,
       "field": "text",
-      "value": "REMATCH LOADOUT",
-      "localizationKey": "ui.results.rematchLoadout"
+      "value": "REMATCH",
+      "localizationKey": "ui.results.rematch"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 317,
-      "field": "text",
-      "value": "PICK A MODIFIER TO REMATCH",
-      "localizationKey": "ui.results.pickModifier"
-    },
-    {
-      "file": "content/scenes/results.json",
-      "line": 337,
+      "line": 289,
       "field": "text",
       "value": "LEAVE CREW",
       "localizationKey": "ui.results.leave"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 375,
+      "line": 327,
       "field": "text",
       "value": "PLAY AGAIN",
       "localizationKey": "ui.results.playAgain"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 394,
+      "line": 346,
       "field": "text",
       "value": "RETURN TO MAIN MENU",
       "localizationKey": "ui.results.mainMenu"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 416,
+      "line": 368,
       "field": "label",
       "value": "Victory — crew"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 425,
+      "line": 377,
       "field": "title",
       "value": "ONE BRAIN, TWO BROWSERS"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 431,
+      "line": 383,
       "field": "label",
       "value": "BEST COMBO"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 435,
+      "line": 387,
       "field": "label",
       "value": "CHARGED SHOTS"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 439,
+      "line": 391,
       "field": "label",
       "value": "KILLS"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 446,
+      "line": 398,
       "field": "label",
       "value": "STANDARD"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 452,
+      "line": 404,
       "field": "label",
       "value": "MOON YARD"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 462,
+      "line": 414,
       "field": "label",
       "value": "Game over — single player"
     },
@@ -3103,19 +3353,19 @@
     },
     {
       "file": "content/scenes/results.json",
-      "line": 431,
+      "line": 383,
       "field": "label",
       "value": "BEST COMBO"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 435,
+      "line": 387,
       "field": "label",
       "value": "CHARGED SHOTS"
     },
     {
       "file": "content/scenes/results.json",
-      "line": 439,
+      "line": 391,
       "field": "label",
       "value": "KILLS"
     },
@@ -4330,10 +4580,10 @@
     }
   ],
   "summary": {
-    "catalogKeyCount": 462,
-    "koreanKeyCount": 462,
-    "authoredLiteralCount": 319,
-    "authoredWithLocalizationKey": 99,
+    "catalogKeyCount": 483,
+    "koreanKeyCount": 483,
+    "authoredLiteralCount": 340,
+    "authoredWithLocalizationKey": 118,
     "missingKoreanKeys": [],
     "extraKoreanKeys": []
   }

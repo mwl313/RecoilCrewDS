@@ -282,6 +282,28 @@
                     "textKey": "ui.main.howTo"
                   },
                   {
+                    "id": "main-credits",
+                    "type": "button",
+                    "class": "ui-action ui-action--05",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "credits"
+                    },
+                    "text": "CREDITS",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.openCredits"
+                      }
+                    ],
+                    "textKey": "ui.main.credits"
+                  },
+                  {
                     "id": "main-playing-as",
                     "type": "text",
                     "class": "playing-as",

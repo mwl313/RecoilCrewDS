@@ -98,8 +98,16 @@ describe('SceneRuntime components', () => {
     await runtime.load(PRESENTATION_SCENES['scene.mainMenu']);
     expect(container.querySelector('#screen-main')).not.toBeNull();
     expect((container.querySelector('[data-act="multiplayer"]') as HTMLElement).textContent).toBe('MULTIPLAYER');
+    expect((container.querySelector('[data-act="credits"]') as HTMLElement).textContent).toBe('CREDITS');
     expect((container.querySelector('[data-act="create"]') as HTMLElement).textContent).toBe('CREATE CREW');
     expect(container.querySelector('#multiplayer-menu-page')?.classList.contains('hidden')).toBe(true);
+    runtime.unload();
+
+    await runtime.load(PRESENTATION_SCENES['scene.credits']);
+    expect((container.querySelector('#credits-title') as HTMLElement).textContent).toBe('CREDITS & ASSET LICENSES');
+    expect((container.querySelector('#credits-development-name') as HTMLElement).textContent).toBe('MinWoo Lim');
+    expect((container.querySelector('#credits-assets-list') as HTMLElement).textContent).toContain('Ultimate Monsters');
+    expect((container.querySelector('#credits-copyright') as HTMLElement).textContent).toBe('Recoil Crew © 2026 MinWoo Lim');
     runtime.unload();
   });
 
@@ -349,6 +357,14 @@ describe('SceneFlowPresenter overlay visibility', () => {
     flow.showState('howto');
     expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
     expect((container.querySelector('#screen-howto') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect(started).toEqual([1]);
+    expect(disposed).toEqual([]);
+
+    flow.showState('main');
+    vi.advanceTimersByTime(421);
+    flow.showState('credits');
+    expect((container.querySelector('#screen-main') as HTMLElement).classList.contains('hidden')).toBe(false);
+    expect((container.querySelector('#screen-credits') as HTMLElement).classList.contains('hidden')).toBe(false);
     expect(started).toEqual([1]);
     expect(disposed).toEqual([]);
     vi.useRealTimers();

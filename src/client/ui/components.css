@@ -331,6 +331,61 @@
 .ui-howto-foot { margin: 0; text-align: center; font-weight: 800; letter-spacing: .12em; }
 .ui-overlay-close { align-self: flex-end; width: min(300px, 100%); }
 
+.ui-credits-panel {
+  box-sizing: border-box;
+  width: min(940px, calc(100vw - 56px));
+  height: min(780px, calc(100vh - 56px));
+  overflow: hidden;
+}
+
+.ui-credits-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 0;
+  padding: 2px 10px 4px 0;
+  overflow-y: auto;
+  scrollbar-color: var(--ui-amber) rgba(255,255,255,.06);
+}
+
+.ui-credits-body::-webkit-scrollbar { width: 8px; }
+.ui-credits-body::-webkit-scrollbar-track { background: rgba(255,255,255,.055); }
+.ui-credits-body::-webkit-scrollbar-thumb { border: 2px solid #090c0d; background: var(--ui-amber); }
+
+.ui-credits-section {
+  position: relative;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--ui-line);
+  border-left: 3px solid rgba(255,173,34,.72);
+  background: linear-gradient(110deg, rgba(255,173,34,.055), rgba(255,255,255,.018));
+}
+
+.ui-credits-section--wide { grid-column: 1 / -1; }
+.ui-credits-section h3 { margin: 0 0 11px; color: var(--ui-amber); font: italic 900 19px/1 var(--ui-display); letter-spacing: .08em; }
+.ui-credits-section p,
+.ui-credits-legal p { margin: 0; }
+.ui-credits-copy { color: #abb4b3; font-size: 13px; font-weight: 600; line-height: 1.55; }
+.ui-credits-copy + .ui-credits-copy { margin-top: 7px; }
+.ui-credits-name { color: var(--ui-paper); font: italic 900 27px/1 var(--ui-display); letter-spacing: .025em; }
+.ui-credits-highlight { color: var(--ui-paper); font-size: 14px; font-weight: 800; line-height: 1.45; }
+.ui-credits-highlight + .ui-credits-copy,
+.ui-credits-copy + .ui-credits-license { margin-top: 9px; }
+.ui-credits-asset-list { margin: 12px 0 !important; color: var(--ui-paper); white-space: pre-line; font-size: 13px; font-weight: 700; line-height: 1.7; column-count: 2; column-gap: 28px; }
+.ui-credits-license { margin-top: 8px !important; color: #d9d4bf; font-size: 12px; font-weight: 800; line-height: 1.5; }
+.ui-credits-license + .ui-credits-copy { margin-top: 4px; }
+
+.ui-credits-legal {
+  padding: 18px 20px;
+  border: 1px solid rgba(255,173,34,.35);
+  background: rgba(255,173,34,.075);
+}
+
+.ui-credits-copyright { color: var(--ui-paper); font: italic 900 20px/1.1 var(--ui-display); letter-spacing: .035em; }
+.ui-credits-copyright + .ui-credits-copy { margin-top: 6px; }
+.ui-credits-panel .ui-overlay-close { flex: 0 0 auto; }
+
 /* Overlay lifecycle: every card uses the same bottom summon and dismissal.
    The root handles the scrim while the panel carries the physical motion. */
 .ui-overlay-screen.scene-enter {

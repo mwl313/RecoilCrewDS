@@ -173,7 +173,7 @@ export class SceneFlowPresenter {
       : null;
     this.currentSceneId = state.sceneId;
 
-    // Settings and How To are menu overlays, not replacement screens. Keep
+    // Settings, How To, and Credits are menu overlays, not replacement screens. Keep
     // the main menu DOM and its presentation world alive beneath them so the
     // backdrop is the exact screen the player opened the overlay from.
     if (this.isMenuOverlayState(stateId) && previousState === 'main') {
@@ -202,7 +202,7 @@ export class SceneFlowPresenter {
   }
 
   private isMenuOverlayState(stateId: FlowStateId): boolean {
-    return stateId === 'settings' || stateId === 'howto' || stateId === 'join';
+    return stateId === 'settings' || stateId === 'howto' || stateId === 'credits' || stateId === 'join';
   }
 
   private syncPresentationWorld(stateId: FlowStateId): void {
@@ -566,6 +566,7 @@ export class SceneFlowPresenter {
     this.actions.register('app.startSinglePlayer', () => ui(() => h().onStartSinglePlayer?.()));
     this.actions.register('app.restartSinglePlayer', () => ui(() => h().onRestartSinglePlayer?.()));
     this.actions.register('app.openHowTo', () => ui(() => h().onHowTo?.()));
+    this.actions.register('app.openCredits', () => ui(() => h().onCredits?.()));
     this.actions.register('app.openSettings', () => ui(() => h().onOpenSettings?.()));
     this.actions.register('app.saveSettings', (_p, runtime) => {
       const input = runtime?.getNode('nickname-input')?.element as HTMLInputElement | undefined;

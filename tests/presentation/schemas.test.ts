@@ -52,7 +52,7 @@ describe('presentation content pipeline', () => {
 
   it('loads every scene/hud/flow/theme with valid cross-references', () => {
     const loaded = loadPresentationContent(CONTENT_ROOT);
-    expect(Object.keys(loaded.scenes)).toHaveLength(11);
+    expect(Object.keys(loaded.scenes)).toHaveLength(12);
     expect(Object.keys(loaded.huds)).toContain('hud.gameplay');
     expect(Object.keys(loaded.themes)).toContain('theme.driver');
     expect(loaded.flows['flow.primary'].initialSceneId).toBe('scene.boot');
@@ -79,11 +79,13 @@ describe('presentation content pipeline', () => {
     expect(menuJson).toContain('ui-menu-page--main');
     expect(menuJson).toContain('ui-menu-page--multiplayer hidden');
     expect(menuJson).toContain('ui-action ui-action--04');
-    expect(menuJson).not.toContain('ui-action ui-action--05');
+    expect(menuJson).toContain('ui-action ui-action--05');
+    expect(menuJson).toContain('app.openCredits');
     expect(menu.entities?.[0]?.transform?.scale).toEqual([1.05, 1.05, 1.05]);
     expect(menu.entities?.[0]?.components.some((component) => component.type === 'dragRotate')).toBe(true);
     expect(PRESENTATION_SCENES['scene.settings'].root.class).toContain('ui-overlay-screen');
     expect(PRESENTATION_SCENES['scene.howTo'].root.class).toContain('ui-overlay-screen');
+    expect(PRESENTATION_SCENES['scene.credits'].root.class).toContain('ui-overlay-screen');
     expect(PRESENTATION_SCENES['scene.joinCrew'].root.class).toContain('ui-overlay-screen');
   });
 
@@ -100,11 +102,15 @@ describe('presentation content pipeline', () => {
     expect(PRESENTATION_SCENES['scene.settings'].exitTransition?.durationMs).toBe(380);
     expect(PRESENTATION_SCENES['scene.howTo'].enterTransition?.durationMs).toBe(460);
     expect(PRESENTATION_SCENES['scene.howTo'].exitTransition?.durationMs).toBe(380);
+    expect(PRESENTATION_SCENES['scene.credits'].enterTransition?.durationMs).toBe(460);
+    expect(PRESENTATION_SCENES['scene.credits'].exitTransition?.durationMs).toBe(380);
     expect(PRESENTATION_SCENES['scene.joinCrew'].enterTransition?.durationMs).toBe(460);
     expect(PRESENTATION_SCENES['scene.joinCrew'].exitTransition?.durationMs).toBe(380);
     expect(PRESENTATION_FLOWS['flow.primary'].transitions).toEqual(expect.arrayContaining([
       expect.objectContaining({ from: 'main', to: 'main', action: 'app.openMultiplayer' }),
       expect.objectContaining({ from: 'main', to: 'main', action: 'app.closeMultiplayer' }),
+      expect.objectContaining({ from: 'main', to: 'credits', action: 'app.openCredits' }),
+      expect.objectContaining({ from: 'credits', to: 'main', action: 'app.back' }),
     ]));
   });
 

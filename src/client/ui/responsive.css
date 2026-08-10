@@ -19,6 +19,8 @@
   .ui-form-panel { padding: 28px 28px 24px; }
   .ui-overlay-panel { padding: 28px; }
   .ui-howto-grid { grid-template-columns: 1fr !important; }
+  .ui-credits-body { grid-template-columns: 1fr; }
+  .ui-credits-section--wide { grid-column: auto; }
 
   .lobby-code-strip { top: 66px; width: 92%; }
   .lobby-v2.lobby-screen .lobby-body { inset: 18% 5% 24%; }
@@ -49,6 +51,9 @@
   .boot-inner { top: 42%; }
   .boot-hint { width: min(310px, calc(100vw - 48px)); min-height: 66px; margin-top: 20px; padding: 15px 24px; font-size: 23px; }
   .ui-overlay-panel { width: calc(100vw - 28px); max-height: calc(100vh - 28px); padding: 24px 20px 22px; }
+  .ui-credits-panel { height: calc(100vh - 28px); }
+  .ui-credits-section { padding: 16px; }
+  .ui-credits-asset-list { column-count: 1; }
   .ui-overlay-actions--two,
   .ui-overlay-actions--three { grid-template-columns: 1fr !important; }
   .ui-overlay-actions .ui-action { font-size: 18px; }

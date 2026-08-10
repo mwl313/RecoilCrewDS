@@ -72,6 +72,7 @@ export const ACTION_IDS = [
   'app.startSinglePlayer',
   'app.restartSinglePlayer',
   'app.openHowTo',
+  'app.openCredits',
   'app.back',
   'app.leave',
   'app.rematch',

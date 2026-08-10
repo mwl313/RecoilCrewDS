@@ -11,6 +11,7 @@ export interface AppFlowHandlers {
   onStartSinglePlayer(): void;
   onRestartSinglePlayer(): void;
   onHowTo(): void;
+  onCredits(): void;
   onOpenSettings(): void;
   onSaveSettings(nickname: string): void;
   onRandomizeNickname(): void;
@@ -46,7 +47,8 @@ export type FlowStateId =
   | 'pause'
   | 'error'
   | 'results'
-  | 'howto';
+  | 'howto'
+  | 'credits';
 
 export interface ResultsPayload {
   score: number;

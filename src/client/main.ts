@@ -257,6 +257,10 @@ hud.bind({
     audio.soundtrack.enterContext('menu');
     hud.showScreen('howto');
   },
+  onCredits: () => {
+    audio.soundtrack.enterContext('menu');
+    hud.showScreen('credits');
+  },
   onBack: () => {
     if (flow === 'create' || flow === 'join' || flow === 'lobby') {
       net.send({ t: 'leave' });
