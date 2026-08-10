@@ -4,6 +4,7 @@ import type { SystemContext } from '../sim/systems/systemContext';
 import type { SpawnAnchor } from './spawnAnchors';
 import { resolveMonsterDimensions } from '../monsters/monsterNormalization';
 import { isOrdinaryPressure } from '../enemies/enemyClassification';
+import { resolveArenaBounds } from '../sim/arenaBounds';
 
 export interface SpawnPlan {
   anchor: SpawnAnchor;
@@ -45,6 +46,7 @@ export interface AngularPressureTelemetry {
 }
 
 const SAFE_TAGS = new Set(['spawnSafe', 'recovery']);
+export const PRESSURE_SPAWN_BOUNDARY_INSET = 3;
 
 /**
  * Core Loop 06 M4: deterministic, terrain-aware spawn planning. The planner
@@ -197,7 +199,14 @@ export class SpawnPlanner {
       positions.push({ x: anchor.x + Math.sin(angle) * radius, z: anchor.z + Math.cos(angle) * radius });
     }
     this.commitAngularUse(sector, anchor);
-    return { anchor, positions, startIndex: 0, count, delaySeconds: 0, angularSector: sector };
+    return {
+      anchor,
+      positions: this.keepPositionsInsideBoundary(positions),
+      startIndex: 0,
+      count,
+      delaySeconds: 0,
+      angularSector: sector,
+    };
   }
 
   revalidateSubgroup(plan: SpawnSubgroupPlan, options: PressurePlanOptions = {}): boolean {
@@ -390,7 +399,12 @@ export class SpawnPlanner {
     if (distance < minDistance || distance > maxDistance) return false;
     const world = this.ctx.world;
     const bounds = world.bounds ?? { minX: -world.half, maxX: world.half, minZ: -world.half, maxZ: world.half };
-    if (x < bounds.minX + 3 || x > bounds.maxX - 3 || z < bounds.minZ + 3 || z > bounds.maxZ - 3) return false;
+    if (
+      x < bounds.minX + PRESSURE_SPAWN_BOUNDARY_INSET ||
+      x > bounds.maxX - PRESSURE_SPAWN_BOUNDARY_INSET ||
+      z < bounds.minZ + PRESSURE_SPAWN_BOUNDARY_INSET ||
+      z > bounds.maxZ - PRESSURE_SPAWN_BOUNDARY_INSET
+    ) return false;
     if (SAFE_TAGS.has(this.terrainTagAt(x, z))) return false;
     if (world.isDriveableAt && !world.isDriveableAt(x, z)) return false;
     if (world.isCliffWallAt?.(x, z)) return false;
@@ -467,7 +481,7 @@ export class SpawnPlanner {
         z: anchor.z + offset.x * sin + offset.z * cos,
       });
     }
-    return out;
+    return this.keepPositionsInsideBoundary(out);
   }
 
   private anchorValid(
@@ -568,7 +582,41 @@ export class SpawnPlanner {
       out.push({ x: anchor.x + lx, z: anchor.z + lz });
       clearanceRadii.push(resolvedEntries[i]);
     }
-    return enforceSpawnClearance(out, clearanceRadii);
+    return this.keepPositionsInsideBoundary(enforceSpawnClearance(out, clearanceRadii));
+  }
+
+  /**
+   * Preserve formation spacing by translating the complete group into the
+   * pressure spawn strip. This closes the case where a valid anchor was
+   * inside the bounds but one of its formation offsets was outside.
+   */
+  private keepPositionsInsideBoundary(
+    positions: Array<{ x: number; z: number }>,
+  ): Array<{ x: number; z: number }> {
+    if (positions.length === 0) return positions;
+    const bounds = resolveArenaBounds(this.ctx.world);
+    const minX = bounds.minX + PRESSURE_SPAWN_BOUNDARY_INSET;
+    const maxX = bounds.maxX - PRESSURE_SPAWN_BOUNDARY_INSET;
+    const minZ = bounds.minZ + PRESSURE_SPAWN_BOUNDARY_INSET;
+    const maxZ = bounds.maxZ - PRESSURE_SPAWN_BOUNDARY_INSET;
+    let groupMinX = Infinity;
+    let groupMaxX = -Infinity;
+    let groupMinZ = Infinity;
+    let groupMaxZ = -Infinity;
+    for (const position of positions) {
+      groupMinX = Math.min(groupMinX, position.x);
+      groupMaxX = Math.max(groupMaxX, position.x);
+      groupMinZ = Math.min(groupMinZ, position.z);
+      groupMaxZ = Math.max(groupMaxZ, position.z);
+    }
+    let dx = groupMinX < minX ? minX - groupMinX : 0;
+    if (groupMaxX + dx > maxX) dx += maxX - (groupMaxX + dx);
+    let dz = groupMinZ < minZ ? minZ - groupMinZ : 0;
+    if (groupMaxZ + dz > maxZ) dz += maxZ - (groupMaxZ + dz);
+    return positions.map((position) => ({
+      x: Math.max(minX, Math.min(maxX, position.x + dx)),
+      z: Math.max(minZ, Math.min(maxZ, position.z + dz)),
+    }));
   }
 
   private offsetFor(

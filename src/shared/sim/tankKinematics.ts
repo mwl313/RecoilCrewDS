@@ -2,7 +2,12 @@ import { pitchFromNormal } from '../arena';
 import type { GameConfig } from '../config';
 import { clamp, lerp, pointInBox } from '../math';
 import type { GroundQuery } from './groundQuery';
-import { resolveArenaBounds, STATIC_GROUND_QUERY } from './groundQuery';
+import { STATIC_GROUND_QUERY } from './groundQuery';
+import {
+  ARENA_ACTOR_BOUNDARY_INSET,
+  resolveArenaBounds,
+  type ArenaBounds,
+} from './arenaBounds';
 import type { DriverInput, MatchConfig, TankDashState } from '../types';
 import { canTraverseGroundStep } from '../mapgen/terrainTraversal';
 
@@ -547,7 +552,7 @@ export function resolveTankFootprint(
   // Arena bounds are axis-aware: generated arenas may be rectangular or
   // offset from the origin, so the clamp must not assume ±(half - 0.5).
   const b = resolveArenaBounds(ground);
-  applyStableBoundary(t, b, 0.5);
+  applyStableBoundary(t, b, ARENA_ACTOR_BOUNDARY_INSET);
   // Velocity response: remove inward components for each contact.
   for (const hit of hits) {
     const r = applyVelocityResponse(t.vx, t.vz, hit.normalX, hit.normalZ);
@@ -564,8 +569,8 @@ export function resolveTankFootprint(
  */
 export function applyStableBoundary(
   t: Pick<TankKinematicState, 'x' | 'z' | 'vx' | 'vz'>,
-  bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
-  inset = 0.5,
+  bounds: ArenaBounds,
+  inset = ARENA_ACTOR_BOUNDARY_INSET,
 ): void {
   const minX = bounds.minX + inset;
   const maxX = bounds.maxX - inset;

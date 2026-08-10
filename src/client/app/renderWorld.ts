@@ -8,7 +8,26 @@ import type { AssetService } from '../assets';
 import type { TpsCameraController } from '../tpsCamera';
 import type { ArenaWorld } from '../../shared/sim/arenaWorld';
 import { SkyEnvironment } from '../environment/skyEnvironment';
-import { VisualWorldApron, type ApronQuality } from '../environment/visualWorldApron';
+import {
+  ArenaBoundaryBarricades,
+  type ArenaBoundaryDiagnostics,
+} from '../environment/arenaBoundaryBarricades';
+
+export interface GameplayApronDiagnostics {
+  enabled: false;
+  quality: 'disabled';
+  instances: 0;
+  drawCalls: 0;
+  castsShadows: false;
+}
+
+export const GAMEPLAY_APRON_DIAGNOSTICS: GameplayApronDiagnostics = Object.freeze({
+  enabled: false,
+  quality: 'disabled',
+  instances: 0,
+  drawCalls: 0,
+  castsShadows: false,
+});
 
 /**
  * RenderWorld owns the renderer, scene graph, post-processing passes, arena
@@ -29,7 +48,7 @@ export class RenderWorld {
   private lastRenderAt = 0;
   private renderPass: RenderPass | null = null;
   private readonly sky: SkyEnvironment;
-  private apron: VisualWorldApron;
+  private boundary: ArenaBoundaryBarricades;
 
   constructor(
     private readonly container: HTMLElement,
@@ -52,15 +71,15 @@ export class RenderWorld {
     this.sky = new SkyEnvironment(this.scene);
     this.arena = new ArenaView(assets, world);
     this.scene.add(this.arena.group);
-    this.apron = new VisualWorldApron(this.scene, assets, world);
+    this.boundary = new ArenaBoundaryBarricades(this.scene, assets, world);
     this.vfx = new VfxSystem(this.scene);
     this.setupPost();
     window.addEventListener('resize', this.onResize);
   }
 
   private setupScene(): void {
-    // Clear gameplay silhouettes first, then blend the presentation-only
-    // apron into a warm daylight horizon well beyond authoritative bounds.
+    // Keep arena silhouettes readable while sky/fog soften the clean world
+    // edge beyond the authoritative barricaded perimeter.
     this.scene.fog = new THREE.Fog(0x9eb7b4, 145, 410);
     const hemi = new THREE.HemisphereLight(0xeaf7ff, 0x7d7768, 1.55);
     this.scene.add(hemi);
@@ -101,14 +120,12 @@ export class RenderWorld {
 
   /** Phase 3: swap the arena view (rematch / reconnect / Single Player reroll). */
   rebuildArena(world: ArenaWorld): void {
-    const apronQuality = this.apron.diagnostics().quality;
-    this.apron.dispose(this.scene);
+    this.boundary.dispose(this.scene);
     this.arena.dispose();
     this.scene.remove(this.arena.group);
     this.arena = new ArenaView(this.assets, world);
     this.scene.add(this.arena.group);
-    this.apron = new VisualWorldApron(this.scene, this.assets, world);
-    this.apron.setQuality(apronQuality);
+    this.boundary = new ArenaBoundaryBarricades(this.scene, this.assets, world);
   }
 
   render(camera: THREE.PerspectiveCamera): void {
@@ -136,7 +153,8 @@ export class RenderWorld {
     geometries: number;
     textures: number;
     skySource: 'procedural' | 'authored';
-    apron: ReturnType<VisualWorldApron['diagnostics']>;
+    apron: GameplayApronDiagnostics;
+    boundary: ArenaBoundaryDiagnostics;
   } {
     let estimatedSceneDrawCalls = 0;
     let estimatedSceneTriangles = 0;
@@ -165,7 +183,8 @@ export class RenderWorld {
       geometries: this.renderer.info.memory.geometries,
       textures: this.renderer.info.memory.textures,
       skySource: this.sky.source,
-      apron: this.apron.diagnostics(),
+      apron: { ...GAMEPLAY_APRON_DIAGNOSTICS },
+      boundary: this.boundary.diagnostics(),
     };
   }
 
@@ -182,12 +201,14 @@ export class RenderWorld {
     if (this.bloom) this.bloom.strength = strength;
   }
 
-  setApronQuality(quality: ApronQuality): void {
-    this.apron.setQuality(quality);
+  /** Compatibility no-op: gameplay exterior rendering is permanently off. */
+  setApronQuality(_quality: 'high' | 'medium' | 'low'): void {
+    // Intentionally empty. Adaptive quality cannot recreate exterior props.
   }
 
-  setApronEnabled(enabled: boolean): void {
-    this.apron.setEnabled(enabled);
+  /** Compatibility no-op retained for older debug/browser tooling. */
+  setApronEnabled(_enabled: boolean): void {
+    // Intentionally empty. Production gameplay always reports zero apron work.
   }
 
   resetQualityDiagnostics(): void {
@@ -209,7 +230,7 @@ export class RenderWorld {
 
   dispose(): void {
     window.removeEventListener('resize', this.onResize);
-    this.apron.dispose(this.scene);
+    this.boundary.dispose(this.scene);
     this.sky.dispose();
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement === this.container) {
