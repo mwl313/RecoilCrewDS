@@ -97,7 +97,6 @@ export const RELIC_EFFECT_REQUIRED_PARAMETERS: Record<RelicEffectType, readonly 
     'minimumFallDistance',
     'baseDamagePerStack',
     'fallBonusPerMeter',
-    'maximumFallBonus',
     'baseRadius',
     'radiusPerMeter',
     'maximumRadius',

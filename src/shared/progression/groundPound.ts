@@ -2,7 +2,6 @@ export interface GroundPoundTuning {
   minimumFallDistance: number;
   baseDamagePerStack: number;
   fallBonusPerMeter: number;
-  maximumFallBonus: number;
   baseRadius: number;
   radiusPerMeter: number;
   maximumRadius: number;
@@ -24,7 +23,6 @@ export const GROUND_POUND_TUNING: Readonly<GroundPoundTuning> = Object.freeze({
   minimumFallDistance: 1.5,
   baseDamagePerStack: 10,
   fallBonusPerMeter: 5,
-  maximumFallBonus: 50,
   baseRadius: 5,
   radiusPerMeter: 0.65,
   maximumRadius: 12,
@@ -38,7 +36,6 @@ export function resolveGroundPoundTuning(params: Readonly<Record<string, unknown
     minimumFallDistance: numberParameter(params, 'minimumFallDistance', GROUND_POUND_TUNING.minimumFallDistance),
     baseDamagePerStack: numberParameter(params, 'baseDamagePerStack', GROUND_POUND_TUNING.baseDamagePerStack),
     fallBonusPerMeter: numberParameter(params, 'fallBonusPerMeter', GROUND_POUND_TUNING.fallBonusPerMeter),
-    maximumFallBonus: numberParameter(params, 'maximumFallBonus', GROUND_POUND_TUNING.maximumFallBonus),
     baseRadius: numberParameter(params, 'baseRadius', GROUND_POUND_TUNING.baseRadius),
     radiusPerMeter: numberParameter(params, 'radiusPerMeter', GROUND_POUND_TUNING.radiusPerMeter),
     maximumRadius: numberParameter(params, 'maximumRadius', GROUND_POUND_TUNING.maximumRadius),
@@ -60,7 +57,7 @@ export function calculateGroundPound(
 
   const effectiveFall = Math.max(0, fall - tuning.minimumFallDistance);
   const baseDamage = tuning.baseDamagePerStack * stacks;
-  const fallBonus = Math.min(tuning.maximumFallBonus, effectiveFall * tuning.fallBonusPerMeter);
+  const fallBonus = effectiveFall * tuning.fallBonusPerMeter;
   return {
     effectiveFall: stableFormulaValue(effectiveFall),
     damage: stableFormulaValue(baseDamage + fallBonus),

@@ -204,7 +204,7 @@ effectiveFall = max(0, fallDistance - 1.5);
 
 ```ts
 baseDamage = 10 * stacks;
-fallBonus = min(50, effectiveFall * 5);
+fallBonus = effectiveFall * 5;
 damage = baseDamage + fallBonus;
 ```
 
@@ -221,9 +221,13 @@ Examples, one stack:
 
 11.5m fall:
 10 + 50 = 60
+
+20m fall:
+10 + 92.5 = 102.5
 ```
 
-Additional stacks increase reliable base damage without multiplying the entire fall bonus uncontrollably.
+Damage has no fall-distance cap. Additional stacks increase reliable base damage
+without multiplying the fall bonus; only the shockwave radius is range-capped.
 
 ## Radius
 
@@ -425,7 +429,7 @@ Test exact:
 - [ ] Ground Pound uses fall distance.
 - [ ] Base radius is 5m.
 - [ ] Radius scales and caps at 12m.
-- [ ] Damage scales and fall bonus caps at 50 internal.
+- [ ] Damage continues scaling with fall distance without a cap.
 - [ ] Shockwave VFX matches authoritative radius.
 - [ ] Sound is weighty and procedural.
 - [ ] No duplicate full-strength landing/Ground Pound feedback.

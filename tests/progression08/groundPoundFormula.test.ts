@@ -20,8 +20,8 @@ describe('binding Ground Pound formula', () => {
     { fall: 6, damage: 32.5, radius: 7.925, knockback: 7.375 },
     { fall: 10, damage: 52.5, radius: 10.525, knockback: 10.375 },
     { fall: 11.5, damage: 60, radius: 11.5, knockback: 11.5 },
-    { fall: 15, damage: 60, radius: 12, knockback: 12 },
-    { fall: 20, damage: 60, radius: 12, knockback: 12 },
+    { fall: 15, damage: 77.5, radius: 12, knockback: 12 },
+    { fall: 20, damage: 102.5, radius: 12, knockback: 12 },
   ])('maps a $fall m fall to exact damage/radius/knockback', ({ fall, damage, radius, knockback }) => {
     const result = calculateGroundPound(fall, 1)!;
     expect(result.damage).toBeCloseTo(damage, 10);
@@ -31,7 +31,15 @@ describe('binding Ground Pound formula', () => {
 
   it('adds 10 reliable base damage per stack without multiplying the fall bonus', () => {
     expect(calculateGroundPound(3, 3)?.damage).toBe(37.5);
-    expect(calculateGroundPound(20, 4)?.damage).toBe(90);
+    expect(calculateGroundPound(20, 4)?.damage).toBe(132.5);
+  });
+
+  it('keeps radius capped while damage continues scaling with arbitrarily long falls', () => {
+    const longFall = calculateGroundPound(100, 1)!;
+    const extremeFall = calculateGroundPound(1_000, 1)!;
+    expect(longFall).toMatchObject({ damage: 502.5, radius: 12 });
+    expect(extremeFall).toMatchObject({ damage: 5_002.5, radius: 12 });
+    expect(extremeFall.damage).toBeGreaterThan(longFall.damage);
   });
 
   it('uses collision-radius-inclusive geometry for ordinary, elite, and boss bodies', () => {

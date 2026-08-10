@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = 'e84c3543a4482b46f66051072f1cff48197194abf60cfd4871e7d4c55de19568';
+export const CONTENT_PACK_SOURCE_HASH = '30963b169d42145d66b6812f19189dd3cc4f38aaf7c2108e87642a9c039494d4';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '09af3ea69b96ec2a4b59f7d07e6071f9442f52c4a327ba00b40dc434658d2c83';
+export const CONTENT_PACK_HASH = '5351c1f5dd5dcbc084b075e85d1b18e9c9eb104f7203063e633dc176059e2f57';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -363,7 +363,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "relicEffect.enemySpeedDebuffOnMgHit", definition: {"id":"relicEffect.enemySpeedDebuffOnMgHit","label":"Enemy speed debuff on MG hit","behaviors":[],"effectType":"enemySpeedDebuffOnMgHit"} },
     { id: "relicEffect.enemyVulnerabilityOnMgHit", definition: {"id":"relicEffect.enemyVulnerabilityOnMgHit","label":"Enemy vulnerability on MG hit","behaviors":[],"effectType":"enemyVulnerabilityOnMgHit"} },
     { id: "relicEffect.extraJumps", definition: {"id":"relicEffect.extraJumps","label":"Extra jump count per stack","behaviors":[],"effectType":"extraJumps"} },
-    { id: "relicEffect.groundPound", definition: {"id":"relicEffect.groundPound","label":"Fall-distance Ground Pound","behaviors":[],"effectType":"groundPound","parameters":{"minimumFallDistance":1.5,"baseDamagePerStack":10,"fallBonusPerMeter":5,"maximumFallBonus":50,"baseRadius":5,"radiusPerMeter":0.65,"maximumRadius":12,"baseKnockback":4,"knockbackPerMeter":0.75,"maximumKnockback":12}} },
+    { id: "relicEffect.groundPound", definition: {"id":"relicEffect.groundPound","label":"Fall-distance Ground Pound","behaviors":[],"effectType":"groundPound","parameters":{"minimumFallDistance":1.5,"baseDamagePerStack":10,"fallBonusPerMeter":5,"baseRadius":5,"radiusPerMeter":0.65,"maximumRadius":12,"baseKnockback":4,"knockbackPerMeter":0.75,"maximumKnockback":12}} },
     { id: "relicEffect.heal", definition: {"id":"relicEffect.heal","label":"Heal action","behaviors":[],"effectType":"heal"} },
     { id: "relicEffect.incomingDamageReduction", definition: {"id":"relicEffect.incomingDamageReduction","label":"Incoming damage reduction percent","behaviors":[],"effectType":"incomingDamageReduction"} },
     { id: "relicEffect.magnetMultiplier", definition: {"id":"relicEffect.magnetMultiplier","label":"Magnet radius percent per stack","behaviors":[],"effectType":"magnetMultiplier"} },

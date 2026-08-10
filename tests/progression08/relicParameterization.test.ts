@@ -79,7 +79,6 @@ describe('relic handler parameterization (progression08 hardening)', () => {
         minimumFallDistance: 1.5,
         baseDamagePerStack: 25,
         fallBonusPerMeter: 0,
-        maximumFallBonus: 0,
         baseRadius: 3,
         radiusPerMeter: 0,
         maximumRadius: 3,

@@ -50,7 +50,7 @@ rejects unowned relics and falls below 1.5 m, then applies the binding equations
 ```text
 effectiveFall = max(0, fallDistance - 1.5)
 baseDamage = 10 * stacks
-fallBonus = min(50, effectiveFall * 5)
+fallBonus = effectiveFall * 5
 damage = baseDamage + fallBonus
 radius = min(12, 5 + effectiveFall * 0.65)
 knockback = min(12, 4 + effectiveFall * 0.75)
@@ -60,7 +60,8 @@ Formula results are stabilized to four decimal places for deterministic event
 payloads. Additional stacks add 10 internal base damage each; they do not
 multiply the fall bonus. The content template exposes the same named tuning
 parameters (`minimumFallDistance`, `baseDamagePerStack`, `fallBonusPerMeter`,
-the three caps, and the radius/knockback bases and slopes).
+the radius/knockback caps, and the radius/knockback bases and slopes). Damage
+continues scaling with fall distance after the radius reaches its cap.
 
 Damage remains server/simulation authoritative. Before a landing query, the
 enemy spatial index is refreshed because landing dispatch precedes the normal

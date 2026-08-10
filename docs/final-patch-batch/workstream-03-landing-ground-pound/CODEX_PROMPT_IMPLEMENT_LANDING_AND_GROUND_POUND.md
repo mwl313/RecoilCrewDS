@@ -69,7 +69,7 @@ Exact:
 ```text
 effectiveFall = max(0, fallDistance - 1.5)
 baseDamage = 10 * stacks
-fallBonus = min(50, effectiveFall * 5)
+fallBonus = effectiveFall * 5
 damage = baseDamage + fallBonus
 radius = min(12, 5 + effectiveFall * 0.65)
 knockback = min(12, 4 + effectiveFall * 0.75)
