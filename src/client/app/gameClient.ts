@@ -213,7 +213,10 @@ export class GameClient {
     input: InputSource,
     onReady: () => void,
     world: ArenaWorld,
-    options: { progressionDebug?: boolean } = {},
+    options: {
+      progressionDebug?: boolean;
+      mapgenDebug?: ProgressionDebugControls['mapgen'];
+    } = {},
   ): Promise<GameClient> {
     const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
@@ -294,6 +297,7 @@ export class GameClient {
           catalog: () => gameRef!.progressionDebugCatalog(),
           addRelic: (relicId) => gameRef!.debugAddRelic(relicId),
           addUpgrade: (categoryId, rarity) => gameRef!.debugAddUpgrade(categoryId, rarity),
+          mapgen: options.mapgenDebug,
         }
       : undefined;
     game.tacticalDrawer = new TacticalDrawer(container, world, localization, debugControls);

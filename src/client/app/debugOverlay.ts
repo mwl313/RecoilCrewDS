@@ -50,9 +50,18 @@ export class DebugOverlay {
   }
 
   toggle(): void {
-    this.visible = !this.visible;
-    this.panel.style.display = this.visible ? 'block' : 'none';
-    this.markers.visible = this.visible;
+    this.setVisible(!this.visible);
+  }
+
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  /** Keep the diagnostics panel and all shared map wireframes in one state. */
+  setVisible(visible: boolean): void {
+    this.visible = visible;
+    this.panel.style.display = visible ? 'block' : 'none';
+    this.markers.visible = visible;
   }
 
   private rebuild(): void {

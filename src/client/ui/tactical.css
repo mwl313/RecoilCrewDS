@@ -124,6 +124,7 @@
 .tactical-debug select,
 .tactical-debug input { font: 700 10px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .09em; }
 .tactical-debug__tabs button,
+.tactical-debug__mapgen,
 .tactical-debug__rarity,
 .tactical-debug-row button {
   border: 1px solid #475656;
@@ -132,6 +133,9 @@
 }
 .tactical-debug__tabs button { flex: 1; padding: 7px 5px; cursor: pointer; }
 .tactical-debug__tabs button.is-active { color: #101719; border-color: #ffb31a; background: #ffb31a; }
+.tactical-debug__mapgen { width: 82px; padding: 0 5px; cursor: pointer; white-space: nowrap; }
+.tactical-debug__mapgen[aria-pressed='true'] { color: #8cecff; border-color: #397887; background: #14292e; }
+.tactical-debug__mapgen:hover { border-color: #8cecff; }
 .tactical-debug__rarity { width: 94px; padding: 0 6px; cursor: pointer; }
 .tactical-debug__search {
   width: calc(100% - 16px);

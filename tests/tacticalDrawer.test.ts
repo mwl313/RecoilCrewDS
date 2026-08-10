@@ -103,6 +103,8 @@ describe('tactical drawer assembly', () => {
     } as unknown as MatchState;
     const addRelic = vi.fn(() => ({ accepted: true, message: 'added relic' }));
     const addUpgrade = vi.fn(() => ({ accepted: true, message: 'added upgrade' }));
+    let mapgenVisible = true;
+    const setMapgenVisible = vi.fn((visible: boolean) => { mapgenVisible = visible; });
     const controls: ProgressionDebugControls = {
       catalog: () => ({
         available: true,
@@ -122,6 +124,10 @@ describe('tactical drawer assembly', () => {
       }),
       addRelic,
       addUpgrade,
+      mapgen: {
+        visible: () => mapgenVisible,
+        setVisible: setMapgenVisible,
+      },
     };
     const drawer = new TacticalDrawer(container, world, undefined, controls);
     drawer.toggle();
@@ -129,6 +135,11 @@ describe('tactical drawer assembly', () => {
 
     expect(container.querySelector('#tactical-minimap')).toBeNull();
     expect(container.querySelector('#tactical-progression-debug')).not.toBeNull();
+    const mapgenToggle = container.querySelector('.tactical-debug__mapgen') as HTMLButtonElement;
+    expect(mapgenToggle.textContent).toBe('MAPGEN: ON');
+    mapgenToggle.click();
+    expect(setMapgenVisible).toHaveBeenCalledWith(false);
+    expect(mapgenToggle.textContent).toBe('MAPGEN: OFF');
     (container.querySelector('button[data-debug-action="relic"]') as HTMLButtonElement).click();
     expect(addRelic).toHaveBeenCalledWith('relic.test');
 

@@ -32,6 +32,10 @@ export interface ProgressionDebugControls {
   catalog(): ProgressionDebugCatalog;
   addRelic(relicId: string): ProgressionDebugActionResult;
   addUpgrade(categoryId: string, rarity: UpgradeRarity): ProgressionDebugActionResult;
+  mapgen?: {
+    visible(): boolean;
+    setVisible(visible: boolean): void;
+  };
 }
 
 type DebugTab = 'relics' | 'upgrades';
@@ -44,6 +48,7 @@ export class ProgressionDebugPanel {
   private readonly rarity: HTMLSelectElement;
   private readonly list: HTMLDivElement;
   private readonly status: HTMLDivElement;
+  private readonly mapgenToggle: HTMLButtonElement | null;
   private tab: DebugTab = 'relics';
   private lastState: MatchState | null = null;
   private signature = '';
@@ -54,6 +59,7 @@ export class ProgressionDebugPanel {
     this.element.innerHTML = `
       <div class="tactical-debug__toolbar">
         <div class="tactical-debug__tabs" role="tablist" aria-label="Debug item type"></div>
+        ${controls.mapgen ? '<button class="tactical-debug__mapgen" type="button"></button>' : ''}
         <select class="tactical-debug__rarity" aria-label="Upgrade rarity">
           <option value="common">COMMON</option>
           <option value="rare">RARE</option>
@@ -69,11 +75,14 @@ export class ProgressionDebugPanel {
     this.rarity = this.element.querySelector('.tactical-debug__rarity') as HTMLSelectElement;
     this.list = this.element.querySelector('.tactical-debug__list') as HTMLDivElement;
     this.status = this.element.querySelector('.tactical-debug__status') as HTMLDivElement;
+    this.mapgenToggle = this.element.querySelector('.tactical-debug__mapgen');
     this.tabs.append(this.makeTab('relics', 'RELICS'), this.makeTab('upgrades', 'UPGRADES'));
     this.search.addEventListener('input', () => this.invalidate());
     this.rarity.addEventListener('change', () => this.invalidate());
     this.list.addEventListener('click', this.onListClick);
+    this.mapgenToggle?.addEventListener('click', this.onMapgenToggle);
     this.applyTabState();
+    this.updateMapgenToggle();
   }
 
   update(state: MatchState): void {
@@ -88,6 +97,7 @@ export class ProgressionDebugPanel {
       rarity: this.rarity.value,
       available: catalog.available,
       message: catalog.message,
+      mapgenVisible: this.controls.mapgen?.visible(),
       ids: this.tab === 'relics'
         ? catalog.relics.map((entry) => [entry.id, entry.label, entry.maximumStacks])
         : catalog.upgrades.map((entry) => [entry.id, entry.label, entry.statIds]),
@@ -100,6 +110,7 @@ export class ProgressionDebugPanel {
 
   dispose(): void {
     this.list.removeEventListener('click', this.onListClick);
+    this.mapgenToggle?.removeEventListener('click', this.onMapgenToggle);
     this.element.remove();
   }
 
@@ -127,6 +138,7 @@ export class ProgressionDebugPanel {
   }
 
   private render(catalog: ProgressionDebugCatalog, state: MatchState): void {
+    this.updateMapgenToggle();
     this.element.classList.toggle('is-disabled', !catalog.available);
     const query = this.search.value.trim().toLowerCase();
     const entries = this.tab === 'relics'
@@ -226,6 +238,25 @@ export class ProgressionDebugPanel {
     this.invalidate();
     if (this.lastState) this.update(this.lastState);
   };
+
+  private readonly onMapgenToggle = (): void => {
+    const mapgen = this.controls.mapgen;
+    if (!mapgen) return;
+    mapgen.setVisible(!mapgen.visible());
+    this.updateMapgenToggle();
+    this.invalidate();
+  };
+
+  private updateMapgenToggle(): void {
+    if (!this.mapgenToggle || !this.controls.mapgen) return;
+    const visible = this.controls.mapgen.visible();
+    this.mapgenToggle.textContent = `MAPGEN: ${visible ? 'ON' : 'OFF'}`;
+    this.mapgenToggle.setAttribute('aria-pressed', String(visible));
+    this.mapgenToggle.setAttribute(
+      'aria-label',
+      visible ? 'Disable map-generation debug overlay' : 'Enable map-generation debug overlay',
+    );
+  }
 
   private invalidate(): void {
     this.signature = '';

@@ -874,7 +874,15 @@ async function createGame(world: ArenaWorld): Promise<GameClient> {
     input,
     () => undefined,
     world,
-    { progressionDebug: DEBUG_MODE },
+    {
+      progressionDebug: DEBUG_MODE,
+      mapgenDebug: DEBUG_MODE
+        ? {
+            visible: () => debugOverlay?.isVisible() ?? false,
+            setVisible: (visible) => debugOverlay?.setVisible(visible),
+          }
+        : undefined,
+    },
   );
   created.onHudEvent = (ev) => {
     recordLandingDebugEvent(ev);

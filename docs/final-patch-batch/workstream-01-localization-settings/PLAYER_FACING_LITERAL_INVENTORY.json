@@ -4318,13 +4318,13 @@
     },
     {
       "file": "src/client/tactical/progressionDebugPanel.ts",
-      "line": 64,
+      "line": 70,
       "field": "sourceLiteral",
       "value": "FILTER LOADOUT…"
     },
     {
       "file": "src/client/tactical/progressionDebugPanel.ts",
-      "line": 146,
+      "line": 158,
       "field": "sourceLiteral",
       "value": "NO MATCHES"
     }
