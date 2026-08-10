@@ -4,8 +4,9 @@
 
 - Branch: `feature/final-landing-ground-pound`
 - Audit/start SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
-- Feature checkpoint SHA: `0edd863f54364519b6c84a3dc7e9f4092a114b23`
-- Final implementation SHA: recorded after prerequisite rebase and final verification
+- Pre-rebase feature checkpoint SHA: `0edd863f54364519b6c84a3dc7e9f4092a114b23`
+- Ending product SHA after prerequisite rebase: `5f3021aa9efb00c0424b9606115270b9d146c3af`
+- Final branch/report SHA: `f58e1b1fb921c06cc295b6a53fafe4d173c56866`
 - Binding design: `LANDING_AND_GROUND_POUND_DESIGN.md`
 
 The audit covered `matchRuntime.ts`, `tankKinematics.ts`, shared event types,
@@ -224,6 +225,8 @@ Final post-rebase results are appended below.
 
 ## Final integration and post-rebase verification
 
-Pending the required localization and machine-gun prerequisite commits. This
-section records the rebase base, final SHA, complete test results, and any
-post-integration conflict resolutions before merge handoff.
+The branch was rebased after localization, boundary, and Machine Gun. Conflict
+resolution preserved the localized presentation callback, the Machine Gun
+event/audio paths, and the final Ground Pound tuning. TypeScript, 112 focused
+cross-workstream tests, and both Single Player and Driver/Gunner browser flows
+passed before the no-fast-forward integration merge.

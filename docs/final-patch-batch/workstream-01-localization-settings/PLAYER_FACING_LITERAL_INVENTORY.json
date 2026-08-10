@@ -599,6 +599,21 @@
       "ko": "보스 웨이브"
     },
     {
+      "key": "phase.elite",
+      "en": "ELITE MONSTER WAVE INCOMING",
+      "ko": "정예 몬스터 웨이브 접근 중!"
+    },
+    {
+      "key": "phase.farming",
+      "en": "SLAY MONSTERS TO PREPARE FOR THE WAVE",
+      "ko": "몬스터를 처치해 웨이브에 대비하라!"
+    },
+    {
+      "key": "phase.final",
+      "en": "THE FINAL WAVE IS INCOMING",
+      "ko": "최종 웨이브 접근 중!"
+    },
+    {
       "key": "phase.gameOver",
       "en": "GAME OVER",
       "ko": "게임 오버"
@@ -2254,14 +2269,34 @@
       "ko": "반동 추진"
     },
     {
+      "key": "upgrade.upgrade_weapon_mgDamage.effect",
+      "en": "MG DAMAGE +{amount}%",
+      "ko": "기관총 피해량 +{amount}%"
+    },
+    {
       "key": "upgrade.upgrade_weapon_mgDamage.name",
       "en": "MACHINE GUN POWER",
       "ko": "기관총 화력"
     },
     {
+      "key": "upgrade.upgrade_weapon_mgRange.effect",
+      "en": "MG RANGE +{amount}%",
+      "ko": "기관총 사거리 +{amount}%"
+    },
+    {
       "key": "upgrade.upgrade_weapon_mgRange.name",
       "en": "MACHINE GUN RANGE",
       "ko": "기관총 사거리"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_mgRate.effect",
+      "en": "MG FIRE RATE +{amount}%",
+      "ko": "기관총 연사력 +{amount}%"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_mgRate.name",
+      "en": "MACHINE GUN FIRE RATE",
+      "ko": "기관총 연사력"
     },
     {
       "key": "upgrade.upgrade_weapon_mgSpread.name",
@@ -3613,15 +3648,15 @@
     },
     {
       "file": "content/relics/ground_pound.json",
-      "line": 1,
+      "line": 3,
       "field": "label",
       "value": "GROUND POUND"
     },
     {
       "file": "content/relics/ground_pound.json",
-      "line": 1,
+      "line": 7,
       "field": "description",
-      "value": "Landing damages nearby enemies (3 m, 10 damage) and knocks them back."
+      "value": "Land after a meaningful fall to create a shockwave. Greater falls deal more damage and increase its radius."
     },
     {
       "file": "content/relics/hearty_tank.json",
@@ -3918,10 +3953,10 @@
       "value": "MACHINE GUN RANGE"
     },
     {
-      "file": "content/upgrade-categories/weapon.mgSpread.json",
+      "file": "content/upgrade-categories/weapon.mgRate.json",
       "line": 1,
       "field": "label",
-      "value": "MACHINE GUN PRECISION"
+      "value": "MACHINE GUN FIRE RATE"
     },
     {
       "file": "content/enemies/enemy.quaternius.alien-high-detail.boss.json",
@@ -4273,8 +4308,8 @@
     }
   ],
   "summary": {
-    "catalogKeyCount": 453,
-    "koreanKeyCount": 453,
+    "catalogKeyCount": 460,
+    "koreanKeyCount": 460,
     "authoredLiteralCount": 317,
     "authoredWithLocalizationKey": 99,
     "missingKoreanKeys": [],

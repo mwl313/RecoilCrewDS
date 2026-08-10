@@ -4,7 +4,8 @@
 
 - Branch: `feature/final-arena-boundary`
 - Starting SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
-- Boundary implementation commit: `1db2a95d265cdf63be0fb31e98e38e268c1d891b`
+- Ending product SHA after the required integration rebase: `739abb1a70560dbd7a9878d1a56c2c145cb253a1`
+- Final branch/report SHA: `d9e649eabc96f3be07f775083646f997e814a5ec`
 - Binding design: `ARENA_BOUNDARY_CLEANUP_DESIGN.md`
 - Production gameplay exterior apron: disabled, zero placements, zero draw calls
 - Primary 400×400 boundary: enabled on all four authoritative bounds

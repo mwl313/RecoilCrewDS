@@ -4,7 +4,8 @@
 
 - Branch: `feature/final-phase-announcements`
 - Starting SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
-- Ending product SHA: `0916d9d9b85334f61736489256af656f446e2d2d`
+- Ending product SHA after the required integration rebase: `e5eb91b47b58f9a140b9b34479025f7b2eca5f0f`
+- Final branch/report SHA: `6db3c5a5a6f98fc3945c82be9a1134f9c72a6bbc`
 - Binding design: `PHASE_ANNOUNCEMENT_BANNERS_DESIGN.md`
 - Audit scope: `src/shared/stage/`, `src/shared/horde/`, the client HUD and UI paths, `presentationEventRouter.ts`, procedural and soundtrack audio, `content/horde/stageSequenceProduction.json`, and the current EN/KO localization catalogs.
 

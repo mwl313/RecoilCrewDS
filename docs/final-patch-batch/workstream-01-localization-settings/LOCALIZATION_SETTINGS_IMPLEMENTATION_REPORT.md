@@ -3,6 +3,7 @@
 Date: 2026-08-10
 Branch: `feature/final-localization-settings-copy`
 Main-derived base SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
+Ending product SHA: `0aa6773e4b0c21c2cd95062e076acfe6176804bb`
 
 ## Delivered
 
@@ -23,12 +24,16 @@ npm run audit:localization
 
 | Measure | Count |
 | --- | ---: |
-| English keys | 453 |
-| Korean keys | 453 |
+| English keys | 460 |
+| Korean keys | 460 |
 | Missing Korean keys | 0 |
 | Extra Korean keys | 0 |
 | Audited authored literals | 317 |
 | Authored literals with direct key metadata | 99 |
+
+The localization workstream supplied 453 paired catalog keys. The integrated
+Machine Gun and phase-announcement workstreams added seven paired domain keys,
+bringing the final catalogs to 460 keys with full English/Korean parity.
 
 Untranslated exceptions are deliberate language-neutral material: the `RECOIL CREW` mark, `RC` unit marks, keyboard/mouse glyphs, numbers, player nicknames, room codes, and user-authored chat. Scene/editor labels and preview fixture values are not shipped presentation copy. Internal content IDs remain in data and network payloads but are resolved to catalog copy before display.
 

@@ -6,10 +6,11 @@ Branch: `feature/final-machine-gun-pass`
 ## Revision audit
 
 - Starting SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
-- Ending product SHA: `606aa07bd19f3fcbc7096271a172aed82e8841c2`
+- Ending product SHA after the required integration rebase: `3164922fc7f0e84029001e3a015804599c19ab17`
+- Final branch/report SHA: `67d8096c0151112d11d3b3dcbb56b61550c473af`
 - Audited `origin/main`: `7717abcaab7a41a0ef2268985f507733d909f58b`
 - The implementation was committed on the requested branch at the ending product SHA above. The subsequent report-only commit records that immutable product revision.
-- `feature/final-localization-settings-copy` was an ancestor at the same starting SHA. Its implementation had not diverged when this work began; rebase this branch onto the eventual localization/settings integration before final merge.
+- `feature/final-localization-settings-copy` was an ancestor at the same starting SHA. Its implementation had not diverged when this work began; this branch was subsequently rebased onto the localization/settings and boundary integration before final merge.
 
 ## Final base weapon
 
