@@ -42,15 +42,21 @@ If you prefer itch.io / GitHub Pages / Netlify for the client:
    **same origin** by default, so for a separate server set one of:
    - Serve the client and server from the same origin via a reverse proxy
      (recommended; `/ws` must proxy to the server), or
-   - Patch the WebSocket URL in `src/client/net.ts` and rebuild.
+   - Build with `VITE_GAME_SERVER_URL=wss://your-server.example/ws`.
+
+For a project site such as GitHub Pages, also build with a trailing-slash base
+such as `VITE_BASE_PATH=/RecoilCrewDS/`. The default base remains `/`.
 
 The `.env.example` file documents the supported environment variables:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PORT` | `8080` | HTTP + WebSocket port |
+| `HOST` | `0.0.0.0` | Bind interface (`127.0.0.1` behind a local reverse proxy) |
 | `ALLOWED_ORIGINS` | `*` | Comma-separated allowed WebSocket origins |
 | `STATIC_DIR` | `dist` | Static client directory |
+| `CONTENT_DIR` | `content` | Authoritative content directory |
+| `RELEASE_SHA` | `dev` | Release identifier exposed by `/healthz` |
 | `RECOIL_TIME_SCALE` | `1` | Test utility: simulation speed multiplier |
 
 ## HTTPS and WebSockets

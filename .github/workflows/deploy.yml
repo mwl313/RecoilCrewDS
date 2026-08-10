@@ -1,0 +1,132 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: recoilcrew-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Deployment and networking tests
+        run: npx vitest run tests/deploymentConfig.test.ts tests/netClient.test.ts tests/assetService.test.ts
+      - name: Validate enabled deployment configuration
+        if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+        env:
+          PROD_USER: ${{ vars.PROD_USER }}
+          PROD_WS_URL: ${{ vars.PROD_WS_URL }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in PROD_USER PROD_WS_URL PROD_HOST PROD_SSH_KEY PROD_KNOWN_HOSTS; do
+            [[ -n "${!name}" ]] || { echo "::error::$name is required when DEPLOY_ENABLED=true"; exit 1; }
+          done
+          node -e '
+            const url = new URL(process.env.PROD_WS_URL);
+            if (url.protocol !== "wss:" || url.pathname !== "/ws" || url.search || url.hash) {
+              throw new Error("PROD_WS_URL must be an absolute wss: URL ending at /ws");
+            }
+          '
+      - name: Build production release
+        env:
+          VITE_BASE_PATH: /
+          VITE_GAME_SERVER_URL: ""
+        run: |
+          set -euo pipefail
+          npm run build
+          tar -czf "recoilcrew-${GITHUB_SHA}.tar.gz" dist dist-server content package.json package-lock.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: production-release
+          path: recoilcrew-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build GitHub Pages client
+        env:
+          VITE_BASE_PATH: /RecoilCrewDS/
+          VITE_GAME_SERVER_URL: ${{ vars.PROD_WS_URL }}
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          npm run build:client
+          test -f dist/index.html
+          grep -q '/RecoilCrewDS/assets/' dist/index.html
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy-production:
+    needs: build
+    if: ${{ vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v7
+        with:
+          name: production-release
+          path: release
+      - name: Deploy release over verified SSH
+        env:
+          PROD_USER: ${{ vars.PROD_USER }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ "$PROD_USER" =~ ^[A-Za-z_][A-Za-z0-9_-]*$ ]] || { echo "::error::Invalid PROD_USER"; exit 1; }
+          [[ "$PROD_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "::error::Invalid PROD_HOST"; exit 1; }
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          key_file=~/.ssh/recoilcrew_deploy
+          known_hosts=~/.ssh/known_hosts
+          printf '%s\n' "$PROD_SSH_KEY" > "$key_file"
+          printf '%s\n' "$PROD_KNOWN_HOSTS" > "$known_hosts"
+          chmod 600 "$key_file" "$known_hosts"
+
+          remote="${PROD_USER}@${PROD_HOST}"
+          remote_archive="/tmp/recoilcrew-${GITHUB_SHA}.tar.gz"
+          remote_script="/tmp/deploy-release-${GITHUB_SHA}.sh"
+          ssh_opts=(-i "$key_file" -o UserKnownHostsFile="$known_hosts" -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes)
+          cleanup() {
+            ssh "${ssh_opts[@]}" "$remote" "rm -f '$remote_archive' '$remote_script'" || true
+            rm -f "$key_file" "$known_hosts"
+          }
+          trap cleanup EXIT
+
+          scp "${ssh_opts[@]}" "release/recoilcrew-${GITHUB_SHA}.tar.gz" "$remote:$remote_archive"
+          scp "${ssh_opts[@]}" ops/deploy-release.sh "$remote:$remote_script"
+          ssh "${ssh_opts[@]}" "$remote" "chmod 700 '$remote_script' && '$remote_script' '$GITHUB_SHA' '$remote_archive'"
+
+  deploy-pages:
+    needs: [build, deploy-production]
+    if: ${{ always() && vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && needs.build.result == 'success' && needs.deploy-production.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
