@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ProgressionOverlay } from '../../src/client/progression/progressionOverlay';
 import { buildRewardReelSymbols, rewardReelFrame } from '../../src/client/progression/rewardReelAnimator';
+import { localization } from '../../src/client/localization/localizationService';
 import type { MatchState } from '../../src/shared/types';
 
 const mounted: ProgressionOverlay[] = [];
@@ -9,6 +10,7 @@ const mounted: ProgressionOverlay[] = [];
 afterEach(() => {
   for (const overlay of mounted) overlay.dispose();
   mounted.length = 0;
+  localization.setLocale('en');
 });
 
 interface FakeSelection {
@@ -72,7 +74,7 @@ function upgradeSelection(offerId = 'offer-1', selected?: number): FakeSelection
       },
       {
         cardId: `${offerId}.1`,
-        categoryId: 'upgrade.gunner.mgDamage',
+        categoryId: 'upgrade.weapon.mgDamage',
         rarity: 'rare',
         rolledEffects: [{ statId: 'weapon.mgDamage', operation: 'multiply', value: 1.1 }],
       },
@@ -85,6 +87,21 @@ function upgradeSelection(offerId = 'offer-1', selected?: number): FakeSelection
     ],
     singlePlayerSelection: selected,
   };
+}
+
+function impactShellSelection(): FakeSelection {
+  const selection = upgradeSelection('impact-shells');
+  selection.singlePlayerOffer![0] = {
+    cardId: 'impact-shells.0',
+    categoryId: 'upgrade.weapon.cannonKnockback',
+    rarity: 'legendary',
+    rolledEffects: [
+      { statId: 'weapon.splashKnockbackMax', operation: 'multiply', value: 1.6 },
+      { statId: 'weapon.splashKnockbackMin', operation: 'multiply', value: 1.6 },
+      { statId: 'weapon.splashKnockbackVertical', operation: 'multiply', value: 1.6 },
+    ],
+  };
+  return selection;
 }
 
 function relicReveal(sequence: number, stack: number, duplicate = false): FakeSelection {
@@ -209,11 +226,36 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
       'single',
       0,
     );
-    const effects = [...selectionHost.querySelectorAll<HTMLElement>('.reward-card__effect')]
-      .map((node) => node.textContent ?? '');
-    expect(effects[1]).toContain('MACHINE GUN DAMAGE\n+10%');
-    expect(effects[2]).toContain('MAX INTEGRITY\n+100');
-    expect(effects[2]).not.toContain('+1,000');
+    const effects = [...selectionHost.querySelectorAll<HTMLElement>('.reward-card__effect')];
+    expect(effects[1]?.querySelector('.reward-card__effect-label')?.textContent).toBe('MACHINE GUN DAMAGE');
+    expect(effects[1]?.querySelector('.reward-card__effect-value')?.textContent).toBe('+10%');
+    expect(effects[2]?.querySelector('.reward-card__effect-label')?.textContent).toBe('MAX INTEGRITY');
+    expect(effects[2]?.querySelector('.reward-card__effect-value')?.textContent).toBe('+100');
+    expect(effects[2]?.textContent).not.toContain('+1,000');
+  });
+
+  it('renders multi-effect upgrades as compact label-value rows in English and Korean', () => {
+    const { overlay, selectionHost } = mount();
+    const state = fakeState({ matchFlow: 'upgradeSelection', teamProgression: { activeSelection: impactShellSelection() } });
+    overlay.update(state, 'single', 0);
+
+    let effectList = selectionHost.querySelector<HTMLElement>('.reward-card__effect');
+    expect(effectList?.classList.contains('reward-card__effect--compact')).toBe(true);
+    expect(effectList?.dataset['effectCount']).toBe('3');
+    expect([...effectList!.querySelectorAll('.reward-card__effect-label')].map((node) => node.textContent)).toEqual([
+      'MAX KNOCKBACK',
+      'MIN KNOCKBACK',
+      'LIFT KNOCKBACK',
+    ]);
+    expect([...effectList!.querySelectorAll('.reward-card__effect-value')].map((node) => node.textContent)).toEqual(['+60%', '+60%', '+60%']);
+
+    localization.setLocale('ko');
+    effectList = selectionHost.querySelector<HTMLElement>('.reward-card__effect');
+    expect([...effectList!.querySelectorAll('.reward-card__effect-label')].map((node) => node.textContent)).toEqual([
+      '최대 밀쳐내기',
+      '최소 밀쳐내기',
+      '수직 밀쳐내기',
+    ]);
   });
 
   it('same stackable relic presents again through the acquisition sequence', () => {

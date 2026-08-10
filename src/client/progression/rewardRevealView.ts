@@ -3,7 +3,7 @@ import type { ProgressionSelectionState, UpgradeCard } from '../../shared/progre
 import type { RewardTimelineSnapshot } from './rewardRevealDirector';
 import { RewardFxLayer } from './rewardFxLayer';
 import { buildRewardReelSymbols, rewardReelFrame, type RewardReelSymbol } from './rewardReelAnimator';
-import { formatUpgradeEffect } from '../../shared/presentation/statPresentation';
+import { formatUpgradeEffectValue, statPresentationMetadata } from '../../shared/presentation/statPresentation';
 import { localization } from '../localization/localizationService';
 import type { LocalizationService } from '../localization/localizationTypes';
 import { upgradeKey } from '../localization/contentKeys';
@@ -133,7 +133,7 @@ export class RewardRevealView {
     content.append(
       element('div', 'reward-card__rarity', rarity),
       element('div', 'reward-card__name', name),
-      element('div', 'reward-card__effect', formatEffects(card, this.i18n)),
+      buildEffects(card, this.i18n),
       element('div', 'reward-card__focus-rail', this.i18n.t('ui.progression.select')),
     );
     button.append(hotkey, reelWindow, content);
@@ -410,8 +410,21 @@ function glyphFor(id: string): string {
   return '◈';
 }
 
-function formatEffects(card: UpgradeCard, i18n: LocalizationService): string {
-  return card.rolledEffects.map((effect) => formatUpgradeEffect(effect, (key, params, fallback) => i18n.t(key, params, fallback))).join('\n');
+function buildEffects(card: UpgradeCard, i18n: LocalizationService): HTMLDivElement {
+  const list = element('div', 'reward-card__effect');
+  const compact = card.rolledEffects.length > 1;
+  list.classList.toggle('reward-card__effect--compact', compact);
+  list.dataset['effectCount'] = String(card.rolledEffects.length);
+  const translate = (key: string, params?: Record<string, string | number>, fallback?: string) => i18n.t(key, params, fallback);
+  for (const effect of card.rolledEffects) {
+    const row = element('div', 'reward-card__effect-row');
+    row.append(
+      element('span', 'reward-card__effect-label', statPresentationMetadata(effect.statId, translate).label),
+      element('span', 'reward-card__effect-value', formatUpgradeEffectValue(effect)),
+    );
+    list.appendChild(row);
+  }
+  return list;
 }
 
 function shardCount(rarity: string, relic = false): number {

@@ -60,8 +60,11 @@ describe('presentation content pipeline', () => {
 
   it('keeps the shared logo gap and retired flavor copy out of every scene', () => {
     const scenes = JSON.stringify(PRESENTATION_SCENES);
+    const wordmarkCss = readFileSync(path.resolve(CONTENT_ROOT, '../src/client/ui/scenes.css'), 'utf8');
     expect(JSON.stringify(PRESENTATION_SCENES['scene.boot'])).toContain('RECOI\u2009L');
     expect(JSON.stringify(PRESENTATION_SCENES['scene.mainMenu'])).toContain('RECOI\u2009L');
+    expect(wordmarkCss).toMatch(/\.ui-wordmark h1\s*\{[^}]*white-space:\s*nowrap/s);
+    expect(wordmarkCss).toMatch(/\.ui-wordmark-crew\s*\{[^}]*white-space:\s*nowrap/s);
     expect(scenes).not.toContain('ONE TANK // TWO BRAINS // ZERO BRAKES');
     expect(scenes).not.toContain('DRIVER STEERS. GUNNER SHOOTS.');
     expect(scenes).not.toContain('WASD DRIVE // MOUSE AIM // RMB CANNON');

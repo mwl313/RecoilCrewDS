@@ -32,7 +32,7 @@ export interface PhaseAnnouncementLayerOptions {
   scheduler?: PhaseAnnouncementScheduler;
 }
 
-export const PHASE_ANNOUNCEMENT_DURATION_MS = 2_100;
+export const PHASE_ANNOUNCEMENT_DURATION_MS = 2_700;
 
 const IMPACTS: Record<PhaseAnnouncementKind, Omit<PhaseAnnouncementImpact, 'kind' | 'reducedMotion'>> = {
   farming: { intensity: 0.75, cameraImpulse: 0.16 },

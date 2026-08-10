@@ -138,6 +138,11 @@ describe('phase announcement semantic presentation', () => {
       .toBe('정예 몬스터 처치!');
   });
 
+  it('uses the concise survive-the-hoard opening copy in both locales', () => {
+    expect(phaseAnnouncementText('en', 'farming')).toBe('SURVIVE THE HOARD');
+    expect(phaseAnnouncementText('ko', 'farming')).toBe('몬스터를 제압하라!');
+  });
+
   it('never intercepts input, attenuates camera intent for reduced motion, and restores HUD state', () => {
     const scheduler = new FakeScheduler();
     const active: boolean[] = [];
@@ -169,8 +174,9 @@ describe('phase announcement semantic presentation', () => {
     expect(css).toContain('@media (max-width: 560px)');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('pointer-events: none');
-    expect(PHASE_ANNOUNCEMENT_DURATION_MS).toBe(2_100);
-    expect(css).toContain('--phase-announcement-duration: 2100ms');
+    expect(PHASE_ANNOUNCEMENT_DURATION_MS).toBe(2_700);
+    expect(css).toContain('--phase-announcement-duration: 2700ms');
+    expect(css).toContain('18.667%, 63.111% { opacity: 1; }');
     expect(css).toContain('animation: phase-announcement-zoom-impact var(--phase-announcement-duration) linear both');
     expect(css).toContain('scale(.12)');
     expect(css).toContain('translate3d(-8px, 2px, 0)');

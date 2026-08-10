@@ -30,6 +30,7 @@
 .ui-wordmark h1 {
   margin: 8px 0 0;
   color: var(--ui-paper);
+  white-space: nowrap;
   text-shadow: none;
   transform: skewX(-6deg);
   font: italic 900 clamp(68px, 10vw, 138px)/0.76 var(--ui-display);
@@ -41,6 +42,7 @@
   width: max-content;
   margin: -0.02em 0 0 18%;
   color: var(--ui-amber);
+  white-space: nowrap;
   transform: skewX(-6deg);
   font: italic 900 clamp(68px, 10vw, 138px)/0.76 var(--ui-display);
   letter-spacing: -0.055em;
