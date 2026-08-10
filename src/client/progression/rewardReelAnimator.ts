@@ -20,24 +20,24 @@ export const RELIC_LOCK_TIME = 2_550;
 export const REWARD_TICK_INTERVALS = [36, 38, 41, 44, 48, 53, 59, 67, 77, 90, 106, 126, 150, 180, 215, 260, 300] as const;
 
 const UPGRADE_SYMBOLS: readonly RewardReelSymbol[] = [
-  { glyph: '◈', label: 'ENGINE', rarity: 'neutral' },
-  { glyph: '▣', label: 'ARMOR', rarity: 'neutral' },
-  { glyph: '⌁', label: 'RECOIL', rarity: 'neutral' },
-  { glyph: '✦', label: 'POWER', rarity: 'neutral' },
-  { glyph: '⬢', label: 'DASH', rarity: 'neutral' },
-  { glyph: '▤', label: 'COOLDOWN', rarity: 'neutral' },
-  { glyph: '⟡', label: 'RANGE', rarity: 'neutral' },
+  { glyph: '◈', label: 'ENGINE', rarity: 'rare' },
+  { glyph: '▣', label: 'ARMOR', rarity: 'common' },
+  { glyph: '⌁', label: 'RECOIL', rarity: 'epic' },
+  { glyph: '✦', label: 'POWER', rarity: 'legendary' },
+  { glyph: '⬢', label: 'DASH', rarity: 'rare' },
+  { glyph: '▤', label: 'COOLDOWN', rarity: 'common' },
+  { glyph: '⟡', label: 'RANGE', rarity: 'epic' },
 ] as const;
 
 const RELIC_SYMBOLS: readonly RewardReelSymbol[] = [
-  { glyph: '◇', label: 'SIGNAL', rarity: 'neutral' },
-  { glyph: '◈', label: 'RELIC', rarity: 'neutral' },
-  { glyph: '⬟', label: 'CORE', rarity: 'neutral' },
-  { glyph: '✦', label: 'ARTIFACT', rarity: 'neutral' },
-  { glyph: '⬢', label: 'MODULE', rarity: 'neutral' },
-  { glyph: '◆', label: 'CACHE', rarity: 'neutral' },
-  { glyph: '▣', label: 'PLATE', rarity: 'neutral' },
-  { glyph: '⟡', label: 'UNKNOWN', rarity: 'neutral' },
+  { glyph: '◇', label: 'SIGNAL', rarity: 'common' },
+  { glyph: '◈', label: 'RELIC', rarity: 'rare' },
+  { glyph: '⬟', label: 'CORE', rarity: 'epic' },
+  { glyph: '✦', label: 'ARTIFACT', rarity: 'legendary' },
+  { glyph: '⬢', label: 'MODULE', rarity: 'rare' },
+  { glyph: '◆', label: 'CACHE', rarity: 'epic' },
+  { glyph: '▣', label: 'PLATE', rarity: 'common' },
+  { glyph: '⟡', label: 'UNKNOWN', rarity: 'common' },
 ] as const;
 
 export function buildRewardReelSymbols(identity: string, index: number, kind: 'upgrade' | 'relic'): RewardReelSymbol[] {

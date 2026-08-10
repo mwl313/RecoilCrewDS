@@ -17,8 +17,11 @@ describe('reward reel presentation animator', () => {
     expect(first).toHaveLength(REWARD_REEL_CELL_COUNT);
     expect(relic).toHaveLength(REWARD_REEL_CELL_COUNT);
     expect(new Set(relic.map((symbol) => symbol.label)).size).toBeGreaterThan(3);
-    expect(new Set(first.map((symbol) => symbol.rarity))).toEqual(new Set(['neutral']));
-    expect(new Set(relic.map((symbol) => symbol.rarity))).toEqual(new Set(['neutral']));
+    const colorfulRarities = new Set(['common', 'rare', 'epic', 'legendary']);
+    expect(new Set(first.map((symbol) => symbol.rarity))).toEqual(colorfulRarities);
+    expect(new Set(relic.map((symbol) => symbol.rarity))).toEqual(colorfulRarities);
+    expect(first.some((symbol) => symbol.rarity === 'neutral')).toBe(false);
+    expect(relic.some((symbol) => symbol.rarity === 'neutral')).toBe(false);
     expect(relic.some((symbol) => /COMMON|RARE|EPIC|LEGENDARY/.test(symbol.label))).toBe(false);
   });
 
