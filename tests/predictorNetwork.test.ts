@@ -153,3 +153,18 @@ describe('arena-size independence', () => {
     expect(predictor3.isDisabled).toBe(true);
   });
 });
+
+describe('Gunner action transport lifecycle', () => {
+  it('stops retrying an action as soon as the server acknowledges it', () => {
+    const sent: Record<string, unknown>[] = [];
+    const pc = new PredictionController('gunner', { send: (message) => sent.push(message) });
+    const seq = pc.sendGunnerAction('secondaryPressed');
+    expect(pc.metricsPending().actions).toBe(1);
+
+    expect(pc.confirmAction(seq)).toBe('secondaryPressed');
+    expect(pc.metricsPending().actions).toBe(0);
+    pc.retransmitPendingActions(performance.now() + 500);
+
+    expect(sent).toHaveLength(1);
+  });
+});

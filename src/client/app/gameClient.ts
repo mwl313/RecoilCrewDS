@@ -102,8 +102,13 @@ export class GameClient {
   private mgDown = false;
   private chargeHoldStart = 0;
   private chargeHoldActive = false;
+  private activeChargePressSeq: number | null = null;
   private chargeSoundStarted = false;
-  private readonly pendingLocalActions = new Map<number, { action: GunnerActionType; at: number }>();
+  /**
+   * Correlates acknowledged actions with optimistic presentation. Transport
+   * retries are owned separately by PredictionController.
+   */
+  private readonly localActionRecords = new Map<number, { action: GunnerActionType; at: number; presented: boolean }>();
   private f4: F4Overlay | null = null;
   private inputEnabled = true;
   private lastPredictInput: { throttle: number; steer: number; dashPressed: boolean; jumpPressed: boolean } = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
@@ -641,25 +646,22 @@ export class GameClient {
   }
 
   handleActionResult(actionSeq: number, accepted: boolean): void {
-    const pending = this.pendingLocalActions.get(actionSeq);
+    const record = this.localActionRecords.get(actionSeq);
     if (accepted) {
-      // A charging press only becomes real when the server accepts it, so a
-      // press during cooldown can never start a local charge.
-      if (pending?.action === 'secondaryPressed' && (this.presenter.latest?.build.capabilities.includes('cannon.charge') ?? false)) {
-        this.chargeHoldStart = performance.now();
-        this.chargeHoldActive = true;
-        this.chargeSoundStarted = false;
-      }
-      // Keep the pending entry: the tagged authoritative shot/impulse event
-      // confirms (and suppresses) the local presentation.
-      netcodeMetrics.markActionLatency(performance.now() - (this.pendingLocalActions.get(actionSeq)?.at ?? performance.now()));
+      this.prediction.confirmAction(actionSeq);
+      netcodeMetrics.markActionLatency(performance.now() - (record?.at ?? performance.now()));
+      // Actions without optimistic shot presentation do not need to wait for
+      // a tagged authoritative event. In particular, a charge press is
+      // acknowledged here while its local hold state remains active.
+      if (!record?.presented) this.localActionRecords.delete(actionSeq);
       return;
     }
     this.prediction.rejectAction(actionSeq);
-    this.pendingLocalActions.delete(actionSeq);
-    this.chargeHoldActive = false;
-    this.chargeHoldStart = 0;
-    this.stopChargeSound();
+    this.localActionRecords.delete(actionSeq);
+    // A late rejection for an older press must never cancel a newer hold.
+    if (record?.action === 'secondaryPressed' && this.activeChargePressSeq === actionSeq) {
+      this.cancelLocalCharge();
+    }
   }
 
   predictionDebug() {
@@ -667,17 +669,21 @@ export class GameClient {
   }
 
   isActionPresented(actionSeq: number): boolean {
-    return this.pendingLocalActions.has(actionSeq);
+    return this.localActionRecords.get(actionSeq)?.presented === true;
   }
 
   confirmAction(actionSeq: number): void {
     this.prediction.confirmAction(actionSeq);
-    this.pendingLocalActions.delete(actionSeq);
+    this.localActionRecords.delete(actionSeq);
   }
 
   rejectAction(actionSeq: number): void {
     this.prediction.rejectAction(actionSeq);
-    this.pendingLocalActions.delete(actionSeq);
+    const record = this.localActionRecords.get(actionSeq);
+    this.localActionRecords.delete(actionSeq);
+    if (record?.action === 'secondaryPressed' && this.activeChargePressSeq === actionSeq) {
+      this.cancelLocalCharge();
+    }
   }
 
   private resetState(): void {
@@ -696,11 +702,12 @@ export class GameClient {
     this.singlePlayerResultsShown = false;
     this.slowMo = 0;
     this.time = 0;
-    this.pendingLocalActions.clear();
+    this.localActionRecords.clear();
     this.secondaryDown = false;
     this.mgDown = false;
     this.chargeHoldStart = 0;
     this.chargeHoldActive = false;
+    this.activeChargePressSeq = null;
     this.chargeSoundStarted = false;
   }
 
@@ -919,8 +926,8 @@ export class GameClient {
     this.updateChargeSound();
     this.prediction.retransmitPendingActions(performance.now());
     // Fade optimistic presentations that never received a confirming event.
-    for (const [seq, entry] of [...this.pendingLocalActions]) {
-      if (performance.now() - entry.at > 1500) this.pendingLocalActions.delete(seq);
+    for (const [seq, entry] of [...this.localActionRecords]) {
+      if (performance.now() - entry.at > 1500) this.localActionRecords.delete(seq);
     }
     const pending = this.prediction.metricsPending();
     netcodeMetrics.pendingInputs = pending.inputs;
@@ -1159,9 +1166,7 @@ export class GameClient {
         aimYaw: turret.desiredYawLocal,
         aimPitch: turret.desiredPitch,
       });
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
-      this.stopChargeSound();
+      this.cancelLocalCharge();
     }
     this.secondaryDown = secondary;
     void dt;
@@ -1172,9 +1177,7 @@ export class GameClient {
     if (!enabled) {
       this.tacticalDrawer?.close();
       this.lastPredictInput = { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false };
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
-      this.stopChargeSound();
+      this.cancelLocalCharge();
     }
   }
 
@@ -1225,9 +1228,7 @@ export class GameClient {
       if (this.chargeHoldActive || !charging) {
         this.fireGunnerAction('secondaryReleased', true);
       }
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
-      this.stopChargeSound();
+      this.cancelLocalCharge();
     }
     this.mgDown = mg;
     this.secondaryDown = secondary;
@@ -1235,13 +1236,16 @@ export class GameClient {
 
   private fireGunnerAction(action: GunnerActionType, presentLocally = false): void {
     const actionSeq = this.prediction.sendGunnerAction(action);
-    if (presentLocally && this.playLocalGunnerAction(action)) {
-      this.pendingLocalActions.set(actionSeq, { action, at: performance.now() });
-    }
+    const at = performance.now();
+    const presented = presentLocally && this.playLocalGunnerAction(action, actionSeq, at);
+    // Record every immediate action, including a charging press that has no
+    // muzzle presentation, so actionResult can stop retries and roll back the
+    // exact local hold that was rejected.
+    this.localActionRecords.set(actionSeq, { action, at, presented });
   }
 
   /** Same-frame local weapon presentation (presentation only, no damage). */
-  private playLocalGunnerAction(action: GunnerActionType): boolean {
+  private playLocalGunnerAction(action: GunnerActionType, actionSeq: number, now: number): boolean {
     const latest = this.presenter.latest;
     this.tankRig.chassis.updateMatrixWorld(true);
     let muzzle: { x: number; y: number; z: number } = getMuzzleWorld(this.tankRig);
@@ -1258,6 +1262,9 @@ export class GameClient {
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     if (action === 'secondaryPressed') {
       if (charging) {
+        this.chargeHoldStart = now;
+        this.chargeHoldActive = true;
+        this.activeChargePressSeq = actionSeq;
         this.chargeSoundStarted = false;
         return false;
       }
@@ -1321,6 +1328,23 @@ export class GameClient {
     return { unlocked, held, ratio, full: ratio >= 1 };
   }
 
+  /** Read-only automation diagnostics; never mutates gameplay state. */
+  localChargeDiagnostics(): {
+    unlocked: boolean;
+    held: boolean;
+    ratio: number;
+    full: boolean;
+    activePressSeq: number | null;
+    pendingTransportActions: number;
+  } {
+    const view = this.getLocalChargeView() ?? { unlocked: false, held: false, ratio: 0, full: false };
+    return {
+      ...view,
+      activePressSeq: this.activeChargePressSeq,
+      pendingTransportActions: this.prediction.metricsPending().actions,
+    };
+  }
+
   /** Send/submit the selected upgrade card (authoritative path). */
   submitUpgrade(cardIndex: number): void {
     const latest = this.presenter.latest;
@@ -1381,10 +1405,8 @@ export class GameClient {
     if (!previousActive && this.progressionInput.active()) {
       this.mgDown = false;
       this.secondaryDown = false;
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
+      this.cancelLocalCharge();
       this.input.clearDriverEdges();
-      this.stopChargeSound();
     }
   }
 
@@ -1420,17 +1442,13 @@ export class GameClient {
   private updateChargeSound(): void {
     const latest = this.presenter.latest;
     if (latest?.tank.deadT && latest.tank.deadT > 0) {
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
-      this.stopChargeSound();
+      this.cancelLocalCharge();
       return;
     }
     if (this.chargeHoldActive && (latest?.turret.cannonCooldown ?? 0) > 0) {
       // Authoritative cooldown while holding means the press was rejected or
       // stale; never let a charge continue through cooldown.
-      this.chargeHoldActive = false;
-      this.chargeHoldStart = 0;
-      this.stopChargeSound();
+      this.cancelLocalCharge();
       return;
     }
     if (!this.chargeHoldActive || this.chargeSoundStarted) return;
@@ -1445,6 +1463,13 @@ export class GameClient {
   private stopChargeSound(): void {
     this.chargeSoundStarted = false;
     this.audio.stopCannonCharge();
+  }
+
+  private cancelLocalCharge(): void {
+    this.chargeHoldActive = false;
+    this.chargeHoldStart = 0;
+    this.activeChargePressSeq = null;
+    this.stopChargeSound();
   }
 
   getCameraState() {

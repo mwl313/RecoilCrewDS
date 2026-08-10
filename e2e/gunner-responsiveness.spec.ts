@@ -24,11 +24,21 @@ async function createCrew(a: Page, b: Page, latency = 0): Promise<void> {
   await b.click('#join-go');
   await a.click('#lobby-ready');
   await b.click('#lobby-ready');
-  const runningFn = () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running';
+  const runningFn = () => {
+    const recoil = (window as unknown as {
+      __recoil: { state(): { phase: string } | null; flow(): string };
+    }).__recoil;
+    return recoil.state()?.phase === 'running' && recoil.flow() === 'game';
+  };
   for (let attempt = 0; attempt < 6; attempt++) {
     const okA = await a.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
     const okB = await b.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
-    if (okA && okB) return;
+    if (okA && okB) {
+      await b.waitForFunction(() =>
+        (window as unknown as { __recoil: { role(): string } }).__recoil.role() === 'gunner',
+      );
+      return;
+    }
     if (await a.locator('#lobby-ready').isVisible().catch(() => false)) await a.click('#lobby-ready');
     if (await b.locator('#lobby-ready').isVisible().catch(() => false)) await b.click('#lobby-ready');
   }
@@ -120,6 +130,79 @@ test('gunner cannon press is sent immediately and accepted exactly once', async 
     if (!impulseSeen) await b.waitForTimeout(400);
   }
   expect(impulseSeen).toBe(true);
+  await ctxA.close();
+  await ctxB.close();
+});
+
+test('gunner charge HUD fills locally and releases exactly one full-charge shot', async ({ browser }) => {
+  const latency = Number(process.env.NETCODE_LATENCY_MS ?? 0);
+  const ctxA = await browser.newContext();
+  const ctxB = await browser.newContext();
+  const driver = await ctxA.newPage();
+  const gunner = await ctxB.newPage();
+  await createCrew(driver, gunner, latency);
+  await gunner.evaluate(() =>
+    (window as unknown as { __recoil: { setAutoInput(value: boolean): void } }).__recoil.setAutoInput(true),
+  );
+  await lockPointer(gunner);
+  await gunner.waitForTimeout(300);
+
+  const beforeShots = await gunner.evaluate(() =>
+    (window as unknown as { __recoil: { state(): { stats: { fullChargeShots: number } } } }).__recoil.state().stats.fullChargeShots,
+  );
+  await gunner.mouse.down({ button: 'right' });
+  await gunner.waitForFunction(() => {
+    const recoil = (window as unknown as {
+      __recoil: {
+        localCharge(): { held: boolean; full: boolean; ratio: number } | null;
+        state(): { turret: { cannonHeld: boolean; cannonChargeFull: boolean; cannonChargeRatio: number } } | null;
+      };
+    }).__recoil;
+    const local = recoil.localCharge();
+    const state = recoil.state();
+    return local?.held === true && local.full === true && local.ratio >= 0.999
+      && state?.turret.cannonHeld === true && state.turret.cannonChargeFull === true
+      && state.turret.cannonChargeRatio >= 0.999;
+  }, undefined, { timeout: 5000 });
+
+  const chargePresentation = await gunner.evaluate(() => {
+    const local = (window as unknown as {
+      __recoil: { localCharge(): { held: boolean; full: boolean; ratio: number; pendingTransportActions: number } | null };
+    }).__recoil.localCharge();
+    const rail = document.getElementById('charge-fill');
+    const crosshair = document.getElementById('crosshair-charge-fill');
+    return {
+      local,
+      railWidth: rail?.style.width ?? '',
+      crosshairHeight: crosshair?.style.height ?? '',
+      crosshairFull: crosshair?.classList.contains('full') ?? false,
+    };
+  });
+  expect(chargePresentation.local?.held).toBe(true);
+  expect(chargePresentation.local?.full).toBe(true);
+  expect(chargePresentation.local?.pendingTransportActions).toBe(0);
+  expect(parseFloat(chargePresentation.railWidth)).toBeGreaterThanOrEqual(99.9);
+  expect(parseFloat(chargePresentation.crosshairHeight)).toBeGreaterThanOrEqual(99.9);
+  expect(chargePresentation.crosshairFull).toBe(true);
+
+  await gunner.mouse.up({ button: 'right' });
+  await gunner.waitForFunction((expected) => {
+    const recoil = (window as unknown as {
+      __recoil: {
+        localCharge(): { held: boolean; pendingTransportActions: number } | null;
+        state(): { stats: { fullChargeShots: number } } | null;
+      };
+    }).__recoil;
+    const state = recoil.state();
+    const local = recoil.localCharge();
+    return state?.stats.fullChargeShots === expected && local?.held === false && local.pendingTransportActions === 0;
+  }, beforeShots + 1, { timeout: 5000 });
+  await gunner.waitForTimeout(400);
+  const afterShots = await gunner.evaluate(() =>
+    (window as unknown as { __recoil: { state(): { stats: { fullChargeShots: number } } } }).__recoil.state().stats.fullChargeShots,
+  );
+  expect(afterShots).toBe(beforeShots + 1);
+
   await ctxA.close();
   await ctxB.close();
 });

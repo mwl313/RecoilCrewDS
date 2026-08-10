@@ -1075,6 +1075,7 @@ if (TEST_MODE) {
     },
     soundtrack: () => audio.soundtrack.debugState(),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
+    localCharge: () => game?.localChargeDiagnostics() ?? null,
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,
     renderCount: () => game?.world.renderCount ?? 0,
