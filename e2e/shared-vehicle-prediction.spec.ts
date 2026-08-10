@@ -24,7 +24,12 @@ async function createCrew(a: Page, b: Page, latency = 0): Promise<void> {
   await b.click('#join-go');
   await a.click('#lobby-ready');
   await b.click('#lobby-ready');
-  const runningFn = () => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running';
+  const runningFn = () => {
+    const recoil = (window as unknown as {
+      __recoil: { state(): { phase: string } | null; flow(): string };
+    }).__recoil;
+    return recoil.state()?.phase === 'running' && recoil.flow() === 'game';
+  };
   for (let attempt = 0; attempt < 6; attempt++) {
     const okA = await a.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
     const okB = await b.waitForFunction(runningFn, undefined, { timeout: 8000 }).then(() => true).catch(() => false);
@@ -88,7 +93,7 @@ test('gunner camera follows the shared predicted tank without the delayed interp
   await ctxB.close();
 });
 
-test('rematch and reconnect keep shared prediction alive', async ({ browser }) => {
+test('reconnect seeds transport sequences and accepts immediate Gunner input', async ({ browser }) => {
   const ctxA = await browser.newContext();
   const ctxB = await browser.newContext();
   const a = await ctxA.newPage();
@@ -98,15 +103,71 @@ test('rematch and reconnect keep shared prediction alive', async ({ browser }) =
     code: (window as unknown as { __recoil: { code(): string } }).__recoil.code(),
     sessionId: (window as unknown as { __recoil: { sessionId(): string } }).__recoil.sessionId(),
   }));
+  await b.evaluate(() => (window as unknown as { __recoil: { setAutoInput(value: boolean): void } }).__recoil.setAutoInput(true));
+  await b.mouse.click(640, 360);
+  await b.waitForFunction(() => document.pointerLockElement !== null);
+  await b.mouse.down({ button: 'left' });
+  await b.waitForTimeout(120);
+  await b.mouse.up({ button: 'left' });
+  await b.waitForFunction(() => {
+    const sequences = (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } | null };
+    }).__recoil.networkSequences();
+    return !!sequences && sequences.inputSeq > 0 && sequences.actionSeq >= 2;
+  });
+  const before = await b.evaluate(() =>
+    (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } };
+    }).__recoil.networkSequences(),
+  );
   await b.reload();
   await b.click('#screen-boot');
   await b.evaluate(
     (s) => (window as unknown as { __recoil: { rejoin(c: string, sid: string): void } }).__recoil.rejoin(s.code, s.sessionId),
     session,
   );
-  await b.waitForFunction(() => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase === 'running', undefined, { timeout: 20000 });
-  const stillRunning = await b.evaluate(() => (window as unknown as { __recoil: { state(): { phase: string } | null } }).__recoil.state()?.phase);
-  expect(stillRunning).toBe('running');
+  await b.waitForFunction(() => {
+    const recoil = (window as unknown as {
+      __recoil: { state(): { phase: string } | null; flow(): string; role(): string };
+    }).__recoil;
+    return recoil.state()?.phase === 'running' && recoil.flow() === 'game' && recoil.role() === 'gunner';
+  }, undefined, { timeout: 20000 });
+  const seeded = await b.evaluate(() =>
+    (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } };
+    }).__recoil.networkSequences(),
+  );
+  expect(seeded.inputSeq).toBeGreaterThanOrEqual(before.inputSeq);
+  expect(seeded.actionSeq).toBeGreaterThanOrEqual(before.actionSeq);
+
+  await b.evaluate(() => {
+    const recoil = (window as unknown as {
+      __recoil: { input(role: string, data: unknown): void };
+    }).__recoil;
+    recoil.input('gunner', { aimYaw: -1.1, aimPitch: 0.1, primary: false, secondary: false });
+  });
+  await b.waitForFunction(() => {
+    const turret = (window as unknown as {
+      __recoil: { state(): { turret: { yaw: number } } | null };
+    }).__recoil.state()?.turret;
+    return !!turret && Math.abs(turret.yaw + 1.1) < 0.1;
+  });
+
+  await b.evaluate(() => (window as unknown as { __recoil: { setAutoInput(value: boolean): void } }).__recoil.setAutoInput(true));
+  await b.mouse.click(640, 360);
+  await b.waitForFunction(() => document.pointerLockElement !== null);
+  await b.mouse.down({ button: 'left' });
+  await b.waitForFunction(() =>
+    (window as unknown as { __recoil: { state(): { turret: { mgFiring: boolean } } | null } }).__recoil.state()?.turret.mgFiring === true,
+  );
+  await b.mouse.up({ button: 'left' });
+  const after = await b.evaluate(() =>
+    (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } };
+    }).__recoil.networkSequences(),
+  );
+  expect(after.inputSeq).toBeGreaterThan(before.inputSeq);
+  expect(after.actionSeq).toBeGreaterThan(before.actionSeq);
   await ctxA.close();
   await ctxB.close();
 });

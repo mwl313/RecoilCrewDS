@@ -167,4 +167,19 @@ describe('Gunner action transport lifecycle', () => {
 
     expect(sent).toHaveLength(1);
   });
+
+  it('seeds reconnect counters monotonically and preserves them across a match reset', () => {
+    const sent: Record<string, unknown>[] = [];
+    const pc = new PredictionController('gunner', { send: (message) => sent.push(message) });
+    pc.seedSequences(40, 70);
+    pc.seedSequences(2, 3);
+    pc.reset({ preserveSequences: true });
+
+    expect(pc.nextSeq()).toBe(41);
+    expect(pc.sendGunnerAction('mgStart')).toBe(71);
+    expect(pc.sequenceState()).toEqual({ inputSeq: 41, actionSeq: 71 });
+
+    pc.reset();
+    expect(pc.sequenceState()).toEqual({ inputSeq: 0, actionSeq: 0 });
+  });
 });

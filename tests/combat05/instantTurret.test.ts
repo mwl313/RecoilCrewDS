@@ -11,7 +11,7 @@ const DT = 1 / 30;
 describe('instant turret response (Combat 05 M3)', () => {
   it('protocol version was bumped for click-time aim', () => {
     // Relic movement counters are now part of the authoritative snapshot.
-    expect(PROTOCOL_VERSION).toBe(19);
+    expect(PROTOCOL_VERSION).toBe(20);
   });
 
   it('instant client mode makes predicted yaw/pitch equal the mouse target in the same frame', () => {

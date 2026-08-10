@@ -31,8 +31,7 @@ import type { MatchState, Role, SimEvent } from '../shared/types';
 import type { MovementRulesBlock } from '../shared/stats/rulesRevision';
 import { HordeReplicationClient } from '../shared/net/horde/hordeReplication';
 import type { HordeSnapshotBlock } from '../shared/net/horde/hordeProtocol';
-import type { HordeStageView } from '../shared/net/protocol';
-import type { RunConfigMessage } from '../shared/net/protocol';
+import type { HordeStageView, RunConfigMessage, SequenceBaseline } from '../shared/net/protocol';
 import {
   checkProtocolCompatibility,
   PROTOCOL_VERSION,
@@ -110,6 +109,7 @@ let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
 let lastPreloadedMatchId = '';
 let latestRunConfig: RunConfigMessage | null = null;
+let latestSequenceBaseline: SequenceBaseline = { inputSeq: 0, actionSeq: 0 };
 let activeSinglePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
 let localPlayerId = '';
 let lobbyState: ClientLobbyState | null = null;
@@ -315,6 +315,7 @@ hud.bind({
 net.onMessage = (msg) => {
   switch (msg.t) {
     case 'created':
+      latestSequenceBaseline = { inputSeq: 0, actionSeq: 0 };
       role = 'driver';
       sessionId = msg.sessionId as string;
       roomCode = msg.code as string;
@@ -331,6 +332,8 @@ net.onMessage = (msg) => {
       role = msg.role as Role;
       sessionId = msg.sessionId as string;
       roomCode = msg.code as string;
+      latestSequenceBaseline = sanitizeSequenceBaseline(msg.sequenceBaseline);
+      game?.seedNetworkSequences(latestSequenceBaseline);
       const phase = msg.phase as string;
       if ((phase === 'running' || phase === 'results') && msg.arena) {
         // Mid-round reconnect (same page refresh or rejoin).
@@ -697,6 +700,16 @@ function showGameStartupError(error: unknown): void {
   mapGateFailed = true;
 }
 
+function sanitizeSequenceBaseline(value: unknown): SequenceBaseline {
+  const candidate = value as Partial<SequenceBaseline> | null | undefined;
+  const sanitize = (raw: unknown): number =>
+    typeof raw === 'number' && Number.isFinite(raw) ? Math.max(0, Math.floor(raw)) : 0;
+  return {
+    inputSeq: sanitize(candidate?.inputSeq),
+    actionSeq: sanitize(candidate?.actionSeq),
+  };
+}
+
 async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: string): Promise<void> {
   if (arenaSession && arenaSession.metadata.arenaChecksum === meta.arenaChecksum) {
     // Same active map: resume the existing game.
@@ -744,6 +757,7 @@ async function startOnline(
   const selectedWorld = world ?? arenaSession?.world ?? createStaticArenaWorld();
   await preloadArenaAssets(selectedWorld);
   if (!game) game = await createGame(selectedWorld);
+  game.seedNetworkSequences(latestSequenceBaseline);
   if (matchId && matchId !== lastPreloadedMatchId) {
     const config = latestRunConfig?.matchId === matchId ? latestRunConfig : null;
     await game.preloadMonsterRun(CLIENT_CONTENT_PACK, config?.run ?? null);
@@ -1075,6 +1089,7 @@ if (TEST_MODE) {
     },
     soundtrack: () => audio.soundtrack.debugState(),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
+    networkSequences: () => game?.networkSequenceDiagnostics() ?? null,
     localCharge: () => game?.localChargeDiagnostics() ?? null,
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,

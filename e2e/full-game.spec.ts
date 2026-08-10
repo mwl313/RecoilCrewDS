@@ -126,7 +126,14 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   for (const p of [a, b]) {
     p.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     p.on('console', (m) => {
-      if (m.type() === 'error') errors.push(`console: ${m.text()}`);
+      if (m.type() === 'error' && !m.text().includes('Failed to load resource')) {
+        errors.push(`console: ${m.text()}`);
+      }
+    });
+    p.on('response', (response) => {
+      if (response.status() >= 400 && !response.url().endsWith('/favicon.ico')) {
+        errors.push(`http ${response.status()}: ${response.url()}`);
+      }
     });
   }
 
@@ -221,7 +228,41 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   const matchB = await b.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
   expect(matchA).toBe(matchB);
 
-  const critical = errors.filter((e) => !e.includes('WebGL') && !e.includes('GPU') && !e.includes('Automatic fallback'));
+  for (const page of [a, b]) {
+    await page.waitForFunction(() =>
+      (window as unknown as { __recoil: { flow(): string } }).__recoil.flow() === 'game',
+    );
+  }
+  const rematchSpawn = await a.evaluate(() => {
+    const tank = (window as unknown as {
+      __recoil: { state(): { tank: { x: number; z: number } } };
+    }).__recoil.state().tank;
+    return { x: tank.x, z: tank.z };
+  });
+  await startDriver(a);
+  await startGunner(b);
+  await a.waitForFunction((spawn) => {
+    const tank = (window as unknown as {
+      __recoil: { state(): { tank: { x: number; z: number } } | null };
+    }).__recoil.state()?.tank;
+    return !!tank && Math.hypot(tank.x - spawn.x, tank.z - spawn.z) > 2;
+  }, rematchSpawn);
+  await b.waitForFunction(() =>
+    ((window as unknown as {
+      __recoil: { state(): { turret: { cannonCooldown: number } } | null };
+    }).__recoil.state()?.turret.cannonCooldown ?? 0) > 0.3,
+  );
+  await a.evaluate(() => (window as unknown as { __stopDriver?: () => void }).__stopDriver?.());
+  await b.evaluate(() => (window as unknown as { __stopGunner?: () => void }).__stopGunner?.());
+
+  const critical = errors.filter((e) =>
+    !e.includes('WebGL')
+    && !e.includes('GPU')
+    && !e.includes('Automatic fallback')
+    // This authored slot is explicitly optional; SkyEnvironment immediately
+    // retains its procedural fallback when the file is absent.
+    && !e.includes('/assets/environment/sky/recoil-day-01.webp'),
+  );
   expect(critical).toEqual([]);
 
   await ctxA.close();

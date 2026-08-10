@@ -672,6 +672,14 @@ export class GameClient {
     return this.localActionRecords.get(actionSeq)?.presented === true;
   }
 
+  seedNetworkSequences(baseline: { inputSeq: number; actionSeq: number }): void {
+    this.prediction.seedSequences(baseline.inputSeq, baseline.actionSeq);
+  }
+
+  networkSequenceDiagnostics(): { inputSeq: number; actionSeq: number } {
+    return this.prediction.sequenceState();
+  }
+
   confirmAction(actionSeq: number): void {
     this.prediction.confirmAction(actionSeq);
     this.localActionRecords.delete(actionSeq);
@@ -689,7 +697,7 @@ export class GameClient {
   private resetState(): void {
     this.registry.reset();
     this.presenter.reset();
-    this.prediction.reset();
+    this.prediction.reset({ preserveSequences: this.session.kind === 'multiplayer' });
     this.aggregateSectors.reset();
     this.xpShards.reset();
     this.enemyWorldUi?.reset();

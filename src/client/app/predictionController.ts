@@ -200,6 +200,18 @@ export class PredictionController {
     return ++this.inputSeq;
   }
 
+  /** Continue monotonic transport after a replacement connection rejoins. */
+  seedSequences(inputSeq: number, actionSeq: number): void {
+    const sanitizedInput = Number.isFinite(inputSeq) ? Math.max(0, Math.floor(inputSeq)) : 0;
+    const sanitizedAction = Number.isFinite(actionSeq) ? Math.max(0, Math.floor(actionSeq)) : 0;
+    this.inputSeq = Math.max(this.inputSeq, sanitizedInput);
+    this.actionSeq = Math.max(this.actionSeq, sanitizedAction);
+  }
+
+  sequenceState(): { inputSeq: number; actionSeq: number } {
+    return { inputSeq: this.inputSeq, actionSeq: this.actionSeq };
+  }
+
   sendDriver(input: DriverInput): void {
     const seq = this.nextSeq();
     this.predictor?.pushInput(seq, input);
@@ -374,7 +386,7 @@ export class PredictionController {
     };
   }
 
-  reset(): void {
+  reset(options: { preserveSequences?: boolean } = {}): void {
     this.predictor = null;
     this.movementRevision = 0;
     this.desiredTurretYawLocal = Math.PI / 2;
@@ -386,8 +398,10 @@ export class PredictionController {
     this.turretReconcileSeq = 0;
     this.pendingAimFrames.length = 0;
     this.pendingActions.clear();
-    this.actionSeq = 0;
-    this.inputSeq = 0;
+    if (!options.preserveSequences) {
+      this.actionSeq = 0;
+      this.inputSeq = 0;
+    }
     this.turretTurnRate = 4.6;
     this.pitchFollowRate = 8;
     this.turretResponseMode = 'instant';

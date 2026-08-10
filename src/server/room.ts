@@ -411,6 +411,7 @@ export class RoomManager {
       seat: 'gunner',
       hostPlayerId: room.hostPlayerId,
       phase: room.phase,
+      sequenceBaseline: { inputSeq: client.inputSeq, actionSeq: client.actionSeq },
       lobby,
       chat: room.chat,
     });
@@ -462,6 +463,7 @@ export class RoomManager {
         seat: player.seat,
         hostPlayerId: room.hostPlayerId,
         phase: room.phase,
+        sequenceBaseline: { inputSeq: candidate.inputSeq, actionSeq: candidate.actionSeq },
         arena: room.arenaSession?.metadata ?? null,
         ...((room.phase === 'running' || room.phase === 'results') && room.content
           ? {
@@ -495,6 +497,7 @@ export class RoomManager {
     client.socket = null;
     client.disconnectedAt = this.now();
     client.graceLeft = GAME.reconnectGrace;
+    this.clearDisconnectedRoleInput(room, client);
     room.match?.refreshProgressionRelicGate(connectedProgressionRoles(room), this.now());
     room.roleSwap = null;
     this.cancelCountdown(room, 'disconnect');
@@ -1327,6 +1330,21 @@ export class RoomManager {
     });
   }
 
+  private clearDisconnectedRoleInput(room: Room, client: Client): void {
+    if (!room.match) return;
+    if (client.role === 'driver') {
+      room.match.clearDriverInput();
+      room.lastDriverRelayEdges = { dash: false, jump: false };
+      this.send(room.gunner, {
+        t: 'driverInputRelay',
+        seq: client.inputSeq,
+        driver: { throttle: 0, steer: 0, dashPressed: false, jumpPressed: false },
+      });
+    } else if (client.role === 'gunner') {
+      room.match.clearGunnerInput();
+    }
+  }
+
   private broadcast(room: Room, msg: Record<string, unknown>) {
     this.send(room.driver, msg);
     this.send(room.gunner, msg);
@@ -1335,6 +1353,7 @@ export class RoomManager {
   private removeClient(client: Client) {
     const room = client.room;
     if (!room) return;
+    this.clearDisconnectedRoleInput(room, client);
     room.roleSwap = null;
     if (room.driver === client) room.driver = null;
     if (room.gunner === client) room.gunner = null;

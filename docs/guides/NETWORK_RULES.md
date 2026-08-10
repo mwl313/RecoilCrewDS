@@ -22,6 +22,11 @@ mismatched builds with `error.protocol` and closes the socket.
 metadata and arena metadata), `snapshot`, `event`, `driverInputRelay`,
 `tankImpulse`, `actionResult`, `results`, `error`, `pong`.
 
+Protocol 20 adds `sequenceBaseline { inputSeq, actionSeq }` to `joined`.
+Replacement clients seed their local counters from this baseline; rematches
+preserve counters on the existing transport. The server never resets
+authoritative operation history to accommodate a reconnect.
+
 ### Gunner responsiveness (network03)
 
 - Discrete Gunner actions bypass the 50 ms periodic timer and are answered

@@ -275,6 +275,24 @@ describe('full round and rematch', () => {
     expect(room.match!.state.stats.score).toBe(0);
     expect(room.match!.mcfg.modifier).toBe('soapTracks');
     expect(room.code).toBe(a.last('created')!.code);
+
+    // Transport sequences are connection-scoped, so the first rematch
+    // frames continue from each client's high-water mark and immediately
+    // become the new Match's authoritative acknowledgements.
+    const driverSeq = manager.getClient(a)!.inputSeq + 1;
+    const gunnerSeq = manager.getClient(b)!.inputSeq + 1;
+    manager.handle(a, {
+      t: 'input',
+      seq: driverSeq,
+      driver: { throttle: 1, steer: 0, dashPressed: false, jumpPressed: false },
+    });
+    manager.handle(b, {
+      t: 'input',
+      seq: gunnerSeq,
+      gunner: { aimYaw: -0.9, aimPitch: 0.1, primary: false, secondary: false },
+    });
+    expect(room.match!.opState.lastDriverInputSeq).toBe(driverSeq);
+    expect(room.match!.opState.lastGunnerInputSeq).toBe(gunnerSeq);
   });
 
   it('allows the Gunner to reconnect within grace with the same role', () => {

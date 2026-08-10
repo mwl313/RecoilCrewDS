@@ -83,12 +83,20 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * cues plus compact enemy tier/size/profile metadata.
  * Protocol 19: authoritative reward/integrity/damage feedback events carry
  * final values, overlay deferral, source position, and resolved max integrity.
+ * Protocol 20: joined messages carry the server's input/action sequence
+ * baseline so a replacement browser can continue exact-once transport
+ * without resetting authoritative operation history.
  */
-export const PROTOCOL_VERSION = 19;
+export const PROTOCOL_VERSION = 20;
 
 export interface ProtocolEnvelope {
   protocol: number;
   t: string;
+}
+
+export interface SequenceBaseline {
+  inputSeq: number;
+  actionSeq: number;
 }
 
 // Client → Server ---------------------------------------------------------
@@ -253,6 +261,12 @@ export interface SnapshotMessage extends ProtocolEnvelope {
   stage?: HordeStageView;
 }
 
+export interface JoinedMessage extends ProtocolEnvelope {
+  t: 'joined';
+  sequenceBaseline: SequenceBaseline;
+  [key: string]: unknown;
+}
+
 export interface DriverInputRelayMessage extends ProtocolEnvelope {
   t: 'driverInputRelay';
   seq: number;
@@ -290,6 +304,7 @@ export interface TimingBlockMessage extends ProtocolEnvelope {
 }
 
 export type ServerMessage =
+  | JoinedMessage
   | SnapshotMessage
   | DriverInputRelayMessage
   | GunnerActionResultMessage
