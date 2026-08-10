@@ -25,6 +25,7 @@ export type SoundName =
   | 'enemyHit'
   | 'enemyDeath'
   | 'scrapPickup'
+  | 'chestOpen'
   | 'collision'
   | 'rammerTelegraph'
   | 'towerFire'
@@ -67,6 +68,12 @@ const BUS_GAINS: Record<ProceduralBusName, number> = {
   uiReward: 0.72,
 };
 
+const SFX_BUS_BASE_GAIN = 0.9;
+export const AUDIO_MIX_MULTIPLIERS = Object.freeze({
+  sfx: 1.7,
+  bgm: 1.3,
+});
+
 export const PHASE_ANNOUNCEMENT_DUCK = Object.freeze({
   depth: 0.2,
   attackMs: 20,
@@ -87,6 +94,7 @@ export class AudioManager {
   private sfxBus: GainNode | null = null;
   private sfxUserGain: GainNode | null = null;
   private musicUserGain: GainNode | null = null;
+  private bgmMasterGain: GainNode | null = null;
   private bgmVolume = 100;
   private sfxVolume = 100;
   private readonly buses = new Map<ProceduralBusName, GainNode>();
@@ -151,7 +159,7 @@ export class AudioManager {
     compressor.connect(this.ctx.destination);
 
     this.sfxBus = this.ctx.createGain();
-    this.sfxBus.gain.value = 0.9;
+    this.sfxBus.gain.value = SFX_BUS_BASE_GAIN * AUDIO_MIX_MULTIPLIERS.sfx;
     this.sfxUserGain = this.ctx.createGain();
     this.sfxUserGain.gain.value = perceptualVolumeGain(this.sfxVolume);
     this.sfxBus.connect(this.sfxUserGain).connect(this.master);
@@ -171,6 +179,7 @@ export class AudioManager {
     const contextGain = this.ctx.createGain();
     const duckGain = this.ctx.createGain();
     this.musicUserGain = this.ctx.createGain();
+    this.bgmMasterGain = this.ctx.createGain();
     trackFadeGain.gain.value = 0;
     lowPass.type = 'lowpass';
     lowPass.frequency.value = 2_300;
@@ -178,12 +187,14 @@ export class AudioManager {
     contextGain.gain.value = 0.72;
     duckGain.gain.value = 1;
     this.musicUserGain.gain.value = perceptualVolumeGain(this.bgmVolume);
+    this.bgmMasterGain.gain.value = AUDIO_MIX_MULTIPLIERS.bgm;
     soundtrackSource
       .connect(trackFadeGain)
       .connect(lowPass)
       .connect(contextGain)
       .connect(duckGain)
       .connect(this.musicUserGain)
+      .connect(this.bgmMasterGain)
       .connect(this.master);
     this.musicGain = contextGain;
     this.soundtrackAutomation.bind(new WebAudioSoundtrackAutomation(
@@ -534,16 +545,22 @@ export class AudioManager {
         notes.forEach((frequency, index) => this.blip(frequency, t + index * 0.055, 0.12, 'sine', 0.22, this.requireBus('uiReward')));
         return;
       }
+      case 'chestOpen': {
+        const destination = this.requireBus('uiReward');
+        this.noiseHit(t, 1_050, 0.04, 0.11, destination);
+        this.blip(145, t, 0.1, 'triangle', 0.17, destination, 96);
+        this.blip(740, t + 0.018, 0.11, 'square', 0.09, destination);
+        this.blip(1_174.66, t + 0.064, 0.17, 'sine', 0.14, destination);
+        this.blip(1_760, t + 0.108, 0.13, 'sine', 0.075, destination);
+        return;
+      }
       case 'results':
         [[261.6, 0], [329.6, 0.12], [392, 0.24], [523.3, 0.4]].forEach(([frequency, delay]) =>
           this.blip(frequency, t + delay, 0.5, 'triangle', 0.25, this.requireBus('uiReward')),
         );
         return;
       case 'rewardLevelImpact':
-        this.blip(86, t, 0.28, 'sine', 0.42, this.requireBus('uiReward'));
-        this.blip(48, t + 0.018, 0.34, 'sine', 0.24, this.requireBus('uiReward'));
-        this.blip(1_180, t + 0.028, 0.055, 'square', 0.09, this.requireBus('uiReward'));
-        this.noiseHit(t + 0.018, 2_400, 0.075, 0.13, this.requireBus('uiReward'));
+        this.playLevelUpJingle(t);
         return;
       case 'rewardTick': {
         const progress = Math.max(0, Math.min(1, opts.charge ?? 0));
@@ -590,16 +607,67 @@ export class AudioManager {
     }
   }
 
+  private playLevelUpJingle(t: number): void {
+    const destination = this.requireBus('uiReward');
+
+    // A firm low hit clears space for the ascending fanfare. The octave climb
+    // then resolves into a held C chord with a bright sparkle tail.
+    this.blip(92, t, 0.38, 'sine', 0.46, destination, 46);
+    this.noiseHit(t + 0.012, 2_200, 0.09, 0.14, destination);
+    this.blip(330, t + 0.015, 0.24, 'square', 0.085, destination, 660);
+
+    const climb = [
+      { frequency: 392, delay: 0.04, duration: 0.32, gain: 0.16 },
+      { frequency: 523.25, delay: 0.17, duration: 0.36, gain: 0.18 },
+      { frequency: 659.25, delay: 0.3, duration: 0.4, gain: 0.19 },
+      { frequency: 783.99, delay: 0.43, duration: 0.46, gain: 0.2 },
+      { frequency: 1_046.5, delay: 0.57, duration: 0.86, gain: 0.24 },
+    ];
+    for (const note of climb) {
+      this.blip(note.frequency, t + note.delay, note.duration, 'triangle', note.gain, destination);
+      this.blip(note.frequency * 2, t + note.delay, note.duration * 0.72, 'sine', note.gain * 0.34, destination);
+    }
+
+    [523.25, 659.25, 783.99].forEach((frequency, index) => {
+      this.blip(frequency, t + 0.61, 0.92 - index * 0.07, 'sine', 0.12 - index * 0.012, destination);
+    });
+    [1_318.51, 1_567.98, 2_093].forEach((frequency, index) => {
+      this.blip(frequency, t + 0.72 + index * 0.13, 0.36, 'sine', 0.075 - index * 0.01, destination);
+    });
+  }
+
   private playRelicLock(t: number, rarity: string): void {
     const destination = this.requireBus('uiReward');
-    const hitAt = t + (rarity === 'legendary' ? 0.072 : 0);
-    this.noiseHit(hitAt, rarity === 'legendary' ? 2_800 : 1_650, 0.085, rarity === 'common' ? 0.1 : 0.17, destination);
-    this.blip(rarity === 'legendary' ? 46 : rarity === 'epic' ? 68 : 86, hitAt, rarity === 'legendary' ? 0.56 : 0.32, 'sine', rarity === 'legendary' ? 0.55 : 0.36, destination);
-    this.blip(rarity === 'rare' ? 980 : 740, hitAt + 0.045, 0.18, 'triangle', 0.14, destination);
-    if (rarity === 'epic' || rarity === 'legendary') this.blip(988, hitAt + 0.12, 0.28, 'sine', 0.11, destination);
-    if (rarity === 'legendary') {
-      this.blip(1_318, hitAt + 0.19, 0.3, 'sine', 0.1, destination);
-      this.blip(1_760, hitAt + 0.27, 0.32, 'sine', 0.075, destination);
+    const rarityLift = rarity === 'legendary' ? 1.18 : rarity === 'epic' ? 1.08 : rarity === 'rare' ? 1 : 0.9;
+    const firstHit = t + 0.05;
+    const finalHit = t + 0.4;
+
+    // An unmistakable two-part "ta-da": a short dominant pickup followed by
+    // a wide, sustained resolution. Rarity adds brilliance without
+    // changing the recognizable phrase.
+    this.blip(196, t, 0.34, 'sawtooth', 0.055 * rarityLift, destination, 392);
+    this.blip(392, firstHit, 0.42, 'triangle', 0.19 * rarityLift, destination);
+    this.blip(493.88, firstHit, 0.38, 'sine', 0.12 * rarityLift, destination);
+    this.noiseHit(firstHit, 1_600, 0.07, 0.1 * rarityLift, destination);
+
+    this.blip(65.41, finalHit, 0.88, 'sine', 0.42 * rarityLift, destination, 49);
+    this.noiseHit(finalHit, 4_200, 0.34, 0.16 * rarityLift, destination, 'highpass');
+    [261.63, 329.63, 392, 523.25].forEach((frequency, index) => {
+      const gain = (index === 0 ? 0.2 : index === 3 ? 0.17 : 0.13) * rarityLift;
+      this.blip(frequency, finalHit, 1.18 - index * 0.05, index === 0 ? 'triangle' : 'sine', gain, destination);
+    });
+
+    const sparkleCount = rarity === 'legendary' ? 5 : rarity === 'epic' ? 4 : rarity === 'rare' ? 3 : 2;
+    const sparkleNotes = [1_046.5, 1_318.51, 1_567.98, 2_093, 2_637.02];
+    for (let index = 0; index < sparkleCount; index++) {
+      this.blip(
+        sparkleNotes[index]!,
+        finalHit + 0.12 + index * 0.12,
+        0.48 - index * 0.035,
+        'sine',
+        (0.09 - index * 0.009) * rarityLift,
+        destination,
+      );
     }
   }
 
@@ -708,6 +776,7 @@ export class AudioManager {
     this.musicGain = null;
     this.sfxBus = null;
     this.musicUserGain = null;
+    this.bgmMasterGain = null;
     this.sfxUserGain = null;
     this.buses.clear();
   }

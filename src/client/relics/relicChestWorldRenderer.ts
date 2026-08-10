@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { RelicChestSpawnPolicyDefinition } from '../../shared/content/schemas/progression';
-import type { TreasureChestState } from '../../shared/progression/progressionTypes';
+import type { TreasureChestLifecycle, TreasureChestState } from '../../shared/progression/progressionTypes';
 import type { AssetService } from '../assets';
 import { RELIC_CHEST_ASSET_ID, RelicChestPresentation } from './relicChestPresentation';
 
@@ -17,6 +17,7 @@ interface ChestVisual {
   beacon: THREE.Group;
   baseScale: THREE.Vector3;
   materials: MaterialBaseline[];
+  lifecycle: TreasureChestLifecycle;
 }
 
 /** Pure presentation mirror for authoritative chest snapshots. */
@@ -27,6 +28,7 @@ export class RelicChestWorldRenderer {
     private readonly scene: THREE.Scene,
     private readonly assets: AssetService,
     private readonly policy: RelicChestSpawnPolicyDefinition,
+    private readonly onChestOpened?: (chest: TreasureChestState) => void,
   ) {}
 
   sync(chests: readonly TreasureChestState[], gameTime: number, wallNowMs: number, deltaSeconds: number): void {
@@ -78,6 +80,7 @@ export class RelicChestWorldRenderer {
       beacon,
       baseScale: root.scale.clone(),
       materials,
+      lifecycle: chest.lifecycle,
     };
     this.scene.add(root);
     this.visuals.set(chest.id, visual);
@@ -91,6 +94,8 @@ export class RelicChestWorldRenderer {
     wallNowMs: number,
     deltaSeconds: number,
   ): void {
+    if (visual.lifecycle === 'closed' && chest.lifecycle === 'opening') this.onChestOpened?.(chest);
+    visual.lifecycle = chest.lifecycle;
     visual.root.position.set(chest.x, chest.y, chest.z);
     visual.beacon.visible = chest.lifecycle === 'spawning' || chest.lifecycle === 'closed';
     visual.beacon.rotation.y += Math.max(0, Number.isFinite(deltaSeconds) ? deltaSeconds : 0) * 1.8;

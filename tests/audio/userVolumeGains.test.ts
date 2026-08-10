@@ -1,10 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AudioManager, perceptualVolumeGain } from '../../src/client/audio';
+import { AUDIO_MIX_MULTIPLIERS, AudioManager, perceptualVolumeGain } from '../../src/client/audio';
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('user audio gains', () => {
+  it('applies the approved SFX and BGM mix multipliers', () => {
+    expect(AUDIO_MIX_MULTIPLIERS).toEqual({ sfx: 1.7, bgm: 1.3 });
+  });
+
   it('uses a perceptual curve with exact mute and unity endpoints', () => {
     expect(perceptualVolumeGain(0)).toBe(0);
     expect(perceptualVolumeGain(50)).toBeCloseTo(0.25);
