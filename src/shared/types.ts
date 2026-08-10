@@ -384,6 +384,7 @@ export type SimEventType =
   | 'bossFire'
   | 'playerCannonImpact'
   | 'tankLanding'
+  | 'groundPoundImpact'
   | 'tankIntegrityGain'
   | 'xpGained'
   | 'tankDamageTaken';
@@ -400,6 +401,16 @@ export interface SimEvent {
   id?: number;
   kind?: string;
   value?: number;
+  /** Authoritative landing peak-to-contact distance in world metres. */
+  fallDistance?: number;
+  /** Authoritative downward speed immediately before the landing clamp. */
+  impactSpeed?: number;
+  /** True when this landing owns the combined Ground Pound presentation. */
+  groundPound?: boolean;
+  /** Authoritative Ground Pound damage geometry and stack metadata. */
+  radius?: number;
+  damage?: number;
+  stacks?: number;
   label?: string;
   yaw?: number;
   /** Gunner actionSeq for discrete action presentation suppression. */

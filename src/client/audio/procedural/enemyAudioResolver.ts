@@ -1,5 +1,6 @@
 import type { SimEvent } from '../../../shared/types';
 import type { EnemyAudioSizeClass, EnemyAudioTier, ProceduralSoundRecipe } from './proceduralSoundTypes';
+import { classifyLandingTier } from '../../../shared/sim/landingMetrics';
 
 export interface ResolvedEnemyAudioProfile {
   tier: EnemyAudioTier;
@@ -46,8 +47,11 @@ export function resolveLegacyEnemyCue(event: Pick<SimEvent, 'type' | 'kind' | 't
   return null;
 }
 
-export function classifyLanding(downwardSpeed: number): 'landingLight' | 'landingHeavy' {
-  return Math.max(0, downwardSpeed) >= 7.5 ? 'landingHeavy' : 'landingLight';
+export function classifyLanding(fallDistance: number): 'landingLight' | 'landingHeavy' | 'landingMassive' | null {
+  const tier = classifyLandingTier(fallDistance);
+  if (tier === 'none') return null;
+  if (tier === 'massive') return 'landingMassive';
+  return tier === 'heavy' ? 'landingHeavy' : 'landingLight';
 }
 
 /** Pure semantic routing seam used by tests/debug tooling and legacy fixtures. */
@@ -64,7 +68,12 @@ export function resolveSemanticEventRecipe(event: SimEvent): ProceduralSoundReci
     case 'barrelExplode': return 'barrelExplosion';
     case 'chainExplode': return 'barrelChainExplosion';
     case 'kill': return resolveEnemyDeathRecipe(profile.tier);
-    case 'tankLanding': return classifyLanding(event.value ?? 0);
+    case 'tankLanding':
+      if (event.groundPound) return 'groundPoundImpact';
+      if (event.fallDistance !== undefined) return classifyLanding(event.fallDistance);
+      // Compatibility with older servers, whose value was downward speed.
+      return Math.max(0, event.value ?? 0) >= 7.5 ? 'landingHeavy' : 'landingLight';
+    case 'groundPoundImpact': return 'groundPoundImpact';
     case 'towerFire':
     case 'rammerTelegraph':
       return resolveLegacyEnemyCue(event);

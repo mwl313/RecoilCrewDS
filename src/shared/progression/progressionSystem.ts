@@ -852,9 +852,11 @@ export class ProgressionSystem {
     this.dispatchTrigger({ type: 'dashHit', enemyId });
   }
 
-  notifyLanded(): void {
-    if (!this.isEnabled) return;
-    this.dispatchTrigger({ type: 'landed' });
+  notifyLanded(event: Omit<Extract<RelicTriggerEvent, { type: 'landed' }>, 'type'>): boolean {
+    if (!this.isEnabled) return false;
+    const eventStart = this.ctx.events.length;
+    this.dispatchTrigger({ type: 'landed', ...event });
+    return this.ctx.events.slice(eventStart).some((candidate) => candidate.type === 'groundPoundImpact');
   }
 
   notifyAirborneTick(dt: number, grounded: boolean): void {

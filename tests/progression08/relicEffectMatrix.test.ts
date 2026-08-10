@@ -107,7 +107,8 @@ describe('all 28 shipped relic effects', () => {
     const enemy = spawnEnemy(m, 'enemy.scrapBug', m.state.tank.x + 1, m.state.tank.z);
     m.systems.enemySpatial.rebuild(m.state.enemies);
     const hp = enemy.hp;
-    m.systems.progression.notifyLanded();
+    const t = m.state.tank;
+    m.systems.progression.notifyLanded({ fallDistance: 1.5, impactSpeed: 5, x: t.x, y: t.y, z: t.z });
     expect(hp - enemy.hp).toBe(10);
   });
 

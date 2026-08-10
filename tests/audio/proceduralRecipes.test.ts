@@ -27,10 +27,14 @@ describe('procedural recipes and semantic resolution', () => {
     expect(resolveSemanticEventRecipe(event({ type: 'enemyProjectileImpact' }))).toBe('enemyProjectileImpact');
     expect(resolveSemanticEventRecipe(event({ type: 'playerCannonImpact' }))).toBe('cannonImpact');
     expect(resolveSemanticEventRecipe(event({ type: 'kill', tier: 'boss', sizeClass: 'large' }))).toBe('bossDeath');
-    expect(resolveSemanticEventRecipe(event({ type: 'tankLanding', value: 4 }))).toBe('landingLight');
-    expect(resolveSemanticEventRecipe(event({ type: 'tankLanding', value: 10 }))).toBe('landingHeavy');
-    expect(classifyLanding(7.49)).toBe('landingLight');
-    expect(classifyLanding(7.5)).toBe('landingHeavy');
+    expect(resolveSemanticEventRecipe(event({ type: 'tankLanding', fallDistance: 4, impactSpeed: 10, value: 10 }))).toBe('landingLight');
+    expect(resolveSemanticEventRecipe(event({ type: 'tankLanding', fallDistance: 7, impactSpeed: 4, value: 4 }))).toBe('landingHeavy');
+    expect(resolveSemanticEventRecipe(event({ type: 'tankLanding', fallDistance: 12 }))).toBe('landingMassive');
+    expect(resolveSemanticEventRecipe(event({ type: 'groundPoundImpact' }))).toBe('groundPoundImpact');
+    expect(classifyLanding(2.49)).toBeNull();
+    expect(classifyLanding(2.5)).toBe('landingLight');
+    expect(classifyLanding(5.5)).toBe('landingHeavy');
+    expect(classifyLanding(10)).toBe('landingMassive');
   });
 
   it('keeps safe legacy mappings for Demo events', () => {
@@ -43,6 +47,7 @@ describe('procedural recipes and semantic resolution', () => {
     expect(describeRecipe('playerCannon', { chargeRatio: 1 }).bus).toBe('playerWeapon');
     expect(describeRecipe('enemyRangedFire').bus).toBe('enemyWeapon');
     expect(describeRecipe('cannonImpact').bus).toBe('impact');
+    expect(describeRecipe('groundPoundImpact')).toMatchObject({ bus: 'vehicle', category: 'majorExplosion' });
     expect(describeRecipe('playerCannon', { chargeRatio: 1 }).duration)
       .toBeGreaterThan(describeRecipe('playerCannon', { chargeRatio: 0 }).duration);
   });

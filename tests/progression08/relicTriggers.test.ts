@@ -48,8 +48,12 @@ describe('relic trigger effects (progression08)', () => {
     const e = spawnEnemy(m, 'enemy.scrapBug', m.state.tank.x + 1.2, m.state.tank.z);
     m.systems.enemySpatial.rebuild(m.state.enemies);
     const hp = e.hp;
-    m.systems.progression.notifyLanded();
-    expect(e.hp).toBeLessThan(hp);
+    const t = m.state.tank;
+    m.systems.progression.notifyLanded({ fallDistance: 3, impactSpeed: 9, x: t.x, y: t.y, z: t.z });
+    expect(hp - e.hp).toBeCloseTo(17.5);
+    expect(m.takeEvents()).toContainEqual(expect.objectContaining({
+      type: 'groundPoundImpact', radius: 5.975, damage: 17.5, fallDistance: 3, impactSpeed: 9, stacks: 1,
+    }));
   });
 
   it('RAPID RELOAD reduces cannon cooldown on cannon hit', () => {

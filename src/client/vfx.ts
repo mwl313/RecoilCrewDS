@@ -52,7 +52,15 @@ export class VfxSystem {
   private points: THREE.Points;
   private flashes: { sprite: THREE.Sprite; life: number; maxLife: number; size: number }[] = [];
   private flashPool: THREE.Sprite[] = [];
-  private rings: { mesh: THREE.Mesh; life: number; maxLife: number; radius: number }[] = [];
+  private rings: {
+    mesh: THREE.Mesh;
+    life: number;
+    maxLife: number;
+    startRadius: number;
+    endRadius: number;
+    opacity: number;
+    holdAtEnd: boolean;
+  }[] = [];
   private ringPool: THREE.Mesh[] = [];
   private tracers: { line: THREE.Line; life: number; maxLife: number }[] = [];
   private tracerPool: THREE.Line[] = [];
@@ -136,6 +144,21 @@ export class VfxSystem {
     }
   }
 
+  /** Read-only pool diagnostics used by presentation qualification. */
+  poolDiagnostics(): {
+    activeRings: number;
+    pooledRings: number;
+    activeRingEndRadii: number[];
+    activeRingCurrentRadii: number[];
+  } {
+    return {
+      activeRings: this.rings.length,
+      pooledRings: this.ringPool.length,
+      activeRingEndRadii: this.rings.map((ring) => ring.endRadius),
+      activeRingCurrentRadii: this.rings.map((ring) => ring.mesh.scale.x),
+    };
+  }
+
   spawnBurst(
     x: number, y: number, z: number,
     color: number,
@@ -183,13 +206,77 @@ export class VfxSystem {
   }
 
   spawnRing(x: number, y: number, z: number, color: number, radius: number, life = 0.4) {
-    let mesh = this.ringPool.find((m) => !m.visible);
+    this.activateRing(x, y, z, color, 0.2, radius * 1.7 + 0.2, life, 0.9, false);
+  }
+
+  /** Pooled terrain ring whose outer edge ends at the supplied world radius. */
+  spawnGroundRing(
+    x: number,
+    y: number,
+    z: number,
+    color: number,
+    radius: number,
+    life = 0.6,
+    opacity = 0.8,
+  ): void {
+    this.activateRing(x, y, z, color, 0.2, Math.max(0.2, radius), life, opacity, true);
+  }
+
+  /** Low, radial terrain debris used by authoritative Ground Pound impacts. */
+  spawnRadialDebris(
+    x: number,
+    y: number,
+    z: number,
+    color: number,
+    count: number,
+    speed: number,
+    life: number,
+  ): void {
+    const r = ((color >> 16) & 255) / 255;
+    const g = ((color >> 8) & 255) / 255;
+    const b = (color & 255) / 255;
+    const total = Math.max(0, Math.floor(count));
+    for (let i = 0; i < total; i++) {
+      const p = this.particles[this.cursor];
+      this.cursor = (this.cursor + 1) % MAX_PARTICLES;
+      const angle = (i / Math.max(1, total)) * Math.PI * 2 + (Math.random() - 0.5) * 0.16;
+      const velocity = speed * (0.65 + Math.random() * 0.45);
+      p.alive = true;
+      p.x = x;
+      p.y = y;
+      p.z = z;
+      p.vx = Math.cos(angle) * velocity;
+      p.vy = 1.2 + Math.random() * 2.4;
+      p.vz = Math.sin(angle) * velocity;
+      p.maxLife = life * (0.72 + Math.random() * 0.35);
+      p.life = p.maxLife;
+      p.size = 0.28 + Math.random() * 0.34;
+      p.r = r;
+      p.g = g;
+      p.b = b;
+      p.gravity = 8.5;
+      p.drag = 2.1 + Math.random() * 0.7;
+    }
+  }
+
+  private activateRing(
+    x: number,
+    y: number,
+    z: number,
+    color: number,
+    startRadius: number,
+    endRadius: number,
+    life: number,
+    opacity: number,
+    holdAtEnd: boolean,
+  ): void {
+    const mesh = this.ringPool.find((candidate) => !candidate.visible);
     if (!mesh) return;
     mesh.visible = true;
     mesh.position.set(x, y, z);
     (mesh.material as THREE.MeshBasicMaterial).color.setHex(color);
-    mesh.scale.setScalar(0.15);
-    this.rings.push({ mesh, life, maxLife: life, radius });
+    mesh.scale.setScalar(startRadius);
+    this.rings.push({ mesh, life, maxLife: life, startRadius, endRadius, opacity, holdAtEnd });
   }
 
   spawnTracer(x: number, y: number, z: number, tx: number, ty: number, tz: number, color = 0xffd27a, life = 0.09) {
@@ -341,9 +428,16 @@ export class VfxSystem {
       const r = this.rings[i];
       r.life -= dt;
       const frac = Math.max(0, r.life / r.maxLife);
-      const scale = r.radius * (1 - frac) * 1.7 + 0.2;
+      const ageProgress = 1 - frac;
+      // Ground shockwaves reach their authoritative radius at 60% lifetime,
+      // then hold that exact edge briefly while fading for visual proof.
+      const scaleProgress = r.holdAtEnd ? Math.min(1, ageProgress / 0.6) : ageProgress;
+      const scale = r.startRadius + (r.endRadius - r.startRadius) * scaleProgress;
       r.mesh.scale.setScalar(scale);
-      (r.mesh.material as THREE.MeshBasicMaterial).opacity = frac * 0.9;
+      const visibleOpacity = r.holdAtEnd
+        ? r.opacity * Math.min(clamp01(ageProgress / 0.06), clamp01(frac / 0.25))
+        : frac * r.opacity;
+      (r.mesh.material as THREE.MeshBasicMaterial).opacity = visibleOpacity;
       if (r.life <= 0) {
         r.mesh.visible = false;
         this.rings.splice(i, 1);
@@ -370,4 +464,8 @@ export class VfxSystem {
       }
     }
   }
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
 }

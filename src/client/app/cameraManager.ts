@@ -82,6 +82,11 @@ export class CameraManager {
     this.shake = Math.min(1.6, this.shake + shake);
   }
 
+  /** One already-coordinated landing impulse; reduced-motion scaling is upstream. */
+  addLandingImpulse(shake: number): void {
+    this.addImpulse(clamp(shake, 0, 0.72));
+  }
+
   addDamageImpulse(shake: number, screenDirection: number, reducedMotion = false): void {
     const motionScale = reducedMotion ? .32 : 1;
     this.addImpulse(shake * motionScale);

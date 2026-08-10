@@ -49,6 +49,7 @@ const ENEMY_TYPE_TO_ID: Record<EnemyType, string> = {
  */
 export class EnemySystem {
   readonly behaviors: EnemyBehaviorRegistry;
+  readonly maximumCollisionRadius: number;
   /** Legacy-compatible shared dodge credit flag (one per match, as before). */
   sharedDodgeAwarded = false;
   /** Production: deterministic melee engagement reservations (match-scoped). */
@@ -58,6 +59,7 @@ export class EnemySystem {
 
   constructor(private readonly ctx: SystemContext) {
     this.behaviors = createBuiltinEnemyBehaviors();
+    this.maximumCollisionRadius = maximumEnemyCollisionRadius(ctx.rules.enemies.values());
     this.spawnRng = mulberry32(hash32('monsterSpawn', this.ctx.state.matchId));
     const profile =
       this.ctx.rules.meleeEngagementProfiles.get('meleeEngagement.default') ??
@@ -481,6 +483,17 @@ export class EnemySystem {
     }
     return removed;
   }
+}
+
+function maximumEnemyCollisionRadius(definitions: Iterable<EnemyDefinition>): number {
+  let maximum = 0;
+  for (const def of definitions) {
+    const radius = isMonster(def)
+      ? resolveMonsterDimensions(def.id, def.sizeClass, def.tier, def.optionalVariantScale).collisionRadius
+      : enemyRadius(def);
+    maximum = Math.max(maximum, radius);
+  }
+  return maximum;
 }
 
 function tierFrequency(policy: EnemyLodPolicyDefinition, tier: 0 | 1 | 2 | 3): number {

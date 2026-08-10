@@ -78,7 +78,7 @@ describe('production procedural audio simulation events', () => {
     });
   });
 
-  it('emits tier-aware death metadata and presentation-only landing severity', () => {
+  it('emits tier-aware death metadata and explicit authoritative landing metrics', () => {
     const runtime = MatchRuntime.fromContentPack(pack, 'audio-death-landing', 'none', 'mode.mainStage');
     const def = pack.getEnemy('enemy.quaternius.alien-high-detail');
     if (def.type !== 'monster') throw new Error('expected monster');
@@ -104,8 +104,13 @@ describe('production procedural audio simulation events', () => {
     tank.vy = -10;
     runtime.step(1 / 60);
     const landing = runtime.takeEvents().find((event) => event.type === 'tankLanding');
-    expect(landing).toMatchObject({ kind: 'heavy' });
-    expect(landing?.value).toBeGreaterThanOrEqual(10);
+    expect(landing).toMatchObject({
+      kind: 'none',
+      value: 10,
+      impactSpeed: 10,
+      fallDistance: 2,
+      groundPound: false,
+    });
     expect(tank.integrity).toBe(integrity);
   });
 });
