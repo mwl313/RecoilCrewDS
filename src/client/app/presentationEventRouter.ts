@@ -19,6 +19,12 @@ import {
   type CoalescedTankDamage,
   type TankDamageFeedbackLayer,
 } from '../presentation/tankDamageFeedback';
+import {
+  MachineGunPresentation,
+  resolveMachineGunVisualRay,
+  type MachineGunMuzzlePose,
+  type MachineGunPoint,
+} from '../weapons/machineGunPresentation';
 
 export interface ActionPresentationGuard {
   /** True when this actionSeq was already presented locally. */
@@ -32,6 +38,7 @@ export interface ActionPresentationGuard {
 /** Routes authoritative simulation events into semantic VFX and sound recipes. */
 export class PresentationEventRouter {
   private readonly tankDamage = new TankDamageCoalescer(80);
+  private readonly machineGun: MachineGunPresentation;
 
   constructor(
     private readonly assets: AssetService,
@@ -40,7 +47,20 @@ export class PresentationEventRouter {
     private readonly camera: CameraManager,
     private readonly actionGuard: ActionPresentationGuard | null = null,
     private readonly tankDamageLayer: TankDamageFeedbackLayer | null = null,
-  ) {}
+    private readonly machineGunMuzzlePose: () => MachineGunMuzzlePose | null = () => null,
+  ) {
+    this.machineGun = new MachineGunPresentation(
+      this.vfx,
+      this.audio,
+      this.camera,
+      () => performance.now(),
+      () => this.tankDamageLayer?.reducedMotion ?? false,
+    );
+  }
+
+  presentPredictedMachineGunShot(origin: MachineGunPoint): void {
+    this.machineGun.presentPredictedShot(origin);
+  }
 
   handleEvent(ev: SimEvent): void {
     if (ev.type === 'tankDamageTaken' && (ev.value ?? 0) > 0) {
@@ -63,9 +83,7 @@ export class PresentationEventRouter {
       return;
     }
     if (ev.type === 'mgHit') {
-      const spec = this.assets.vfx('vfx.machineGunMuzzle');
-      this.vfx.spawnBurst(ev.x!, ev.y!, ev.z!, 0xffd27a, 6, spec.size, 0.18, 0.2, 6);
-      this.audio.play('enemyHit');
+      this.machineGun.presentImpact({ x: ev.x!, y: ev.y!, z: ev.z! }, this.seed(ev));
       return;
     }
     if (ev.type === 'enemyProjectileImpact') {
@@ -183,17 +201,29 @@ export class PresentationEventRouter {
   reset(): void {
     this.tankDamage.reset();
     this.tankDamageLayer?.reset();
+    this.machineGun.reset();
   }
 
   private handlePlayerShot(ev: SimEvent): void {
     const alreadyPresented = ev.actionSeq !== undefined && ev.actionSeq > 0 && this.actionGuard?.isPresented(ev.actionSeq) === true;
-    if (alreadyPresented) {
-      this.actionGuard!.confirm(ev.actionSeq!);
+    if (ev.kind === 'mg' && ev.x !== undefined && ev.tx !== undefined) {
+      if (alreadyPresented) this.actionGuard!.confirm(ev.actionSeq!);
+      const distance = Math.max(0, ev.value ?? 45);
+      const ray = resolveMachineGunVisualRay({
+        origin: { x: ev.x, y: ev.y!, z: ev.z! },
+        direction: { x: ev.tx, y: ev.ty!, z: ev.tz! },
+        distance,
+      }, this.machineGunMuzzlePose());
+      this.machineGun.presentAcceptedShot({
+        origin: ray.origin,
+        endpoint: ray.endpoint,
+        seed: this.seed(ev),
+        confirmedPrediction: alreadyPresented,
+      });
       return;
     }
-    if (ev.kind === 'mg' && ev.x !== undefined && ev.tx !== undefined) {
-      this.vfx.spawnTracer(ev.x, ev.y!, ev.z!, ev.x + ev.tx * 34, ev.y! + ev.ty! * 34, ev.z! + ev.tz! * 34, 0xffe08a, 0.07);
-      this.audio.playLocal('playerMg', { seed: this.seed(ev) });
+    if (alreadyPresented) {
+      this.actionGuard!.confirm(ev.actionSeq!);
       return;
     }
     if (ev.kind === 'cannon') {

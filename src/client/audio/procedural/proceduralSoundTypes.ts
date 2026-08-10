@@ -3,6 +3,7 @@ export type EnemyAudioSizeClass = 'small' | 'medium' | 'large';
 
 export type ProceduralSoundRecipe =
   | 'playerMg'
+  | 'playerMgImpact'
   | 'playerCannon'
   | 'cannonImpact'
   | 'enemyTelegraph'

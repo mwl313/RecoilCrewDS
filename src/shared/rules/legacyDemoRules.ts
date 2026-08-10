@@ -145,7 +145,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
     'weapon.mgRate': BASE_CONFIG.weapons.mgRate,
     'weapon.mgRange': BASE_CONFIG.weapons.mgRange,
     'weapon.mgSpread': BASE_CONFIG.weapons.mgSpread,
-    'weapon.mgSpeed': BASE_CONFIG.weapons.mgSpeed,
     'weapon.mgRecoilImpulse': BASE_CONFIG.tank.mgRecoilImpulse,
     'weapon.mgRecoilSpin': 0.05,
     'weapon.cannonDamage': BASE_CONFIG.weapons.cannonDamage,
@@ -207,7 +206,6 @@ export function createLegacyDemoRulesBundle(): DemoRulesBundle {
         'weapon.mgRate': BASE_CONFIG.weapons.mgRate,
         'weapon.mgRange': BASE_CONFIG.weapons.mgRange,
         'weapon.mgSpread': BASE_CONFIG.weapons.mgSpread,
-        'weapon.mgSpeed': BASE_CONFIG.weapons.mgSpeed,
         'weapon.mgRecoilImpulse': BASE_CONFIG.tank.mgRecoilImpulse,
         'weapon.mgRecoilSpin': 0.05,
         'weapon.recoilVerticalScale': 1.0,
@@ -524,7 +522,7 @@ export function createLegacyDefaultTankDefinition(): TankDefinition {
     autoRightRoll: 1.15,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
-    mgRecoilImpulse: 0.15,
+    mgRecoilImpulse: 0.18,
     rig: DEFAULT_TANK_RIG,
   };
 }

@@ -82,7 +82,6 @@ export const WEAPON_STAT_IDS = [
   'weapon.mgRate',
   'weapon.mgRange',
   'weapon.mgSpread',
-  'weapon.mgSpeed',
   'weapon.cannonDamage',
   'weapon.cannonRadius',
   'weapon.cannonCooldown',

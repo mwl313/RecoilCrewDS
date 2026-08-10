@@ -18,7 +18,8 @@ import type {
 } from './proceduralSoundTypes';
 
 const DESCRIPTORS: Record<ProceduralSoundRecipe, RecipeDescriptor> = {
-  playerMg: { bus: 'playerWeapon', category: 'playerWeapon', priority: 88, duration: 0.08, maxDistance: 0, reverbSend: 0.025 },
+  playerMg: { bus: 'playerWeapon', category: 'playerWeapon', priority: 88, duration: 0.09, maxDistance: 0, reverbSend: 0.025 },
+  playerMgImpact: { bus: 'impact', category: 'minorImpact', priority: 38, duration: 0.075, maxDistance: 72, reverbSend: 0.035 },
   playerCannon: { bus: 'playerWeapon', category: 'playerWeapon', priority: 100, duration: 0.72, maxDistance: 0, reverbSend: 0.1 },
   cannonImpact: { bus: 'impact', category: 'majorExplosion', priority: 82, duration: 0.85, maxDistance: 130, reverbSend: 0.14 },
   enemyTelegraph: { bus: 'enemyWeapon', category: 'enemyTelegraph', priority: 72, duration: 0.4, maxDistance: 95, reverbSend: 0.05 },
@@ -92,9 +93,14 @@ function playRecipeLayers(runtime: PrimitiveRuntime, recipe: ProceduralSoundReci
   const intensity = Math.max(0.35, Math.min(1.35, options.intensity ?? 1));
   switch (recipe) {
     case 'playerMg':
-      crack(runtime, { at, frequencyStart: 2_250, duration: 0.024, gain: 0.2 * intensity, q: 1.1 });
-      thump(runtime, { at, frequencyStart: 185, frequencyEnd: 98, duration: 0.042, gain: 0.12 * intensity, type: 'triangle' });
-      metal(runtime, { at: at + 0.004, duration: 0.023, gain: 0.035 * intensity, frequencies: [780, 1_130] });
+      crack(runtime, { at, frequencyStart: 2_450, duration: 0.03, gain: 0.32 * intensity, q: 0.95 });
+      thump(runtime, { at, frequencyStart: 198, frequencyEnd: 88, duration: 0.062, gain: 0.18 * intensity, type: 'triangle' });
+      metal(runtime, { at: at + 0.004, duration: 0.034, gain: 0.058 * intensity, frequencies: [720, 1_080, 1_520] });
+      return;
+    case 'playerMgImpact':
+      crack(runtime, { at, frequencyStart: 1_750, frequencyEnd: 760, duration: 0.035, gain: 0.12 * intensity, q: 1.15 });
+      metal(runtime, { at: at + 0.002, duration: 0.045, gain: 0.06 * intensity, frequencies: [560, 940, 1_380] });
+      thump(runtime, { at, frequencyStart: 145, frequencyEnd: 92, duration: 0.05, gain: 0.055 * intensity, type: 'triangle' });
       return;
     case 'playerCannon': {
       const charge = clamp01(options.chargeRatio ?? 0);

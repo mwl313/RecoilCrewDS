@@ -5,6 +5,7 @@ import { createBuiltinWeaponBehaviors } from './weaponBehaviors';
 import { weaponStat } from './weaponDefinition';
 import type { LoadoutRuntime } from './loadoutRuntime';
 import { WeaponBehaviorRegistry } from './weaponBehaviorRegistry';
+import { machineGunShotInterval, resolveMachineGunRoundsPerSecond } from './machineGunStats';
 
 /**
  * Authoritative weapon system: tracks the turret, enforces per-slot
@@ -82,7 +83,10 @@ export class WeaponSystem {
       tur.pitch = clamp(lerp(tur.pitch, input.aimPitch, clamp(dt * pitchFollowRate, 0, 1)), w.turretMinPitch, w.turretMaxPitch);
     }
     tur.cannonCooldown = Math.max(0, tur.cannonCooldown - dt);
-    tur.mgCooldown = Math.max(0, tur.mgCooldown - dt);
+    // Preserve fractional cadence across the fixed simulation step. A
+    // bounded negative overshoot is carried into the next interval, but the
+    // system still accepts at most one authoritative MG round per tick.
+    if (tur.mgCooldown > 0) tur.mgCooldown -= dt;
     tur.cannonFlash = Math.max(0, tur.cannonFlash - dt);
     // Cannon hold timer (relic-gated charge state machine).
     if (tur.cannonHeld) {
@@ -99,7 +103,6 @@ export class WeaponSystem {
     const t = s.tank;
     const tur = s.turret;
     const slot = this.loadout.primary;
-    const w = this.ctx.rules.config.weapons;
     if (this.mgStart) {
       held = true;
       this.mgStart = false;
@@ -110,7 +113,8 @@ export class WeaponSystem {
     }
     if (held && !slot.state.edgeDown) pushEvent(this.ctx, 'shot', t.x, t.y + 1.5, t.z, { kind: 'mgStart' });
     if (held && tur.mgCooldown <= 0) {
-      tur.mgCooldown = 1 / (w.mgRate * this.ctx.rules.matchConfig.mgRate);
+      const resolvedRate = resolveMachineGunRoundsPerSecond(this.ctx.rules.resolver);
+      tur.mgCooldown += machineGunShotInterval(resolvedRate);
       this.behaviors.require(slot.definition.behaviorId).fire(this.ctx, slot.definition, slot.state);
       tur.mgFiring = true;
     } else if (!held) {

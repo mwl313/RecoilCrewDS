@@ -51,6 +51,7 @@ import type { RelicDefinition } from '../../shared/content/schemas/progression';
 import { TankDamageFeedbackLayer } from '../presentation/tankDamageFeedback';
 import { localization } from '../localization/localizationService';
 import { relicKey } from '../localization/contentKeys';
+import type { MachineGunMuzzlePose } from '../weapons/machineGunPresentation';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -250,7 +251,7 @@ export class GameClient {
       isPresented: (seq) => gameRef?.isActionPresented(seq) ?? false,
       confirm: (seq) => gameRef?.confirmAction(seq),
       reject: (seq) => gameRef?.rejectAction(seq),
-    }, tankDamageFeedback);
+    }, tankDamageFeedback, () => gameRef?.machineGunMuzzlePose() ?? null);
     const quality = new QualityManager({
       setPixelRatio: (r) => renderWorld.setPixelRatio(r),
       setShadows: (e) => renderWorld.setShadows(e),
@@ -1181,7 +1182,7 @@ export class GameClient {
     const secondary = this.mouseDown('secondary');
     const charging = latest?.build.capabilities.includes('cannon.charge') ?? false;
     const canCharge = (latest?.turret.cannonCooldown ?? 0) <= 0;
-    if (mg && !this.mgDown) this.fireGunnerAction('mgStart');
+    if (mg && !this.mgDown) this.fireGunnerAction('mgStart', true);
     if (!mg && this.mgDown) this.fireGunnerAction('mgStop');
     if (secondary && !this.secondaryDown) {
       if (!charging || canCharge) {
@@ -1202,14 +1203,13 @@ export class GameClient {
 
   private fireGunnerAction(action: GunnerActionType, presentLocally = false): void {
     const actionSeq = this.prediction.sendGunnerAction(action);
-    if (presentLocally) {
+    if (presentLocally && this.playLocalGunnerAction(action)) {
       this.pendingLocalActions.set(actionSeq, { action, at: performance.now() });
-      this.playLocalGunnerAction(action);
     }
   }
 
   /** Same-frame local weapon presentation (presentation only, no damage). */
-  private playLocalGunnerAction(action: GunnerActionType): void {
+  private playLocalGunnerAction(action: GunnerActionType): boolean {
     const latest = this.presenter.latest;
     this.tankRig.chassis.updateMatrixWorld(true);
     let muzzle: { x: number; y: number; z: number } = getMuzzleWorld(this.tankRig);
@@ -1227,24 +1227,48 @@ export class GameClient {
     if (action === 'secondaryPressed') {
       if (charging) {
         this.chargeSoundStarted = false;
-        return;
+        return false;
       }
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
       this.audio.playLocal('playerCannon', { chargeRatio: 0 });
       this.cameras.addImpulse(0.45);
+      return true;
     } else if (action === 'secondaryReleased') {
       const chargeRatio = this.getLocalChargeView()?.ratio ?? 0;
       this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 1.6, 0.09);
       this.world.vfx.spawnBurst(muzzle.x, muzzle.y, muzzle.z, 0xffc36a, 12, 0.5, 0.35, 0.3, 8);
       this.audio.playLocal('playerCannon', { chargeRatio });
       this.cameras.addImpulse(0.45);
+      return true;
     } else if (action === 'mgStart') {
       if ((latest?.turret.mgCooldown ?? 1) <= 0) {
-        this.audio.playLocal('playerMg');
-        this.world.vfx.spawnFlash(muzzle.x, muzzle.y, muzzle.z, 0xffe08a, 0.7, 0.05);
+        this.router.presentPredictedMachineGunShot(muzzle);
+        return true;
       }
     }
+    return false;
+  }
+
+  /** Latest visible/predicted barrel pose used only to de-lag hitscan VFX. */
+  private machineGunMuzzlePose(): MachineGunMuzzlePose | null {
+    const singlePlayer = this.session.kind === 'singlePlayer' ? this.singlePlayerMatch : null;
+    const tank = singlePlayer?.state.tank ?? this.lastCameraTank;
+    if (!tank) return null;
+    const turret = singlePlayer
+      ? { yaw: singlePlayer.state.turret.yaw, pitch: singlePlayer.state.turret.pitch }
+      : this.role === 'gunner'
+        ? (() => {
+            const predicted = this.prediction.getTurretSpaces();
+            return { yaw: predicted.predictedYawLocal, pitch: predicted.predictedPitch };
+          })()
+        : { yaw: this.tankRig.turret.rotation.y, pitch: -this.tankRig.barrel.rotation.x };
+    const mount = computeWeaponMountWorldPose(tank, turret, this.tankRig.rigDefinition);
+    const origin = resolveTerrainSafeMuzzle(mount, (x, z) => this.prediction.groundHeightAt(x, z));
+    return {
+      origin,
+      direction: mount.direction,
+    };
   }
 
   getTurretSpaces() {

@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 
-const MAX_PARTICLES = 900;
+export const VFX_POOL_LIMITS = Object.freeze({
+  particles: 900,
+  flashes: 16,
+  rings: 12,
+  lineTracers: 48,
+  streaks: 64,
+});
+
+const MAX_PARTICLES = VFX_POOL_LIMITS.particles;
 
 function particleMaterial(): THREE.PointsMaterial {
   const tex = document.createElement('canvas');
@@ -48,6 +56,10 @@ export class VfxSystem {
   private ringPool: THREE.Mesh[] = [];
   private tracers: { line: THREE.Line; life: number; maxLife: number }[] = [];
   private tracerPool: THREE.Line[] = [];
+  private streaks: { mesh: THREE.Mesh; life: number; maxLife: number; opacity: number }[] = [];
+  private streakPool: THREE.Mesh[] = [];
+  private readonly streakAxis = new THREE.Vector3(0, 0, 1);
+  private readonly streakDirection = new THREE.Vector3();
   private cursor = 0;
 
   constructor(scene: THREE.Scene) {
@@ -77,7 +89,7 @@ export class VfxSystem {
       map.colorSpace = THREE.SRGBColorSpace;
       return new THREE.SpriteMaterial({ map, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
     };
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < VFX_POOL_LIMITS.flashes; i++) {
       const s = new THREE.Sprite(flashMat());
       s.visible = false;
       scene.add(s);
@@ -85,7 +97,7 @@ export class VfxSystem {
     }
     const ringGeo = new THREE.RingGeometry(0.96, 1, 40);
     ringGeo.rotateX(-Math.PI / 2);
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < VFX_POOL_LIMITS.rings; i++) {
       const mat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -99,13 +111,28 @@ export class VfxSystem {
       scene.add(m);
       this.ringPool.push(m);
     }
-    for (let i = 0; i < 48; i++) {
+    for (let i = 0; i < VFX_POOL_LIMITS.lineTracers; i++) {
       const mat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
       const geo2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
       const line = new THREE.Line(geo2, mat);
       line.visible = false;
       scene.add(line);
       this.tracerPool.push(line);
+    }
+    const streakGeometry = new THREE.BoxGeometry(1, 1, 1);
+    for (let i = 0; i < VFX_POOL_LIMITS.streaks; i++) {
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(streakGeometry, material);
+      mesh.visible = false;
+      mesh.frustumCulled = false;
+      scene.add(mesh);
+      this.streakPool.push(mesh);
     }
   }
 
@@ -175,6 +202,59 @@ export class VfxSystem {
     pos.needsUpdate = true;
     (line.material as THREE.LineBasicMaterial).color.setHex(color);
     this.tracers.push({ line, life, maxLife: life });
+  }
+
+  /** Pooled solid streak; unlike WebGL line width, geometry thickness is portable. */
+  spawnStreak(
+    x: number,
+    y: number,
+    z: number,
+    tx: number,
+    ty: number,
+    tz: number,
+    color: number,
+    width: number,
+    life: number,
+    opacity = 1,
+  ): boolean {
+    let mesh = this.streakPool.find((candidate) => !candidate.visible);
+    if (!mesh) {
+      // Keep the pool bounded without dropping the newest authoritative shot
+      // if a stalled frame briefly delivers more events than normal overlap.
+      mesh = this.streaks.shift()?.mesh;
+    }
+    if (!mesh) return false;
+    this.streakDirection.set(tx - x, ty - y, tz - z);
+    const length = this.streakDirection.length();
+    if (length <= 0.0001) return false;
+    this.streakDirection.multiplyScalar(1 / length);
+    mesh.visible = true;
+    mesh.position.set((x + tx) * 0.5, (y + ty) * 0.5, (z + tz) * 0.5);
+    mesh.quaternion.setFromUnitVectors(this.streakAxis, this.streakDirection);
+    mesh.scale.set(width, width, length);
+    const material = mesh.material as THREE.MeshBasicMaterial;
+    material.color.setHex(color);
+    material.opacity = opacity;
+    this.streaks.push({ mesh, life, maxLife: life, opacity });
+    return true;
+  }
+
+  debugPoolStats(): {
+    particles: number;
+    flashes: number;
+    rings: number;
+    lineTracers: number;
+    streaks: number;
+    limits: typeof VFX_POOL_LIMITS;
+  } {
+    return {
+      particles: this.particles.filter((particle) => particle.alive).length,
+      flashes: this.flashes.length,
+      rings: this.rings.length,
+      lineTracers: this.tracers.length,
+      streaks: this.streaks.length,
+      limits: VFX_POOL_LIMITS,
+    };
   }
 
   explosion(x: number, y: number, z: number, color = 0xff8c3b, big = false) {
@@ -277,6 +357,16 @@ export class VfxSystem {
       if (t.life <= 0) {
         t.line.visible = false;
         this.tracers.splice(i, 1);
+      }
+    }
+    for (let i = this.streaks.length - 1; i >= 0; i--) {
+      const streak = this.streaks[i];
+      streak.life -= dt;
+      const fraction = Math.max(0, streak.life / streak.maxLife);
+      (streak.mesh.material as THREE.MeshBasicMaterial).opacity = streak.opacity * fraction;
+      if (streak.life <= 0) {
+        streak.mesh.visible = false;
+        this.streaks.splice(i, 1);
       }
     }
   }

@@ -266,7 +266,7 @@
         "upgrade-categories/tank.gravity.json",
         "upgrade-categories/tank.maxIntegrity.json",
         "upgrade-categories/weapon.mgDamage.json",
-        "upgrade-categories/weapon.mgSpread.json",
+        "upgrade-categories/weapon.mgRate.json",
         "upgrade-categories/weapon.mgRange.json",
         "upgrade-categories/weapon.cannonDamage.json",
         "upgrade-categories/weapon.cannonCooldown.json",

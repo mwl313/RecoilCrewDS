@@ -95,7 +95,6 @@ export function legacyGameConfigFromContent(pack: ContentPack, modeId = pack.mod
       mgRate: stat(mg, 'weapon.mgRate'),
       mgRange: stat(mg, 'weapon.mgRange'),
       mgSpread: stat(mg, 'weapon.mgSpread'),
-      mgSpeed: stat(mg, 'weapon.mgSpeed'),
       cannonDamage: stat(cannon, 'weapon.cannonDamage'),
       cannonRadius: stat(cannon, 'weapon.cannonRadius'),
       cannonCooldown: cannon.cooldownSeconds,

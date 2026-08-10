@@ -20,7 +20,7 @@ describe('all 28 shipped relic effects', () => {
     const m = makeMatch();
     own(m, 'relic.heat_sink', 2);
     m.systems.progression.notifyCannonFired();
-    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(2.8);
+    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(4.2);
   });
 
   it('03 COVERING FIRE slows the MG-hit target', () => {

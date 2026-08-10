@@ -32,7 +32,6 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
     id: 'weapon.hitscan',
     fire(ctx, weapon) {
       const s = ctx.state;
-      const t = s.tank;
       const muzzle = muzzleWorld(ctx);
       const actionSeq = ctx.pendingActionSeq;
       ctx.pendingActionSeq = undefined;
@@ -57,11 +56,7 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
           sourceActionSeq: actionSeq,
         },
       );
-      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, { kind: 'mg', tx: nx, ty: ny, tz: nz, actionSeq });
-      ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'primary', kind: 'mg' });
-
-      const w = ctx.rules.config.weapons;
-      const range = weaponStat(weapon, 'weapon.mgRange', w.mgRange);
+      const range = ctx.rules.resolver.resolve('weapon.mgRange');
       // Runtime progression/items own weapon modifiers through StatResolver.
       // Reading the frozen weapon statBlock here bypasses effects such as
       // HEAT SINK and MG damage level-up cards.
@@ -117,22 +112,35 @@ export function createBuiltinWeaponBehaviors(): WeaponBehaviorRegistry {
           bestBarrel = b;
         }
       }
-      if (bestEnemy && (!bestBarrel || bestT <= bestBarrelT)) {
+
+      const hitEnemy = bestEnemy !== null && (!bestBarrel || bestT <= bestBarrelT);
+      const hitBarrel = !hitEnemy && bestBarrel !== null;
+      const tracerDistance = hitEnemy ? bestT : hitBarrel ? bestBarrelT : range;
+      pushEvent(ctx, 'shot', muzzle.x, muzzle.y, muzzle.z, {
+        kind: 'mg',
+        tx: nx,
+        ty: ny,
+        tz: nz,
+        value: tracerDistance,
+        actionSeq,
+      });
+      ctx.eventBus.emit('weapon.fired', { weaponId: weapon.id, slot: 'primary', kind: 'mg' });
+
+      if (hitEnemy && bestEnemy) {
         const hitX = muzzle.x + nx * bestT;
         const hitY = muzzle.y + ny * bestT;
         const hitZ = muzzle.z + nz * bestT;
-        pushEvent(ctx, 'mgHit', hitX, hitY, hitZ);
+        pushEvent(ctx, 'mgHit', hitX, hitY, hitZ, { id: bestEnemy.id, kind: 'enemy', value: damage });
         ctx.damage.applyEnemy(bestEnemy, damage, 'mg', weapon.id);
         return;
       }
-      if (bestBarrel) {
+      if (hitBarrel && bestBarrel) {
         const hitX = muzzle.x + nx * bestBarrelT;
         const hitY = muzzle.y + ny * bestBarrelT;
         const hitZ = muzzle.z + nz * bestBarrelT;
-        pushEvent(ctx, 'mgHit', hitX, hitY, hitZ);
+        pushEvent(ctx, 'mgHit', hitX, hitY, hitZ, { id: bestBarrel.id, kind: 'barrel', value: damage });
         ctx.damage.applyBarrel(bestBarrel, damage);
       }
-      void t;
     },
   });
 

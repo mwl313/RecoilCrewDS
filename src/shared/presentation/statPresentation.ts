@@ -42,7 +42,10 @@ export const STAT_PRESENTATION: Readonly<Record<string, StatPresentationMetadata
   'weapon.cannonRecoilImpulse': { label: 'CANNON RECOIL', unit: 'plain', group: 'GUNNER' },
   'weapon.mgDamage': { label: 'MG DAMAGE', unit: 'combatDamage', group: 'GUNNER' },
   'weapon.mgRange': { label: 'MG RANGE', unit: 'meters', group: 'GUNNER' },
+  // Kept for historical run summaries and snapshots even though this is no longer
+  // an active upgrade category in the final machine-gun pass.
   'weapon.mgSpread': { label: 'MG PRECISION', unit: 'plain', group: 'GUNNER', lowerIsBetterLabel: 'TIGHTER' },
+  'weapon.mgRate': { label: 'MG FIRE RATE', unit: 'plain', group: 'GUNNER' },
 };
 
 export function statPresentationMetadata(statId: string, translate?: PresentationTranslator): StatPresentationMetadata {

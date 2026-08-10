@@ -8,7 +8,7 @@ describe('relic trigger effects (progression08)', () => {
     m.state.teamProgression.relicStacks['relic.heat_sink'] = 1;
     m.systems.progression.projectionRefresh();
     m.systems.progression.notifyCannonFired();
-    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(2 * 1.2);
+    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(3 * 1.2);
   });
 
   it('HEAT SINK affects authoritative MG hits, refreshes, and expires in simulation time', () => {
@@ -23,14 +23,14 @@ describe('relic trigger effects (progression08)', () => {
     const primary = m.weaponSystem.loadout.primary;
     m.weaponSystem.behaviors.require(primary.definition.behaviorId).fire(m.systems, primary.definition, primary.state);
     random.mockRestore();
-    expect(hp - enemy.hp).toBeCloseTo(2.4);
+    expect(hp - enemy.hp).toBeCloseTo(3.6);
 
     step(m, 60);
     m.systems.progression.notifyCannonFired();
     step(m, 89);
-    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(2.4);
+    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(3.6);
     step(m, 2);
-    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(2);
+    expect(m.rules.resolver.resolve('weapon.mgDamage')).toBeCloseTo(3);
   });
 
   it('VAMPIRE ROUNDS heals on cannon kills', () => {
