@@ -164,7 +164,8 @@ test('tactical drawer preserves gameplay and presents real arena intelligence re
   await page.keyboard.press('Tab');
   await expect(page.locator('#tactical-drawer')).toHaveClass(/is-open/);
   expect(await page.locator('.tactical-stat-row').count()).toBeGreaterThan(0);
-  await expect(page.locator('.tactical-stat-row__label')).not.toContainText('.');
+  const statLabels = await page.locator('.tactical-stat-row__label').allTextContents();
+  expect(statLabels.every((label) => !label.includes('.'))).toBe(true);
 
   expect(errors).toEqual([]);
 });

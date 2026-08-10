@@ -4,6 +4,7 @@
 
 - Branch: `feature/final-arena-boundary`
 - Starting SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
+- Boundary implementation commit: `1db2a95d265cdf63be0fb31e98e38e268c1d891b`
 - Binding design: `ARENA_BOUNDARY_CLEANUP_DESIGN.md`
 - Production gameplay exterior apron: disabled, zero placements, zero draw calls
 - Primary 400×400 boundary: enabled on all four authoritative bounds
@@ -147,39 +148,57 @@ Additional pairs are available for south ground, west ground, south-east
 corner, and north-west corner in `screenshots/`.
 
 Visual QA found a continuous `prop.barrier` perimeter, closed corner seams, a
-minimal immediate footing, and sky/fog beyond the perimeter without the former
-exterior buildings, roads, or skyline. Existing fog and sky tuning remained
+minimal immediate footing, and sky/fog beyond the perimeter. The matching
+before captures show the previous raw terrain edge/void; the after captures
+show a deliberate edge without adding buildings, roads, landmarks, or skyline
+geometry. Terrain rises obscure parts of the north run from the selected
+elevated pose, as expected from terrain-aligned placement; the exact placement
+matrix still covers that complete run. Existing fog and sky tuning remained
 appropriate after apron removal.
 
 ## Verification
 
+All recorded final commands ran from a clean branch worktree at implementation
+commit `1db2a95`, with only the ignored local Monster Pack fixture linked for
+the repository importer test. Browser tests used the isolated boundary config
+and a freshly built server from that same worktree.
+
 | Command / qualification | Result |
 | --- | --- |
+| `npx tsc --noEmit` | **PASS** |
+| `npm run build` | **PASS** — client and server; only the existing Vite chunk-size advisory |
 | `npx vitest run tests/presentation/arenaBoundaryBarricades.test.ts tests/tankKinematics.test.ts tests/horde/spawnPlanner.test.ts tests/horde/survivorPressureDirector.test.ts` | **PASS** — 69/69 |
-| `npm run test:maps` | **PASS** — map tests plus 64/64 report seeds; deterministic, no fallback |
+| `npm run test:maps` | **PASS** — 31 map tests plus 64/64 report seeds; deterministic, 0 fallback |
 | `npm run test:maplab` | **PASS** — 33/33 |
-| `npm run build` | **PASS** |
-| `npx playwright test e2e/arena-boundary.spec.ts e2e/gameplay-readability-tactical.spec.ts` | **PASS** — 3/3 |
-| `npx playwright test e2e/lobby-reconnect.spec.ts` | **PASS** — 1/1 against a verified local server |
-| In-app browser, production build | **PASS** — apron disabled/0; boundary 868 segments, 3 asset batches, 4 draws; no boundary errors |
-| `npx playwright test e2e/full-game.spec.ts` | **PARTIAL** — two clients completed the round and rematch; final console-health assertion failed on two unrelated 404 resource requests |
-| `npm run test:presentation` | **BOUNDARY PASS / REPOSITORY FAIL** — boundary 9/9; suite 73 passed, 3 unrelated presentation expectations failed |
-| `npx tsc --noEmit` | **REPOSITORY FAIL** — unrelated in-flight soundtrack/localization test typings |
-| `npm test` | **BOUNDARY PASS / REPOSITORY FAIL** — boundary suite passed; 23 failures remain across unrelated in-flight predictor/landing, localization/presentation, asset-manifest/golden, XP, and missing local Monster Pack ZIP checks |
+| `npm run test:presentation` | **PASS** — 68/68 |
+| `npx playwright test --config=playwright.boundary.config.ts` | **PASS** — 5/5: edge/corner captures, four collision planes, two active clients, reconnect, rematch/reroll, tactical compatibility, and lobby reconnect |
+| Baseline capture (`ARENA_BOUNDARY_CAPTURE_PHASE=before`) | **PASS** — 9 matching viewpoints against starting SHA `4fd9af3` |
+| In-app browser, clean production build | **PASS** — Single Player boot and live edge inspection; no errors, only existing animation-fallback warnings |
+| `npm test` | **BOUNDARY PASS / BASELINE REPOSITORY FAILURES** — 187 files and 1,469 tests passed; 7 files/tests failed |
 
-An earlier browser attempt encountered a stale shared test-server process; the
-boundary/tactical and reconnect qualifications above were rerun against a
-verified server and are the recorded results. The full-game result was also
-collected against that verified server.
+The seven full-suite failures were reproduced independently at starting SHA
+`4fd9af3` and are outside this workstream:
+
+- predictor pending-queue expectations in `predictor.test.ts`,
+  `predictorNetwork.test.ts`, and `jumpDash.test.ts`;
+- Double Barrel shell expectation in `combat05/chargeScaling.test.ts`;
+- XP shard manager-size expectation in `pickups/xpShardLifecycle.test.ts`;
+- the existing demo golden mismatch in `demoRegression.test.ts`;
+- the baseline asset-manifest assumption in `baselineCharacterization.test.ts`.
+
+The dedicated browser lifecycle test waits separately for authoritative match
+state and renderer readiness. It proves both clients report apron zero and the
+same live instanced boundary before disconnect, after active-round rejoin, and
+again after a genuine arena-seed reroll.
 
 ## Exclusions and worktree isolation
 
-This report claims only the arena-boundary work described above. The shared
-worktree also contains concurrent, uncommitted localization/settings, Ground
-Pound/landing, phase-announcement, enemy/audio, relic, HUD, and content changes.
-Those changes, their generated content, their current test failures, and their
-screenshots are not part of this workstream and were neither reverted nor
-reported as boundary implementation work.
+This report claims only the arena-boundary work described above. Final
+verification was isolated from the shared checkout, which contains concurrent,
+uncommitted localization/settings, Ground Pound/landing, phase-announcement,
+enemy/audio, relic, HUD, and content changes. Those changes, their generated
+content, and their screenshots are not part of this workstream and were neither
+reverted nor reported as boundary implementation work.
 
 No machine-gun balance, localization copy, Ground Pound formula/VFX,
 phase-announcement behavior, lobby/chat behavior, chest/relic beacon behavior,

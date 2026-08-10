@@ -6,7 +6,12 @@ const BASE_URL = `http://localhost:${PORT}`;
 /** Isolated boundary qualification so another workstream cannot serve a stale bundle. */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['arena-boundary.spec.ts', 'gameplay-readability-tactical.spec.ts'],
+  testMatch: [
+    'arena-boundary.spec.ts',
+    'arena-boundary-lifecycle.spec.ts',
+    'gameplay-readability-tactical.spec.ts',
+    'lobby-reconnect.spec.ts',
+  ],
   timeout: 150_000,
   workers: 1,
   fullyParallel: false,
