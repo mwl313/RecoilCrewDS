@@ -37,6 +37,17 @@ Fight through increasingly crowded monster hordes, survive elite encounters and 
 
 Choose **Single Player** from the main menu. You can drive, aim, and fire without another player or a separate game server.
 
+### Run Progression
+
+Defeated monsters drop experience, level-ups offer randomized upgrades, and treasure chests award relics that shape the rest of the run.
+
+The first chest in each match has a special reward rule:
+
+- 50% chance to award **Twin Shell**
+- 50% chance to award a random eligible **Legendary relic**
+
+Later chests use the normal relic rarity table. Twin Shell can stack, and every stack adds one shell to each cannon firing sequence.
+
 ## Controls
 
 | Action | Control |

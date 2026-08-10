@@ -465,8 +465,14 @@ export class MatchRules {
 function buildProgressionContent(pack: ContentPack): MatchRulesProgressionContent {
   const content = pack.getProgressionDefinition('progression.mainStage');
   const relicPool = pack.getRelicPool(content.relicPoolId);
+  const firstTreasure = pack.getFirstTreasureRule(content.firstTreasureRuleId);
   const relicsById = new Map<string, RelicDefinition>();
   for (const id of relicPool.relicIds) relicsById.set(id, pack.getRelic(id));
+  for (const branch of firstTreasure.branches) {
+    if (branch.kind === 'fixedRelic' && !relicsById.has(branch.relicId)) {
+      relicsById.set(branch.relicId, pack.getRelic(branch.relicId));
+    }
+  }
   const relicEffectTemplatesById = new Map<string, RelicEffectTemplateDefinition>();
   for (const id of pack.ids('relicEffectTemplates')) {
     relicEffectTemplatesById.set(id, pack.getRelicEffectTemplate(id));
@@ -482,7 +488,7 @@ function buildProgressionContent(pack: ContentPack): MatchRulesProgressionConten
     upgradeRarityTable: pack.getUpgradeRarityTable(content.upgradeRarityTableId),
     upgradeFirstExperience: pack.getUpgradeFirstExperience(content.upgradeFirstExperienceRuleId),
     treasureRarityTable: pack.getTreasureRarityTable(content.treasureRarityTableId),
-    firstTreasure: pack.getFirstTreasureRule(content.firstTreasureRuleId),
+    firstTreasure,
     relicPoolIds: [...relicPool.relicIds],
     relicsById,
     relicEffectTemplatesById,

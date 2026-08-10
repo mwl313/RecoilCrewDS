@@ -11,7 +11,7 @@ async function startSinglePlayer(page: import('@playwright/test').Page): Promise
   });
 }
 
-test('first chest is Epic/Legendary only; second uses the normal table', async ({ page }) => {
+test('first chest is Twin Shell or Legendary; second uses the normal table', async ({ page }) => {
   await startSinglePlayer(page);
   const state = await page.evaluate(() => {
     const w = window as unknown as {
@@ -30,19 +30,19 @@ test('first chest is Epic/Legendary only; second uses the normal table', async (
     return { c1 };
   });
   await page.waitForFunction(() => {
-    const s = (window as unknown as { __recoil: { state(): { matchFlow: string; teamProgression: { treasureChestsOpened: number; activeSelection: { kind: string; relicResult: { rarity: string } | null } | null } } | null } }).__recoil.state();
+    const s = (window as unknown as { __recoil: { state(): { matchFlow: string; teamProgression: { treasureChestsOpened: number; activeSelection: { kind: string; relicResult: { relicId: string; rarity: string } | null } | null } } | null } }).__recoil.state();
+    const reward = s?.teamProgression.activeSelection?.relicResult;
     return (
       s?.matchFlow === 'relicSelection' &&
       s.teamProgression.activeSelection?.kind === 'relic' &&
-      (s.teamProgression.activeSelection.relicResult?.rarity === 'epic' ||
-        s.teamProgression.activeSelection.relicResult?.rarity === 'legendary')
+      (reward?.relicId === 'relic.twin_shell' || reward?.rarity === 'legendary')
     );
   });
   const first = await page.evaluate(() => {
-    const s = (window as unknown as { __recoil: { state(): { teamProgression: { activeSelection: { relicResult: { rarity: string } | null } | null } } } }).__recoil.state();
-    return s.teamProgression.activeSelection?.relicResult?.rarity;
+    const s = (window as unknown as { __recoil: { state(): { teamProgression: { activeSelection: { relicResult: { relicId: string; rarity: string } | null } | null } } } }).__recoil.state();
+    return s.teamProgression.activeSelection?.relicResult;
   });
-  expect(['epic', 'legendary']).toContain(first);
+  expect(first?.relicId === 'relic.twin_shell' || first?.rarity === 'legendary').toBe(true);
   await page.waitForTimeout(1_850);
   await page.evaluate(() =>
     (window as unknown as { __recoil: { progression: { skipRelic(): void } } }).__recoil.progression.skipRelic(),

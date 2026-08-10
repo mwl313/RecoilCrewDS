@@ -498,7 +498,7 @@ export class ProgressionSystem {
     if (chest.lifecycle !== 'closed' || chest.rewardOffer || chest.rewardResolved) return null;
 
     const isFirstChest = s.teamProgression.treasureChestsOpened === 0;
-    const rarity = this.chests.rollRarityFor(
+    const rewardTarget = this.chests.rollRewardFor(
       isFirstChest,
       this.rng.stream('progression.relicRarity'),
       this.ctx.rules.firstTreasureContent!,
@@ -508,13 +508,21 @@ export class ProgressionSystem {
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
     const eligible = pool.filter((relic) => this.inventory.canAcquire(relic));
-    const candidates = eligible.filter((relic) => relic.rarity === rarity);
-    // Deterministic rarity fallback: preserve the rolled rarity whenever it
-    // has an eligible candidate, otherwise draw only from remaining eligible
+    const candidates = eligible.filter((relic) =>
+      rewardTarget.kind === 'fixedRelic'
+        ? relic.id === rewardTarget.relicId
+        : relic.rarity === rewardTarget.rarity,
+    );
+    // Deterministic reward fallback: preserve the requested fixed relic or
+    // rarity whenever eligible, otherwise draw only from remaining eligible
     // content in canonical pool order. Maxed finite relics never re-enter.
     const pickPool = candidates.length > 0 ? candidates : eligible;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
+    const requestedRarity =
+      rewardTarget.kind === 'rarity'
+        ? rewardTarget.rarity
+        : (this.ctx.rules.relicsById.get(rewardTarget.relicId)?.rarity ?? relic.rarity);
     const offer: RelicRewardOffer = {
       offerId: `relic-offer-${s.matchId}-${chest.id}`,
       chestId: chest.id,
@@ -531,9 +539,9 @@ export class ProgressionSystem {
     s.matchFlow = 'relicOpening';
     this.telemetry.chestsClaimed++;
     this.telemetry.relicRarityResolutions.push({
-      requestedRarity: rarity,
+      requestedRarity,
       resolvedRarity: relic.rarity,
-      fallbackUsed: rarity !== relic.rarity,
+      fallbackUsed: candidates.length === 0,
     });
     if (this.telemetry.timeToFirstChestClaim === null) this.telemetry.timeToFirstChestClaim = s.time;
     return offer;

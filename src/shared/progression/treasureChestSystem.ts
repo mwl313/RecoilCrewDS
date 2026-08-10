@@ -8,10 +8,13 @@ import type { UpgradeRarity } from '../content/schemas/progression';
 
 const RARITY_ORDER: UpgradeRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
+export type TreasureRewardTarget =
+  | { kind: 'fixedRelic'; relicId: string }
+  | { kind: 'rarity'; rarity: UpgradeRarity };
+
 /**
- * Treasure chest rarity: the first chest opened in the match uses the
- * first-chest rule (Epic 70 / Legendary 30) regardless of source; every
- * later chest uses the normal table.
+ * The first chest opened in the match uses its dedicated reward branches
+ * regardless of source. Every later chest rolls from the normal rarity table.
  */
 export class TreasureChestSystem {
   constructor(
@@ -19,35 +22,41 @@ export class TreasureChestSystem {
     private readonly incrementOpened: () => void,
   ) {}
 
-  rollRarity(
+  rollReward(
     rand: () => number,
     firstRule: FirstTreasureRuleDefinition,
     normalTable: TreasureRarityTableDefinition,
-  ): UpgradeRarity {
+  ): TreasureRewardTarget {
     const first = this.getChestsOpened() === 0;
-    return this.rollRarityFor(first, rand, firstRule, normalTable);
+    return this.rollRewardFor(first, rand, firstRule, normalTable);
   }
 
   /**
-   * Rarity roll with an explicit captured first/later state. The caller
+   * Reward roll with an explicit captured first/later state. The caller
    * captures `isFirstChest` before consuming the chest so the first open
-   * always uses the first-chest table.
+   * always uses the first-chest rule.
    */
-  rollRarityFor(
+  rollRewardFor(
     isFirstChest: boolean,
     rand: () => number,
     firstRule: FirstTreasureRuleDefinition,
     normalTable: TreasureRarityTableDefinition,
-  ): UpgradeRarity {
+  ): TreasureRewardTarget {
     if (isFirstChest) {
-      const index = rollWeighted(rand, [firstRule.rarities.epic, firstRule.rarities.legendary]);
-      return index === 1 ? 'legendary' : 'epic';
+      const index = rollWeighted(
+        rand,
+        firstRule.branches.map((branch) => branch.probability),
+      );
+      const branch = firstRule.branches[Math.max(0, index)];
+      return branch.kind === 'fixedRelic'
+        ? { kind: 'fixedRelic', relicId: branch.relicId }
+        : { kind: 'rarity', rarity: branch.rarity };
     }
     const index = rollWeighted(
       rand,
       RARITY_ORDER.map((r) => normalTable.rarities[r]),
     );
-    return RARITY_ORDER[Math.max(0, index)];
+    return { kind: 'rarity', rarity: RARITY_ORDER[Math.max(0, index)] };
   }
 
   open(chest: TreasureChestState): void {

@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { makeMatch, spawnEnemy, killEnemy, resolveAllOffers, revealChest, completeRelicReveal } from './helpers';
 
 const SOURCES = ['mapStart', 'enemyDrop', 'waveClear'] as const;
+const isFirstChestReward = (reward: { relicId: string; rarity: string }): boolean =>
+  reward.relicId === 'relic.twin_shell' || reward.rarity === 'legendary';
 
 describe('first chest integration (progression08 hardening)', () => {
-  it('first real open for every chest source is Epic/Legendary only', () => {
+  it('first real open for every chest source is Twin Shell or Legendary', () => {
     for (const source of SOURCES) {
       const m = makeMatch('mode.singlePlayerScoreAttack', `first-${source}`);
       const chest = m.systems.progression.spawnChest(source, 3, 3);
       const result = revealChest(m, chest, 1000);
       expect(result).not.toBeNull();
-      expect(['epic', 'legendary']).toContain(result!.rarity);
+      expect(isFirstChestReward(result!)).toBe(true);
       expect(m.state.teamProgression.treasureChestsOpened).toBe(1);
       expect(m.state.teamProgression.relicAcquisitionSequence).toBe(1);
     }
@@ -36,14 +38,14 @@ describe('first chest integration (progression08 hardening)', () => {
     expect(m.state.matchFlow).toBe('playing');
     const result = revealChest(m, waveChests[0], 1000);
     expect(result).not.toBeNull();
-    expect(['epic', 'legendary']).toContain(result!.rarity);
+    expect(isFirstChestReward(result!)).toBe(true);
   });
 
   it('later chests use the normal table and first-chest status is consumed exactly once', () => {
     const m = makeMatch('mode.singlePlayerScoreAttack', 'later-chests');
     const first = m.systems.progression.spawnChest('map', 3, 3);
     const r1 = revealChest(m, first, 1000);
-    expect(['epic', 'legendary']).toContain(r1!.rarity);
+    expect(isFirstChestReward(r1!)).toBe(true);
     completeRelicReveal(m);
 
     const second = m.systems.progression.spawnChest('enemyDrop', 4, 4);
@@ -54,21 +56,25 @@ describe('first chest integration (progression08 hardening)', () => {
     expect(r2!.acquisitionSequence).toBe(2);
   });
 
-  it('across seeds, first opens are Epic/Legendary only and later opens hit the normal table', () => {
+  it('across seeds, first opens hit both first-chest branches and later opens use the normal table', () => {
+    const firstRelicIds = new Set<string>();
     const firstRarities = new Set<string>();
     const laterRarities = new Set<string>();
     for (let i = 0; i < 30; i++) {
       const m = makeMatch('mode.singlePlayerScoreAttack', `distribution-${i}`);
       const a = m.systems.progression.spawnChest('map', 3, 3);
       const ra = revealChest(m, a, 1000);
+      expect(isFirstChestReward(ra)).toBe(true);
+      firstRelicIds.add(ra.relicId);
       firstRarities.add(ra.rarity);
       completeRelicReveal(m);
       const b = m.systems.progression.spawnChest('map', 4, 4);
       laterRarities.add(revealChest(m, b, 5000).rarity);
     }
-    expect([...firstRarities].every((r) => r === 'epic' || r === 'legendary')).toBe(true);
+    expect(firstRelicIds.has('relic.twin_shell')).toBe(true);
+    expect(firstRarities.has('legendary')).toBe(true);
     // The normal table (C55/R30/E13/L2) must eventually surface common/rare;
-    // the first-chest rule can never produce them.
+    // the first-chest rule can never produce those rarities.
     expect([...laterRarities].some((r) => r === 'common' || r === 'rare')).toBe(true);
   });
 

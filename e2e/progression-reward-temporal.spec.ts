@@ -19,19 +19,19 @@ test('records the full 1280x720 upgrade punch, reels, locks, and selection', asy
   await video.saveAs(`${EVIDENCE_DIR}/production-upgrade-1280x720.webm`);
 });
 
-test('records the natural Epic or Legendary relic punch, reel, lock, and staged payoff', async ({ browser }, testInfo) => {
+test('records the natural Twin Shell or Legendary relic punch, reel, lock, and staged payoff', async ({ browser }, testInfo) => {
   const { context, page } = await launchGame(browser, testInfo);
   const video = page.video()!;
   await openFirstChest(page);
-  const rarity = await page.evaluate(() =>
-    (window as unknown as { __recoil: { state(): { teamProgression: { activeSelection: { relicResult?: { rarity: string } } } } } }).__recoil.state().teamProgression.activeSelection.relicResult?.rarity,
+  const reward = await page.evaluate(() =>
+    (window as unknown as { __recoil: { state(): { teamProgression: { activeSelection: { relicResult?: { relicId: string; rarity: string } } } } } }).__recoil.state().teamProgression.activeSelection.relicResult,
   );
-  expect(['epic', 'legendary']).toContain(rarity);
+  expect(reward?.relicId === 'relic.twin_shell' || reward?.rarity === 'legendary').toBe(true);
   await page.waitForTimeout(3_050);
   await page.keyboard.press('Space');
   await page.waitForTimeout(320);
   await context.close();
-  await video.saveAs(`${EVIDENCE_DIR}/production-relic-${rarity}-1280x720.webm`);
+  await video.saveAs(`${EVIDENCE_DIR}/production-relic-${reward?.rarity}-1280x720.webm`);
 });
 
 test('records the reduced-motion entrance without microscopic scaling or flash', async ({ browser }, testInfo) => {

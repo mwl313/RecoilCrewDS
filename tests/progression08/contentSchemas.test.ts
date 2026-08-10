@@ -76,14 +76,17 @@ describe('progression content schemas (progression08)', () => {
     }
   });
 
-  it('rarity tables sum to 1 and first-chest rule is E70/L30', () => {
+  it('rarity tables sum to 1 and first-chest rule is Twin Shell 50 / Legendary 50', () => {
     const upgrade = CLIENT_CONTENT_PACK.getUpgradeRarityTable('rarity.upgrade.default');
     expect(Object.values(upgrade.rarities).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
     const treasure = CLIENT_CONTENT_PACK.getTreasureRarityTable('rarity.treasure.default');
     expect(Object.values(treasure.rarities).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
     const first = CLIENT_CONTENT_PACK.getFirstTreasureRule('firstExperience.treasure.first');
-    expect(first.rarities.epic).toBeCloseTo(0.7);
-    expect(first.rarities.legendary).toBeCloseTo(0.3);
+    expect(first.branches).toEqual([
+      { kind: 'fixedRelic', relicId: 'relic.twin_shell', probability: 0.5 },
+      { kind: 'rarity', rarity: 'legendary', probability: 0.5 },
+    ]);
+    expect(first.branches.reduce((total, branch) => total + branch.probability, 0)).toBeCloseTo(1);
   });
 
   it('first level-up rule is Epic + normal + 50% Legendary', () => {

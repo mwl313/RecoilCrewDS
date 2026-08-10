@@ -367,7 +367,17 @@ export class ReferenceValidator {
     for (const rule of this.registries.firstTreasureRules.all()) {
       const file = this.fileOf(rule.id, this.registries.firstTreasureRules);
       this.checkCommon(issues, rule, file);
-      checkProbabilitySum(issues, Object.values(rule.rarities), file, 'rarities');
+      checkProbabilitySum(
+        issues,
+        rule.branches.map((branch) => branch.probability),
+        file,
+        'branches',
+      );
+      rule.branches.forEach((branch, i) => {
+        if (branch.kind === 'fixedRelic') {
+          this.ref(issues, branch.relicId, this.registries.relics, file, `branches[${i}].relicId`);
+        }
+      });
     }
     for (const category of this.registries.upgradeCategories.all()) {
       const file = this.fileOf(category.id, this.registries.upgradeCategories);

@@ -1,8 +1,16 @@
 {
   "id": "firstExperience.treasure.first",
-  "label": "First Treasure Rule — Epic/Legendary only",
-  "rarities": {
-    "epic": 0.7,
-    "legendary": 0.3
-  }
+  "label": "First Treasure Rule — Twin Shell or Legendary",
+  "branches": [
+    {
+      "kind": "fixedRelic",
+      "relicId": "relic.twin_shell",
+      "probability": 0.5
+    },
+    {
+      "kind": "rarity",
+      "rarity": "legendary",
+      "probability": 0.5
+    }
+  ]
 }

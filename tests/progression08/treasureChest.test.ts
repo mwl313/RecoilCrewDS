@@ -8,22 +8,33 @@ const first = CLIENT_CONTENT_PACK.getFirstTreasureRule(def.firstTreasureRuleId);
 const normal = CLIENT_CONTENT_PACK.getTreasureRarityTable(def.treasureRarityTableId);
 
 describe('treasure chest lifecycle (progression08)', () => {
-  it('first chest uses Epic/Legendary only regardless of source', () => {
+  it('first chest is a 50/50 Twin Shell or Legendary branch regardless of source', () => {
     let opened = 0;
     const system = new TreasureChestSystem(() => opened, () => opened++);
-    for (const roll of [0, 0.5, 0.7, 0.99]) {
-      const rarity = system.rollRarity(() => roll, first, normal);
-      expect(['epic', 'legendary']).toContain(rarity);
-    }
+    expect(system.rollReward(() => 0, first, normal)).toEqual({
+      kind: 'fixedRelic',
+      relicId: 'relic.twin_shell',
+    });
+    expect(system.rollReward(() => 0.4999, first, normal)).toEqual({
+      kind: 'fixedRelic',
+      relicId: 'relic.twin_shell',
+    });
+    expect(system.rollReward(() => 0.5001, first, normal)).toEqual({
+      kind: 'rarity',
+      rarity: 'legendary',
+    });
+    expect(system.rollReward(() => 0.99, first, normal)).toEqual({
+      kind: 'rarity',
+      rarity: 'legendary',
+    });
   });
 
   it('later chests use the normal table', () => {
     let opened = 1;
     const system = new TreasureChestSystem(() => opened, () => opened++);
-    const rarity = system.rollRarity(() => 0.99, first, normal);
-    expect(rarity).toBe('legendary');
-    expect(system.rollRarity(() => 0.7, first, normal)).toBe('rare');
-    expect(system.rollRarity(() => 0.1, first, normal)).toBe('common');
+    expect(system.rollReward(() => 0.99, first, normal)).toEqual({ kind: 'rarity', rarity: 'legendary' });
+    expect(system.rollReward(() => 0.7, first, normal)).toEqual({ kind: 'rarity', rarity: 'rare' });
+    expect(system.rollReward(() => 0.1, first, normal)).toEqual({ kind: 'rarity', rarity: 'common' });
   });
 
   it('wave leader kill creates one guaranteed chest; purge creates none', () => {
@@ -53,6 +64,7 @@ describe('treasure chest lifecycle (progression08)', () => {
     const chest = m.systems.progression.spawnChest('map', 3, 3);
     const result = revealChest(m, chest, Date.now());
     expect(result).not.toBeNull();
+    expect(result!.relicId === 'relic.twin_shell' || result!.rarity === 'legendary').toBe(true);
     expect(m.state.teamProgression.treasureChestsOpened).toBe(1);
     expect(m.state.teamProgression.relicStacks[result!.relicId]).toBe(1);
     // Second open is impossible.

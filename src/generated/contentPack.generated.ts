@@ -5,11 +5,11 @@
  * Format: plain data + a browser-safe ContentPack builder (no fs, no node crypto).
  */
 export const GENERATED_CONTENT_PACK_FORMAT = 1;
-export const CONTENT_PACK_SOURCE_HASH = '30963b169d42145d66b6812f19189dd3cc4f38aaf7c2108e87642a9c039494d4';
+export const CONTENT_PACK_SOURCE_HASH = '8102ece42f3b80be36912921d6d3700bcab22d1d379a2fea5df117a1ba839ef4';
 export const CONTENT_PACK_ID = 'demo';
 export const CONTENT_PACK_VERSION = '1.0.0';
 export const CONTENT_PACK_MODE_ID = 'mode.demoScoreAttack';
-export const CONTENT_PACK_HASH = '5351c1f5dd5dcbc084b075e85d1b18e9c9eb104f7203063e633dc176059e2f57';
+export const CONTENT_PACK_HASH = '22b2758a6698d3ff255f5ce45d4a827007832fa216ac737e36bf0f4328b6de9c';
 
 import { ContentPack, CONTENT_CATEGORIES, type CategoryRegistries } from '../shared/content/contentPack';
 import { DefinitionRegistry, type ContentDefinition } from '../shared/content/definitionRegistry';
@@ -311,7 +311,7 @@ const DEFINITIONS: Record<string, Array<{ id: string; definition: unknown }>> = 
     { id: "rarity.treasure.default", definition: {"id":"rarity.treasure.default","label":"Default Treasure Rarity Table","behaviors":[],"rarities":{"common":0.55,"rare":0.3,"epic":0.13,"legendary":0.02}} },
   ],
   "firstTreasureRules": [
-    { id: "firstExperience.treasure.first", definition: {"id":"firstExperience.treasure.first","label":"First Treasure Rule — Epic/Legendary only","behaviors":[],"rarities":{"epic":0.7,"legendary":0.3}} },
+    { id: "firstExperience.treasure.first", definition: {"id":"firstExperience.treasure.first","label":"First Treasure Rule — Twin Shell or Legendary","behaviors":[],"branches":[{"kind":"fixedRelic","relicId":"relic.twin_shell","probability":0.5},{"kind":"rarity","rarity":"legendary","probability":0.5}]} },
   ],
   "relics": [
     { id: "relic.aerial_master", definition: {"id":"relic.aerial_master","label":"AERIAL MASTER","description":"All gunner damage +30% while airborne.","behaviors":[],"rarity":"rare","role":"gunner","iconId":"relic.aerialMaster","tags":["passive","air"],"stackPolicy":"addPercent","effects":[{"templateId":"relicEffect.outgoingDamageMultiplier","parameters":{"percentPerStack":30,"condition":"airborne"}}]} },

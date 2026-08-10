@@ -273,12 +273,26 @@ export const firstTreasureRuleSchema = z
   .object({
     ...commonDefinition,
     id: z.string().regex(/^firstExperience\.treasure\./, 'id must start with firstExperience.treasure.'),
-    rarities: z
-      .object({
-        epic: probability,
-        legendary: probability,
-      })
-      .strict(),
+    branches: z
+      .array(
+        z.discriminatedUnion('kind', [
+          z
+            .object({
+              kind: z.literal('fixedRelic'),
+              relicId: z.string().regex(/^relic\./),
+              probability,
+            })
+            .strict(),
+          z
+            .object({
+              kind: z.literal('rarity'),
+              rarity: z.enum(RELIC_RARITY),
+              probability,
+            })
+            .strict(),
+        ]),
+      )
+      .min(1),
   })
   .strict();
 
