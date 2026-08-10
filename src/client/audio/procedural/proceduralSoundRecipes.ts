@@ -43,6 +43,7 @@ const DESCRIPTORS: Record<ProceduralSoundRecipe, RecipeDescriptor> = {
   landingHeavy: { bus: 'vehicle', category: 'minorImpact', priority: 68, duration: 0.38, maxDistance: 0, reverbSend: 0.07 },
   landingMassive: { bus: 'vehicle', category: 'majorExplosion', priority: 82, duration: 0.72, maxDistance: 0, reverbSend: 0.12 },
   groundPoundImpact: { bus: 'vehicle', category: 'majorExplosion', priority: 90, duration: 0.82, maxDistance: 0, reverbSend: 0.14 },
+  phaseAnnouncementImpact: { bus: 'uiReward', category: 'uiReward', priority: 96, duration: 0.68, maxDistance: 0, reverbSend: 0.08 },
   wallCollision: { bus: 'impact', category: 'minorImpact', priority: 48, duration: 0.34, maxDistance: 0, reverbSend: 0.06 },
   monsterCollision: { bus: 'impact', category: 'minorImpact', priority: 42, duration: 0.26, maxDistance: 0, reverbSend: 0.04 },
   truckCollision: { bus: 'impact', category: 'minorImpact', priority: 60, duration: 0.46, maxDistance: 0, reverbSend: 0.08 },
@@ -241,6 +242,15 @@ function playRecipeLayers(runtime: PrimitiveRuntime, recipe: ProceduralSoundReci
       metal(runtime, { at: at + 0.01, duration: 0.36, gain: 0.11 * intensity, frequencies: [285, 510, 860, 1_240] });
       rumble(runtime, { at: at + 0.02, duration: 0.72, gain: 0.36 * intensity, frequencyStart: 58, frequencyEnd: 25 });
       air(runtime, { at: at + 0.018, frequencyStart: 920, frequencyEnd: 80, duration: 0.65, gain: 0.2 * intensity, type: 'lowpass' });
+      return;
+    case 'phaseAnnouncementImpact':
+      // Original mechanical punctuation: synthesized low body, transient
+      // crack, air/rumble tail, and a restrained industrial metal accent.
+      thump(runtime, { at, frequencyStart: 84, frequencyEnd: 35, duration: 0.38, gain: 0.44 * intensity });
+      crack(runtime, { at, frequencyStart: 2_150, frequencyEnd: 470, duration: 0.12, gain: 0.25 * intensity, q: 0.72 });
+      rumble(runtime, { at: at + 0.018, duration: 0.56, gain: 0.2 * intensity, frequencyStart: 64, frequencyEnd: 29 });
+      air(runtime, { at: at + 0.01, frequencyStart: 1_350, frequencyEnd: 125, duration: 0.46, gain: 0.15 * intensity, type: 'lowpass' });
+      metal(runtime, { at: at + 0.014, duration: 0.19, gain: 0.045 * intensity, frequencies: [410, 690, 1_080] });
       return;
     case 'wallCollision':
       thump(runtime, { at, frequencyStart: 105, frequencyEnd: 39, duration: 0.28, gain: 0.4 });

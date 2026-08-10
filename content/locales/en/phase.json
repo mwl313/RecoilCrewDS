@@ -1,4 +1,7 @@
 {
+  "phase.farming": "SLAY MONSTERS TO PREPARE FOR THE WAVE",
+  "phase.elite": "ELITE MONSTER WAVE INCOMING",
+  "phase.final": "THE FINAL WAVE IS INCOMING",
   "phase.bossWave": "BOSS WAVE",
   "phase.wave1": "WAVE 1",
   "phase.wave2": "WAVE 2",

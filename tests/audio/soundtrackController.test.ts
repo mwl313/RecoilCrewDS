@@ -9,6 +9,7 @@ import {
   SOUNDTRACK_MUSIC_BUS_GAIN,
   WebAudioSoundtrackAutomation,
 } from '../../src/client/audio/soundtrackWebAudio';
+import { PHASE_ANNOUNCEMENT_DUCK } from '../../src/client/audio';
 import type {
   SoundtrackAutomation,
   SoundtrackMediaElement,
@@ -321,6 +322,20 @@ describe('SoundtrackController', () => {
     controller.duckForReward({ depth: 0.72, attackMs: 18, holdMs: 82, releaseMs: 520 });
     expect(automation.ducks).toEqual([{ depth: 0.72, attackMs: 18, holdMs: 82, releaseMs: 520 }]);
     expect(automation.contexts.at(-1)?.gain).toBe(SOUNDTRACK_CONTEXT_PROFILES.pause.gain);
+  });
+
+  it('uses a short phase-announcement duck without changing track or context', () => {
+    const { controller, automation } = setup();
+    const before = controller.debugState();
+    controller.duckForReward(PHASE_ANNOUNCEMENT_DUCK);
+    const after = controller.debugState();
+    expect(automation.ducks).toEqual([PHASE_ANNOUNCEMENT_DUCK]);
+    expect(after.currentTrackId).toBe(before.currentTrackId);
+    expect(after.currentContext).toBe(before.currentContext);
+    expect(PHASE_ANNOUNCEMENT_DUCK.depth).toBeGreaterThanOrEqual(0.15);
+    expect(PHASE_ANNOUNCEMENT_DUCK.depth).toBeLessThanOrEqual(0.25);
+    expect(PHASE_ANNOUNCEMENT_DUCK.releaseMs).toBeGreaterThanOrEqual(350);
+    expect(PHASE_ANNOUNCEMENT_DUCK.releaseMs).toBeLessThanOrEqual(500);
   });
 
   it('is safe for zero and one active track', async () => {

@@ -52,6 +52,10 @@ import { runCountdownSequence } from './presentation/countdownSequence';
 import { applyTankIntegrityGain } from '../shared/damage/tankIntegrityGain';
 import { localization } from './localization/localizationService';
 import { localizeServerError } from './localization/errorPresentation';
+import type {
+  PhaseAnnouncementKind,
+  PhaseAnnouncementLocale,
+} from './presentation/phaseAnnouncementLayer';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -78,6 +82,10 @@ void assetsPromise.then((loadedAssets) => {
 
 let assets: AssetService | null = null;
 let game: GameClient | null = null;
+hud.onPhaseAnnouncement = (impact) => {
+  audio.playPhaseAnnouncementImpact(impact.intensity);
+  game?.presentPhaseAnnouncementCameraImpact(impact.cameraImpulse, impact.reducedMotion);
+};
 let role: Role = 'driver';
 let sessionId = '';
 let roomCode = '';
@@ -651,14 +659,19 @@ function showMapError(reason: string): void {
   mapGateFailed = true;
 }
 
-async function startOnlineWithArena(r: Role, meta: ArenaMetadata, matchId?: string): Promise<void> {
+async function startOnlineWithArena(
+  r: Role,
+  meta: ArenaMetadata,
+  matchId?: string,
+  announceInitial = true,
+): Promise<void> {
   const session = buildSessionFromMetadata(meta);
   if ('error' in session) {
     showMapError(session.error);
     return;
   }
   arenaSession = session;
-  await startOnline(r, session.world, matchId);
+  await startOnline(r, session.world, matchId, announceInitial);
 }
 
 /** Hard protocol/content compatibility failure: never start the match. */
@@ -712,7 +725,7 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
   if (game) {
     game.applyArenaSession(session);
   }
-  await startOnline(role, session.world, matchId);
+  await startOnline(role, session.world, matchId, false);
   if (results) {
     flow = 'results';
     audio.soundtrack.enterContext('results');
@@ -721,7 +734,12 @@ async function resumeOnline(meta: ArenaMetadata, results: boolean, matchId?: str
   }
 }
 
-async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string): Promise<void> {
+async function startOnline(
+  r: Role,
+  world: ArenaWorld | null,
+  matchId?: string,
+  announceInitial = true,
+): Promise<void> {
   sessionKind = 'multiplayer';
   const selectedWorld = world ?? arenaSession?.world ?? createStaticArenaWorld();
   await preloadArenaAssets(selectedWorld);
@@ -733,6 +751,7 @@ async function startOnline(r: Role, world: ArenaWorld | null, matchId?: string):
   }
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
+  hud.beginPhaseAnnouncementMatch(matchId ?? 'online-match', announceInitial);
   game.startOnline(r);
   hud.setGameScreen(true);
   hud.setTheme(r);
@@ -788,6 +807,7 @@ async function startSinglePlayer(): Promise<void> {
   hud.showScreen('countdown');
   flow = 'countdown';
   await runCountdownSequence((value) => hud.showCountdown(value));
+  hud.beginPhaseAnnouncementMatch(matchId, true);
   game.startSinglePlayer(CLIENT_CONTENT_PACK, session.world, matchId, spModeId);
   if (TEST_MODE && params.has('enemyReadabilityQualification')) {
     setupEnemyReadabilityQualification(
@@ -1032,6 +1052,11 @@ if (TEST_MODE) {
     cameraState: () => game?.getCameraState() ?? null,
     audioStats: () => game?.audioDiagnostics() ?? audio.debugStats(),
     audioPlay: (recipe: ProceduralSoundRecipe) => audio.playLocal(recipe, { seed: 0x51f15e }),
+    phaseAnnouncement: {
+      show: (kind: PhaseAnnouncementKind, locale?: PhaseAnnouncementLocale) =>
+        hud.previewPhaseAnnouncement(kind, locale),
+      state: () => hud.phaseAnnouncementDiagnostics(),
+    },
     soundtrack: () => audio.soundtrack.debugState(),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),

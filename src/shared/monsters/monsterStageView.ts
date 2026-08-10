@@ -77,6 +77,7 @@ export function stageViewForMatch(match: MatchRuntime): HordeStageView {
   const monster = monsterBlockFor(match, stage);
   return {
     phase: stage.phase,
+    phaseSequence: stage.phaseSequence,
     farmingTimeRemaining: stage.farmingTimeRemaining,
     waveId: stage.activeWaveId,
     leaderHp: leader?.hp ?? 0,

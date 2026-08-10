@@ -27,6 +27,7 @@ export type ProceduralSoundRecipe =
   | 'landingHeavy'
   | 'landingMassive'
   | 'groundPoundImpact'
+  | 'phaseAnnouncementImpact'
   | 'wallCollision'
   | 'monsterCollision'
   | 'truckCollision'

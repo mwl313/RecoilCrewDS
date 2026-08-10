@@ -377,6 +377,7 @@ describe('monster stage timeline', () => {
     // The HUD level reads the authoritative active-farming clock.
     prod.systems.stage.state.activeFarmingElapsed = 45;
     const view = stageViewForMatch(prod);
+    expect(view.phaseSequence).toBe(prod.systems.stage.state.phaseSequence);
     expect(view.monster?.phase).toBe('FARMING');
     expect(view.monster?.level).toBe(4);
     const eliteDef = pack.getEnemy(prod.systems.monsterSlots!['selected.wave1.elite0']);

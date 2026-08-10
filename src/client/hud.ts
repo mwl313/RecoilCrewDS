@@ -9,6 +9,12 @@ import type { PresentationWorldFactory } from './presentation/presentationWorld'
 import { LobbyView } from './lobby/lobbyView';
 import type { ClientLobbyState, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
 import { localization } from './localization/localizationService';
+import {
+  PhaseAnnouncementLayer,
+  type PhaseAnnouncementImpact,
+  type PhaseAnnouncementKind,
+  type PhaseAnnouncementLocale,
+} from './presentation/phaseAnnouncementLayer';
 
 export interface HudHandlers extends AppFlowHandlers {}
 
@@ -29,9 +35,11 @@ export class Hud {
   private readonly screensHost: HTMLElement;
   private readonly hudRuntime: HudRuntime;
   private readonly projector = new HudProjector(localization);
+  private readonly phaseAnnouncements: PhaseAnnouncementLayer;
   private handlers: Partial<HudHandlers> = {};
   private lobbyView: LobbyView | null = null;
   onUiSound: (() => void) | null = null;
+  onPhaseAnnouncement: ((impact: PhaseAnnouncementImpact) => void) | null = null;
 
   private sound() {
     this.onUiSound?.();
@@ -61,6 +69,13 @@ export class Hud {
       this.sound();
       this.handlers.onPause?.();
     });
+    this.phaseAnnouncements = new PhaseAnnouncementLayer(this.root, {
+      onPresent: (impact) => this.onPhaseAnnouncement?.(impact),
+      onActiveChange: (active) => {
+        this.root.classList.toggle('phase-announcement-presenting', active);
+        this.hudRuntime.element?.classList.toggle('phase-announcement-presenting', active);
+      },
+    });
   }
 
   bind(h: HudHandlers) {
@@ -88,7 +103,20 @@ export class Hud {
 
   setGameScreen(show: boolean) {
     if (show) this.hideLobby();
+    else this.phaseAnnouncements.hide();
     this.flow.setGameVisible(show);
+  }
+
+  beginPhaseAnnouncementMatch(matchId: string, announceInitial: boolean): void {
+    this.phaseAnnouncements.beginMatch(matchId, announceInitial);
+  }
+
+  previewPhaseAnnouncement(kind: PhaseAnnouncementKind, locale?: PhaseAnnouncementLocale): void {
+    this.phaseAnnouncements.preview(kind, locale);
+  }
+
+  phaseAnnouncementDiagnostics() {
+    return this.phaseAnnouncements.diagnostics;
   }
 
   showLobby(state: ClientLobbyState, chat: LobbyChatMessage[], localPlayerId: string) {
@@ -210,6 +238,7 @@ export class Hud {
   }
 
   update(state: MatchState, opts: HudProjectionContext) {
+    this.phaseAnnouncements.observe(state.matchId, opts.stage);
     this.hudRuntime.apply(this.projector.project(state, opts));
   }
 

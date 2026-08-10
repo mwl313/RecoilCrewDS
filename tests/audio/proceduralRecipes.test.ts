@@ -52,6 +52,16 @@ describe('procedural recipes and semantic resolution', () => {
       .toBeGreaterThan(describeRecipe('playerCannon', { chargeRatio: 0 }).duration);
   });
 
+  it('ships phaseAnnouncementImpact as an original local UI recipe', () => {
+    expect(describeRecipe('phaseAnnouncementImpact')).toMatchObject({
+      bus: 'uiReward',
+      category: 'uiReward',
+      priority: 96,
+      duration: 0.68,
+      maxDistance: 0,
+    });
+  });
+
   it('uses one capped aggregate horde presence curve', () => {
     expect(hordePresenceAmount(5)).toBe(0);
     expect(hordePresenceAmount(12)).toBeGreaterThan(0);

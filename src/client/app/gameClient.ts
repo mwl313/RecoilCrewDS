@@ -461,6 +461,7 @@ export class GameClient {
   /** Core Loop 06 M11: stage HUD view for the local Single Player match. */
   getSinglePlayerStageView(): {
     phase: string;
+    phaseSequence: number;
     farmingTimeRemaining: number;
     waveId: number | null;
     leaderHp: number;
@@ -482,6 +483,10 @@ export class GameClient {
     const m = this.singlePlayerMatch;
     if (!m) return undefined;
     return stageViewForMatch(m.runtime);
+  }
+
+  presentPhaseAnnouncementCameraImpact(impulse: number, reducedMotion: boolean): void {
+    this.cameras.addImpulse(Math.max(0, Math.min(0.7, impulse)) * (reducedMotion ? 0.28 : 1));
   }
 
   /** Core Loop 06 M11: horde debug metrics (single player match only). */
