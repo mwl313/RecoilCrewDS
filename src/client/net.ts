@@ -1,5 +1,6 @@
 import { PROTOCOL_VERSION } from '../shared/net/protocol';
 import { netcodeMetrics } from './netcode/netcodeMetrics';
+import { resolveWebSocketUrl } from './urlResolution';
 
 export class NetClient {
   private ws: WebSocket | null = null;
@@ -14,8 +15,7 @@ export class NetClient {
   onStatus: ((connected: boolean) => void) | null = null;
 
   constructor() {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    this.url = `${proto}://${window.location.host}/ws`;
+    this.url = resolveWebSocketUrl(import.meta.env.VITE_GAME_SERVER_URL, window.location);
     const params = new URLSearchParams(window.location.search);
     this.latencyMs = Math.max(0, Number(params.get('latency') ?? 0) || 0);
     this.jitterMs = Math.max(0, Number(params.get('jitter') ?? 0) || 0);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { resolveClientAssetUrl } from '../urlResolution';
 
-export const AUTHORED_SKY_SLOT = '/assets/environment/sky/recoil-day-01.webp';
+export const AUTHORED_SKY_SLOT = resolveClientAssetUrl('/assets/environment/sky/recoil-day-01.webp');
 
 export class SkyEnvironment {
   private fallback: THREE.CanvasTexture | null = null;

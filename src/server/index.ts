@@ -8,15 +8,15 @@ import type { ContentPack } from '../shared/content/contentPack';
 import { PROTOCOL_VERSION } from '../shared/net/protocol';
 import { NET_TUNING } from '../shared/net/tuning';
 import { FixedStepAccumulator } from './fixedStep';
+import { isOriginAllowed, parseAllowedOrigins } from './originPolicy';
 
 const PORT = Number(process.env.PORT || 8080);
+const HOST = process.env.HOST || '0.0.0.0';
 const STATIC_DIR = path.resolve(process.cwd(), process.env.STATIC_DIR || 'dist');
 const TIME_SCALE = Number(process.env.RECOIL_TIME_SCALE || 1);
 const CONTENT_DIR = process.env.CONTENT_DIR ? path.resolve(process.cwd(), process.env.CONTENT_DIR) : path.resolve(process.cwd(), 'content');
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const RELEASE_SHA = process.env.RELEASE_SHA?.trim() || 'dev';
+const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -84,6 +84,22 @@ const server = http.createServer((req, res) => {
     res.end('Method not allowed');
     return;
   }
+  const url = new URL(req.url || '/', 'http://localhost');
+  if (url.pathname === '/healthz') {
+    const body = JSON.stringify({
+      ok: true,
+      service: 'recoil-crew',
+      release: RELEASE_SHA,
+      uptimeSeconds: Math.floor(process.uptime()),
+    });
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'Content-Length': Buffer.byteLength(body),
+    });
+    res.end(req.method === 'HEAD' ? undefined : body);
+    return;
+  }
   serveStatic(req, res);
 });
 
@@ -114,15 +130,9 @@ if (fs.existsSync(CONTENT_DIR)) {
 
 const manager = new RoomManager({ content: contentMeta, pack: contentPack });
 
-function originAllowed(origin: string | undefined): boolean {
-  if (!origin) return true;
-  if (ALLOWED_ORIGINS.includes('*')) return true;
-  return ALLOWED_ORIGINS.some((o) => origin.startsWith(o));
-}
-
 wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
   const origin = req.headers.origin;
-  if (!originAllowed(origin)) {
+  if (!isOriginAllowed(origin, ALLOWED_ORIGINS)) {
     ws.close(1008, 'origin not allowed');
     return;
   }
@@ -226,8 +236,8 @@ function loopFrame(): void {
 
 setTimeout(loopFrame, 1);
 
-server.listen(PORT, () => {
-  console.log(`[recoil-crew] server listening on http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`[recoil-crew] server listening on http://${HOST}:${PORT}`);
   console.log(`[recoil-crew] static dir: ${STATIC_DIR} (${fs.existsSync(path.join(STATIC_DIR, 'index.html')) ? 'build found' : 'no build yet - use npm run dev:client or npm run build'})`);
   console.log(`[recoil-crew] time scale: ${TIME_SCALE}`);
 });

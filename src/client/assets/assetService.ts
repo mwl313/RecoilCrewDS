@@ -13,6 +13,7 @@ import { PRESENTATION_ASSET_CATALOG } from '../../generated/presentationContent.
 import { assertResolvableAssetId, resolveProjectAsset } from '../../shared/assetCatalog';
 import type { TankRigDefinition } from '../../shared/content/schemas/tank';
 import { createAssetTelemetry, type AssetTelemetry } from './assetTelemetry';
+import { resolveClientAssetUrl } from '../urlResolution';
 
 export { buildTankRig, getMuzzleWorld };
 
@@ -51,11 +52,11 @@ export class AssetService {
 
   static async load(options: { gltfLoaderFactory?: GltfLoaderFactory } = {}): Promise<AssetService> {
     const service = new AssetService(options.gltfLoaderFactory);
-    const manifest = await service.manifestLoader.load('/assets/manifest.json', PRESENTATION_ASSET_CATALOG);
+    const manifest = await service.manifestLoader.load(resolveClientAssetUrl('/assets/manifest.json'), PRESENTATION_ASSET_CATALOG);
     service.manifestLoaded = manifest.loaded;
     for (const entry of manifest.entries) {
       if (entry.category === 'model' && typeof entry.file === 'string') {
-        service.models.registerFile(entry.id, entry.file);
+        service.models.registerFile(entry.id, resolveClientAssetUrl(entry.file));
       }
       service.instances.registerMetadata(entry);
     }
@@ -64,7 +65,7 @@ export class AssetService {
     const projectModels = PRESENTATION_ASSET_CATALOG.project.filter((p) => p.kind === 'model');
     for (const asset of projectModels) {
       service.instances.registerProject(asset);
-      if (asset.file) service.models.registerFile(asset.id, asset.file);
+      if (asset.file) service.models.registerFile(asset.id, resolveClientAssetUrl(asset.file));
     }
     service.telemetry.registeredModelCount = projectModels.length;
     // Stage-selective preload: built-in presentation models, manifest
@@ -152,7 +153,7 @@ export class AssetService {
    */
   assetUrl(id: string): string | null {
     const def = PRESENTATION_ASSET_CATALOG.project.find((p) => p.id === id);
-    return def?.file ?? null;
+    return def?.file ? resolveClientAssetUrl(def.file) : null;
   }
 
   vfx(id: string): VfxSpec {
