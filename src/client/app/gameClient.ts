@@ -121,6 +121,9 @@ export class GameClient {
   private readonly aggregateSectors: AggregateSectorRenderer;
   private readonly xpShards: XpShardRenderer;
   private relicChestRenderer: RelicChestWorldRenderer | null = null;
+  private preparedMonsterRunMatchId = '';
+  private monsterRunPreparationGeneration = 0;
+  private monsterRunPreparation: { matchId: string; promise: Promise<void> } | null = null;
   private enemyWorldUi: EnemyWorldUiLayer | null = null;
   private tacticalDrawer: TacticalDrawer | null = null;
   private readonly tankDamageFeedback: TankDamageFeedbackLayer;
@@ -404,18 +407,61 @@ export class GameClient {
    * assets used by the run are fetched; Demo and optional monsters are
    * never preloaded here.
    */
-  async preloadMonsterRun(pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
+  async prepareMonsterRun(matchId: string, pack: ContentPack, run: SelectedMonsterRun | null): Promise<void> {
     this.contentPack = pack;
-    const preloadIds = run ? resolveSelectedPreloadAssetIds(pack, run) : [];
-    await this.assets.preloadModels([...preloadIds, RELIC_CHEST_ASSET_ID]);
-    const progression = pack.getProgressionDefinition('progression.mainStage');
-    this.relicChestRenderer?.dispose();
-    this.relicChestRenderer = new RelicChestWorldRenderer(
-      this.world.scene,
-      this.assets,
-      pack.getRelicChestSpawnPolicy(progression.relicChestSpawnPolicyId),
-      () => this.audio.play('chestOpen'),
-    );
+    if (this.preparedMonsterRunMatchId === matchId && this.relicChestRenderer) return;
+    if (this.monsterRunPreparation?.matchId === matchId) return this.monsterRunPreparation.promise;
+
+    const generation = ++this.monsterRunPreparationGeneration;
+    const promise = (async () => {
+      const preloadIds = run ? resolveSelectedPreloadAssetIds(pack, run) : [];
+      await this.assets.preloadModels([...preloadIds, RELIC_CHEST_ASSET_ID]);
+      // A newer match superseded this asynchronous preload. Never install a
+      // stale renderer over the new match's presentation state.
+      if (generation !== this.monsterRunPreparationGeneration) return;
+      const progression = pack.getProgressionDefinition('progression.mainStage');
+      this.relicChestRenderer?.dispose();
+      this.relicChestRenderer = new RelicChestWorldRenderer(
+        this.world.scene,
+        this.assets,
+        pack.getRelicChestSpawnPolicy(progression.relicChestSpawnPolicyId),
+        () => this.audio.play('chestOpen'),
+      );
+      this.preparedMonsterRunMatchId = matchId;
+    })();
+    this.monsterRunPreparation = { matchId, promise };
+    try {
+      await promise;
+    } finally {
+      if (this.monsterRunPreparation?.promise === promise) this.monsterRunPreparation = null;
+    }
+  }
+
+  /** Read-only preparation/catalog diagnostics for multiplayer E2E checks. */
+  monsterRunPresentationDiagnostics(relicId?: string): {
+    preparedMatchId: string;
+    hasContentPack: boolean;
+    chestRendererReady: boolean;
+    renderedChestCount: number;
+    relic: { id: string; label: string; description: string } | null;
+  } {
+    const relic = relicId && this.contentPack ? this.contentPack.getRelic(relicId) : null;
+    return {
+      preparedMatchId: this.preparedMonsterRunMatchId,
+      hasContentPack: this.contentPack !== null,
+      chestRendererReady: this.relicChestRenderer !== null,
+      renderedChestCount: this.relicChestRenderer?.size ?? 0,
+      relic: relic
+        ? {
+            id: relic.id,
+            label: localization.t(relicKey(relic.id, 'name'), {}, relic.label),
+            description: localizedRelicDescription(
+              relic,
+              (templateId) => this.contentPack?.getRelicEffectTemplate(templateId),
+            ),
+          }
+        : null,
+    };
   }
 
   /**
@@ -1575,6 +1621,8 @@ export class GameClient {
 
   destroy(): void {
     this.running = false;
+    this.monsterRunPreparationGeneration++;
+    this.monsterRunPreparation = null;
     cancelAnimationFrame(this.raf);
     this.stopChargeSound();
     this.aggregateSectors.reset();

@@ -12,6 +12,14 @@ type ChestSnapshot = {
   claimableAtGameTime: number;
 };
 
+type MonsterRunPresentation = {
+  preparedMatchId: string;
+  hasContentPack: boolean;
+  chestRendererReady: boolean;
+  renderedChestCount: number;
+  relic: { id: string; label: string; description: string } | null;
+};
+
 async function enterMenu(page: Page): Promise<void> {
   await page.goto(PRODUCTION_URL);
   await page.click('#screen-boot');
@@ -27,6 +35,29 @@ async function waitForTenChests(page: Page): Promise<ChestSnapshot[]> {
     const state = (window as unknown as { __recoil: { state(): { chests: ChestSnapshot[] } } }).__recoil.state();
     return state.chests.filter((chest) => chest.source === 'mapStart').sort((a, b) => a.id - b.id);
   });
+}
+
+async function waitForPreparedPresentation(page: Page): Promise<MonsterRunPresentation> {
+  await page.waitForFunction(() => {
+    const recoil = (window as unknown as {
+      __recoil: {
+        state(): { matchId: string } | null;
+        monsterRunPresentation(relicId: string): MonsterRunPresentation | null;
+      };
+    }).__recoil;
+    const state = recoil.state();
+    const presentation = recoil.monsterRunPresentation('relic.magnet_core');
+    return !!state && presentation?.preparedMatchId === state.matchId
+      && presentation.hasContentPack
+      && presentation.chestRendererReady
+      && presentation.renderedChestCount === 10
+      && presentation.relic?.id === 'relic.magnet_core';
+  });
+  return page.evaluate(() =>
+    (window as unknown as {
+      __recoil: { monsterRunPresentation(relicId: string): MonsterRunPresentation };
+    }).__recoil.monsterRunPresentation('relic.magnet_core'),
+  );
 }
 
 test('two production clients and a reconnect share the same ten world chests', async ({ browser }) => {
@@ -68,6 +99,15 @@ test('two production clients and a reconnect share the same ten world chests', a
   const driverChests = await waitForTenChests(driver);
   const gunnerChests = await waitForTenChests(gunner);
   expect(gunnerChests).toEqual(driverChests);
+  const driverPresentation = await waitForPreparedPresentation(driver);
+  const gunnerPresentation = await waitForPreparedPresentation(gunner);
+  for (const presentation of [driverPresentation, gunnerPresentation]) {
+    expect(presentation.renderedChestCount).toBe(10);
+    expect(presentation.relic?.label.length).toBeGreaterThan(0);
+    expect(presentation.relic?.label).not.toBe('미확인 유물');
+    expect(presentation.relic?.label).not.toBe('Unidentified Relic');
+    expect(presentation.relic?.description.length).toBeGreaterThan(0);
+  }
   await expect(driver.locator('#relic-inventory-rail')).toBeHidden();
   await expect(gunner.locator('#relic-inventory-rail')).toBeHidden();
 
@@ -80,5 +120,9 @@ test('two production clients and a reconnect share the same ten world chests', a
   }, { roomCode: code, sessionId: gunnerSession });
   const reconnectChests = await waitForTenChests(rejoined);
   expect(reconnectChests).toEqual(driverChests);
+  const reconnectPresentation = await waitForPreparedPresentation(rejoined);
+  expect(reconnectPresentation.renderedChestCount).toBe(10);
+  expect(reconnectPresentation.relic?.label).toBe(driverPresentation.relic?.label);
+  expect(reconnectPresentation.relic?.label).not.toBe('미확인 유물');
   await context.close();
 });

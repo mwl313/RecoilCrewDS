@@ -107,7 +107,7 @@ let singlePlayerMatchIndex = 0;
 let debugOverlay: DebugOverlay | null = null;
 let pendingChecksumOverride: number | null = null;
 let mapGateFailed = false;
-let lastPreloadedMatchId = '';
+let lastAssetReadyMatchId = '';
 let latestRunConfig: RunConfigMessage | null = null;
 let latestSequenceBaseline: SequenceBaseline = { inputSeq: 0, actionSeq: 0 };
 let activeSinglePlayerModeId = SINGLE_PLAYER_SESSION.rulesModeId;
@@ -362,7 +362,7 @@ net.onMessage = (msg) => {
           }
           const reconnectConfig = latestRunConfig?.matchId === reconnectMatchId ? latestRunConfig : null;
           void (async () => {
-            if (reconnectConfig) {
+            if (reconnectConfig && lastAssetReadyMatchId !== reconnectMatchId) {
               const loaded = assets ?? (await assetsPromise);
               assets = loaded;
               await loaded.preloadModels(resolveGameplayPreloadAssetIds(
@@ -370,7 +370,7 @@ net.onMessage = (msg) => {
                 reconnectConfig.modeId,
                 reconnectConfig.run,
               ));
-              lastPreloadedMatchId = reconnectMatchId ?? '';
+              lastAssetReadyMatchId = reconnectMatchId ?? '';
             }
             await resumeOnline(msg.arena as ArenaMetadata, phase === 'results', reconnectMatchId);
           })().catch(showGameStartupError);
@@ -433,12 +433,14 @@ net.onMessage = (msg) => {
       void (async () => {
         const loaded = assets ?? (await assetsPromise);
         assets = loaded;
-        await loaded.preloadModels(resolveGameplayPreloadAssetIds(
-          CLIENT_CONTENT_PACK,
-          config.modeId,
-          config.run,
-        ));
-        lastPreloadedMatchId = config.matchId;
+        if (lastAssetReadyMatchId !== config.matchId) {
+          await loaded.preloadModels(resolveGameplayPreloadAssetIds(
+            CLIENT_CONTENT_PACK,
+            config.modeId,
+            config.run,
+          ));
+          lastAssetReadyMatchId = config.matchId;
+        }
         net.send({
           t: 'assetReady',
           matchId: config.matchId,
@@ -758,10 +760,9 @@ async function startOnline(
   await preloadArenaAssets(selectedWorld);
   if (!game) game = await createGame(selectedWorld);
   game.seedNetworkSequences(latestSequenceBaseline);
-  if (matchId && matchId !== lastPreloadedMatchId) {
+  if (matchId) {
     const config = latestRunConfig?.matchId === matchId ? latestRunConfig : null;
-    await game.preloadMonsterRun(CLIENT_CONTENT_PACK, config?.run ?? null);
-    lastPreloadedMatchId = matchId;
+    await game.prepareMonsterRun(matchId, CLIENT_CONTENT_PACK, config?.run ?? null);
   }
   attachGameCallbacks(game);
   game.suppressAutoInput = TEST_MODE;
@@ -793,8 +794,7 @@ async function startSinglePlayer(): Promise<void> {
   }
   game = await createGame(session.world);
   const selectedRun = resolveSelectedMonsterRun(CLIENT_CONTENT_PACK, matchId, spModeId);
-  await game.preloadMonsterRun(CLIENT_CONTENT_PACK, selectedRun);
-  lastPreloadedMatchId = matchId;
+  await game.prepareMonsterRun(matchId, CLIENT_CONTENT_PACK, selectedRun);
   attachGameCallbacks(game);
   game.onSinglePlayerResults = (results) => {
     const outcome = game?.singlePlayerMatch?.state.matchFlow === 'clear'
@@ -1090,6 +1090,7 @@ if (TEST_MODE) {
     soundtrack: () => audio.soundtrack.debugState(),
     netcodeMetrics: () => netcodeMetrics.snapshot(),
     networkSequences: () => game?.networkSequenceDiagnostics() ?? null,
+    monsterRunPresentation: (relicId?: string) => game?.monsterRunPresentationDiagnostics(relicId) ?? null,
     localCharge: () => game?.localChargeDiagnostics() ?? null,
     suppressPresentationFrames: (suppressed: boolean) => game?.setPresentationFramesSuppressedForTest(suppressed),
     composerPasses: () => game?.composerPassCount() ?? 0,
