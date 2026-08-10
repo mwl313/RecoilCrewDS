@@ -18,6 +18,7 @@ export interface HudContext {
   objective: { x: number; y: number; visible: boolean } | null;
   stage?: {
     phase: string;
+    phaseSequence?: number;
     farmingTimeRemaining: number;
     waveId: number | null;
     leaderHp: number;

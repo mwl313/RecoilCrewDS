@@ -67,6 +67,13 @@ const BUS_GAINS: Record<ProceduralBusName, number> = {
   uiReward: 0.72,
 };
 
+export const PHASE_ANNOUNCEMENT_DUCK = Object.freeze({
+  depth: 0.2,
+  attackMs: 20,
+  holdMs: 150,
+  releaseMs: 430,
+});
+
 export function perceptualVolumeGain(value0to100: number): number {
   const normalized = Math.max(0, Math.min(100, Number.isFinite(value0to100) ? value0to100 : 100)) / 100;
   return normalized ** 2;
@@ -447,6 +454,16 @@ export class AudioManager {
 
   duckForReward(opts: { depth: number; attackMs: number; holdMs: number; releaseMs: number }): void {
     this.soundtrack.duckForReward(opts);
+  }
+
+  playPhaseAnnouncementImpact(intensity: number): boolean {
+    const played = this.playLocal('phaseAnnouncementImpact', {
+      intensity: Math.max(0.75, Math.min(1.25, intensity)),
+    });
+    // Existing independent automation preserves the current track/context;
+    // user BGM and SFX gain stages remain untouched.
+    this.soundtrack.duckForReward(PHASE_ANNOUNCEMENT_DUCK);
+    return played;
   }
 
   private now(): number {

@@ -10,6 +10,8 @@ import type { SelectedMonsterRun } from '../monsters/monsterRunSelection';
 
 export interface HordeStageView {
   phase: string;
+  /** Monotonic authoritative transition id; resets only with a new Match. */
+  phaseSequence: number;
   farmingTimeRemaining: number;
   waveId: number | null;
   leaderHp: number;
