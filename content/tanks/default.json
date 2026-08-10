@@ -54,7 +54,7 @@
   "autoRightRoll": 1.15,
   "recoilImpulse": 10.5,
   "recoilSpin": 1.7,
-  "mgRecoilImpulse": 0.15,
+  "mgRecoilImpulse": 0.18,
   "rig": {
     "chassisAssetId": "playerTank.chassis",
     "turretAssetId": "playerTank.turret",

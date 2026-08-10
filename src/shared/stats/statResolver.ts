@@ -1,6 +1,7 @@
 import { isKnownStat, statScope, type StatScope } from './statIds';
 import type { MutableStatModifier, StatModifier } from './statModifier';
 import type { StatBlock } from './statBlock';
+import { applyBaseMultiplierCap } from './statCaps';
 
 /**
  * Match-scoped stat resolver with dirty caching.
@@ -127,7 +128,7 @@ export class StatResolver {
     return out;
   }
 
-  /** Debug breakdown: base + adds × multiplies → final (before clamp). */
+  /** Debug breakdown: base + adds × multiplies → explicit and intrinsic caps. */
   breakdown(stat: string): { base: number; adds: number[]; multiplies: number[]; final: number } {
     const relevant = this.modifiers.filter((m) => m.stat === stat);
     const adds = relevant.filter((m) => m.operation === 'add').map((m) => m.value);
@@ -140,6 +141,7 @@ export class StatResolver {
       if (clampers.min !== undefined) value = Math.max(clampers.min, value);
       if (clampers.max !== undefined) value = Math.min(clampers.max, value);
     }
+    value = applyBaseMultiplierCap(stat, this.getBase(stat), value);
     return { base: this.getBase(stat), adds, multiplies, final: value };
   }
 
@@ -224,7 +226,7 @@ export class StatResolver {
       if (clampers.min !== undefined) value = Math.max(clampers.min, value);
       if (clampers.max !== undefined) value = Math.min(clampers.max, value);
     }
-    return value;
+    return applyBaseMultiplierCap(stat, this.getBase(stat), value);
   }
 
   private invalidate(stat: string): void {

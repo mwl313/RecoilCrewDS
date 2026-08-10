@@ -114,7 +114,6 @@ export interface GameConfig {
     mgRate: number;
     mgRange: number;
     mgSpread: number;
-    mgSpeed: number;
     cannonDamage: number;
     cannonRadius: number;
     cannonCooldown: number;
@@ -261,14 +260,13 @@ export const BASE_CONFIG: GameConfig = {
     autoRightRoll: 1.15,
     recoilImpulse: 10.5,
     recoilSpin: 1.7,
-    mgRecoilImpulse: 0.15,
+    mgRecoilImpulse: 0.18,
   },
   weapons: {
-    mgDamage: 2,
+    mgDamage: 3,
     mgRate: 11,
     mgRange: 45,
-    mgSpread: 0.018,
-    mgSpeed: 220,
+    mgSpread: 0.012,
     cannonDamage: 12,
     cannonRadius: 3.4,
     cannonCooldown: 1.6,
