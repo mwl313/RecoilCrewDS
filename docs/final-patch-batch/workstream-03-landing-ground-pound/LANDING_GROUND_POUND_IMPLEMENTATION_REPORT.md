@@ -173,7 +173,7 @@ Focused automated results before prerequisite integration:
 | --- | --- |
 | `npx tsc --noEmit` | PASS |
 | `npm run build` | PASS; only the existing Vite chunk-size advisory |
-| `npx vitest run tests/movement` | PASS, 3 files / 27 tests |
+| `npx vitest run tests/movement` | PASS, 3 files / 30 tests |
 | `npm run test:progression` | PASS, 34 files / 222 tests |
 | `npx vitest run tests/audio` | PASS, 9 files / 39 tests |
 | `npm run test:netcode` | PASS, 8 files / 45 tests |
@@ -209,7 +209,9 @@ reproduced unchanged in a clean detached worktree at the recorded audit SHA:
 
 The monster-pack importer fixture is an ignored local asset, not repository
 content. Its existing ZIP was hard-linked into this worktree for verification;
-the importer suite then passed. Final post-rebase results are appended below.
+the importer suite then passed. A fresh feature-branch run completed with 191
+test files / 1,487 tests passing and only the same seven baseline failures.
+Final post-rebase results are appended below.
 
 ## Scoped exclusions
 

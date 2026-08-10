@@ -7,14 +7,21 @@ import {
 import { MatchRuntime } from '../../src/shared/sim/matchRuntime';
 
 describe('authoritative fall-distance tracking', () => {
-  it('tracks the airborne peak for jumps, launches, and lower-ground landings', () => {
-    const tracker = new AuthoritativeFallTracker(true, 4);
-    expect(tracker.update({ grounded: false, previousY: 4, y: 6, preLandingVy: 8 })).toBeNull();
-    expect(tracker.update({ grounded: false, previousY: 6, y: 9, preLandingVy: 2 })).toBeNull();
-    expect(tracker.update({ grounded: false, previousY: 9, y: 7, preLandingVy: -5 })).toBeNull();
-    expect(tracker.update({ grounded: true, previousY: 7, y: 1, preLandingVy: -12 })).toEqual({
-      fallDistance: 8,
-      impactSpeed: 12,
+  it.each([
+    { caseName: 'normal jump', startY: 4, airborneY: [6, 7, 5], landingY: 4, impactSpeed: 8, fallDistance: 3 },
+    { caseName: 'cannon launch', startY: 4, airborneY: [9, 15, 10], landingY: 4, impactSpeed: 16, fallDistance: 11 },
+    { caseName: 'cliff drop', startY: 8, airborneY: [8, 7, 4], landingY: 1, impactSpeed: 12, fallDistance: 7 },
+    { caseName: 'low-ceiling contact', startY: 4, airborneY: [4.3, 4.4, 4.2], landingY: 4, impactSpeed: 3, fallDistance: 0.4 },
+  ])('tracks the airborne peak for a $caseName', ({ startY, airborneY, landingY, impactSpeed, fallDistance }) => {
+    const tracker = new AuthoritativeFallTracker(true, startY);
+    let previousY = startY;
+    for (const y of airborneY) {
+      expect(tracker.update({ grounded: false, previousY, y, preLandingVy: 0 })).toBeNull();
+      previousY = y;
+    }
+    expect(tracker.update({ grounded: true, previousY, y: landingY, preLandingVy: -impactSpeed })).toEqual({
+      fallDistance,
+      impactSpeed,
     });
     expect(tracker.snapshot()).toEqual({ wasGrounded: true, airborneStartedY: null, airbornePeakY: null });
   });
