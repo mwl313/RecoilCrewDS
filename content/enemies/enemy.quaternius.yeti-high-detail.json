@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.yeti-high-detail",
-  "label": "Yeti High Detail Boss",
+  "label": "Yeti Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",

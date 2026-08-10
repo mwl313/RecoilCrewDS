@@ -160,6 +160,62 @@ function inputFactory(node: UiNodeInput, services: UiComponentServices): UiCompo
   return instance;
 }
 
+function segmentedControlFactory(node: UiNodeInput, services: UiComponentServices): UiComponentInstance {
+  const props = (node.props ?? {}) as {
+    valueSource?: string;
+    options?: Array<{ value: string; text: string; textKey?: string }>;
+  };
+  const instance = base(node, services);
+  instance.element.setAttribute('role', 'radiogroup');
+  const buttons = (props.options ?? []).map((option) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ui-segmented__option';
+    button.dataset.value = option.value;
+    button.setAttribute('role', 'radio');
+    button.addEventListener('click', () => {
+      instance.element.dataset.value = option.value;
+      instance.element.dispatchEvent(new Event('change'));
+    });
+    instance.element.appendChild(button);
+    return { button, option };
+  });
+  instance.update = (context) => {
+    const selected = String(getPath(context, props.valueSource ?? '') ?? instance.element.dataset.value ?? '');
+    instance.element.dataset.value = selected;
+    for (const { button, option } of buttons) {
+      const active = selected === option.value;
+      button.classList.toggle('selected', active);
+      button.setAttribute('aria-checked', String(active));
+      button.tabIndex = active ? 0 : -1;
+      button.textContent = option.textKey
+        ? services.localize?.(option.textKey, undefined, option.text) ?? option.text
+        : option.text;
+    }
+  };
+  instance.element.addEventListener('keydown', (event) => {
+    if (!(event instanceof KeyboardEvent) || !['ArrowLeft', 'ArrowRight'].includes(event.key) || buttons.length < 2) return;
+    event.preventDefault();
+    const current = buttons.findIndex(({ option }) => option.value === instance.element.dataset.value);
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const next = buttons[(current + direction + buttons.length) % buttons.length]!;
+    next.button.click();
+    next.button.focus();
+  });
+  return instance;
+}
+
+function rangeFactory(node: UiNodeInput, services: UiComponentServices): UiComponentInstance {
+  const props = (node.props ?? {}) as { min?: number; max?: number; step?: number };
+  const instance = base(node, services, { tag: 'input' });
+  const input = instance.element as HTMLInputElement;
+  input.type = 'range';
+  input.min = String(props.min ?? 0);
+  input.max = String(props.max ?? 100);
+  input.step = String(props.step ?? 1);
+  return instance;
+}
+
 function progressBarFactory(node: UiNodeInput, services: UiComponentServices): UiComponentInstance {
   const props = (node.props ?? {}) as { valueSource: string; maxSource: string; direction?: 'horizontal' | 'vertical' };
   const instance = base(node, services);
@@ -217,6 +273,8 @@ factories.objectiveMarker = textFactory;
 factories.button = buttonFactory;
 factories.pauseButton = buttonFactory;
 factories.input = inputFactory;
+factories.segmentedControl = segmentedControlFactory;
+factories.range = rangeFactory;
 factories.progressBar = progressBarFactory;
 factories.arcMeter = arcMeterFactory;
 factories.connectionIndicator = (n, s) => base(n, s, { tag: 'span' });
@@ -261,6 +319,11 @@ const componentSchemas: Record<string, z.ZodType> = {
       mode: z.enum(['roomcode', 'text']).optional(),
     })
     .strict(),
+  segmentedControl: z.object({
+    valueSource: z.string().optional(),
+    options: z.array(z.object({ value: z.string(), text: z.string(), textKey: z.string().optional() }).strict()).min(2).optional(),
+  }).strict(),
+  range: z.object({ min: z.number().optional(), max: z.number().optional(), step: z.number().optional() }).strict(),
   progressBar: z.object({ valueSource: z.string().optional(), maxSource: z.string().optional() }).strict(),
   arcMeter: z.object({ valueSource: z.string().optional() }).strict(),
   connectionIndicator: z.object({}).strict(),
@@ -305,6 +368,7 @@ function inspectorFor(type: string): UiComponentRegistration['inspector'] {
 export function compileNodeBindings(
   node: UiNodeInput,
   element: HTMLElement,
+  localize?: (key: string, params?: Record<string, string | number>, fallback?: string) => string,
 ): Array<{ apply(ctx: Record<string, unknown>, el: HTMLElement): void }> {
-  return (node.bindings ?? []).map((b) => compileBindingApplier(b, element));
+  return (node.bindings ?? []).map((b) => compileBindingApplier(b, element, localize));
 }

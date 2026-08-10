@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.alien-high-detail.boss",
-  "label": "Alien High Detail Boss",
+  "label": "Alien Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",

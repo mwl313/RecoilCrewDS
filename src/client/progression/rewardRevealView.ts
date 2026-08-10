@@ -4,6 +4,9 @@ import type { RewardTimelineSnapshot } from './rewardRevealDirector';
 import { RewardFxLayer } from './rewardFxLayer';
 import { buildRewardReelSymbols, rewardReelFrame, type RewardReelSymbol } from './rewardReelAnimator';
 import { formatUpgradeEffect } from '../../shared/presentation/statPresentation';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService } from '../localization/localizationTypes';
+import { upgradeKey } from '../localization/contentKeys';
 
 export type ProgressionRole = 'driver' | 'gunner' | 'single';
 
@@ -34,8 +37,16 @@ export class RewardRevealView {
   private lastRelicCellIndex = -1;
   private lastLockedCount = 0;
   private rewardIdentity = '';
+  private currentSelection: ProgressionSelectionState | null = null;
+  private currentRole: ProgressionRole = 'single';
+  private currentTimeline: RewardTimelineSnapshot | null = null;
+  private readonly unsubscribeLocalization: () => void;
 
-  constructor(container: HTMLElement, private readonly cb: RewardRevealViewCallbacks) {
+  constructor(
+    container: HTMLElement,
+    private readonly cb: RewardRevealViewCallbacks,
+    private readonly i18n: LocalizationService = localization,
+  ) {
     const reducedMotion = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const reducedFlash = reducedMotion || new URLSearchParams(globalThis.location?.search ?? '').has('reducedFlash');
     this.fx = new RewardFxLayer(reducedFlash);
@@ -62,9 +73,12 @@ export class RewardRevealView {
     this.debugHost.hidden = !new URLSearchParams(globalThis.location?.search ?? '').has('progressionDebug');
     this.root.append(scrim, this.fx.element, this.selectionHost, this.relicHost);
     container.append(this.root, this.debugHost);
+    this.unsubscribeLocalization = this.i18n.subscribe(() => this.refreshLocalizedContent());
   }
 
   renderUpgrade(selection: ProgressionSelectionState, role: ProgressionRole): void {
+    this.currentSelection = selection;
+    this.currentRole = role;
     const offer = selection.singlePlayerOffer ?? (role === 'driver' ? selection.driverOffer : selection.gunnerOffer) ?? [];
     this.selectionHost.replaceChildren();
     this.cardButtons = [];
@@ -74,9 +88,9 @@ export class RewardRevealView {
     this.lastLockedCount = 0;
     this.rewardIdentity = selection.offerId;
     const stage = element('div', 'reward-stage reward-stage--upgrade');
-    const kicker = element('div', 'reward-kicker', 'FIELD UPGRADE AVAILABLE');
-    this.selectionTitle = element('h2', 'reward-title', 'LEVEL UP');
-    const level = element('div', 'reward-level-number', `LEVEL ${selection.level}`);
+    const kicker = element('div', 'reward-kicker', this.i18n.t('ui.progression.available'));
+    this.selectionTitle = element('h2', 'reward-title', this.i18n.t('ui.progression.levelUp'));
+    const level = element('div', 'reward-level-number', this.i18n.t('ui.progression.level', { level: selection.level }));
     const bank = element('div', 'reward-card-bank');
     offer.forEach((card, index) => bank.appendChild(this.buildCard(card, index, selection.offerId)));
     this.peerStatus = role === 'single' ? null : element('div', 'reward-peer-status');
@@ -94,7 +108,9 @@ export class RewardRevealView {
     button.className = 'reward-card';
     button.dataset['resultRarity'] = card.rarity;
     button.dataset['index'] = String(index);
-    button.setAttribute('aria-label', `${index + 1}: ${humanize(card.categoryId)}, ${card.rarity}`);
+    const name = this.i18n.t(upgradeKey(card.categoryId), undefined, card.categoryId);
+    const rarity = this.i18n.t(`ui.rarity.${card.rarity}`, undefined, card.rarity);
+    button.setAttribute('aria-label', `${index + 1}: ${name}, ${rarity}`);
     const hotkey = element('span', 'reward-card__hotkey', String(index + 1));
     const reelWindow = element('div', 'reward-card__reel-window');
     reelWindow.setAttribute('aria-hidden', 'true');
@@ -106,19 +122,19 @@ export class RewardRevealView {
     for (const symbol of symbols) {
       const cell = element('div', 'reward-card__symbol');
       cell.dataset['rarity'] = symbol.rarity;
-      cell.append(element('span', 'reward-card__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
+      cell.append(element('span', 'reward-card__symbol-glyph', symbol.glyph), element('span', '', this.reelLabel(symbol.label)));
       reelTrack.appendChild(cell);
     }
     const finalSymbol = element('div', 'reward-card__lock-symbol');
-    finalSymbol.append(element('span', 'reward-card__symbol-glyph', glyphFor(card.categoryId)), element('span', '', 'LOCKED'));
+    finalSymbol.append(element('span', 'reward-card__symbol-glyph', glyphFor(card.categoryId)), element('span', '', this.i18n.t('ui.progression.locked')));
     reelWindow.append(reelTrack, finalSymbol);
     this.cardReels.push(reelTrack);
     const content = element('div', 'reward-card__content');
     content.append(
-      element('div', 'reward-card__rarity', card.rarity.toUpperCase()),
-      element('div', 'reward-card__name', humanize(card.categoryId)),
-      element('div', 'reward-card__effect', formatEffects(card)),
-      element('div', 'reward-card__focus-rail', '// SELECT'),
+      element('div', 'reward-card__rarity', rarity),
+      element('div', 'reward-card__name', name),
+      element('div', 'reward-card__effect', formatEffects(card, this.i18n)),
+      element('div', 'reward-card__focus-rail', this.i18n.t('ui.progression.select')),
     );
     button.append(hotkey, reelWindow, content);
     button.addEventListener('mouseenter', () => this.focusCard(index));
@@ -129,6 +145,9 @@ export class RewardRevealView {
   }
 
   updateUpgrade(selection: ProgressionSelectionState, role: ProgressionRole, timeline: RewardTimelineSnapshot, nowMs: number): void {
+    this.currentSelection = selection;
+    this.currentRole = role;
+    this.currentTimeline = timeline;
     this.selectionHost.dataset['phase'] = timeline.state;
     this.selectionHost.hidden = false;
     this.relicHost.hidden = true;
@@ -156,37 +175,39 @@ export class RewardRevealView {
     this.lastLockedCount = timeline.lockedCards;
     const selected = localSelection(selection, role);
     if (selected !== undefined) {
-      this.selectionTitle!.textContent = 'LOCKED IN';
+      this.selectionTitle!.textContent = this.i18n.t('ui.progression.lockedIn');
       this.markSelected(selected);
     } else {
-      this.selectionTitle!.textContent = 'LEVEL UP';
+      this.selectionTitle!.textContent = this.i18n.t('ui.progression.levelUp');
     }
     if (this.fuse && selection.expiresAtWallMs !== undefined) {
       const remaining = Math.max(0, selection.expiresAtWallMs - nowMs);
       const total = Math.max(1, selection.expiresAtWallMs - (selection.offerStartedAtWallMs ?? nowMs));
       this.fuse.style.setProperty('--reward-fuse', String(remaining / total));
-      this.fuse.textContent = remaining <= 3_000 ? `AUTO ${Math.ceil(remaining / 1_000)}` : '';
+      this.fuse.textContent = remaining <= 3_000 ? this.i18n.t('ui.progression.auto', { seconds: Math.ceil(remaining / 1_000) }) : '';
     }
     if (this.peerStatus) {
       const me = role === 'driver' ? selection.driverSelection : selection.gunnerSelection;
-      const peerRole = role === 'driver' ? 'GUNNER' : 'DRIVER';
+      const peerRole = this.i18n.t(role === 'driver' ? 'ui.role.gunner' : 'ui.role.driver');
       const peer = role === 'driver' ? selection.gunnerSelection : selection.driverSelection;
       this.peerStatus.replaceChildren(
-        statusLine('YOU', me !== undefined ? 'READY' : 'CHOOSING...'),
-        statusLine(peerRole, peer !== undefined ? 'READY' : 'CHOOSING...'),
+        statusLine(this.i18n.t('ui.role.you'), me !== undefined ? this.i18n.t('ui.status.ready') : this.i18n.t('ui.progression.choosing')),
+        statusLine(peerRole, peer !== undefined ? this.i18n.t('ui.status.ready') : this.i18n.t('ui.progression.choosing')),
       );
-      if (me !== undefined && peer !== undefined) this.peerStatus.appendChild(element('strong', 'reward-crew-ready', 'CREW READY'));
+      if (me !== undefined && peer !== undefined) this.peerStatus.appendChild(element('strong', 'reward-crew-ready', this.i18n.t('ui.progression.crewReady')));
     }
   }
 
   renderRelic(selection: ProgressionSelectionState, role: ProgressionRole): void {
+    this.currentSelection = selection;
+    this.currentRole = role;
     const result = selection.relicResult!;
     const info = this.cb.relicInfo?.(result.relicId) ?? null;
     this.rewardIdentity = `relic:${result.acquisitionSequence}`;
     this.relicHost.replaceChildren();
     this.relicHost.removeAttribute('data-rarity');
     const stage = element('div', 'reward-stage reward-stage--relic');
-    const signal = element('div', 'reward-kicker reward-relic__signal', 'RELIC SIGNAL ACQUIRED');
+    const signal = element('div', 'reward-kicker reward-relic__signal', this.i18n.t('ui.progression.relicSignal'));
     this.relicPlate = element('article', 'reward-relic');
     this.relicSymbols = buildRewardReelSymbols(this.rewardIdentity, 0, 'relic');
     this.lastRelicCellIndex = -1;
@@ -198,7 +219,7 @@ export class RewardRevealView {
     for (const symbol of this.relicSymbols) {
       const cell = element('div', 'reward-relic__symbol');
       cell.dataset['rarity'] = symbol.rarity;
-      cell.append(element('span', 'reward-relic__symbol-glyph', symbol.glyph), element('span', '', symbol.label));
+      cell.append(element('span', 'reward-relic__symbol-glyph', symbol.glyph), element('span', '', this.reelLabel(symbol.label)));
       this.relicReel.appendChild(cell);
     }
     reelWindow.appendChild(this.relicReel);
@@ -214,18 +235,18 @@ export class RewardRevealView {
       icon.classList.add('reward-relic__icon--fallback');
     }
     final.append(
-      element('div', 'reward-relic__rarity', result.rarity.toUpperCase()),
+      element('div', 'reward-relic__rarity', this.i18n.t(`ui.rarity.${result.rarity}`, undefined, result.rarity)),
       icon,
-      element('h2', 'reward-relic__name', info?.label ?? 'UNIDENTIFIED RELIC'),
+      element('h2', 'reward-relic__name', info?.label ?? this.i18n.t('ui.progression.unidentifiedRelic')),
       element('p', 'reward-relic__description', info?.description ?? ''),
       element('div', `reward-relic__stack${result.stackCountAfter > 1 ? ' reward-relic__stack--up' : ''}`, result.stackCountAfter > 1
-        ? `STACK UP  ×${result.stackCountAfter - 1} → ×${result.stackCountAfter}`
-        : `STACK ×${result.stackCountAfter}`),
+        ? this.i18n.t('ui.progression.stackUp', { before: result.stackCountAfter - 1, after: result.stackCountAfter })
+        : this.i18n.t('ui.progression.stack', { count: result.stackCountAfter })),
     );
     this.continuePrompt = document.createElement('button');
     this.continuePrompt.type = 'button';
     this.continuePrompt.className = 'reward-continue';
-    this.continuePrompt.textContent = 'INPUT TO FAST-FORWARD';
+    this.continuePrompt.textContent = this.i18n.t('ui.progression.fastForward');
     this.continuePrompt.addEventListener('click', () => this.cb.continueRelic());
     this.relicPlate.append(this.relicOutline, reelWindow, final, this.continuePrompt);
     stage.append(signal, this.relicPlate);
@@ -234,6 +255,9 @@ export class RewardRevealView {
   }
 
   updateRelic(selection: ProgressionSelectionState, role: ProgressionRole, timeline: RewardTimelineSnapshot): void {
+    this.currentSelection = selection;
+    this.currentRole = role;
+    this.currentTimeline = timeline;
     this.relicHost.dataset['phase'] = timeline.state;
     this.relicHost.hidden = false;
     this.selectionHost.hidden = true;
@@ -253,17 +277,17 @@ export class RewardRevealView {
     }
     this.continuePrompt?.setAttribute('aria-disabled', String(!timeline.continueArmed));
     if (this.continuePrompt) this.continuePrompt.textContent = timeline.continueArmed
-      ? 'CLICK / SPACE TO CONTINUE'
-      : 'INPUT TO FAST-FORWARD';
+      ? this.i18n.t('ui.progression.continue')
+      : this.i18n.t('ui.progression.fastForward');
     const peer = this.relicHost.querySelector<HTMLElement>('.reward-peer-status--relic');
     if (peer && role !== 'single') {
       const mine = role === 'driver' ? selection.driverRelicAcknowledged : selection.gunnerRelicAcknowledged;
       const theirs = role === 'driver' ? selection.gunnerRelicAcknowledged : selection.driverRelicAcknowledged;
       peer.replaceChildren(
-        statusLine('YOU', mine ? 'READY' : 'VIEWING'),
-        statusLine('PARTNER', theirs ? 'READY' : 'VIEWING'),
+        statusLine(this.i18n.t('ui.role.you'), mine ? this.i18n.t('ui.status.ready') : this.i18n.t('ui.progression.viewing')),
+        statusLine(this.i18n.t('ui.progression.partner'), theirs ? this.i18n.t('ui.status.ready') : this.i18n.t('ui.progression.viewing')),
       );
-      if (mine && theirs) peer.appendChild(element('strong', 'reward-crew-ready', 'CREW READY'));
+      if (mine && theirs) peer.appendChild(element('strong', 'reward-crew-ready', this.i18n.t('ui.progression.crewReady')));
     }
   }
 
@@ -330,8 +354,25 @@ export class RewardRevealView {
   }
 
   dispose(): void {
+    this.unsubscribeLocalization();
     this.root.remove();
     this.debugHost.remove();
+  }
+
+  private reelLabel(label: string): string {
+    return this.i18n.t(`ui.progression.reel.${label.toLowerCase()}`, undefined, label);
+  }
+
+  private refreshLocalizedContent(): void {
+    const selection = this.currentSelection;
+    if (!selection) return;
+    if (selection.kind === 'upgrade') {
+      this.renderUpgrade(selection, this.currentRole);
+      if (this.currentTimeline) this.updateUpgrade(selection, this.currentRole, this.currentTimeline, Date.now());
+    } else {
+      this.renderRelic(selection, this.currentRole);
+      if (this.currentTimeline) this.updateRelic(selection, this.currentRole, this.currentTimeline);
+    }
   }
 }
 
@@ -362,10 +403,6 @@ function localSelection(selection: ProgressionSelectionState, role: ProgressionR
       : selection.gunnerSelection;
 }
 
-function humanize(id: string): string {
-  return id.split('.').at(-1)!.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').toUpperCase();
-}
-
 function glyphFor(id: string): string {
   if (/damage|cannon|mg/i.test(id)) return '✦';
   if (/dash|speed|jump/i.test(id)) return '⬢';
@@ -373,8 +410,8 @@ function glyphFor(id: string): string {
   return '◈';
 }
 
-function formatEffects(card: UpgradeCard): string {
-  return card.rolledEffects.map(formatUpgradeEffect).join('\n');
+function formatEffects(card: UpgradeCard, i18n: LocalizationService): string {
+  return card.rolledEffects.map((effect) => formatUpgradeEffect(effect, (key, params, fallback) => i18n.t(key, params, fallback))).join('\n');
 }
 
 function shardCount(rarity: string, relic = false): number {

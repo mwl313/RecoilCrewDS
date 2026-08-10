@@ -7,22 +7,77 @@
     "type": "container",
     "class": "screen ui-screen countdown-screen",
     "children": [
-      { "id": "countdown-frame", "type": "container", "class": "ui-safe-frame" },
-      { "id": "countdown-kicker", "type": "text", "class": "ui-kicker", "text": "CREW LINKED // WAVE SYSTEM ARMED" },
+      {
+        "id": "countdown-frame",
+        "type": "container",
+        "class": "ui-safe-frame"
+      },
+      {
+        "id": "countdown-kicker",
+        "type": "text",
+        "class": "ui-kicker",
+        "text": "CREW LINKED // WAVE SYSTEM ARMED",
+        "textKey": "ui.countdown.kicker"
+      },
       {
         "id": "countdown-inner",
         "type": "vertical",
         "class": "countdown-inner",
         "children": [
-          { "id": "countdown-n", "type": "text", "class": "countdown-number", "text": "3", "bindings": [{ "target": "text", "source": "value", "fallback": "3" }] },
-          { "id": "countdown-sub", "type": "text", "class": "countdown-sub", "text": "GET READY", "bindings": [{ "target": "text", "source": "sub", "fallback": "GET READY" }] }
+          {
+            "id": "countdown-n",
+            "type": "text",
+            "class": "countdown-number",
+            "text": "3",
+            "bindings": [
+              {
+                "target": "text",
+                "source": "value",
+                "fallback": "3"
+              }
+            ]
+          },
+          {
+            "id": "countdown-sub",
+            "type": "text",
+            "class": "countdown-sub",
+            "text": "GET READY",
+            "bindings": [
+              {
+                "target": "text",
+                "source": "sub",
+                "fallback": "GET READY"
+              }
+            ],
+            "textKey": "ui.countdown.ready"
+          }
         ]
       },
-      { "id": "countdown-footer", "type": "text", "class": "ui-screen-footer", "text": "DRIVER // GUNNER // SHARED CHASSIS" }
+      {
+        "id": "countdown-footer",
+        "type": "text",
+        "class": "ui-screen-footer",
+        "text": "DRIVER // GUNNER // SHARED CHASSIS",
+        "textKey": "ui.countdown.footer"
+      }
     ]
   },
   "previewStates": [
-    { "id": "three", "label": "3", "context": { "value": "3", "sub": "GET READY" } },
-    { "id": "go", "label": "GO!", "context": { "value": "GO!", "sub": "" } }
+    {
+      "id": "three",
+      "label": "3",
+      "context": {
+        "value": "3",
+        "sub": "GET READY"
+      }
+    },
+    {
+      "id": "go",
+      "label": "GO!",
+      "context": {
+        "value": "GO!",
+        "sub": ""
+      }
+    }
   ]
 }

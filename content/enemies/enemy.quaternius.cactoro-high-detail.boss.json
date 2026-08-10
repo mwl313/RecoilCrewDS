@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.cactoro-high-detail.boss",
-  "label": "Cactoro High Detail Boss",
+  "label": "Cactoro Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",

@@ -70,7 +70,7 @@ describe('lobby09 presentation', () => {
     const view = new LobbyView(container, callbacks());
     mounted.push(view);
     view.update(makeState(), [], 'host');
-    expect(container.querySelector('#lobby-start-hint')!.textContent).toBe('A player is not Ready yet');
+    expect(container.querySelector('#lobby-start-hint')!.textContent).toBe('A player is not ready yet');
     expect(container.querySelectorAll('.lobby-badge.host').length).toBe(1);
     expect(container.querySelector('#seat-driver')).not.toBeNull();
     expect(container.querySelector('#seat-driver')!.textContent).toBe('YOUR ROLE');

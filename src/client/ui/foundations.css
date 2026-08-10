@@ -10,6 +10,21 @@ body {
   background: var(--ui-ink-0);
 }
 
+html[lang='ko'] body {
+  word-break: keep-all;
+  line-height: 1.25;
+}
+
+html[lang='ko'] :is(.ui-action, .ui-compact-action, .ui-kicker, .ui-field-label, .ui-settings-section__title, .results-heading, .results-title, .reward-title, .reward-card__name, .reward-relic__name, .tactical-drawer h2) {
+  font-family: var(--ui-localized-display);
+  font-style: normal;
+  letter-spacing: 0.01em;
+}
+
+html[lang='ko'] :is(.ui-wordmark, .ui-unit-mark, [class*='number'], [class*='score'], [class*='value']) {
+  font-family: var(--ui-display);
+}
+
 .ui-screen.screen {
   position: fixed;
   inset: 0;

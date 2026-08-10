@@ -48,6 +48,7 @@ export interface UiComponentServices {
   addPopup(text: string, kind: string): void;
   /** Resolve a semantic asset id to a URL (images); null when unavailable. */
   resolveAssetUrl?(id: string): string | null;
+  localize?(key: string, params?: Record<string, string | number>, fallback?: string): string;
 }
 
 export class UiComponentRegistry {

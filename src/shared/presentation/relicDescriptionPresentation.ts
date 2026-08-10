@@ -9,6 +9,12 @@ export type RelicEffectTemplateLookup = (
   templateId: string,
 ) => RelicEffectTemplateDefinition | undefined;
 
+export type RelicCopyLocalizer = (
+  key: string,
+  params: Readonly<Record<string, string | number>>,
+  authoredFallback: string,
+) => string;
+
 /**
  * Present only structured absolute integrity effects in combat display units.
  * Unrelated or compound relic copy remains authored content; no human text is
@@ -17,6 +23,7 @@ export type RelicEffectTemplateLookup = (
 export function presentRelicDescription(
   relic: RelicDefinition,
   templateFor: RelicEffectTemplateLookup,
+  _localize?: RelicCopyLocalizer,
 ): string {
   if (relic.effects.length !== 1) return relic.description;
   const effect = relic.effects[0];

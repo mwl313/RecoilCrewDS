@@ -1,0 +1,11 @@
+{
+  "phase.bossWave": "BOSS WAVE",
+  "phase.wave1": "WAVE 1",
+  "phase.wave2": "WAVE 2",
+  "phase.stageClear": "STAGE CLEAR",
+  "phase.gameOver": "GAME OVER",
+  "phase.timeUntilWave": "TIME UNTIL NEW WAVE",
+  "phase.bossIncoming": "BOSS INCOMING",
+  "phase.wave1Incoming": "WAVE 1 INCOMING",
+  "phase.wave2Incoming": "WAVE 2 INCOMING"
+}

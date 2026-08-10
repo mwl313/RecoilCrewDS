@@ -1,4 +1,6 @@
 import type { ClientLobbyState, CrewSeat, LobbyChatMessage } from '../../shared/lobby/lobbyTypes';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService } from '../localization/localizationTypes';
 
 export interface LobbyViewCallbacks {
   onSelectSeat(seat: CrewSeat): void;
@@ -10,14 +12,14 @@ export interface LobbyViewCallbacks {
   onCopy(code: string): void;
 }
 
-const ELIGIBILITY_LABELS: Record<string, string> = {
-  eligible: 'Both crew members linked — ready for wave',
-  waiting_for_player: 'Waiting for another crew member',
-  invalid_seats: 'Choose different crew roles — one Driver, one Gunner',
-  role_swap_pending: 'Role swap awaiting crew confirmation',
-  player_not_ready: 'A player is not Ready yet',
-  player_disconnected: 'A crew member is reconnecting',
-  content_unavailable: 'Run content unavailable',
+const ELIGIBILITY_KEYS: Record<string, string> = {
+  eligible: 'ui.lobby.eligible',
+  waiting_for_player: 'ui.lobby.waitingForPlayer',
+  invalid_seats: 'ui.lobby.invalidSeats',
+  role_swap_pending: 'ui.lobby.roleSwapPending',
+  player_not_ready: 'ui.lobby.playerNotReady',
+  player_disconnected: 'ui.lobby.playerDisconnected',
+  content_unavailable: 'ui.lobby.contentUnavailable',
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
@@ -45,8 +47,15 @@ export class LobbyView {
   private localPlayerId = '';
   private transitionToken = 0;
   private presented = false;
+  private lastState: ClientLobbyState | null = null;
+  private lastChat: readonly LobbyChatMessage[] = [];
+  private readonly unsubscribeLocalization: () => void;
 
-  constructor(container: HTMLElement, private readonly cb: LobbyViewCallbacks) {
+  constructor(
+    container: HTMLElement,
+    private readonly cb: LobbyViewCallbacks,
+    private readonly i18n: LocalizationService = localization,
+  ) {
     this.root = el('div', 'screen ui-screen lobby-v2 lobby-screen hidden');
     this.root.id = 'screen-ready';
     this.root.dataset.uiDensity = 'comfortable';
@@ -58,14 +67,14 @@ export class LobbyView {
 
     const header = el('header', 'ui-topbar lobby-header');
     const brand = el('div', 'ui-unit-mark', 'RC / CREW LINK');
-    const system = el('div', 'ui-system-state ui-shared-status lobby-system-status', 'SYSTEM STATUS: READY');
+    const system = this.staticText('div', 'ui-system-state ui-shared-status lobby-system-status', 'ui.lobby.systemReady');
     header.appendChild(brand);
 
     const codeBox = el('div', 'lobby-code-strip');
-    const codeLabel = el('small', '', 'ROOM CODE');
+    const codeLabel = this.staticText('small', '', 'ui.lobby.roomCode');
     this.code = el('strong', 'code');
     this.code.id = 'lobby-code';
-    this.copyButton = el('button', 'ui-compact-action', 'COPY');
+    this.copyButton = this.staticText('button', 'ui-compact-action', 'ui.lobby.copy');
     this.copyButton.id = 'copy-code';
     this.copyButton.type = 'button';
     this.copyButton.addEventListener('click', () => this.cb.onCopy(this.code.textContent ?? ''));
@@ -73,7 +82,7 @@ export class LobbyView {
 
     const body = el('div', 'lobby-body');
     const crew = el('section', 'lobby-crew');
-    crew.setAttribute('aria-label', 'Crew seats');
+    crew.dataset.i18nAria = 'ui.lobby.seatsAria';
     this.playersHost = el('div', 'lobby-players');
     this.playersHost.id = 'lobby-players';
     crew.appendChild(this.playersHost);
@@ -81,7 +90,7 @@ export class LobbyView {
     const vehicle = el('div', 'lobby-vehicle-stage');
     vehicle.setAttribute('aria-hidden', 'true');
     const vehicleMark = el('div', 'lobby-vehicle-mark');
-    vehicleMark.append(el('span', '', 'SHARED CHASSIS'), el('strong', '', 'RC–07'));
+    vehicleMark.append(this.staticText('span', '', 'ui.lobby.sharedChassis'), el('strong', '', 'RC–07'));
     const tank = el('div', 'lobby-tank');
     tank.append(el('i', 'lobby-tank__barrel'), el('i', 'lobby-tank__turret'), el('i', 'lobby-tank__body'), el('i', 'lobby-tank__treads'));
     vehicle.append(tank, vehicleMark);
@@ -97,7 +106,7 @@ export class LobbyView {
     this.readyButton.dataset.uiTone = 'action';
     this.readyButton.type = 'button';
     this.readyButton.addEventListener('click', () => this.cb.onReadyToggle());
-    this.leaveButton = el('button', 'ui-text-action lobby-leave', 'LEAVE CREW');
+    this.leaveButton = this.staticText('button', 'ui-text-action lobby-leave', 'ui.lobby.leave');
     this.leaveButton.id = 'lobby-leave';
     this.leaveButton.type = 'button';
     this.leaveButton.addEventListener('click', () => this.cb.onLeave());
@@ -105,15 +114,15 @@ export class LobbyView {
 
     const chat = el('section', 'lobby-chat');
     const chatHeader = el('div', 'lobby-chat__header');
-    chatHeader.append(el('h3', '', 'CHAT'), el('span', '', 'FOCUS TO EXPAND'));
+    chatHeader.append(this.staticText('h3', '', 'ui.lobby.chat'), this.staticText('span', '', 'ui.lobby.chatFocus'));
     this.chatHost = el('div', 'lobby-chat-messages');
     this.chatHost.id = 'lobby-chat-messages';
     const chatRow = el('div', 'lobby-chat-row');
     this.chatInput = el('input', 'lobby-chat-input');
     this.chatInput.id = 'lobby-chat-input';
     this.chatInput.maxLength = 200;
-    this.chatInput.placeholder = 'Message your crew…';
-    const send = el('button', 'ui-compact-action', 'SEND');
+    this.chatInput.dataset.i18nPlaceholder = 'ui.lobby.chatPlaceholder';
+    const send = this.staticText('button', 'ui-compact-action', 'ui.lobby.send');
     send.id = 'lobby-chat-send';
     send.type = 'button';
     const submit = (): void => {
@@ -131,6 +140,11 @@ export class LobbyView {
 
     this.root.append(backdrop, safeFrame, header, system, codeBox, body, actions, chat);
     container.appendChild(this.root);
+    this.refreshStatic();
+    this.unsubscribeLocalization = this.i18n.subscribe(() => {
+      this.refreshStatic();
+      if (this.lastState) this.update(this.lastState, this.lastChat, this.localPlayerId);
+    });
   }
 
   /** Reveal the crew scene with the reverse of its directional dismissal. */
@@ -169,15 +183,17 @@ export class LobbyView {
   }
 
   update(state: ClientLobbyState, chat: readonly LobbyChatMessage[], localPlayerId: string): void {
+    this.lastState = state;
+    this.lastChat = chat;
     this.localPlayerId = localPlayerId;
     this.code.textContent = state.roomCode;
     this.renderPlayers(state);
     const reason = state.startEligibility.reason;
-    this.hint.textContent = ELIGIBILITY_LABELS[reason] ?? 'Crew not ready';
+    this.hint.textContent = this.i18n.t(ELIGIBILITY_KEYS[reason] ?? 'ui.lobby.notReady');
     this.hint.classList.toggle('ready', state.startEligibility.eligible);
     const me = state.players.find((player) => player.playerId === localPlayerId);
     const ready = me?.ready === true;
-    this.readyButton.textContent = ready ? 'LOCKED IN — UNREADY' : 'READY FOR WAVE';
+    this.readyButton.textContent = this.i18n.t(ready ? 'ui.lobby.unready' : 'ui.lobby.readyForWave');
     this.readyButton.classList.toggle('ready', ready);
     this.renderChat(chat);
   }
@@ -195,62 +211,63 @@ export class LobbyView {
       card.classList.toggle('reconnecting', player !== null && !player.connected);
 
       const seatHeader = el('div', 'lobby-player__seat');
-      seatHeader.append(el('small', '', seat === 'driver' ? 'SEAT 01' : 'SEAT 02'), el('strong', '', seat.toUpperCase()));
+      const role = this.i18n.t(`ui.role.${seat}`);
+      seatHeader.append(el('small', '', this.i18n.t('ui.lobby.seat', { number: seat === 'driver' ? '01' : '02' })), el('strong', '', role));
       card.appendChild(seatHeader);
 
       const nameLine = el('div', 'lobby-name');
       if (player) {
         const isHost = player.playerId === state.hostPlayerId;
-        const host = el('span', 'lobby-badge host', isHost ? 'HOST' : '');
+        const host = el('span', 'lobby-badge host', isHost ? this.i18n.t('ui.lobby.host') : '');
         host.classList.toggle('host', isHost);
         const name = el('span', 'lobby-player__name');
         name.textContent = player.displayName;
-        const you = el('span', 'lobby-badge you', player.playerId === this.localPlayerId ? 'YOU' : '');
+        const you = el('span', 'lobby-badge you', player.playerId === this.localPlayerId ? this.i18n.t('ui.lobby.you') : '');
         you.dataset.you = String(player.playerId === this.localPlayerId);
         nameLine.append(host, name, you);
       } else {
-        nameLine.appendChild(el('span', 'lobby-player__name lobby-player__empty', 'AWAITING CREW'));
+        nameLine.appendChild(el('span', 'lobby-player__name lobby-player__empty', this.i18n.t('ui.lobby.awaiting')));
       }
       card.appendChild(nameLine);
 
       const duty = el('p', 'lobby-player__duty', seat === 'driver'
-        ? 'Mobility // collision // survival'
-        : 'Targeting // recoil // destruction');
+        ? this.i18n.t('ui.lobby.driverDuty')
+        : this.i18n.t('ui.lobby.gunnerDuty'));
       card.appendChild(duty);
 
       if (localPlayer) {
         const roleActions = el('div', 'lobby-seat-row');
         if (player?.playerId === this.localPlayerId) {
-          const current = el('button', 'ui-compact-action selected', 'YOUR ROLE');
+          const current = el('button', 'ui-compact-action selected', this.i18n.t('ui.lobby.yourRole'));
           current.id = `seat-${seat}`;
           current.type = 'button';
           current.disabled = true;
           roleActions.appendChild(current);
         } else if (!player) {
-          const choose = el('button', 'ui-compact-action', `SWITCH TO ${seat.toUpperCase()}`);
+          const choose = el('button', 'ui-compact-action', this.i18n.t('ui.lobby.switchRole', { role }));
           choose.id = `seat-${seat}`;
           choose.dataset.seat = seat;
           choose.type = 'button';
           choose.addEventListener('click', () => this.cb.onSelectSeat(seat));
           roleActions.appendChild(choose);
         } else if (!state.roleSwap) {
-          const request = el('button', 'ui-compact-action', 'REQUEST ROLE SWAP');
+          const request = el('button', 'ui-compact-action', this.i18n.t('ui.lobby.requestSwap'));
           request.id = 'request-role-swap';
           request.type = 'button';
           request.addEventListener('click', () => this.cb.onRequestRoleSwap());
           roleActions.appendChild(request);
         } else if (state.roleSwap.requestedByPlayerId === this.localPlayerId) {
-          const pending = el('button', 'ui-compact-action', 'SWAP REQUESTED');
+          const pending = el('button', 'ui-compact-action', this.i18n.t('ui.lobby.swapRequested'));
           pending.id = 'role-swap-pending';
           pending.type = 'button';
           pending.disabled = true;
           roleActions.appendChild(pending);
         } else if (state.roleSwap.targetPlayerId === this.localPlayerId) {
-          const accept = el('button', 'ui-compact-action selected', `ACCEPT — BECOME ${player.seat.toUpperCase()}`);
+          const accept = el('button', 'ui-compact-action selected', this.i18n.t('ui.lobby.acceptRole', { role: this.i18n.t(`ui.role.${player.seat}`) }));
           accept.id = 'accept-role-swap';
           accept.type = 'button';
           accept.addEventListener('click', () => this.cb.onResolveRoleSwap(state.roleSwap!.requestId, true));
-          const decline = el('button', 'ui-compact-action', 'DECLINE');
+          const decline = el('button', 'ui-compact-action', this.i18n.t('ui.lobby.decline'));
           decline.id = 'decline-role-swap';
           decline.type = 'button';
           decline.addEventListener('click', () => this.cb.onResolveRoleSwap(state.roleSwap!.requestId, false));
@@ -260,13 +277,13 @@ export class LobbyView {
       }
 
       const status = el('div', 'lobby-status');
-      status.append(el('span', '', 'INPUT'), el('strong', '', !player
-        ? 'OPEN'
+      status.append(el('span', '', this.i18n.t('ui.lobby.input')), el('strong', '', !player
+        ? this.i18n.t('ui.lobby.open')
         : !player.connected
-          ? 'RECONNECTING…'
+          ? this.i18n.t('ui.lobby.reconnecting')
           : player.ready
-            ? 'READY'
-            : 'STANDBY'));
+            ? this.i18n.t('ui.status.ready')
+            : this.i18n.t('ui.lobby.standby')));
       card.appendChild(status);
       this.playersHost.appendChild(card);
     }
@@ -288,6 +305,25 @@ export class LobbyView {
 
   dispose(): void {
     this.transitionToken++;
+    this.unsubscribeLocalization();
     this.root.remove();
+  }
+
+  private staticText<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, key: string): HTMLElementTagNameMap[K] {
+    const node = el(tag, className, this.i18n.t(key));
+    node.dataset.i18n = key;
+    return node;
+  }
+
+  private refreshStatic(): void {
+    for (const node of this.root.querySelectorAll<HTMLElement>('[data-i18n]')) {
+      node.textContent = this.i18n.t(node.dataset.i18n!);
+    }
+    for (const node of this.root.querySelectorAll<HTMLElement>('[data-i18n-aria]')) {
+      node.setAttribute('aria-label', this.i18n.t(node.dataset.i18nAria!));
+    }
+    for (const node of this.root.querySelectorAll<HTMLInputElement>('[data-i18n-placeholder]')) {
+      node.placeholder = this.i18n.t(node.dataset.i18nPlaceholder!);
+    }
   }
 }

@@ -363,3 +363,85 @@
     transform: translate(-50%, calc(-50% + 78vh));
   }
 }
+
+/* Settings V2 controls keep native semantics while adopting the field-unit skin. */
+.ui-settings-panel {
+  box-sizing: border-box;
+  top: 16px;
+  bottom: 16px;
+  width: min(620px, calc(100vw - 40px));
+  max-height: none;
+  overflow: auto;
+  transform: translateX(-50%);
+}
+
+.ui-settings-section { gap: 8px; margin-top: 14px; }
+
+.ui-settings-section__title {
+  color: var(--ui-amber);
+  font: italic 850 15px/1 var(--ui-display);
+  letter-spacing: .12em;
+}
+
+.ui-settings-nickname-row { align-items: stretch; gap: 8px; }
+.ui-settings-nickname-row .ui-nickname-input { flex: 1; min-width: 0; }
+.ui-settings-nickname-row .ui-compact-action { min-width: 132px; }
+
+.ui-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--ui-line);
+  background: rgba(255, 255, 255, .025);
+}
+
+.ui-segmented__option {
+  min-height: 42px;
+  color: var(--ui-muted);
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.ui-segmented__option.selected {
+  color: var(--ui-ink-0);
+  border-color: var(--ui-amber);
+  background: var(--ui-amber);
+}
+
+.ui-settings-range-row {
+  grid-template-columns: minmax(130px, .55fr) minmax(180px, 1fr) 58px;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+}
+
+.ui-settings-range { width: 100%; accent-color: var(--ui-amber); cursor: pointer; }
+
+.ui-settings-range-value {
+  color: var(--ui-paper);
+  font: 800 15px/1 var(--ui-body);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .ui-settings-panel { padding: 20px 18px; }
+  .ui-settings-nickname-row { flex-direction: column; }
+  .ui-settings-nickname-row .ui-compact-action { min-width: 0; }
+  .ui-settings-range-row { grid-template-columns: minmax(90px, .55fr) minmax(110px, 1fr) 48px; gap: 8px; }
+}
+
+@media (max-height: 760px) {
+  .ui-settings-panel { gap: 8px; padding-block: 22px 20px; }
+  .ui-settings-panel h2 { font-size: clamp(38px, 5vw, 54px); }
+  .ui-settings-panel .ui-overlay-rule { margin-bottom: 1px; }
+  .ui-settings-panel .ui-settings-section { margin-top: 6px; gap: 5px; }
+  .ui-settings-panel .ui-nickname-input { min-height: 54px; font-size: 26px; }
+  .ui-settings-panel .ui-segmented__option { min-height: 36px; }
+  .ui-settings-panel .ui-settings-range-row { min-height: 34px; }
+  .ui-settings-panel .ui-overlay-actions { margin-top: 2px; }
+  .ui-settings-panel .ui-action { min-height: 48px; }
+}

@@ -2,34 +2,138 @@
   "id": "scene.joinCrew",
   "label": "Join Crew",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 460 },
-  "exitTransition": { "type": "fade", "durationMs": 380 },
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 460
+  },
+  "exitTransition": {
+    "type": "fade",
+    "durationMs": 380
+  },
   "root": {
     "id": "screen-join",
     "type": "container",
     "class": "screen ui-overlay-screen join-overlay",
     "children": [
-      { "id": "join-scrim", "type": "container", "class": "ui-overlay-scrim" },
+      {
+        "id": "join-scrim",
+        "type": "container",
+        "class": "ui-overlay-scrim"
+      },
       {
         "id": "join-panel",
         "type": "panel",
         "class": "ui-overlay-panel ui-join-panel",
-        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
+        "appearance": {
+          "tone": "neutral",
+          "emphasis": "hero",
+          "density": "comfortable",
+          "shape": "plate"
+        },
         "children": [
-          { "id": "join-kicker", "type": "text", "class": "ui-kicker", "text": "CREW LINK // REMOTE" },
-          { "id": "join-title", "type": "text", "props": { "tag": "h2" }, "text": "JOIN CREW" },
-          { "id": "join-rule", "type": "container", "class": "ui-overlay-rule" },
-          { "id": "join-copy", "type": "text", "class": "ui-overlay-copy", "text": "Enter the six-character room code supplied by your Driver." },
-          { "id": "join-code", "type": "input", "class": "ui-code-input", "props": { "maxlength": 6, "placeholder": "AB12CD", "autocomplete": "off", "spellcheck": false, "enterAction": "app.joinCrew" } },
-          { "id": "join-error", "type": "text", "class": "error ui-form-error", "bindings": [{ "target": "text", "source": "message", "fallback": "" }] },
+          {
+            "id": "join-kicker",
+            "type": "text",
+            "class": "ui-kicker",
+            "text": "CREW LINK // REMOTE",
+            "textKey": "ui.join.kicker"
+          },
+          {
+            "id": "join-title",
+            "type": "text",
+            "props": {
+              "tag": "h2"
+            },
+            "text": "JOIN CREW",
+            "textKey": "ui.join.title"
+          },
+          {
+            "id": "join-rule",
+            "type": "container",
+            "class": "ui-overlay-rule"
+          },
+          {
+            "id": "join-copy",
+            "type": "text",
+            "class": "ui-overlay-copy",
+            "text": "Enter the six-character room code supplied by your Driver.",
+            "textKey": "ui.join.help"
+          },
+          {
+            "id": "join-code",
+            "type": "input",
+            "class": "ui-code-input",
+            "props": {
+              "maxlength": 6,
+              "placeholder": "AB12CD",
+              "autocomplete": "off",
+              "spellcheck": false,
+              "enterAction": "app.joinCrew"
+            },
+            "placeholderKey": "ui.join.placeholder"
+          },
+          {
+            "id": "join-error",
+            "type": "text",
+            "class": "error ui-form-error",
+            "bindings": [
+              {
+                "target": "text",
+                "source": "message",
+                "fallback": ""
+              }
+            ]
+          },
           {
             "id": "join-actions",
             "type": "grid",
             "class": "ui-overlay-actions ui-overlay-actions--two",
-            "layout": { "kind": "grid", "columns": 2 },
+            "layout": {
+              "kind": "grid",
+              "columns": 2
+            },
             "children": [
-              { "id": "join-go", "type": "button", "class": "ui-action", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "JOIN", "actions": [{ "event": "click", "action": "app.joinCrew" }] },
-              { "id": "join-back", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "CANCEL", "actions": [{ "event": "click", "action": "app.back" }] }
+              {
+                "id": "join-go",
+                "type": "button",
+                "class": "ui-action",
+                "appearance": {
+                  "tone": "action",
+                  "emphasis": "standard",
+                  "density": "comfortable",
+                  "shape": "plate"
+                },
+                "text": "JOIN",
+                "actions": [
+                  {
+                    "event": "click",
+                    "action": "app.joinCrew"
+                  }
+                ],
+                "textKey": "ui.join.submit"
+              },
+              {
+                "id": "join-back",
+                "type": "button",
+                "class": "ui-action",
+                "appearance": {
+                  "tone": "neutral",
+                  "emphasis": "standard",
+                  "density": "comfortable",
+                  "shape": "plate"
+                },
+                "props": {
+                  "dataAct": "back"
+                },
+                "text": "CANCEL",
+                "actions": [
+                  {
+                    "event": "click",
+                    "action": "app.back"
+                  }
+                ],
+                "textKey": "ui.join.cancel"
+              }
             ]
           }
         ]
@@ -37,7 +141,19 @@
     ]
   },
   "previewStates": [
-    { "id": "empty", "label": "Empty", "context": { "message": "" } },
-    { "id": "bad", "label": "Bad code", "context": { "message": "Room not found." } }
+    {
+      "id": "empty",
+      "label": "Empty",
+      "context": {
+        "message": ""
+      }
+    },
+    {
+      "id": "bad",
+      "label": "Bad code",
+      "context": {
+        "message": "Room not found."
+      }
+    }
   ]
 }

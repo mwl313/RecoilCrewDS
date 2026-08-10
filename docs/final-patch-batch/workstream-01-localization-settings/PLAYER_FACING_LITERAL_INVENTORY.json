@@ -1,0 +1,4283 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "4fd9af32605b04d8ff95f7d11bffc4c72885a988",
+  "generatedBy": "npm run audit:localization",
+  "catalog": [
+    {
+      "key": "enemy.enemy_gunTower.name",
+      "en": "Gun Tower",
+      "ko": "기관포탑"
+    },
+    {
+      "key": "enemy.enemy_lootTruck.name",
+      "en": "Loot Truck",
+      "ko": "보급 트럭"
+    },
+    {
+      "key": "enemy.enemy_quaternius_alien.name",
+      "en": "Alien",
+      "ko": "에일리언"
+    },
+    {
+      "key": "enemy.enemy_quaternius_alien_high_detail.name",
+      "en": "Alien",
+      "ko": "에일리언"
+    },
+    {
+      "key": "enemy.enemy_quaternius_alien_high_detail_boss.name",
+      "en": "Alien",
+      "ko": "에일리언"
+    },
+    {
+      "key": "enemy.enemy_quaternius_alpaking.name",
+      "en": "Alpaking",
+      "ko": "알파킹"
+    },
+    {
+      "key": "enemy.enemy_quaternius_alpaking_evolved.name",
+      "en": "Alpaking",
+      "ko": "알파킹"
+    },
+    {
+      "key": "enemy.enemy_quaternius_armabee.name",
+      "en": "Armabee",
+      "ko": "아르마비"
+    },
+    {
+      "key": "enemy.enemy_quaternius_armabee_evolved.name",
+      "en": "Armabee",
+      "ko": "아르마비"
+    },
+    {
+      "key": "enemy.enemy_quaternius_birb.name",
+      "en": "Birb",
+      "ko": "버브"
+    },
+    {
+      "key": "enemy.enemy_quaternius_blue_demon.name",
+      "en": "Blue Demon",
+      "ko": "블루 데몬"
+    },
+    {
+      "key": "enemy.enemy_quaternius_bunny.name",
+      "en": "Bunny",
+      "ko": "토끼"
+    },
+    {
+      "key": "enemy.enemy_quaternius_cactoro.name",
+      "en": "Cactoro",
+      "ko": "캑토로"
+    },
+    {
+      "key": "enemy.enemy_quaternius_cactoro_high_detail.name",
+      "en": "Cactoro",
+      "ko": "캑토로"
+    },
+    {
+      "key": "enemy.enemy_quaternius_cactoro_high_detail_boss.name",
+      "en": "Cactoro",
+      "ko": "캑토로"
+    },
+    {
+      "key": "enemy.enemy_quaternius_cat.name",
+      "en": "Cat",
+      "ko": "고양이"
+    },
+    {
+      "key": "enemy.enemy_quaternius_chicken.name",
+      "en": "Chicken",
+      "ko": "닭"
+    },
+    {
+      "key": "enemy.enemy_quaternius_demon.name",
+      "en": "Demon",
+      "ko": "데몬"
+    },
+    {
+      "key": "enemy.enemy_quaternius_demon_high_detail.name",
+      "en": "Demon",
+      "ko": "데몬"
+    },
+    {
+      "key": "enemy.enemy_quaternius_demon_high_detail_elite.name",
+      "en": "Demon",
+      "ko": "데몬"
+    },
+    {
+      "key": "enemy.enemy_quaternius_dino.name",
+      "en": "Dino",
+      "ko": "다이노"
+    },
+    {
+      "key": "enemy.enemy_quaternius_dragon.name",
+      "en": "Dragon",
+      "ko": "드래곤"
+    },
+    {
+      "key": "enemy.enemy_quaternius_dragon_evolved.name",
+      "en": "Dragon",
+      "ko": "드래곤"
+    },
+    {
+      "key": "enemy.enemy_quaternius_fish.name",
+      "en": "Fish",
+      "ko": "피시"
+    },
+    {
+      "key": "enemy.enemy_quaternius_fish_high_detail.name",
+      "en": "Fish",
+      "ko": "피시"
+    },
+    {
+      "key": "enemy.enemy_quaternius_fish_high_detail_boss.name",
+      "en": "Fish",
+      "ko": "피시"
+    },
+    {
+      "key": "enemy.enemy_quaternius_frog.name",
+      "en": "Frog",
+      "ko": "개구리"
+    },
+    {
+      "key": "enemy.enemy_quaternius_ghost.name",
+      "en": "Ghost",
+      "ko": "유령"
+    },
+    {
+      "key": "enemy.enemy_quaternius_ghost_skull.name",
+      "en": "Ghost Skull",
+      "ko": "해골 유령"
+    },
+    {
+      "key": "enemy.enemy_quaternius_glub.name",
+      "en": "Glub",
+      "ko": "글럽"
+    },
+    {
+      "key": "enemy.enemy_quaternius_glub_evolved.name",
+      "en": "Glub",
+      "ko": "글럽"
+    },
+    {
+      "key": "enemy.enemy_quaternius_goleling.name",
+      "en": "Goleling",
+      "ko": "골렘링"
+    },
+    {
+      "key": "enemy.enemy_quaternius_goleling_evolved.name",
+      "en": "Goleling",
+      "ko": "골렘링"
+    },
+    {
+      "key": "enemy.enemy_quaternius_green_blob.name",
+      "en": "Green Blob",
+      "ko": "초록 블롭"
+    },
+    {
+      "key": "enemy.enemy_quaternius_green_spiky_blob.name",
+      "en": "Green Spiky Blob",
+      "ko": "초록 가시 블롭"
+    },
+    {
+      "key": "enemy.enemy_quaternius_hywirl.name",
+      "en": "Hywirl",
+      "ko": "하이월"
+    },
+    {
+      "key": "enemy.enemy_quaternius_monkroose.name",
+      "en": "Monkroose",
+      "ko": "몽크루스"
+    },
+    {
+      "key": "enemy.enemy_quaternius_mushnub.name",
+      "en": "Mushnub",
+      "ko": "머쉬넙"
+    },
+    {
+      "key": "enemy.enemy_quaternius_mushnub_evolved.name",
+      "en": "Mushnub",
+      "ko": "머쉬넙"
+    },
+    {
+      "key": "enemy.enemy_quaternius_mushroom_king.name",
+      "en": "Mushroom King",
+      "ko": "버섯 왕"
+    },
+    {
+      "key": "enemy.enemy_quaternius_ninja.name",
+      "en": "Ninja",
+      "ko": "닌자"
+    },
+    {
+      "key": "enemy.enemy_quaternius_ninja_high_detail.name",
+      "en": "Ninja",
+      "ko": "닌자"
+    },
+    {
+      "key": "enemy.enemy_quaternius_ninja_high_detail_boss.name",
+      "en": "Ninja",
+      "ko": "닌자"
+    },
+    {
+      "key": "enemy.enemy_quaternius_orc.name",
+      "en": "Orc",
+      "ko": "오크"
+    },
+    {
+      "key": "enemy.enemy_quaternius_orc_enemy.name",
+      "en": "Orc",
+      "ko": "오크"
+    },
+    {
+      "key": "enemy.enemy_quaternius_pigeon.name",
+      "en": "Pigeon",
+      "ko": "비둘기"
+    },
+    {
+      "key": "enemy.enemy_quaternius_pink_blob.name",
+      "en": "Pink Blob",
+      "ko": "분홍 블롭"
+    },
+    {
+      "key": "enemy.enemy_quaternius_squidle.name",
+      "en": "Squidle",
+      "ko": "스퀴들"
+    },
+    {
+      "key": "enemy.enemy_quaternius_tribal.name",
+      "en": "Tribal",
+      "ko": "부족 전사"
+    },
+    {
+      "key": "enemy.enemy_quaternius_wizard.name",
+      "en": "Wizard",
+      "ko": "마법사"
+    },
+    {
+      "key": "enemy.enemy_quaternius_yeti.name",
+      "en": "Yeti",
+      "ko": "예티"
+    },
+    {
+      "key": "enemy.enemy_quaternius_yeti_high_detail.name",
+      "en": "Yeti",
+      "ko": "예티"
+    },
+    {
+      "key": "enemy.enemy_quaternius_yeti_high_detail_elite.name",
+      "en": "Yeti",
+      "ko": "예티"
+    },
+    {
+      "key": "enemy.enemy_rammer.name",
+      "en": "Rammer",
+      "ko": "돌진병"
+    },
+    {
+      "key": "enemy.enemy_scrapBug.name",
+      "en": "Scrap Bug",
+      "ko": "고철 벌레"
+    },
+    {
+      "key": "enemy.enemy_scrapBugHorde.name",
+      "en": "Scrap Bug",
+      "ko": "고철 벌레"
+    },
+    {
+      "key": "enemy.enemy_testHound.name",
+      "en": "Test Hound",
+      "ko": "시험 사냥개"
+    },
+    {
+      "key": "error.connectionLost",
+      "en": "Connection lost. Retry to rejoin your crew, or play Single Player.",
+      "ko": "연결이 끊겼습니다. 다시 시도해 승무원에게 합류하거나 싱글 플레이를 시작하세요."
+    },
+    {
+      "key": "error.connectionLostCreate",
+      "en": "Connection lost. Create your crew again.",
+      "ko": "연결이 끊겼습니다. 승무원을 다시 생성하세요."
+    },
+    {
+      "key": "error.gameStartup",
+      "en": "Unable to initialize game assets. Refresh and try again.",
+      "ko": "게임 에셋을 초기화할 수 없습니다. 새로고침한 뒤 다시 시도하세요."
+    },
+    {
+      "key": "error.incompatibleBuild",
+      "en": "This build is incompatible with the server. Refresh and try again.",
+      "ko": "서버와 호환되지 않는 빌드입니다. 새로고침한 뒤 다시 시도하세요."
+    },
+    {
+      "key": "error.incompatibleBuildReason",
+      "en": "Incompatible build: {reason}. Refresh and try again.",
+      "ko": "호환되지 않는 빌드입니다: {reason}. 새로고침한 뒤 다시 시도하세요."
+    },
+    {
+      "key": "error.map.checksum",
+      "en": "Map checksum mismatch. Refresh to rejoin.",
+      "ko": "맵 체크섬이 일치하지 않습니다. 새로고침해 다시 합류하세요."
+    },
+    {
+      "key": "error.map.profile",
+      "en": "Map profile mismatch. Refresh to rejoin.",
+      "ko": "맵 프로필이 일치하지 않습니다. 새로고침해 다시 합류하세요."
+    },
+    {
+      "key": "error.map.unknown",
+      "en": "Map synchronization failed. Refresh to rejoin.",
+      "ko": "맵 동기화에 실패했습니다. 새로고침해 다시 합류하세요."
+    },
+    {
+      "key": "error.map.validation",
+      "en": "Map validation failed on this device. Refresh to rejoin.",
+      "ko": "이 기기에서 맵 검증에 실패했습니다. 새로고침해 다시 합류하세요."
+    },
+    {
+      "key": "error.map.version",
+      "en": "Map generator version mismatch. Refresh to update.",
+      "ko": "맵 생성기 버전이 일치하지 않습니다. 새로고침해 업데이트하세요."
+    },
+    {
+      "key": "error.nickname.controlCharacters",
+      "en": "Nickname contains unsupported control characters.",
+      "ko": "닉네임에 지원하지 않는 제어 문자가 포함되어 있습니다."
+    },
+    {
+      "key": "error.nickname.required",
+      "en": "Choose a nickname.",
+      "ko": "닉네임을 입력하세요."
+    },
+    {
+      "key": "error.nickname.tooLong",
+      "en": "Nickname must be 20 characters or fewer.",
+      "ko": "닉네임은 20자 이하여야 합니다."
+    },
+    {
+      "key": "error.server.bad_json",
+      "en": "The server could not read that request.",
+      "ko": "서버가 요청을 읽지 못했습니다."
+    },
+    {
+      "key": "error.server.compatibility",
+      "en": "This crew uses incompatible game content. Refresh and try again.",
+      "ko": "이 승무원은 호환되지 않는 게임 콘텐츠를 사용 중입니다. 새로고침한 뒤 다시 시도하세요."
+    },
+    {
+      "key": "error.server.full",
+      "en": "That crew is full.",
+      "ko": "승무원이 가득 찼습니다."
+    },
+    {
+      "key": "error.server.invalid_seat",
+      "en": "That crew seat is unavailable.",
+      "ko": "해당 승무원 좌석을 사용할 수 없습니다."
+    },
+    {
+      "key": "error.server.limit",
+      "en": "Too many crews are active. Try again shortly.",
+      "ko": "활성화된 승무원이 너무 많습니다. 잠시 후 다시 시도하세요."
+    },
+    {
+      "key": "error.server.no_room",
+      "en": "Create or join a crew first.",
+      "ko": "먼저 승무원을 생성하거나 합류하세요."
+    },
+    {
+      "key": "error.server.not_found",
+      "en": "Crew not found. Check the code and try again.",
+      "ko": "승무원을 찾을 수 없습니다. 코드를 확인하고 다시 시도하세요."
+    },
+    {
+      "key": "error.server.protocol",
+      "en": "Your game version does not match the server. Refresh to update.",
+      "ko": "게임 버전이 서버와 일치하지 않습니다. 새로고침해 업데이트하세요."
+    },
+    {
+      "key": "error.server.rate_limited",
+      "en": "Too many requests. Wait a moment and try again.",
+      "ko": "요청이 너무 많습니다. 잠시 기다린 뒤 다시 시도하세요."
+    },
+    {
+      "key": "error.server.session",
+      "en": "Your crew session expired. Rejoin the crew.",
+      "ko": "승무원 세션이 만료되었습니다. 다시 합류하세요."
+    },
+    {
+      "key": "error.server.started",
+      "en": "That crew has already started a run.",
+      "ko": "해당 승무원은 이미 작전을 시작했습니다."
+    },
+    {
+      "key": "error.serverUnreachable",
+      "en": "Cannot reach the server. Is it running?",
+      "ko": "서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요."
+    },
+    {
+      "key": "error.unknown",
+      "en": "Something went wrong.",
+      "ko": "문제가 발생했습니다."
+    },
+    {
+      "key": "hud.bossEncounter",
+      "en": "BOSS ENCOUNTER",
+      "ko": "보스 전투"
+    },
+    {
+      "key": "hud.cannon",
+      "en": "CANNON",
+      "ko": "주포"
+    },
+    {
+      "key": "hud.charge",
+      "en": "CHARGE",
+      "ko": "차지"
+    },
+    {
+      "key": "hud.connection.offline",
+      "en": "OFFLINE",
+      "ko": "오프라인"
+    },
+    {
+      "key": "hud.connection.online",
+      "en": "ONLINE",
+      "ko": "온라인"
+    },
+    {
+      "key": "hud.controls.driver",
+      "en": "WASD + SHIFT + SPACE",
+      "ko": "WASD 이동 · SHIFT 대시 · SPACE 점프"
+    },
+    {
+      "key": "hud.controls.gunner",
+      "en": "LMB MACHINE GUN · RMB CANNON",
+      "ko": "LMB 기관총 · RMB 주포"
+    },
+    {
+      "key": "hud.controls.single",
+      "en": "WASD · SHIFT · SPACE · LMB · RMB",
+      "ko": "WASD 이동 · SHIFT 대시 · SPACE 점프 · LMB/RMB 사격"
+    },
+    {
+      "key": "hud.crewLevel",
+      "en": "CREW LV {value}",
+      "ko": "승무원 레벨 {value}"
+    },
+    {
+      "key": "hud.dash",
+      "en": "DASH",
+      "ko": "대시"
+    },
+    {
+      "key": "hud.eliteContact",
+      "en": "ELITE CONTACT",
+      "ko": "정예 출현"
+    },
+    {
+      "key": "hud.groundContact",
+      "en": "GROUND CONTACT",
+      "ko": "지면 접촉"
+    },
+    {
+      "key": "hud.holdRmb",
+      "en": "HOLD RMB",
+      "ko": "RMB 길게"
+    },
+    {
+      "key": "hud.integrity",
+      "en": "CHASSIS INTEGRITY",
+      "ko": "차체 내구도"
+    },
+    {
+      "key": "hud.kmh",
+      "en": "KM/H",
+      "ko": "KM/H"
+    },
+    {
+      "key": "hud.monsterLevel",
+      "en": "MONSTER LV {value}",
+      "ko": "몬스터 레벨 {value}"
+    },
+    {
+      "key": "hud.objective.lootTruck",
+      "en": "LOOT TRUCK",
+      "ko": "보급 트럭"
+    },
+    {
+      "key": "hud.pauseAria",
+      "en": "Pause",
+      "ko": "일시정지"
+    },
+    {
+      "key": "hud.prompt.chargeReady",
+      "en": "CHARGE READY",
+      "ko": "차지 준비 완료"
+    },
+    {
+      "key": "hud.prompt.clickToAim",
+      "en": "CLICK TO AIM",
+      "ko": "클릭하여 조준"
+    },
+    {
+      "key": "hud.prompt.destroyLootTruck",
+      "en": "DESTROY IT FOR LOOT SCRAP",
+      "ko": "파괴하여 보급 고철 획득"
+    },
+    {
+      "key": "hud.prompt.driverStart",
+      "en": "DRIVE · COLLECT SCRAP",
+      "ko": "운전 · 고철 수집"
+    },
+    {
+      "key": "hud.prompt.gunnerHoldRightMouse",
+      "en": "GUNNER — HOLD RIGHT MOUSE TO CHARGE",
+      "ko": "포수 — RMB를 길게 눌러 차지"
+    },
+    {
+      "key": "hud.prompt.gunnerStart",
+      "en": "FIRE · KILL ENEMIES",
+      "ko": "사격 · 적 처치"
+    },
+    {
+      "key": "hud.prompt.holdRightMouse",
+      "en": "HOLD RIGHT MOUSE TO CHARGE",
+      "ko": "RMB를 길게 눌러 차지"
+    },
+    {
+      "key": "hud.prompt.holdToCharge",
+      "en": "HOLD TO CHARGE",
+      "ko": "길게 눌러 차지"
+    },
+    {
+      "key": "hud.prompt.lootTruck",
+      "en": "LOOT TRUCK",
+      "ko": "보급 트럭"
+    },
+    {
+      "key": "hud.prompt.releaseToFire",
+      "en": "RELEASE TO FIRE",
+      "ko": "놓아서 발사"
+    },
+    {
+      "key": "hud.prompt.singleStart",
+      "en": "DRIVE · AIM · FIRE",
+      "ko": "운전 · 조준 · 사격"
+    },
+    {
+      "key": "hud.ready",
+      "en": "READY",
+      "ko": "준비 완료"
+    },
+    {
+      "key": "hud.role.driver",
+      "en": "DRIVER",
+      "ko": "운전수"
+    },
+    {
+      "key": "hud.role.gunner",
+      "en": "GUNNER",
+      "ko": "포수"
+    },
+    {
+      "key": "hud.velocity",
+      "en": "VELOCITY",
+      "ko": "속도"
+    },
+    {
+      "key": "hud.xp",
+      "en": "{value} XP",
+      "ko": "XP {value}"
+    },
+    {
+      "key": "phase.bossIncoming",
+      "en": "BOSS INCOMING",
+      "ko": "보스 접근 중"
+    },
+    {
+      "key": "phase.bossWave",
+      "en": "BOSS WAVE",
+      "ko": "보스 웨이브"
+    },
+    {
+      "key": "phase.gameOver",
+      "en": "GAME OVER",
+      "ko": "게임 오버"
+    },
+    {
+      "key": "phase.stageClear",
+      "en": "STAGE CLEAR",
+      "ko": "스테이지 클리어"
+    },
+    {
+      "key": "phase.timeUntilWave",
+      "en": "TIME UNTIL NEW WAVE",
+      "ko": "다음 웨이브까지"
+    },
+    {
+      "key": "phase.wave1",
+      "en": "WAVE 1",
+      "ko": "웨이브 1"
+    },
+    {
+      "key": "phase.wave1Incoming",
+      "en": "WAVE 1 INCOMING",
+      "ko": "웨이브 1 접근 중"
+    },
+    {
+      "key": "phase.wave2",
+      "en": "WAVE 2",
+      "ko": "웨이브 2"
+    },
+    {
+      "key": "phase.wave2Incoming",
+      "en": "WAVE 2 INCOMING",
+      "ko": "웨이브 2 접근 중"
+    },
+    {
+      "key": "relic.relic_aerial_master.description",
+      "en": "Increase all Gunner damage by 30% while airborne.",
+      "ko": "공중에 있는 동안 포수의 모든 피해가 30% 증가합니다."
+    },
+    {
+      "key": "relic.relic_aerial_master.name",
+      "en": "AERIAL MASTER",
+      "ko": "공중전의 달인"
+    },
+    {
+      "key": "relic.relic_air_master.description",
+      "en": "Increase air control by 40% and gain one extra Dash in the air.",
+      "ko": "공중 제어력이 40% 증가하고 공중에서 대시를 한 번 더 사용할 수 있습니다."
+    },
+    {
+      "key": "relic.relic_air_master.name",
+      "en": "AIR MASTER",
+      "ko": "체공의 달인"
+    },
+    {
+      "key": "relic.relic_apex_predator.description",
+      "en": "Deal 40% more damage to Elites and Bosses.",
+      "ko": "정예와 보스에게 주는 피해가 40% 증가합니다."
+    },
+    {
+      "key": "relic.relic_apex_predator.name",
+      "en": "APEX PREDATOR",
+      "ko": "최상위 포식자"
+    },
+    {
+      "key": "relic.relic_armor_shred.description",
+      "en": "Machine Gun hits make enemies take 10% more damage for 2 seconds.",
+      "ko": "기관총에 맞은 적은 2초 동안 받는 피해가 10% 증가합니다."
+    },
+    {
+      "key": "relic.relic_armor_shred.name",
+      "en": "ARMOR SHRED",
+      "ko": "장갑 파쇄"
+    },
+    {
+      "key": "relic.relic_bullet_time.description",
+      "en": "Recover the Dash cooldown twice as fast while airborne.",
+      "ko": "공중에 있는 동안 대시 재사용 대기시간이 두 배 빠르게 회복됩니다."
+    },
+    {
+      "key": "relic.relic_bullet_time.name",
+      "en": "BULLET TIME",
+      "ko": "불릿 타임"
+    },
+    {
+      "key": "relic.relic_covering_fire.description",
+      "en": "Machine Gun hits slow enemies by 5% for 0.5 seconds.",
+      "ko": "기관총에 맞은 적은 0.5초 동안 5% 느려집니다."
+    },
+    {
+      "key": "relic.relic_covering_fire.name",
+      "en": "COVERING FIRE",
+      "ko": "엄호 사격"
+    },
+    {
+      "key": "relic.relic_dash_refund.description",
+      "en": "Dash hits immediately restore 30% of the Dash cooldown.",
+      "ko": "대시로 적을 맞히면 대시 재사용 대기시간이 즉시 30% 회복됩니다."
+    },
+    {
+      "key": "relic.relic_dash_refund.name",
+      "en": "DASH REFUND",
+      "ko": "대시 환급"
+    },
+    {
+      "key": "relic.relic_death_mark.description",
+      "en": "Enemies killed by the Cannon explode for area damage. Each extra stack increases the explosion damage by 25%.",
+      "ko": "주포로 처치한 적이 폭발해 범위 피해를 줍니다. 추가 중첩마다 폭발 피해가 25% 증가합니다."
+    },
+    {
+      "key": "relic.relic_death_mark.name",
+      "en": "DEATH MARK",
+      "ko": "죽음의 표식"
+    },
+    {
+      "key": "relic.relic_double_jump.description",
+      "en": "Gain one additional jump.",
+      "ko": "점프를 한 번 더 사용할 수 있습니다."
+    },
+    {
+      "key": "relic.relic_double_jump.name",
+      "en": "DOUBLE JUMP",
+      "ko": "이단 점프"
+    },
+    {
+      "key": "relic.relic_friendly_shield.description",
+      "en": "Reduce Cannon self-damage by 50% per stack.\nAt two stacks, Cannon self-damage is completely negated.",
+      "ko": "중첩마다 주포 자가 피해가 50% 감소합니다.\n두 번 중첩하면 주포 자가 피해를 완전히 무시합니다."
+    },
+    {
+      "key": "relic.relic_friendly_shield.name",
+      "en": "FRIENDLY SHIELD",
+      "ko": "아군 보호막"
+    },
+    {
+      "key": "relic.relic_glass_cannon.description",
+      "en": "Deal 20% more damage, but take 15% more damage.",
+      "ko": "주는 피해가 20% 증가하지만 받는 피해도 15% 증가합니다."
+    },
+    {
+      "key": "relic.relic_glass_cannon.name",
+      "en": "GLASS CANNON",
+      "ko": "유리 대포"
+    },
+    {
+      "key": "relic.relic_ground_pound.description",
+      "en": "Land after falling at least {minimumFallDistance} m to create a shockwave.\nGreater falls deal more damage and increase the radius, up to {maximumRadius} m.\nEach stack adds {baseDamagePerStack} base damage.",
+      "ko": "{minimumFallDistance}m 이상 낙하한 뒤 착지하면 충격파를 일으킵니다.\n더 높이 떨어질수록 피해와 범위가 증가하며, 범위는 최대 {maximumRadius}m입니다.\n중첩마다 기본 피해가 {baseDamagePerStack} 증가합니다."
+    },
+    {
+      "key": "relic.relic_ground_pound.name",
+      "en": "GROUND POUND",
+      "ko": "지면 강타"
+    },
+    {
+      "key": "relic.relic_he_payload.description",
+      "en": "Increase Cannon blast radius and knockback by 30%.",
+      "ko": "주포 폭발 반경과 밀쳐내기가 30% 증가합니다."
+    },
+    {
+      "key": "relic.relic_he_payload.name",
+      "en": "HE PAYLOAD",
+      "ko": "고폭탄"
+    },
+    {
+      "key": "relic.relic_hearty_tank.description",
+      "en": "Increase maximum integrity by 200.\nThe gained capacity is repaired immediately.",
+      "ko": "최대 내구도가 200 증가합니다.\n늘어난 내구도는 즉시 수리됩니다."
+    },
+    {
+      "key": "relic.relic_hearty_tank.name",
+      "en": "HEARTY TANK",
+      "ko": "강인한 전차"
+    },
+    {
+      "key": "relic.relic_heat_sink.description",
+      "en": "After firing the Cannon, increase Machine Gun damage by 20% for 3 seconds.",
+      "ko": "주포 발사 후 3초 동안 기관총 피해가 20% 증가합니다."
+    },
+    {
+      "key": "relic.relic_heat_sink.name",
+      "en": "HEAT SINK",
+      "ko": "방열판"
+    },
+    {
+      "key": "relic.relic_iron_will.description",
+      "en": "Take 20% less damage while integrity is at or below 50%.",
+      "ko": "내구도가 50% 이하일 때 받는 피해가 20% 감소합니다."
+    },
+    {
+      "key": "relic.relic_iron_will.name",
+      "en": "IRON WILL",
+      "ko": "강철 의지"
+    },
+    {
+      "key": "relic.relic_last_resort.description",
+      "en": "Deal 25% more damage while integrity is at or below 30%.",
+      "ko": "내구도가 30% 이하일 때 주는 피해가 25% 증가합니다."
+    },
+    {
+      "key": "relic.relic_last_resort.name",
+      "en": "LAST RESORT",
+      "ko": "최후의 수단"
+    },
+    {
+      "key": "relic.relic_magnet_core.description",
+      "en": "Increase XP pickup range by 50%.",
+      "ko": "XP 획득 범위가 50% 증가합니다."
+    },
+    {
+      "key": "relic.relic_magnet_core.name",
+      "en": "MAGNET CORE",
+      "ko": "자석 코어"
+    },
+    {
+      "key": "relic.relic_momentum_shield.description",
+      "en": "Take 20% less damage while moving at top speed.",
+      "ko": "최고 속도로 이동하는 동안 받는 피해가 20% 감소합니다."
+    },
+    {
+      "key": "relic.relic_momentum_shield.name",
+      "en": "MOMENTUM SHIELD",
+      "ko": "관성 보호막"
+    },
+    {
+      "key": "relic.relic_phase_dash.description",
+      "en": "Become invulnerable during Dash. Can only be acquired once.",
+      "ko": "대시 중 무적이 됩니다. 한 번만 획득할 수 있습니다."
+    },
+    {
+      "key": "relic.relic_phase_dash.name",
+      "en": "PHASE DASH",
+      "ko": "위상 대시"
+    },
+    {
+      "key": "relic.relic_phoenix_core.description",
+      "en": "Once per run, survive a wipeout with 50% integrity and release a shockwave.",
+      "ko": "작전당 한 번, 전멸을 견디고 내구도 50%로 부활하며 충격파를 방출합니다."
+    },
+    {
+      "key": "relic.relic_phoenix_core.name",
+      "en": "PHOENIX CORE",
+      "ko": "불사조 코어"
+    },
+    {
+      "key": "relic.relic_rapid_reload.description",
+      "en": "Cannon hits reduce the next Cannon cooldown by 20%.",
+      "ko": "주포 명중 시 다음 주포 재사용 대기시간이 20% 감소합니다."
+    },
+    {
+      "key": "relic.relic_rapid_reload.name",
+      "en": "RAPID RELOAD",
+      "ko": "신속 장전"
+    },
+    {
+      "key": "relic.relic_roadkill.description",
+      "en": "High-speed collisions deal more damage at higher speeds. Each extra stack increases collision damage by 25%.",
+      "ko": "고속 충돌은 속도가 빠를수록 더 큰 피해를 줍니다. 추가 중첩마다 충돌 피해가 25% 증가합니다."
+    },
+    {
+      "key": "relic.relic_roadkill.name",
+      "en": "ROADKILL",
+      "ko": "로드킬"
+    },
+    {
+      "key": "relic.relic_safe_haven.description",
+      "en": "Repair 150 integrity when a wave is cleared.",
+      "ko": "웨이브를 클리어하면 내구도를 150 수리합니다."
+    },
+    {
+      "key": "relic.relic_safe_haven.name",
+      "en": "SAFE HAVEN",
+      "ko": "안식처"
+    },
+    {
+      "key": "relic.relic_twin_shell.description",
+      "en": "Fire two Cannon shells in succession, but increase Cannon cooldown by 20%. Can only be acquired once.",
+      "ko": "주포탄을 연속 두 발 발사하지만 주포 재사용 대기시간이 20% 증가합니다. 한 번만 획득할 수 있습니다."
+    },
+    {
+      "key": "relic.relic_twin_shell.name",
+      "en": "TWIN SHELL",
+      "ko": "쌍둥이 포탄"
+    },
+    {
+      "key": "relic.relic_unstoppable.description",
+      "en": "Dash has no cooldown. Increase Dash damage by 50%.",
+      "ko": "대시에 재사용 대기시간이 없어지고 대시 피해가 50% 증가합니다."
+    },
+    {
+      "key": "relic.relic_unstoppable.name",
+      "en": "UNSTOPPABLE",
+      "ko": "멈출 수 없는 돌진"
+    },
+    {
+      "key": "relic.relic_vampire_rounds.description",
+      "en": "Cannon kills repair 50 integrity.",
+      "ko": "주포로 적을 처치하면 내구도를 50 수리합니다."
+    },
+    {
+      "key": "relic.relic_vampire_rounds.name",
+      "en": "VAMPIRE ROUNDS",
+      "ko": "흡혈탄"
+    },
+    {
+      "key": "relic.relic_xp_surge.description",
+      "en": "Double all XP gained.",
+      "ko": "획득하는 모든 XP가 두 배가 됩니다."
+    },
+    {
+      "key": "relic.relic_xp_surge.name",
+      "en": "XP SURGE",
+      "ko": "XP 폭증"
+    },
+    {
+      "key": "result.title.airborneDivision",
+      "en": "AIRBORNE DIVISION",
+      "ko": "공수 사단"
+    },
+    {
+      "key": "result.title.bossSlayer",
+      "en": "BOSS SLAYER",
+      "ko": "보스 사냥꾼"
+    },
+    {
+      "key": "result.title.brakesOptional",
+      "en": "THE BRAKES WERE OPTIONAL",
+      "ko": "브레이크는 선택 사항"
+    },
+    {
+      "key": "result.title.brakesOptionalD",
+      "en": "THE BRAKES WERE OPTIONAL",
+      "ko": "브레이크는 선택 사항"
+    },
+    {
+      "key": "result.title.friendlyFire",
+      "en": "FRIENDLY FIRE DEPARTMENT",
+      "ko": "아군 오발 담당부"
+    },
+    {
+      "key": "result.title.oneBrain",
+      "en": "ONE BRAIN, TWO BROWSERS",
+      "ko": "두 화면, 하나의 두뇌"
+    },
+    {
+      "key": "result.title.perfectlyCoordinated",
+      "en": "PERFECTLY COORDINATED ACCIDENT",
+      "ko": "완벽하게 협동한 사고"
+    },
+    {
+      "key": "result.title.recoilAccountants",
+      "en": "RECOIL ACCOUNTANTS",
+      "ko": "반동 회계팀"
+    },
+    {
+      "key": "result.title.scrapGoblins",
+      "en": "SCRAP GOBLINS",
+      "ko": "고철 고블린"
+    },
+    {
+      "key": "result.title.unlicensed",
+      "en": "UNLICENSED BALLISTICS",
+      "ko": "무면허 탄도학"
+    },
+    {
+      "key": "ui.boot.enter",
+      "en": "CLICK TO ENTER",
+      "ko": "클릭하여 시작"
+    },
+    {
+      "key": "ui.boot.kicker",
+      "en": "SHARED TANK FIELD UNIT // 07",
+      "ko": "공유 전차 야전 부대 // 07"
+    },
+    {
+      "key": "ui.countdown.brace",
+      "en": "BRACE YOURSELF",
+      "ko": "충격에 대비하세요"
+    },
+    {
+      "key": "ui.countdown.footer",
+      "en": "DRIVER // GUNNER // SHARED CHASSIS",
+      "ko": "운전수 // 포수 // 공유 차체"
+    },
+    {
+      "key": "ui.countdown.go",
+      "en": "GO!",
+      "ko": "출발!"
+    },
+    {
+      "key": "ui.countdown.kicker",
+      "en": "CREW LINKED // WAVE SYSTEM ARMED",
+      "ko": "승무원 연결 완료 // 웨이브 시스템 준비"
+    },
+    {
+      "key": "ui.countdown.ready",
+      "en": "GET READY",
+      "ko": "준비하세요"
+    },
+    {
+      "key": "ui.countdown.roles",
+      "en": "DRIVER · GUNNER",
+      "ko": "운전수 · 포수"
+    },
+    {
+      "key": "ui.create.back",
+      "en": "BACK",
+      "ko": "뒤로"
+    },
+    {
+      "key": "ui.create.copied",
+      "en": "COPIED",
+      "ko": "복사 완료"
+    },
+    {
+      "key": "ui.create.copy",
+      "en": "COPY",
+      "ko": "복사"
+    },
+    {
+      "key": "ui.create.copyFailed",
+      "en": "COPY FAILED — SELECT CODE",
+      "ko": "복사 실패 — 코드를 선택하세요"
+    },
+    {
+      "key": "ui.create.footer",
+      "en": "PRIVATE ROOM // TWO CREW MAX",
+      "ko": "비공개 방 // 최대 2명"
+    },
+    {
+      "key": "ui.create.help",
+      "en": "Send this code to your Gunner. The run begins when both crew members lock in.",
+      "ko": "이 코드를 포수에게 보내세요. 두 승무원이 모두 준비하면 작전이 시작됩니다."
+    },
+    {
+      "key": "ui.create.kicker",
+      "en": "CREW LINK // HOST",
+      "ko": "승무원 연결 // 방장"
+    },
+    {
+      "key": "ui.create.ready",
+      "en": "READY",
+      "ko": "준비 완료"
+    },
+    {
+      "key": "ui.create.step",
+      "en": "HOST CHANNEL",
+      "ko": "방 만들기"
+    },
+    {
+      "key": "ui.create.title",
+      "en": "CREATE CREW",
+      "ko": "승무원 모집"
+    },
+    {
+      "key": "ui.create.waiting",
+      "en": "WAITING FOR GUNNER…",
+      "ko": "포수를 기다리는 중…"
+    },
+    {
+      "key": "ui.error.mainMenu",
+      "en": "MAIN MENU",
+      "ko": "메인 메뉴"
+    },
+    {
+      "key": "ui.error.retry",
+      "en": "RETRY",
+      "ko": "다시 시도"
+    },
+    {
+      "key": "ui.error.singlePlayer",
+      "en": "SINGLE PLAYER",
+      "ko": "싱글 플레이"
+    },
+    {
+      "key": "ui.error.title",
+      "en": "CONNECTION LOST",
+      "ko": "연결 끊김"
+    },
+    {
+      "key": "ui.howTo.back",
+      "en": "BACK TO MENU",
+      "ko": "메뉴로 돌아가기"
+    },
+    {
+      "key": "ui.howTo.driver",
+      "en": "DRIVER",
+      "ko": "운전수"
+    },
+    {
+      "key": "ui.howTo.driverControls",
+      "en": "WASD  DRIVE + STEER\nSHIFT  DASH\nSPACE  JUMP\nR  RECENTER CAMERA",
+      "ko": "WASD  운전 + 조향\nSHIFT  대시\nSPACE  점프\nR  카메라 재정렬"
+    },
+    {
+      "key": "ui.howTo.driverHelp",
+      "en": "Steer in the air to face your landing. Carry speed through scrap, evade Rammers, and time movement around cannon recoil.",
+      "ko": "공중에서 조향해 착지 방향을 맞추세요. 고철 사이로 속도를 유지하고 돌진병을 피하며 주포 반동에 맞춰 움직이세요."
+    },
+    {
+      "key": "ui.howTo.driverIndex",
+      "en": "01 // MOBILITY",
+      "ko": "01 // 기동"
+    },
+    {
+      "key": "ui.howTo.footer",
+      "en": "ONE VEHICLE. TWO ROLES. EVERY SHOT CHANGES THE ROUTE.",
+      "ko": "하나의 전차. 두 역할. 모든 사격이 진로를 바꿉니다."
+    },
+    {
+      "key": "ui.howTo.gunner",
+      "en": "GUNNER",
+      "ko": "포수"
+    },
+    {
+      "key": "ui.howTo.gunnerControls",
+      "en": "MOUSE  AIM\nLMB  MACHINE GUN\nRMB  CANNON\nHOLD RMB  CHARGE",
+      "ko": "MOUSE  조준\nLMB  기관총\nRMB  주포\nHOLD RMB  차지"
+    },
+    {
+      "key": "ui.howTo.gunnerHelp",
+      "en": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links.",
+      "ko": "아래로 사격해 전차를 날리세요. 폭발물을 연쇄 폭발시키고 주포 타이밍을 관리하며 공격을 맞춰 승무원 연계를 쌓으세요."
+    },
+    {
+      "key": "ui.howTo.gunnerIndex",
+      "en": "02 // FIRE CONTROL",
+      "ko": "02 // 화력 제어"
+    },
+    {
+      "key": "ui.howTo.kicker",
+      "en": "FIELD MANUAL // SHARED CHASSIS",
+      "ko": "야전 교범 // 공유 차체"
+    },
+    {
+      "key": "ui.howTo.title",
+      "en": "HOW TO PLAY",
+      "ko": "플레이 방법"
+    },
+    {
+      "key": "ui.join.cancel",
+      "en": "CANCEL",
+      "ko": "취소"
+    },
+    {
+      "key": "ui.join.help",
+      "en": "Enter the six-character room code supplied by your Driver.",
+      "ko": "운전수가 알려준 여섯 자리 방 코드를 입력하세요."
+    },
+    {
+      "key": "ui.join.kicker",
+      "en": "CREW LINK // REMOTE",
+      "ko": "승무원 연결 // 원격"
+    },
+    {
+      "key": "ui.join.placeholder",
+      "en": "AB12CD",
+      "ko": "AB12CD"
+    },
+    {
+      "key": "ui.join.submit",
+      "en": "JOIN",
+      "ko": "합류"
+    },
+    {
+      "key": "ui.join.title",
+      "en": "JOIN CREW",
+      "ko": "승무원 합류"
+    },
+    {
+      "key": "ui.lobby.acceptRole",
+      "en": "ACCEPT — BECOME {role}",
+      "ko": "수락 — {role}(으)로 변경"
+    },
+    {
+      "key": "ui.lobby.awaiting",
+      "en": "AWAITING CREW",
+      "ko": "승무원 대기 중"
+    },
+    {
+      "key": "ui.lobby.chat",
+      "en": "CHAT",
+      "ko": "채팅"
+    },
+    {
+      "key": "ui.lobby.chatFocus",
+      "en": "FOCUS TO EXPAND",
+      "ko": "선택하여 펼치기"
+    },
+    {
+      "key": "ui.lobby.chatPlaceholder",
+      "en": "Message your crew…",
+      "ko": "승무원에게 메시지 보내기…"
+    },
+    {
+      "key": "ui.lobby.contentUnavailable",
+      "en": "Run content unavailable",
+      "ko": "작전 콘텐츠를 사용할 수 없습니다"
+    },
+    {
+      "key": "ui.lobby.copy",
+      "en": "COPY",
+      "ko": "복사"
+    },
+    {
+      "key": "ui.lobby.decline",
+      "en": "DECLINE",
+      "ko": "거절"
+    },
+    {
+      "key": "ui.lobby.driverDuty",
+      "en": "Mobility // collision // survival",
+      "ko": "기동 // 충돌 // 생존"
+    },
+    {
+      "key": "ui.lobby.eligible",
+      "en": "Both crew members linked — ready for wave",
+      "ko": "승무원 연결 완료 — 웨이브 준비 가능"
+    },
+    {
+      "key": "ui.lobby.gunnerDuty",
+      "en": "Targeting // recoil // destruction",
+      "ko": "조준 // 반동 // 파괴"
+    },
+    {
+      "key": "ui.lobby.host",
+      "en": "HOST",
+      "ko": "방장"
+    },
+    {
+      "key": "ui.lobby.input",
+      "en": "INPUT",
+      "ko": "입력"
+    },
+    {
+      "key": "ui.lobby.invalidSeats",
+      "en": "Choose different crew roles — one Driver, one Gunner",
+      "ko": "역할을 다르게 선택하세요 — 운전수 1명, 포수 1명"
+    },
+    {
+      "key": "ui.lobby.leave",
+      "en": "LEAVE CREW",
+      "ko": "승무원 떠나기"
+    },
+    {
+      "key": "ui.lobby.notReady",
+      "en": "Crew not ready",
+      "ko": "승무원 준비 미완료"
+    },
+    {
+      "key": "ui.lobby.open",
+      "en": "OPEN",
+      "ko": "비어 있음"
+    },
+    {
+      "key": "ui.lobby.playerDisconnected",
+      "en": "A crew member is reconnecting",
+      "ko": "승무원이 다시 연결하는 중"
+    },
+    {
+      "key": "ui.lobby.playerNotReady",
+      "en": "A player is not ready yet",
+      "ko": "아직 준비하지 않은 승무원이 있습니다"
+    },
+    {
+      "key": "ui.lobby.readyForWave",
+      "en": "READY FOR WAVE",
+      "ko": "웨이브 준비 완료"
+    },
+    {
+      "key": "ui.lobby.reconnecting",
+      "en": "RECONNECTING…",
+      "ko": "재연결 중…"
+    },
+    {
+      "key": "ui.lobby.requestSwap",
+      "en": "REQUEST ROLE SWAP",
+      "ko": "역할 교대 요청"
+    },
+    {
+      "key": "ui.lobby.roleSwapPending",
+      "en": "Role swap awaiting crew confirmation",
+      "ko": "역할 교대 승인을 기다리는 중"
+    },
+    {
+      "key": "ui.lobby.roomCode",
+      "en": "ROOM CODE",
+      "ko": "방 코드"
+    },
+    {
+      "key": "ui.lobby.seat",
+      "en": "SEAT {number}",
+      "ko": "좌석 {number}"
+    },
+    {
+      "key": "ui.lobby.seatsAria",
+      "en": "Crew seats",
+      "ko": "승무원 좌석"
+    },
+    {
+      "key": "ui.lobby.send",
+      "en": "SEND",
+      "ko": "보내기"
+    },
+    {
+      "key": "ui.lobby.sharedChassis",
+      "en": "SHARED CHASSIS",
+      "ko": "공유 차체"
+    },
+    {
+      "key": "ui.lobby.standby",
+      "en": "STANDBY",
+      "ko": "대기"
+    },
+    {
+      "key": "ui.lobby.swapRequested",
+      "en": "SWAP REQUESTED",
+      "ko": "교대 요청됨"
+    },
+    {
+      "key": "ui.lobby.switchRole",
+      "en": "SWITCH TO {role}",
+      "ko": "{role}(으)로 변경"
+    },
+    {
+      "key": "ui.lobby.systemReady",
+      "en": "SYSTEM STATUS: READY",
+      "ko": "시스템 상태: 준비 완료"
+    },
+    {
+      "key": "ui.lobby.unready",
+      "en": "LOCKED IN — UNREADY",
+      "ko": "준비 취소"
+    },
+    {
+      "key": "ui.lobby.waitingForPlayer",
+      "en": "Waiting for another crew member",
+      "ko": "다른 승무원을 기다리는 중"
+    },
+    {
+      "key": "ui.lobby.you",
+      "en": "YOU",
+      "ko": "나"
+    },
+    {
+      "key": "ui.lobby.yourRole",
+      "en": "YOUR ROLE",
+      "ko": "내 역할"
+    },
+    {
+      "key": "ui.main.back",
+      "en": "GO BACK",
+      "ko": "뒤로"
+    },
+    {
+      "key": "ui.main.createCrew",
+      "en": "CREATE CREW",
+      "ko": "승무원 모집"
+    },
+    {
+      "key": "ui.main.currentNickname",
+      "en": "CURRENT NICKNAME: {value}",
+      "ko": "현재 닉네임: {value}"
+    },
+    {
+      "key": "ui.main.drag",
+      "en": "DRAG TO ROTATE",
+      "ko": "드래그하여 회전"
+    },
+    {
+      "key": "ui.main.howTo",
+      "en": "HOW TO PLAY",
+      "ko": "플레이 방법"
+    },
+    {
+      "key": "ui.main.joinCrew",
+      "en": "JOIN CREW",
+      "ko": "승무원 합류"
+    },
+    {
+      "key": "ui.main.kicker",
+      "en": "CO-OP TANK SURVIVAL",
+      "ko": "협동 전차 생존전"
+    },
+    {
+      "key": "ui.main.multiplayer",
+      "en": "MULTIPLAYER",
+      "ko": "멀티플레이"
+    },
+    {
+      "key": "ui.main.settings",
+      "en": "SETTINGS",
+      "ko": "설정"
+    },
+    {
+      "key": "ui.main.singlePlayer",
+      "en": "SINGLE PLAYER",
+      "ko": "싱글 플레이"
+    },
+    {
+      "key": "ui.main.systemReady",
+      "en": "SYSTEM STATUS: READY",
+      "ko": "시스템 상태: 준비 완료"
+    },
+    {
+      "key": "ui.modifier.doubleBarrel.description",
+      "en": "Two shells, more recoil, longer cooldown.",
+      "ko": "포탄 두 발, 강한 반동, 긴 재사용 대기시간."
+    },
+    {
+      "key": "ui.modifier.doubleBarrel.name",
+      "en": "DOUBLE BARREL",
+      "ko": "이중 포신"
+    },
+    {
+      "key": "ui.modifier.moonYard.description",
+      "en": "Lower gravity and longer airtime.",
+      "ko": "중력이 낮아지고 체공 시간이 길어집니다."
+    },
+    {
+      "key": "ui.modifier.moonYard.name",
+      "en": "MOON YARD",
+      "ko": "달의 전장"
+    },
+    {
+      "key": "ui.modifier.none.description",
+      "en": "The classic Recoil Crew experience.",
+      "ko": "기본 Recoil Crew 작전입니다."
+    },
+    {
+      "key": "ui.modifier.none.name",
+      "en": "STANDARD",
+      "ko": "표준"
+    },
+    {
+      "key": "ui.modifier.overclocked.description",
+      "en": "Faster machine gun and more enemies.",
+      "ko": "기관총이 빨라지고 적이 더 많이 등장합니다."
+    },
+    {
+      "key": "ui.modifier.overclocked.name",
+      "en": "OVERCLOCKED",
+      "ko": "오버클럭"
+    },
+    {
+      "key": "ui.modifier.scrapMagnet.description",
+      "en": "Stronger magnet, shorter pickup life.",
+      "ko": "자석은 강해지고 획득물 유지 시간은 짧아집니다."
+    },
+    {
+      "key": "ui.modifier.scrapMagnet.name",
+      "en": "SCRAP MAGNET",
+      "ko": "고철 자석"
+    },
+    {
+      "key": "ui.modifier.soapTracks.description",
+      "en": "Lower grip and wider drifts.",
+      "ko": "접지력이 낮아지고 드리프트 폭이 커집니다."
+    },
+    {
+      "key": "ui.modifier.soapTracks.name",
+      "en": "SOAP TRACKS",
+      "ko": "미끄러운 궤도"
+    },
+    {
+      "key": "ui.modifier.volatileInventory.description",
+      "en": "Bigger barrel blasts and chains.",
+      "ko": "폭발물의 폭발과 연쇄 범위가 커집니다."
+    },
+    {
+      "key": "ui.modifier.volatileInventory.name",
+      "en": "VOLATILE INVENTORY",
+      "ko": "불안정 화물"
+    },
+    {
+      "key": "ui.pause.footer",
+      "en": "SELECT RESUME // RESTORE FIELD CONTROL",
+      "ko": "계속하기 선택 // 야전 제어 복구"
+    },
+    {
+      "key": "ui.pause.help",
+      "en": "Shared chassis is holding position. Resume when the crew is ready.",
+      "ko": "공유 차체가 위치를 유지하고 있습니다. 승무원이 준비되면 계속하세요."
+    },
+    {
+      "key": "ui.pause.kicker",
+      "en": "FIELD CONTROL // LOCAL",
+      "ko": "야전 제어 // 로컬"
+    },
+    {
+      "key": "ui.pause.mainMenu",
+      "en": "RETURN TO MAIN MENU",
+      "ko": "메인 메뉴로 돌아가기"
+    },
+    {
+      "key": "ui.pause.restart",
+      "en": "RESTART MATCH",
+      "ko": "매치 다시 시작"
+    },
+    {
+      "key": "ui.pause.resume",
+      "en": "RESUME",
+      "ko": "계속하기"
+    },
+    {
+      "key": "ui.pause.state",
+      "en": "SIMULATION HOLD",
+      "ko": "시뮬레이션 정지"
+    },
+    {
+      "key": "ui.pause.title",
+      "en": "PAUSED",
+      "ko": "일시정지"
+    },
+    {
+      "key": "ui.progression.auto",
+      "en": "AUTO {seconds}",
+      "ko": "자동 {seconds}"
+    },
+    {
+      "key": "ui.progression.available",
+      "en": "FIELD UPGRADE AVAILABLE",
+      "ko": "야전 강화 사용 가능"
+    },
+    {
+      "key": "ui.progression.choosing",
+      "en": "CHOOSING...",
+      "ko": "선택 중…"
+    },
+    {
+      "key": "ui.progression.continue",
+      "en": "CLICK / SPACE TO CONTINUE",
+      "ko": "클릭 / SPACE로 계속"
+    },
+    {
+      "key": "ui.progression.crewReady",
+      "en": "CREW READY",
+      "ko": "승무원 준비 완료"
+    },
+    {
+      "key": "ui.progression.fastForward",
+      "en": "INPUT TO FAST-FORWARD",
+      "ko": "입력하여 빨리 보기"
+    },
+    {
+      "key": "ui.progression.level",
+      "en": "LEVEL {level}",
+      "ko": "레벨 {level}"
+    },
+    {
+      "key": "ui.progression.levelUp",
+      "en": "LEVEL UP",
+      "ko": "레벨 업"
+    },
+    {
+      "key": "ui.progression.locked",
+      "en": "LOCKED",
+      "ko": "확정"
+    },
+    {
+      "key": "ui.progression.lockedIn",
+      "en": "LOCKED IN",
+      "ko": "선택 완료"
+    },
+    {
+      "key": "ui.progression.partner",
+      "en": "PARTNER",
+      "ko": "동료"
+    },
+    {
+      "key": "ui.progression.reel.armor",
+      "en": "ARMOR",
+      "ko": "장갑"
+    },
+    {
+      "key": "ui.progression.reel.artifact",
+      "en": "ARTIFACT",
+      "ko": "유물"
+    },
+    {
+      "key": "ui.progression.reel.cache",
+      "en": "CACHE",
+      "ko": "보관함"
+    },
+    {
+      "key": "ui.progression.reel.cooldown",
+      "en": "COOLDOWN",
+      "ko": "재사용 대기시간"
+    },
+    {
+      "key": "ui.progression.reel.core",
+      "en": "CORE",
+      "ko": "코어"
+    },
+    {
+      "key": "ui.progression.reel.dash",
+      "en": "DASH",
+      "ko": "대시"
+    },
+    {
+      "key": "ui.progression.reel.engine",
+      "en": "ENGINE",
+      "ko": "엔진"
+    },
+    {
+      "key": "ui.progression.reel.module",
+      "en": "MODULE",
+      "ko": "모듈"
+    },
+    {
+      "key": "ui.progression.reel.plate",
+      "en": "PLATE",
+      "ko": "장갑판"
+    },
+    {
+      "key": "ui.progression.reel.power",
+      "en": "POWER",
+      "ko": "화력"
+    },
+    {
+      "key": "ui.progression.reel.range",
+      "en": "RANGE",
+      "ko": "사거리"
+    },
+    {
+      "key": "ui.progression.reel.recoil",
+      "en": "RECOIL",
+      "ko": "반동"
+    },
+    {
+      "key": "ui.progression.reel.relic",
+      "en": "RELIC",
+      "ko": "유물"
+    },
+    {
+      "key": "ui.progression.reel.signal",
+      "en": "SIGNAL",
+      "ko": "신호"
+    },
+    {
+      "key": "ui.progression.reel.unknown",
+      "en": "UNKNOWN",
+      "ko": "미확인"
+    },
+    {
+      "key": "ui.progression.relicSignal",
+      "en": "RELIC SIGNAL ACQUIRED",
+      "ko": "유물 신호 획득"
+    },
+    {
+      "key": "ui.progression.select",
+      "en": "// SELECT",
+      "ko": "// 선택"
+    },
+    {
+      "key": "ui.progression.stack",
+      "en": "STACK ×{count}",
+      "ko": "중첩 ×{count}"
+    },
+    {
+      "key": "ui.progression.stackUp",
+      "en": "STACK UP  ×{before} → ×{after}",
+      "ko": "중첩 증가  ×{before} → ×{after}"
+    },
+    {
+      "key": "ui.progression.unidentifiedRelic",
+      "en": "UNIDENTIFIED RELIC",
+      "ko": "미확인 유물"
+    },
+    {
+      "key": "ui.progression.viewing",
+      "en": "VIEWING",
+      "ko": "확인 중"
+    },
+    {
+      "key": "ui.rarity.common",
+      "en": "COMMON",
+      "ko": "일반"
+    },
+    {
+      "key": "ui.rarity.epic",
+      "en": "EPIC",
+      "ko": "영웅"
+    },
+    {
+      "key": "ui.rarity.legendary",
+      "en": "LEGENDARY",
+      "ko": "전설"
+    },
+    {
+      "key": "ui.rarity.rare",
+      "en": "RARE",
+      "ko": "희귀"
+    },
+    {
+      "key": "ui.ready.leave",
+      "en": "LEAVE",
+      "ko": "나가기"
+    },
+    {
+      "key": "ui.ready.ready",
+      "en": "READY",
+      "ko": "준비 완료"
+    },
+    {
+      "key": "ui.ready.title",
+      "en": "CREW LINKED",
+      "ko": "승무원 연결 완료"
+    },
+    {
+      "key": "ui.relic.owned",
+      "en": "Owned relics",
+      "ko": "보유 유물"
+    },
+    {
+      "key": "ui.results.bestCombo",
+      "en": "BEST COMBO",
+      "ko": "최고 콤보"
+    },
+    {
+      "key": "ui.results.bothReady",
+      "en": "BOTH READY — REMATCH INCOMING",
+      "ko": "모두 준비 완료 — 재대결 시작"
+    },
+    {
+      "key": "ui.results.chargedShots",
+      "en": "CHARGED SHOTS",
+      "ko": "차지 사격"
+    },
+    {
+      "key": "ui.results.chassisOffline",
+      "en": "CHASSIS OFFLINE",
+      "ko": "차체 작동 불가"
+    },
+    {
+      "key": "ui.results.complete",
+      "en": "ROUND COMPLETE",
+      "ko": "라운드 완료"
+    },
+    {
+      "key": "ui.results.crewLinks",
+      "en": "CREW LINKS",
+      "ko": "승무원 연계"
+    },
+    {
+      "key": "ui.results.debrief",
+      "en": "AFTER-ACTION DEBRIEF",
+      "ko": "작전 결과"
+    },
+    {
+      "key": "ui.results.defaultCopy",
+      "en": "Field run logged. Crew performance is ready for review.",
+      "ko": "야전 기록이 저장되었습니다. 승무원 성과를 확인하세요."
+    },
+    {
+      "key": "ui.results.defeat",
+      "en": "GAME OVER",
+      "ko": "게임 오버"
+    },
+    {
+      "key": "ui.results.defeatCopy",
+      "en": "The chassis was destroyed. Refit the crew and return to the field.",
+      "ko": "차체가 파괴되었습니다. 승무원을 재정비하고 전장으로 복귀하세요."
+    },
+    {
+      "key": "ui.results.defeatKicker",
+      "en": "CHASSIS LOST // RUN ENDED",
+      "ko": "차체 손실 // 작전 종료"
+    },
+    {
+      "key": "ui.results.finalScore",
+      "en": "FINAL SCORE",
+      "ko": "최종 점수"
+    },
+    {
+      "key": "ui.results.fullCharge",
+      "en": "FULL CHARGE",
+      "ko": "완전 충전"
+    },
+    {
+      "key": "ui.results.grade",
+      "en": "RUN GRADE",
+      "ko": "작전 등급"
+    },
+    {
+      "key": "ui.results.kicker",
+      "en": "MISSION REPORT // CLOSED",
+      "ko": "임무 보고 // 종료"
+    },
+    {
+      "key": "ui.results.kills",
+      "en": "KILLS",
+      "ko": "처치"
+    },
+    {
+      "key": "ui.results.leave",
+      "en": "LEAVE CREW",
+      "ko": "승무원 떠나기"
+    },
+    {
+      "key": "ui.results.mainMenu",
+      "en": "RETURN TO MAIN MENU",
+      "ko": "메인 메뉴로 돌아가기"
+    },
+    {
+      "key": "ui.results.pickModifier",
+      "en": "PICK A MODIFIER TO REMATCH",
+      "ko": "재대결 변형을 선택하세요"
+    },
+    {
+      "key": "ui.results.playAgain",
+      "en": "PLAY AGAIN",
+      "ko": "다시 플레이"
+    },
+    {
+      "key": "ui.results.rematchLoadout",
+      "en": "REMATCH LOADOUT",
+      "ko": "재대결 설정"
+    },
+    {
+      "key": "ui.results.rematchStatus",
+      "en": "DRIVER {driver} · GUNNER {gunner}",
+      "ko": "운전수 {driver} · 포수 {gunner}"
+    },
+    {
+      "key": "ui.results.stageClear",
+      "en": "STAGE CLEAR",
+      "ko": "스테이지 클리어"
+    },
+    {
+      "key": "ui.results.system",
+      "en": "RUN COMPLETE",
+      "ko": "작전 완료"
+    },
+    {
+      "key": "ui.results.victory",
+      "en": "VICTORY",
+      "ko": "승리"
+    },
+    {
+      "key": "ui.results.victoryCopy",
+      "en": "The boss is down. The shared chassis survived the operation.",
+      "ko": "보스를 쓰러뜨렸습니다. 공유 차체가 작전에서 살아남았습니다."
+    },
+    {
+      "key": "ui.results.victoryKicker",
+      "en": "BOSS NEUTRALIZED // STAGE CLEAR",
+      "ko": "보스 제압 // 스테이지 클리어"
+    },
+    {
+      "key": "ui.role.crew",
+      "en": "CREW",
+      "ko": "승무원"
+    },
+    {
+      "key": "ui.role.driver",
+      "en": "DRIVER",
+      "ko": "운전수"
+    },
+    {
+      "key": "ui.role.gunner",
+      "en": "GUNNER",
+      "ko": "포수"
+    },
+    {
+      "key": "ui.role.you",
+      "en": "YOU",
+      "ko": "나"
+    },
+    {
+      "key": "ui.settings.audio",
+      "en": "AUDIO",
+      "ko": "오디오"
+    },
+    {
+      "key": "ui.settings.bgm",
+      "en": "BGM",
+      "ko": "배경 음악"
+    },
+    {
+      "key": "ui.settings.bgmLabel",
+      "en": "Background music volume",
+      "ko": "배경 음악 음량"
+    },
+    {
+      "key": "ui.settings.cancel",
+      "en": "CANCEL",
+      "ko": "취소"
+    },
+    {
+      "key": "ui.settings.english",
+      "en": "ENGLISH",
+      "ko": "ENGLISH"
+    },
+    {
+      "key": "ui.settings.hint",
+      "en": "Shown to your crew in the lobby. Stored on this device only — no account required.",
+      "ko": "로비에서 승무원에게 표시됩니다. 계정 없이 이 기기에만 저장됩니다."
+    },
+    {
+      "key": "ui.settings.kicker",
+      "en": "FIELD CONFIG // LOCAL",
+      "ko": "야전 설정 // 로컬"
+    },
+    {
+      "key": "ui.settings.korean",
+      "en": "한국어",
+      "ko": "한국어"
+    },
+    {
+      "key": "ui.settings.language",
+      "en": "LANGUAGE",
+      "ko": "언어"
+    },
+    {
+      "key": "ui.settings.languageGroup",
+      "en": "Language",
+      "ko": "언어"
+    },
+    {
+      "key": "ui.settings.nickname",
+      "en": "NICKNAME",
+      "ko": "닉네임"
+    },
+    {
+      "key": "ui.settings.nicknamePlaceholder",
+      "en": "TurboToad07",
+      "ko": "TurboToad07"
+    },
+    {
+      "key": "ui.settings.player",
+      "en": "PLAYER",
+      "ko": "플레이어"
+    },
+    {
+      "key": "ui.settings.randomize",
+      "en": "RANDOMIZE",
+      "ko": "무작위 생성"
+    },
+    {
+      "key": "ui.settings.save",
+      "en": "SAVE",
+      "ko": "저장"
+    },
+    {
+      "key": "ui.settings.sfx",
+      "en": "SOUND EFFECTS",
+      "ko": "효과음"
+    },
+    {
+      "key": "ui.settings.sfxLabel",
+      "en": "Sound effects volume",
+      "ko": "효과음 음량"
+    },
+    {
+      "key": "ui.settings.title",
+      "en": "PLAYER SETTINGS",
+      "ko": "플레이어 설정"
+    },
+    {
+      "key": "ui.settings.volumeValue",
+      "en": "{value}%",
+      "ko": "{value}%"
+    },
+    {
+      "key": "ui.status.picking",
+      "en": "PICKING",
+      "ko": "선택 중"
+    },
+    {
+      "key": "ui.status.ready",
+      "en": "READY",
+      "ko": "준비 완료"
+    },
+    {
+      "key": "ui.status.waiting",
+      "en": "WAITING",
+      "ko": "대기 중"
+    },
+    {
+      "key": "ui.tactical.areaMap",
+      "en": "AREA MAP",
+      "ko": "지역 지도"
+    },
+    {
+      "key": "ui.tactical.close",
+      "en": "TAB // CLOSE",
+      "ko": "TAB // 닫기"
+    },
+    {
+      "key": "ui.tactical.effect",
+      "en": "{count} EFFECT",
+      "ko": "효과 {count}개"
+    },
+    {
+      "key": "ui.tactical.effects",
+      "en": "{count} EFFECTS",
+      "ko": "효과 {count}개"
+    },
+    {
+      "key": "ui.tactical.empty",
+      "en": "NO LEVEL-UP MODIFIERS YET",
+      "ko": "아직 레벨 업 강화가 없습니다"
+    },
+    {
+      "key": "ui.tactical.eyebrow",
+      "en": "COMBAT INTELLIGENCE",
+      "ko": "전투 정보"
+    },
+    {
+      "key": "ui.tactical.level",
+      "en": "LEVEL {level}",
+      "ko": "레벨 {level}"
+    },
+    {
+      "key": "ui.tactical.map",
+      "en": "MAP",
+      "ko": "지도"
+    },
+    {
+      "key": "ui.tactical.mapAria",
+      "en": "North-up tactical minimap",
+      "ko": "북쪽 고정 전술 미니맵"
+    },
+    {
+      "key": "ui.tactical.modifiers",
+      "en": "LEVEL-UP MODIFIERS",
+      "ko": "레벨 업 강화"
+    },
+    {
+      "key": "ui.tactical.northUp",
+      "en": "NORTH-UP",
+      "ko": "북쪽 고정"
+    },
+    {
+      "key": "ui.tactical.title",
+      "en": "TACTICAL",
+      "ko": "전술"
+    },
+    {
+      "key": "upgrade.count.many",
+      "en": "{count} UPGRADES",
+      "ko": "강화 {count}개"
+    },
+    {
+      "key": "upgrade.count.one",
+      "en": "{count} UPGRADE",
+      "ko": "강화 {count}개"
+    },
+    {
+      "key": "upgrade.faster",
+      "en": "FASTER",
+      "ko": "더 빠름"
+    },
+    {
+      "key": "upgrade.group.CREW",
+      "en": "CREW",
+      "ko": "승무원"
+    },
+    {
+      "key": "upgrade.group.DRIVER",
+      "en": "DRIVER",
+      "ko": "운전수"
+    },
+    {
+      "key": "upgrade.group.GUNNER",
+      "en": "GUNNER",
+      "ko": "포수"
+    },
+    {
+      "key": "upgrade.stat.match_cannonCooldown",
+      "en": "CANNON COOLDOWN",
+      "ko": "주포 재사용 대기시간"
+    },
+    {
+      "key": "upgrade.stat.tank_accel",
+      "en": "ACCELERATION",
+      "ko": "가속력"
+    },
+    {
+      "key": "upgrade.stat.tank_airControl",
+      "en": "AIR CONTROL",
+      "ko": "공중 제어력"
+    },
+    {
+      "key": "upgrade.stat.tank_dashContactDamage",
+      "en": "DASH DAMAGE",
+      "ko": "대시 피해"
+    },
+    {
+      "key": "upgrade.stat.tank_dashCooldown",
+      "en": "DASH COOLDOWN",
+      "ko": "대시 재사용 대기시간"
+    },
+    {
+      "key": "upgrade.stat.tank_dashImpulse",
+      "en": "DASH IMPULSE",
+      "ko": "대시 추진력"
+    },
+    {
+      "key": "upgrade.stat.tank_forwardSpeed",
+      "en": "TOP SPEED",
+      "ko": "최고 속도"
+    },
+    {
+      "key": "upgrade.stat.tank_gravity",
+      "en": "GRAVITY",
+      "ko": "중력"
+    },
+    {
+      "key": "upgrade.stat.tank_jumpHeight",
+      "en": "JUMP HEIGHT",
+      "ko": "점프 높이"
+    },
+    {
+      "key": "upgrade.stat.tank_maxIntegrity",
+      "en": "MAX INTEGRITY",
+      "ko": "최대 내구도"
+    },
+    {
+      "key": "upgrade.stat.tank_normalGrip",
+      "en": "TRACK GRIP",
+      "ko": "궤도 접지력"
+    },
+    {
+      "key": "upgrade.stat.tank_steerHigh",
+      "en": "STEERING",
+      "ko": "조향력"
+    },
+    {
+      "key": "upgrade.stat.weapon_cannonDamage",
+      "en": "CANNON DAMAGE",
+      "ko": "주포 피해"
+    },
+    {
+      "key": "upgrade.stat.weapon_cannonRadius",
+      "en": "SPLASH RADIUS",
+      "ko": "폭발 반경"
+    },
+    {
+      "key": "upgrade.stat.weapon_cannonRecoilImpulse",
+      "en": "CANNON RECOIL",
+      "ko": "주포 반동"
+    },
+    {
+      "key": "upgrade.stat.weapon_mgDamage",
+      "en": "MACHINE GUN DAMAGE",
+      "ko": "기관총 피해"
+    },
+    {
+      "key": "upgrade.stat.weapon_mgRange",
+      "en": "MACHINE GUN RANGE",
+      "ko": "기관총 사거리"
+    },
+    {
+      "key": "upgrade.stat.weapon_mgSpread",
+      "en": "MACHINE GUN PRECISION",
+      "ko": "기관총 정밀도"
+    },
+    {
+      "key": "upgrade.stat.weapon_splashKnockbackMax",
+      "en": "MAX KNOCKBACK",
+      "ko": "최대 밀쳐내기"
+    },
+    {
+      "key": "upgrade.stat.weapon_splashKnockbackMin",
+      "en": "MIN KNOCKBACK",
+      "ko": "최소 밀쳐내기"
+    },
+    {
+      "key": "upgrade.stat.weapon_splashKnockbackVertical",
+      "en": "LIFT KNOCKBACK",
+      "ko": "수직 밀쳐내기"
+    },
+    {
+      "key": "upgrade.tighter",
+      "en": "TIGHTER",
+      "ko": "더 정밀함"
+    },
+    {
+      "key": "upgrade.upgrade_tank_accel.name",
+      "en": "ENGINE TUNING",
+      "ko": "엔진 조율"
+    },
+    {
+      "key": "upgrade.upgrade_tank_airControl.name",
+      "en": "AIRBORNE HANDLING",
+      "ko": "공중 기동"
+    },
+    {
+      "key": "upgrade.upgrade_tank_dashCooldown.name",
+      "en": "DASH RECOVERY",
+      "ko": "대시 회복"
+    },
+    {
+      "key": "upgrade.upgrade_tank_dashDamage.name",
+      "en": "IMPACT DRIVE",
+      "ko": "충격 구동"
+    },
+    {
+      "key": "upgrade.upgrade_tank_dashImpulse.name",
+      "en": "DASH THRUST",
+      "ko": "대시 추진력"
+    },
+    {
+      "key": "upgrade.upgrade_tank_drift.name",
+      "en": "DRIFT CONTROL",
+      "ko": "드리프트 제어"
+    },
+    {
+      "key": "upgrade.upgrade_tank_forwardSpeed.name",
+      "en": "TOP SPEED",
+      "ko": "최고 속도"
+    },
+    {
+      "key": "upgrade.upgrade_tank_gravity.name",
+      "en": "LIGHTWEIGHT FRAME",
+      "ko": "경량 차체"
+    },
+    {
+      "key": "upgrade.upgrade_tank_jumpHeight.name",
+      "en": "JUMP SUSPENSION",
+      "ko": "점프 현가장치"
+    },
+    {
+      "key": "upgrade.upgrade_tank_maxIntegrity.name",
+      "en": "ARMOR PLATING",
+      "ko": "장갑판"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_cannonCooldown.name",
+      "en": "RAPID RELOAD",
+      "ko": "신속 장전"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_cannonDamage.name",
+      "en": "CANNON POWER",
+      "ko": "주포 화력"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_cannonKnockback.name",
+      "en": "IMPACT SHELLS",
+      "ko": "충격탄"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_cannonRadius.name",
+      "en": "BLAST RADIUS",
+      "ko": "폭발 반경"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_cannonRecoilImpulse.name",
+      "en": "RECOIL DRIVE",
+      "ko": "반동 추진"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_mgDamage.name",
+      "en": "MACHINE GUN POWER",
+      "ko": "기관총 화력"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_mgRange.name",
+      "en": "MACHINE GUN RANGE",
+      "ko": "기관총 사거리"
+    },
+    {
+      "key": "upgrade.upgrade_weapon_mgSpread.name",
+      "en": "MACHINE GUN PRECISION",
+      "ko": "기관총 정밀도"
+    }
+  ],
+  "authored": [
+    {
+      "file": "content/scenes/boot.json",
+      "line": 3,
+      "field": "label",
+      "value": "Boot"
+    },
+    {
+      "file": "content/scenes/boot.json",
+      "line": 44,
+      "field": "text",
+      "value": "SHARED TANK FIELD UNIT // 07",
+      "localizationKey": "ui.boot.kicker"
+    },
+    {
+      "file": "content/scenes/boot.json",
+      "line": 59,
+      "field": "text",
+      "value": "RECOI L"
+    },
+    {
+      "file": "content/scenes/boot.json",
+      "line": 65,
+      "field": "text",
+      "value": "CREW"
+    },
+    {
+      "file": "content/scenes/boot.json",
+      "line": 73,
+      "field": "text",
+      "value": "CLICK TO ENTER",
+      "localizationKey": "ui.boot.enter"
+    },
+    {
+      "file": "content/scenes/boot.json",
+      "line": 83,
+      "field": "label",
+      "value": "Idle"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 3,
+      "field": "label",
+      "value": "Countdown"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 19,
+      "field": "text",
+      "value": "CREW LINKED // WAVE SYSTEM ARMED",
+      "localizationKey": "ui.countdown.kicker"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 31,
+      "field": "text",
+      "value": "3"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 44,
+      "field": "text",
+      "value": "GET READY",
+      "localizationKey": "ui.countdown.ready"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 60,
+      "field": "text",
+      "value": "DRIVER // GUNNER // SHARED CHASSIS",
+      "localizationKey": "ui.countdown.footer"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 31,
+      "field": "label",
+      "value": "3"
+    },
+    {
+      "file": "content/scenes/countdown.json",
+      "line": 76,
+      "field": "label",
+      "value": "GO!"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 3,
+      "field": "label",
+      "value": "Create Crew"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 28,
+      "field": "text",
+      "value": "RC / CREW LINK"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 34,
+      "field": "text",
+      "value": "HOST CHANNEL",
+      "localizationKey": "ui.create.step"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 54,
+      "field": "text",
+      "value": "CREW LINK // HOST",
+      "localizationKey": "ui.create.kicker"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 63,
+      "field": "text",
+      "value": "CREATE CREW",
+      "localizationKey": "ui.create.title"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 70,
+      "field": "text",
+      "value": "Send this code to your Gunner. The run begins when both crew members lock in.",
+      "localizationKey": "ui.create.help"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 94,
+      "field": "text",
+      "value": "COPY",
+      "localizationKey": "ui.create.copy"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 116,
+      "field": "text",
+      "value": "WAITING FOR GUNNER…",
+      "localizationKey": "ui.create.waiting"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 136,
+      "field": "text",
+      "value": "READY",
+      "localizationKey": "ui.create.ready"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 152,
+      "field": "text",
+      "value": "BACK",
+      "localizationKey": "ui.create.back"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 167,
+      "field": "text",
+      "value": "PRIVATE ROOM // TWO CREW MAX",
+      "localizationKey": "ui.create.footer"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 175,
+      "field": "label",
+      "value": "Waiting"
+    },
+    {
+      "file": "content/scenes/createCrew.json",
+      "line": 184,
+      "field": "label",
+      "value": "Copied"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 3,
+      "field": "label",
+      "value": "Error"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 25,
+      "field": "text",
+      "value": "CONNECTION LOST",
+      "localizationKey": "ui.error.title"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 32,
+      "field": "text",
+      "value": "Something went wrong.",
+      "localizationKey": "error.unknown"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 46,
+      "field": "text",
+      "value": "RETRY",
+      "localizationKey": "ui.error.retry"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 62,
+      "field": "text",
+      "value": "SINGLE PLAYER",
+      "localizationKey": "ui.error.singlePlayer"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 78,
+      "field": "text",
+      "value": "MAIN MENU",
+      "localizationKey": "ui.error.mainMenu"
+    },
+    {
+      "file": "content/scenes/error.json",
+      "line": 94,
+      "field": "label",
+      "value": "Connection lost"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 3,
+      "field": "label",
+      "value": "How To Play"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 38,
+      "field": "text",
+      "value": "FIELD MANUAL // SHARED CHASSIS",
+      "localizationKey": "ui.howTo.kicker"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 47,
+      "field": "text",
+      "value": "HOW TO PLAY",
+      "localizationKey": "ui.howTo.title"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 73,
+      "field": "text",
+      "value": "01 // MOBILITY",
+      "localizationKey": "ui.howTo.driverIndex"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 82,
+      "field": "text",
+      "value": "DRIVER",
+      "localizationKey": "ui.howTo.driver"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 92,
+      "field": "text",
+      "value": "WASD  DRIVE + STEER\nSHIFT  DASH\nSPACE  JUMP\nR  RECENTER CAMERA",
+      "localizationKey": "ui.howTo.driverControls"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 102,
+      "field": "text",
+      "value": "Steer in the air to face your landing. Carry speed through scrap, evade Rammers, and time movement around cannon recoil.",
+      "localizationKey": "ui.howTo.driverHelp"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 116,
+      "field": "text",
+      "value": "02 // FIRE CONTROL",
+      "localizationKey": "ui.howTo.gunnerIndex"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 125,
+      "field": "text",
+      "value": "GUNNER",
+      "localizationKey": "ui.howTo.gunner"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 135,
+      "field": "text",
+      "value": "MOUSE  AIM\nLMB  MACHINE GUN\nRMB  CANNON\nHOLD RMB  CHARGE",
+      "localizationKey": "ui.howTo.gunnerControls"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 145,
+      "field": "text",
+      "value": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links.",
+      "localizationKey": "ui.howTo.gunnerHelp"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 159,
+      "field": "text",
+      "value": "ONE VEHICLE. TWO ROLES. EVERY SHOT CHANGES THE ROUTE.",
+      "localizationKey": "ui.howTo.footer"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 175,
+      "field": "text",
+      "value": "BACK TO MENU",
+      "localizationKey": "ui.howTo.back"
+    },
+    {
+      "file": "content/scenes/howTo.json",
+      "line": 3,
+      "field": "label",
+      "value": "How To Play"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 3,
+      "field": "label",
+      "value": "Join Crew"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 38,
+      "field": "text",
+      "value": "CREW LINK // REMOTE",
+      "localizationKey": "ui.join.kicker"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 47,
+      "field": "text",
+      "value": "JOIN CREW",
+      "localizationKey": "ui.join.title"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 59,
+      "field": "text",
+      "value": "Enter the six-character room code supplied by your Driver.",
+      "localizationKey": "ui.join.help"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 68,
+      "field": "placeholder",
+      "value": "AB12CD",
+      "localizationKey": "ui.join.placeholder"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 106,
+      "field": "text",
+      "value": "JOIN",
+      "localizationKey": "ui.join.submit"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 128,
+      "field": "text",
+      "value": "CANCEL",
+      "localizationKey": "ui.join.cancel"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 146,
+      "field": "label",
+      "value": "Empty"
+    },
+    {
+      "file": "content/scenes/joinCrew.json",
+      "line": 153,
+      "field": "label",
+      "value": "Bad code"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 3,
+      "field": "label",
+      "value": "Main Menu"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 136,
+      "field": "text",
+      "value": "RC / FIELD UNIT 07"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 142,
+      "field": "text",
+      "value": "SYSTEM STATUS: READY",
+      "localizationKey": "ui.main.systemReady"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 162,
+      "field": "text",
+      "value": "CO-OP TANK SURVIVAL",
+      "localizationKey": "ui.main.kicker"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 176,
+      "field": "text",
+      "value": "RECOI L"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 182,
+      "field": "text",
+      "value": "CREW"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 209,
+      "field": "text",
+      "value": "MULTIPLAYER",
+      "localizationKey": "ui.main.multiplayer"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 231,
+      "field": "text",
+      "value": "SINGLE PLAYER",
+      "localizationKey": "ui.main.singlePlayer"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 253,
+      "field": "text",
+      "value": "SETTINGS",
+      "localizationKey": "ui.main.settings"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 275,
+      "field": "text",
+      "value": "HOW TO PLAY",
+      "localizationKey": "ui.main.howTo"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 288,
+      "field": "text",
+      "value": "CURRENT NICKNAME: ---"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 319,
+      "field": "text",
+      "value": "CREATE CREW",
+      "localizationKey": "ui.main.createCrew"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 341,
+      "field": "text",
+      "value": "JOIN CREW",
+      "localizationKey": "ui.main.joinCrew"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 363,
+      "field": "text",
+      "value": "GO BACK",
+      "localizationKey": "ui.main.back"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 386,
+      "field": "text",
+      "value": "DRAG TO ROTATE",
+      "localizationKey": "ui.main.drag"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 392,
+      "field": "text",
+      "value": "RC–07"
+    },
+    {
+      "file": "content/scenes/mainMenu.json",
+      "line": 401,
+      "field": "label",
+      "value": "Idle"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 3,
+      "field": "label",
+      "value": "Pause"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 37,
+      "field": "text",
+      "value": "RC / FIELD UNIT 07"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 43,
+      "field": "text",
+      "value": "SIMULATION HOLD",
+      "localizationKey": "ui.pause.state"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 57,
+      "field": "text",
+      "value": "FIELD CONTROL // LOCAL",
+      "localizationKey": "ui.pause.kicker"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 66,
+      "field": "text",
+      "value": "PAUSED",
+      "localizationKey": "ui.pause.title"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 78,
+      "field": "text",
+      "value": "Shared chassis is holding position. Resume when the crew is ready.",
+      "localizationKey": "ui.pause.help"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 96,
+      "field": "text",
+      "value": "RESUME",
+      "localizationKey": "ui.pause.resume"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 118,
+      "field": "text",
+      "value": "RESTART MATCH",
+      "localizationKey": "ui.pause.restart"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 146,
+      "field": "text",
+      "value": "RETURN TO MAIN MENU",
+      "localizationKey": "ui.pause.mainMenu"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 161,
+      "field": "text",
+      "value": "SELECT RESUME // RESTORE FIELD CONTROL",
+      "localizationKey": "ui.pause.footer"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 171,
+      "field": "label",
+      "value": "Single Player"
+    },
+    {
+      "file": "content/scenes/pause.json",
+      "line": 178,
+      "field": "label",
+      "value": "Multiplayer"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ready Lobby"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 25,
+      "field": "text",
+      "value": "CREW LINKED",
+      "localizationKey": "ui.ready.title"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 73,
+      "field": "text",
+      "value": "DRIVER",
+      "localizationKey": "ui.role.driver"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 111,
+      "field": "text",
+      "value": "GUNNER",
+      "localizationKey": "ui.role.gunner"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 134,
+      "field": "text",
+      "value": "READY",
+      "localizationKey": "ui.ready.ready"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 157,
+      "field": "text",
+      "value": "LEAVE",
+      "localizationKey": "ui.ready.leave"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 173,
+      "field": "label",
+      "value": "Waiting"
+    },
+    {
+      "file": "content/scenes/readyLobby.json",
+      "line": 185,
+      "field": "label",
+      "value": "Both ready"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 3,
+      "field": "label",
+      "value": "Results"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 42,
+      "field": "text",
+      "value": "RC / FIELD UNIT 07"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 48,
+      "field": "text",
+      "value": "RUN COMPLETE",
+      "localizationKey": "ui.results.system"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 79,
+      "field": "text",
+      "value": "MISSION REPORT // CLOSED",
+      "localizationKey": "ui.results.kicker"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 96,
+      "field": "text",
+      "value": "ROUND COMPLETE",
+      "localizationKey": "ui.results.complete"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 115,
+      "field": "text",
+      "value": "Field run logged. Crew performance is ready for review.",
+      "localizationKey": "ui.results.defaultCopy"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 134,
+      "field": "text",
+      "value": "RUN GRADE",
+      "localizationKey": "ui.results.grade"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 141,
+      "field": "text",
+      "value": "B"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 163,
+      "field": "text",
+      "value": "AFTER-ACTION DEBRIEF",
+      "localizationKey": "ui.results.debrief"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 170,
+      "field": "text",
+      "value": "SCRAP GOBLINS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 188,
+      "field": "text",
+      "value": "FINAL SCORE",
+      "localizationKey": "ui.results.finalScore"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 195,
+      "field": "text",
+      "value": "0"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 264,
+      "field": "text",
+      "value": "REMATCH LOADOUT",
+      "localizationKey": "ui.results.rematchLoadout"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 317,
+      "field": "text",
+      "value": "PICK A MODIFIER TO REMATCH",
+      "localizationKey": "ui.results.pickModifier"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 337,
+      "field": "text",
+      "value": "LEAVE CREW",
+      "localizationKey": "ui.results.leave"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 375,
+      "field": "text",
+      "value": "PLAY AGAIN",
+      "localizationKey": "ui.results.playAgain"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 394,
+      "field": "text",
+      "value": "RETURN TO MAIN MENU",
+      "localizationKey": "ui.results.mainMenu"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 416,
+      "field": "label",
+      "value": "Victory — crew"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 425,
+      "field": "title",
+      "value": "ONE BRAIN, TWO BROWSERS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 431,
+      "field": "label",
+      "value": "BEST COMBO"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 435,
+      "field": "label",
+      "value": "CHARGED SHOTS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 439,
+      "field": "label",
+      "value": "KILLS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 446,
+      "field": "label",
+      "value": "STANDARD"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 452,
+      "field": "label",
+      "value": "MOON YARD"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 462,
+      "field": "label",
+      "value": "Game over — single player"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 170,
+      "field": "title",
+      "value": "SCRAP GOBLINS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 431,
+      "field": "label",
+      "value": "BEST COMBO"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 435,
+      "field": "label",
+      "value": "CHARGED SHOTS"
+    },
+    {
+      "file": "content/scenes/results.json",
+      "line": 439,
+      "field": "label",
+      "value": "KILLS"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 3,
+      "field": "label",
+      "value": "Settings V2"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 19,
+      "field": "text",
+      "value": "FIELD CONFIG // LOCAL",
+      "localizationKey": "ui.settings.kicker"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 20,
+      "field": "text",
+      "value": "PLAYER SETTINGS",
+      "localizationKey": "ui.settings.title"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 23,
+      "field": "text",
+      "value": "PLAYER",
+      "localizationKey": "ui.settings.player"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 24,
+      "field": "text",
+      "value": "NICKNAME",
+      "localizationKey": "ui.settings.nickname"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 26,
+      "field": "placeholder",
+      "value": "TurboToad07",
+      "localizationKey": "ui.settings.nicknamePlaceholder"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 27,
+      "field": "text",
+      "value": "RANDOMIZE",
+      "localizationKey": "ui.settings.randomize"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 30,
+      "field": "text",
+      "value": "Shown to your crew in the lobby. Stored on this device only — no account required.",
+      "localizationKey": "ui.settings.hint"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 33,
+      "field": "text",
+      "value": "LANGUAGE",
+      "localizationKey": "ui.settings.language"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 40,
+      "field": "text",
+      "value": "AUDIO",
+      "localizationKey": "ui.settings.audio"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 42,
+      "field": "text",
+      "value": "BGM",
+      "localizationKey": "ui.settings.bgm"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 44,
+      "field": "text",
+      "value": "100%"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 47,
+      "field": "text",
+      "value": "SOUND EFFECTS",
+      "localizationKey": "ui.settings.sfx"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 44,
+      "field": "text",
+      "value": "100%"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 58,
+      "field": "text",
+      "value": "SAVE",
+      "localizationKey": "ui.settings.save"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 59,
+      "field": "text",
+      "value": "CANCEL",
+      "localizationKey": "ui.settings.cancel"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 67,
+      "field": "label",
+      "value": "English"
+    },
+    {
+      "file": "content/scenes/settings.json",
+      "line": 68,
+      "field": "label",
+      "value": "Korean"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 3,
+      "field": "label",
+      "value": "Gameplay HUD"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 25,
+      "field": "text",
+      "value": "DRIVER",
+      "localizationKey": "hud.role.driver"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 61,
+      "field": "text",
+      "value": "--ms"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 197,
+      "field": "text",
+      "value": "90"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 218,
+      "field": "text",
+      "value": "0"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 230,
+      "field": "text",
+      "value": "×1"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 249,
+      "field": "text",
+      "value": "Ⅱ"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 251,
+      "field": "title",
+      "value": "Pause",
+      "localizationKey": "hud.pauseAria"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 285,
+      "field": "text",
+      "value": "ELITE CONTACT",
+      "localizationKey": "hud.eliteContact"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 285,
+      "field": "text",
+      "value": "ELITE CONTACT",
+      "localizationKey": "hud.eliteContact"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 391,
+      "field": "text",
+      "value": "BOSS ENCOUNTER",
+      "localizationKey": "hud.bossEncounter"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 455,
+      "field": "text",
+      "value": "CHASSIS INTEGRITY",
+      "localizationKey": "hud.integrity"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 462,
+      "field": "text",
+      "value": "1,000"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 518,
+      "field": "text",
+      "value": "CREW LV 1"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 532,
+      "field": "text",
+      "value": "0 / 1"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 586,
+      "field": "text",
+      "value": "VELOCITY",
+      "localizationKey": "hud.velocity"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 218,
+      "field": "text",
+      "value": "0"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 612,
+      "field": "text",
+      "value": "KM/H",
+      "localizationKey": "hud.kmh"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 621,
+      "field": "text",
+      "value": "GROUND CONTACT",
+      "localizationKey": "hud.groundContact"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 643,
+      "field": "text",
+      "value": "SHIFT"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 649,
+      "field": "text",
+      "value": "DASH",
+      "localizationKey": "hud.dash"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 670,
+      "field": "text",
+      "value": "READY",
+      "localizationKey": "hud.ready"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 692,
+      "field": "text",
+      "value": "RMB"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 698,
+      "field": "text",
+      "value": "CANNON",
+      "localizationKey": "hud.cannon"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 734,
+      "field": "text",
+      "value": "HOLD RMB",
+      "localizationKey": "hud.holdRmb"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 741,
+      "field": "text",
+      "value": "CHARGE",
+      "localizationKey": "hud.charge"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 862,
+      "field": "text",
+      "value": "▼"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 86,
+      "field": "text",
+      "value": ""
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 906,
+      "field": "label",
+      "value": "Driver"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 990,
+      "field": "label",
+      "value": "Gunner"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 1061,
+      "field": "label",
+      "value": "IRON MAW"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 1078,
+      "field": "label",
+      "value": "Single Player"
+    },
+    {
+      "file": "content/hud/gameplay.json",
+      "line": 1155,
+      "field": "label",
+      "value": "THE SCRAP TYRANT"
+    },
+    {
+      "file": "content/relics/aerial_master.json",
+      "line": 1,
+      "field": "label",
+      "value": "AERIAL MASTER"
+    },
+    {
+      "file": "content/relics/aerial_master.json",
+      "line": 1,
+      "field": "description",
+      "value": "All gunner damage +30% while airborne."
+    },
+    {
+      "file": "content/relics/air_master.json",
+      "line": 1,
+      "field": "label",
+      "value": "AIR MASTER"
+    },
+    {
+      "file": "content/relics/air_master.json",
+      "line": 1,
+      "field": "description",
+      "value": "Air control +40% and air dash reuse."
+    },
+    {
+      "file": "content/relics/apex_predator.json",
+      "line": 1,
+      "field": "label",
+      "value": "APEX PREDATOR"
+    },
+    {
+      "file": "content/relics/apex_predator.json",
+      "line": 1,
+      "field": "description",
+      "value": "Damage to elites and bosses +40%."
+    },
+    {
+      "file": "content/relics/armor_shred.json",
+      "line": 1,
+      "field": "label",
+      "value": "ARMOR SHRED"
+    },
+    {
+      "file": "content/relics/armor_shred.json",
+      "line": 1,
+      "field": "description",
+      "value": "MG hits make enemies take +10% damage for 2 seconds."
+    },
+    {
+      "file": "content/relics/bullet_time.json",
+      "line": 1,
+      "field": "label",
+      "value": "BULLET TIME"
+    },
+    {
+      "file": "content/relics/bullet_time.json",
+      "line": 1,
+      "field": "description",
+      "value": "Dash cooldown recovers 2x faster while airborne."
+    },
+    {
+      "file": "content/relics/covering_fire.json",
+      "line": 1,
+      "field": "label",
+      "value": "COVERING FIRE"
+    },
+    {
+      "file": "content/relics/covering_fire.json",
+      "line": 1,
+      "field": "description",
+      "value": "MG hits slow the enemy by 5% for 0.5 seconds."
+    },
+    {
+      "file": "content/relics/dash_refund.json",
+      "line": 1,
+      "field": "label",
+      "value": "DASH REFUND"
+    },
+    {
+      "file": "content/relics/dash_refund.json",
+      "line": 1,
+      "field": "description",
+      "value": "Dash hits immediately restore 30% of the Dash cooldown."
+    },
+    {
+      "file": "content/relics/death_mark.json",
+      "line": 1,
+      "field": "label",
+      "value": "DEATH MARK"
+    },
+    {
+      "file": "content/relics/death_mark.json",
+      "line": 1,
+      "field": "description",
+      "value": "Cannon kills explode for area damage (+25% per stack)."
+    },
+    {
+      "file": "content/relics/double_jump.json",
+      "line": 1,
+      "field": "label",
+      "value": "DOUBLE JUMP"
+    },
+    {
+      "file": "content/relics/double_jump.json",
+      "line": 1,
+      "field": "description",
+      "value": "Jump count +1."
+    },
+    {
+      "file": "content/relics/friendly_shield.json",
+      "line": 1,
+      "field": "label",
+      "value": "FRIENDLY SHIELD"
+    },
+    {
+      "file": "content/relics/friendly_shield.json",
+      "line": 1,
+      "field": "description",
+      "value": "Reduce Cannon self-damage by 50% per stack. At two stacks, Cannon self-damage is completely negated."
+    },
+    {
+      "file": "content/relics/glass_cannon.json",
+      "line": 1,
+      "field": "label",
+      "value": "GLASS CANNON"
+    },
+    {
+      "file": "content/relics/glass_cannon.json",
+      "line": 1,
+      "field": "description",
+      "value": "All outgoing damage +20%, incoming damage +15%."
+    },
+    {
+      "file": "content/relics/ground_pound.json",
+      "line": 1,
+      "field": "label",
+      "value": "GROUND POUND"
+    },
+    {
+      "file": "content/relics/ground_pound.json",
+      "line": 1,
+      "field": "description",
+      "value": "Landing damages nearby enemies (3 m, 10 damage) and knocks them back."
+    },
+    {
+      "file": "content/relics/hearty_tank.json",
+      "line": 1,
+      "field": "label",
+      "value": "HEARTY TANK"
+    },
+    {
+      "file": "content/relics/hearty_tank.json",
+      "line": 1,
+      "field": "description",
+      "value": "Increase maximum integrity by 200. The gained capacity is repaired immediately."
+    },
+    {
+      "file": "content/relics/heat_sink.json",
+      "line": 1,
+      "field": "label",
+      "value": "HEAT SINK"
+    },
+    {
+      "file": "content/relics/heat_sink.json",
+      "line": 1,
+      "field": "description",
+      "value": "After firing the cannon, MG damage +20% for 3 seconds."
+    },
+    {
+      "file": "content/relics/he_payload.json",
+      "line": 1,
+      "field": "label",
+      "value": "HE PAYLOAD"
+    },
+    {
+      "file": "content/relics/he_payload.json",
+      "line": 1,
+      "field": "description",
+      "value": "Cannon splash radius +30% and knockback +30%."
+    },
+    {
+      "file": "content/relics/iron_will.json",
+      "line": 1,
+      "field": "label",
+      "value": "IRON WILL"
+    },
+    {
+      "file": "content/relics/iron_will.json",
+      "line": 1,
+      "field": "description",
+      "value": "Incoming damage -20% while integrity is at or below 50%."
+    },
+    {
+      "file": "content/relics/last_resort.json",
+      "line": 1,
+      "field": "label",
+      "value": "LAST RESORT"
+    },
+    {
+      "file": "content/relics/last_resort.json",
+      "line": 1,
+      "field": "description",
+      "value": "All outgoing damage +25% while integrity is at or below 30%."
+    },
+    {
+      "file": "content/relics/magnet_core.json",
+      "line": 1,
+      "field": "label",
+      "value": "MAGNET CORE"
+    },
+    {
+      "file": "content/relics/magnet_core.json",
+      "line": 1,
+      "field": "description",
+      "value": "XP magnet radius +50%."
+    },
+    {
+      "file": "content/relics/momentum_shield.json",
+      "line": 1,
+      "field": "label",
+      "value": "MOMENTUM SHIELD"
+    },
+    {
+      "file": "content/relics/momentum_shield.json",
+      "line": 1,
+      "field": "description",
+      "value": "Incoming damage -20% while at or above top speed."
+    },
+    {
+      "file": "content/relics/phase_dash.json",
+      "line": 1,
+      "field": "label",
+      "value": "PHASE DASH"
+    },
+    {
+      "file": "content/relics/phase_dash.json",
+      "line": 1,
+      "field": "description",
+      "value": "Invulnerable during Dash. Unique."
+    },
+    {
+      "file": "content/relics/phoenix_core.json",
+      "line": 1,
+      "field": "label",
+      "value": "PHOENIX CORE"
+    },
+    {
+      "file": "content/relics/phoenix_core.json",
+      "line": 1,
+      "field": "description",
+      "value": "On wipeout, revive once at 50% integrity with a shockwave. Unique."
+    },
+    {
+      "file": "content/relics/rapid_reload.json",
+      "line": 1,
+      "field": "label",
+      "value": "RAPID RELOAD"
+    },
+    {
+      "file": "content/relics/rapid_reload.json",
+      "line": 1,
+      "field": "description",
+      "value": "Cannon hits reduce the next cannon cooldown by 20%."
+    },
+    {
+      "file": "content/relics/roadkill.json",
+      "line": 1,
+      "field": "label",
+      "value": "ROADKILL"
+    },
+    {
+      "file": "content/relics/roadkill.json",
+      "line": 1,
+      "field": "description",
+      "value": "High-speed contact deals speed-proportional damage. Extra stacks: +25% coefficient."
+    },
+    {
+      "file": "content/relics/safe_haven.json",
+      "line": 1,
+      "field": "label",
+      "value": "SAFE HAVEN"
+    },
+    {
+      "file": "content/relics/safe_haven.json",
+      "line": 1,
+      "field": "description",
+      "value": "Wave clear restores 15 integrity."
+    },
+    {
+      "file": "content/relics/twin_shell.json",
+      "line": 1,
+      "field": "label",
+      "value": "TWIN SHELL"
+    },
+    {
+      "file": "content/relics/twin_shell.json",
+      "line": 1,
+      "field": "description",
+      "value": "Cannon fires two shells in succession (cooldown x1.2). Unique."
+    },
+    {
+      "file": "content/relics/unstoppable.json",
+      "line": 1,
+      "field": "label",
+      "value": "UNSTOPPABLE"
+    },
+    {
+      "file": "content/relics/unstoppable.json",
+      "line": 1,
+      "field": "description",
+      "value": "Dash cooldown 0 and dash damage +50%."
+    },
+    {
+      "file": "content/relics/vampire_rounds.json",
+      "line": 1,
+      "field": "label",
+      "value": "VAMPIRE ROUNDS"
+    },
+    {
+      "file": "content/relics/vampire_rounds.json",
+      "line": 1,
+      "field": "description",
+      "value": "Cannon kills restore 5 integrity."
+    },
+    {
+      "file": "content/relics/xp_surge.json",
+      "line": 1,
+      "field": "label",
+      "value": "XP SURGE"
+    },
+    {
+      "file": "content/relics/xp_surge.json",
+      "line": 1,
+      "field": "description",
+      "value": "XP gained +100%."
+    },
+    {
+      "file": "content/upgrade-categories/tank.accel.json",
+      "line": 1,
+      "field": "label",
+      "value": "ENGINE TUNING"
+    },
+    {
+      "file": "content/upgrade-categories/tank.airControl.json",
+      "line": 1,
+      "field": "label",
+      "value": "AIRBORNE HANDLING"
+    },
+    {
+      "file": "content/upgrade-categories/tank.dashCooldown.json",
+      "line": 1,
+      "field": "label",
+      "value": "DASH RECOVERY"
+    },
+    {
+      "file": "content/upgrade-categories/tank.dashDamage.json",
+      "line": 1,
+      "field": "label",
+      "value": "IMPACT DRIVE"
+    },
+    {
+      "file": "content/upgrade-categories/tank.dashImpulse.json",
+      "line": 1,
+      "field": "label",
+      "value": "DASH THRUST"
+    },
+    {
+      "file": "content/upgrade-categories/tank.drift.json",
+      "line": 1,
+      "field": "label",
+      "value": "DRIFT CONTROL"
+    },
+    {
+      "file": "content/upgrade-categories/tank.forwardSpeed.json",
+      "line": 1,
+      "field": "label",
+      "value": "TOP SPEED"
+    },
+    {
+      "file": "content/upgrade-categories/tank.gravity.json",
+      "line": 1,
+      "field": "label",
+      "value": "LIGHTWEIGHT FRAME"
+    },
+    {
+      "file": "content/upgrade-categories/tank.jumpHeight.json",
+      "line": 1,
+      "field": "label",
+      "value": "JUMP SUSPENSION"
+    },
+    {
+      "file": "content/upgrade-categories/tank.maxIntegrity.json",
+      "line": 1,
+      "field": "label",
+      "value": "ARMOR PLATING"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.cannonCooldown.json",
+      "line": 1,
+      "field": "label",
+      "value": "RAPID RELOAD"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.cannonDamage.json",
+      "line": 1,
+      "field": "label",
+      "value": "CANNON POWER"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.cannonKnockback.json",
+      "line": 1,
+      "field": "label",
+      "value": "IMPACT SHELLS"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.cannonRadius.json",
+      "line": 1,
+      "field": "label",
+      "value": "BLAST RADIUS"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.cannonRecoilImpulse.json",
+      "line": 1,
+      "field": "label",
+      "value": "RECOIL DRIVE"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.mgDamage.json",
+      "line": 1,
+      "field": "label",
+      "value": "MACHINE GUN POWER"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.mgRange.json",
+      "line": 1,
+      "field": "label",
+      "value": "MACHINE GUN RANGE"
+    },
+    {
+      "file": "content/upgrade-categories/weapon.mgSpread.json",
+      "line": 1,
+      "field": "label",
+      "value": "MACHINE GUN PRECISION"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.alien-high-detail.boss.json",
+      "line": 3,
+      "field": "label",
+      "value": "Alien Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.alien-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Alien Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.alien.json",
+      "line": 3,
+      "field": "label",
+      "value": "Alien"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.alpaking-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Alpaking Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.alpaking.json",
+      "line": 3,
+      "field": "label",
+      "value": "Alpaking"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.armabee-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Armabee Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.armabee.json",
+      "line": 3,
+      "field": "label",
+      "value": "Armabee"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.birb.json",
+      "line": 3,
+      "field": "label",
+      "value": "Birb"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.blue-demon.json",
+      "line": 3,
+      "field": "label",
+      "value": "Blue Demon"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.bunny.json",
+      "line": 3,
+      "field": "label",
+      "value": "Bunny"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.cactoro-high-detail.boss.json",
+      "line": 3,
+      "field": "label",
+      "value": "Cactoro Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.cactoro-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Cactoro Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.cactoro.json",
+      "line": 3,
+      "field": "label",
+      "value": "Cactoro"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.cat.json",
+      "line": 3,
+      "field": "label",
+      "value": "Cat"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.chicken.json",
+      "line": 3,
+      "field": "label",
+      "value": "Chicken"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.demon-high-detail.elite.json",
+      "line": 3,
+      "field": "label",
+      "value": "Demon Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.demon-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Demon Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.demon.json",
+      "line": 3,
+      "field": "label",
+      "value": "Demon"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.dino.json",
+      "line": 3,
+      "field": "label",
+      "value": "Dino"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.dragon-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Dragon Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.dragon.json",
+      "line": 3,
+      "field": "label",
+      "value": "Dragon"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.fish-high-detail.boss.json",
+      "line": 3,
+      "field": "label",
+      "value": "Fish Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.fish-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Fish Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.fish.json",
+      "line": 3,
+      "field": "label",
+      "value": "Fish"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.frog.json",
+      "line": 3,
+      "field": "label",
+      "value": "Frog"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.ghost-skull.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ghost Skull"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.ghost.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ghost"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.glub-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Glub Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.glub.json",
+      "line": 3,
+      "field": "label",
+      "value": "Glub"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.goleling-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Goleling Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.goleling.json",
+      "line": 3,
+      "field": "label",
+      "value": "Goleling"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.green-blob.json",
+      "line": 3,
+      "field": "label",
+      "value": "Green Blob"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.green-spiky-blob.json",
+      "line": 3,
+      "field": "label",
+      "value": "Green Spiky Blob"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.hywirl.json",
+      "line": 3,
+      "field": "label",
+      "value": "Hywirl"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.monkroose.json",
+      "line": 3,
+      "field": "label",
+      "value": "Monkroose"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.mushnub-evolved.json",
+      "line": 3,
+      "field": "label",
+      "value": "Mushnub Evolved"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.mushnub.json",
+      "line": 3,
+      "field": "label",
+      "value": "Mushnub"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.mushroom-king.json",
+      "line": 3,
+      "field": "label",
+      "value": "Mushroom King"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.ninja-high-detail.boss.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ninja Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.ninja-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ninja Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.ninja.json",
+      "line": 3,
+      "field": "label",
+      "value": "Ninja"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.orc-enemy.json",
+      "line": 3,
+      "field": "label",
+      "value": "Orc Enemy"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.orc.json",
+      "line": 3,
+      "field": "label",
+      "value": "Orc"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.pigeon.json",
+      "line": 3,
+      "field": "label",
+      "value": "Pigeon"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.pink-blob.json",
+      "line": 3,
+      "field": "label",
+      "value": "Pink Blob"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.squidle.json",
+      "line": 3,
+      "field": "label",
+      "value": "Squidle"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.tribal.json",
+      "line": 3,
+      "field": "label",
+      "value": "Tribal"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.wizard.json",
+      "line": 3,
+      "field": "label",
+      "value": "Wizard"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.yeti-high-detail.elite.json",
+      "line": 3,
+      "field": "label",
+      "value": "Yeti Elite"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.yeti-high-detail.json",
+      "line": 3,
+      "field": "label",
+      "value": "Yeti Boss"
+    },
+    {
+      "file": "content/enemies/enemy.quaternius.yeti.json",
+      "line": 3,
+      "field": "label",
+      "value": "Yeti"
+    },
+    {
+      "file": "content/enemies/gunTower.json",
+      "line": 3,
+      "field": "label",
+      "value": "Gun Tower"
+    },
+    {
+      "file": "content/enemies/lootTruck.json",
+      "line": 3,
+      "field": "label",
+      "value": "Loot Truck"
+    },
+    {
+      "file": "content/enemies/rammer.json",
+      "line": 3,
+      "field": "label",
+      "value": "Rammer"
+    },
+    {
+      "file": "content/enemies/scrapBug.json",
+      "line": 3,
+      "field": "label",
+      "value": "Scrap Bug"
+    },
+    {
+      "file": "content/enemies/scrapBugHorde.json",
+      "line": 3,
+      "field": "label",
+      "value": "Scrap Bug (Horde)"
+    },
+    {
+      "file": "content/enemies/testHound.json",
+      "line": 3,
+      "field": "label",
+      "value": "Test Hound"
+    },
+    {
+      "file": "src/client/progression/rewardRevealView.ts",
+      "line": 234,
+      "field": "sourceLiteral",
+      "value": "RC"
+    }
+  ],
+  "summary": {
+    "catalogKeyCount": 453,
+    "koreanKeyCount": 453,
+    "authoredLiteralCount": 317,
+    "authoredWithLocalizationKey": 99,
+    "missingKoreanKeys": [],
+    "extraKoreanKeys": []
+  }
+}

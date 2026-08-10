@@ -5,6 +5,9 @@ import {
   formatCombatDisplayValue,
   toCombatDisplayValue,
 } from '../../shared/presentation/combatDisplayUnits';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService } from '../localization/localizationTypes';
+import { enemyKey } from '../localization/contentKeys';
 
 /**
  * Safe, typed projection of authoritative/interpolated state + client
@@ -214,14 +217,14 @@ export function emptyEncounterBar(): HudEncounterBar {
   return { visible: false, label: '', displayHp: 0, displayMaxHp: 10, hpText: '', ratio: 0, ratioMax: 1 };
 }
 
-export function encounterBar(row: HordeEncounterView | undefined): HudEncounterBar {
+export function encounterBar(row: HordeEncounterView | undefined, i18n: LocalizationService = localization): HudEncounterBar {
   if (!row) return emptyEncounterBar();
   const ratio = row.maxHp > 0 ? Math.max(0, Math.min(1, row.hp / row.maxHp)) : 0;
   const displayHp = toCombatDisplayValue(Math.max(0, row.hp));
   const displayMaxHp = toCombatDisplayValue(Math.max(1, row.maxHp));
   return {
     visible: row.alive && row.maxHp > 0,
-    label: row.label,
+    label: i18n.t(enemyKey(row.enemyId), undefined, row.label),
     displayHp,
     displayMaxHp,
     hpText: `${formatCombatDisplayValue(Math.max(0, row.hp))} / ${formatCombatDisplayValue(Math.max(1, row.maxHp))}`,
@@ -235,6 +238,8 @@ export function encounterBar(row: HordeEncounterView | undefined): HudEncounterB
  * view model. It is the ONLY place HUD content learns about MatchState.
  */
 export class HudProjector {
+  constructor(private readonly i18n: LocalizationService = localization) {}
+
   project(state: MatchState, opts: HudProjectionContext): HudViewModel {
     const t = state.tank;
     const single = opts.session.kind === 'singlePlayer';
@@ -249,20 +254,24 @@ export class HudProjector {
     let prompt = '';
     let promptSub = '';
     if (chargeFull) {
-      prompt = 'CHARGE READY';
-      promptSub = single ? 'HOLD RIGHT MOUSE TO CHARGE' : opts.role === 'driver' ? 'GUNNER — HOLD RIGHT MOUSE TO CHARGE' : 'HOLD RIGHT MOUSE TO CHARGE';
+      prompt = this.i18n.t('hud.prompt.chargeReady');
+      promptSub = single ? this.i18n.t('hud.prompt.holdRightMouse') : opts.role === 'driver' ? this.i18n.t('hud.prompt.gunnerHoldRightMouse') : this.i18n.t('hud.prompt.holdRightMouse');
     } else if (chargeUnlocked && chargeHeld) {
-      prompt = 'HOLD TO CHARGE';
-      promptSub = 'RELEASE TO FIRE';
+      prompt = this.i18n.t('hud.prompt.holdToCharge');
+      promptSub = this.i18n.t('hud.prompt.releaseToFire');
     } else if (state.time < 8) {
-      prompt = single ? 'DRIVE · AIM · FIRE' : opts.role === 'driver' ? 'DRIVE · COLLECT SCRAP' : 'FIRE · KILL ENEMIES';
-      promptSub = single ? 'WASD · SHIFT · SPACE · LMB · RMB' : opts.role === 'driver' ? 'WASD + SHIFT + SPACE' : 'LMB MG · RMB CANNON';
+      prompt = single ? this.i18n.t('hud.prompt.singleStart') : opts.role === 'driver' ? this.i18n.t('hud.prompt.driverStart') : this.i18n.t('hud.prompt.gunnerStart');
+      promptSub = single
+        ? this.i18n.t('hud.controls.single')
+        : opts.role === 'driver'
+          ? this.i18n.t('hud.controls.driver')
+          : this.i18n.t('hud.controls.gunner');
     } else if (state.time > 40 && state.truck.active) {
-      prompt = 'LOOT TRUCK';
-      promptSub = 'DESTROY IT FOR LOOT SCRAP';
+      prompt = this.i18n.t('hud.prompt.lootTruck');
+      promptSub = this.i18n.t('hud.prompt.destroyLootTruck');
     }
     if (!opts.pointerLocked) {
-      prompt = 'CLICK TO AIM';
+      prompt = this.i18n.t('hud.prompt.clickToAim');
       promptSub = '';
     }
     const objectiveVisible = Boolean(opts.objective?.visible && state.truck.active);
@@ -273,15 +282,15 @@ export class HudProjector {
     const waveActive = stage !== undefined && stage.waveId !== null;
     const waveLabel =
       stage?.phase === 'bossWave'
-        ? 'BOSS WAVE'
+        ? this.i18n.t('phase.bossWave')
         : stage?.phase === 'wave1'
-          ? 'WAVE 1'
+          ? this.i18n.t('phase.wave1')
           : stage?.phase === 'wave2'
-            ? 'WAVE 2'
+            ? this.i18n.t('phase.wave2')
             : stage?.phase === 'clear'
-              ? 'STAGE CLEAR'
+              ? this.i18n.t('phase.stageClear')
               : stage?.phase === 'gameOver'
-                ? 'GAME OVER'
+                ? this.i18n.t('phase.gameOver')
                 : '';
     const leaderHpRatio =
       stage && stage.leaderMaxHp > 0
@@ -306,17 +315,17 @@ export class HudProjector {
         : 0;
     const waveTimerLabel =
       monsterPhase === 'FARMING'
-        ? 'TIME UNTIL NEW WAVE'
+        ? this.i18n.t('phase.timeUntilWave')
         : monsterPhase === 'BOSS_INTRO'
-          ? 'BOSS INCOMING'
+          ? this.i18n.t('phase.bossIncoming')
           : '';
     const waveWarning =
       monsterPhase === 'FARMING' && waveCountdown <= 5 && waveCountdown > 0
         ? stagePhase === 'farming1' || stagePhase === 'wave1'
-          ? 'WAVE 1 INCOMING'
+          ? this.i18n.t('phase.wave1Incoming')
           : stagePhase === 'farming2' || stagePhase === 'wave2'
-            ? 'WAVE 2 INCOMING'
-            : 'BOSS INCOMING'
+            ? this.i18n.t('phase.wave2Incoming')
+            : this.i18n.t('phase.bossIncoming')
         : '';
     const eliteRows = monsterView?.encounters.filter((e) => e.kind === 'elite') ?? [];
     const aliveElites = eliteRows.filter((e) => e.alive);
@@ -385,7 +394,7 @@ export class HudProjector {
         visible: objectiveVisible,
         screenX: opts.objective?.x ?? 0,
         screenY: opts.objective?.y ?? 0,
-        label: 'LOOT TRUCK',
+        label: this.i18n.t('hud.objective.lootTruck'),
       },
       stage: {
         phase: stage?.phase ?? 'farming1',
@@ -408,9 +417,9 @@ export class HudProjector {
               : '',
           waveWarning,
           waveWarningVisible: waveWarning !== '',
-          elite1: encounterBar(elites[0]),
-          elite2: encounterBar(elites[1]),
-          boss: encounterBar(boss),
+          elite1: encounterBar(elites[0], this.i18n),
+          elite2: encounterBar(elites[1], this.i18n),
+          boss: encounterBar(boss, this.i18n),
         },
       },
     };

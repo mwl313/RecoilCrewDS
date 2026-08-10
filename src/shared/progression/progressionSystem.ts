@@ -396,7 +396,14 @@ export class ProgressionSystem {
     if (this.worldChestSpawningEnabled) this.stepPeriodicSpawning(dt);
     const claimable = s.chests
       .filter((chest) => chest.lifecycle === 'closed')
-      .map((chest) => ({ chest, distance: Math.hypot(chest.x - s.tank.x, chest.z - s.tank.z) }))
+      .map((chest) => ({
+        chest,
+        distance: Math.hypot(
+          chest.x - s.tank.x,
+          chest.y - s.tank.y,
+          chest.z - s.tank.z,
+        ),
+      }))
       .filter((candidate) => candidate.distance <= this.chestPolicy!.claimRadius)
       .sort((a, b) => a.distance - b.distance || a.chest.id - b.chest.id);
     if (claimable[0]) this.claimChest(claimable[0].chest, Date.now());

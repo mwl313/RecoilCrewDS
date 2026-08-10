@@ -8,6 +8,7 @@ import { HudRuntime } from './presentation/hudRuntime';
 import type { PresentationWorldFactory } from './presentation/presentationWorld';
 import { LobbyView } from './lobby/lobbyView';
 import type { ClientLobbyState, LobbyChatMessage } from '../shared/lobby/lobbyTypes';
+import { localization } from './localization/localizationService';
 
 export interface HudHandlers extends AppFlowHandlers {}
 
@@ -27,7 +28,7 @@ export class Hud {
   private readonly flow: SceneFlowPresenter;
   private readonly screensHost: HTMLElement;
   private readonly hudRuntime: HudRuntime;
-  private readonly projector = new HudProjector();
+  private readonly projector = new HudProjector(localization);
   private handlers: Partial<HudHandlers> = {};
   private lobbyView: LobbyView | null = null;
   onUiSound: (() => void) | null = null;
@@ -45,12 +46,12 @@ export class Hud {
     this.root.appendChild(screens);
     const registry = new UiComponentRegistry();
     registerDefaultUiComponents(registry);
-    this.flow = new SceneFlowPresenter(screens, this.root, registry);
+    this.flow = new SceneFlowPresenter(screens, this.root, registry, localization);
     this.flow.setUiSound(() => this.onUiSound?.());
 
     const hudHost = el('div', '');
     this.root.appendChild(hudHost);
-    this.hudRuntime = new HudRuntime(hudHost, registry, this.root);
+    this.hudRuntime = new HudRuntime(hudHost, registry, this.root, localization);
     this.flow.setHudElement(this.hudRuntime.element!);
     this.hudRuntime.setResumeHandler(() => {
       this.sound();
@@ -102,7 +103,7 @@ export class Hud {
         onSendChat: (text) => this.handlers.onLobbyChatSend?.(text),
         onLeave: () => this.handlers.onLeave?.(),
         onCopy: (code) => this.handlers.onCopyRoomCode?.(code),
-      });
+      }, localization);
     }
     this.lobbyView.update(state, chat, localPlayerId);
     if (created) {
@@ -140,7 +141,7 @@ export class Hud {
   }
 
   setMainMenuNickname(nickname: string) {
-    this.flow.setSceneContext('scene.mainMenu', { currentNickname: `CURRENT NICKNAME: ${nickname}` });
+    this.flow.setSceneContext('scene.mainMenu', { currentNickname: nickname });
   }
 
   showMainMenuPage(page: 'main' | 'multiplayer') {

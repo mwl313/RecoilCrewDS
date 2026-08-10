@@ -43,8 +43,14 @@ import { RelicInventoryRail } from '../progression/relicInventoryRail';
 import { ProgressionInputContext } from '../progression/progressionInputContext';
 import { EnemyWorldUiLayer } from '../worldUi/enemyWorldUiLayer';
 import { TacticalDrawer } from '../tactical/tacticalDrawer';
-import { presentRelicDescription } from '../../shared/presentation/relicDescriptionPresentation';
+import {
+  presentRelicDescription,
+  type RelicEffectTemplateLookup,
+} from '../../shared/presentation/relicDescriptionPresentation';
+import type { RelicDefinition } from '../../shared/content/schemas/progression';
 import { TankDamageFeedbackLayer } from '../presentation/tankDamageFeedback';
+import { localization } from '../localization/localizationService';
+import { relicKey } from '../localization/contentKeys';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -281,8 +287,8 @@ export class GameClient {
         const relic = gameRef!.contentPack?.getRelic(relicId);
         return relic
           ? {
-              label: relic.label,
-              description: presentRelicDescription(
+              label: localization.t(relicKey(relic.id, 'name'), {}, relic.label),
+              description: localizedRelicDescription(
                 relic,
                 (templateId) => gameRef!.contentPack?.getRelicEffectTemplate(templateId),
               ),
@@ -305,8 +311,8 @@ export class GameClient {
       const relic = gameRef!.contentPack?.getRelic(relicId);
       return relic
         ? {
-            label: relic.label,
-            description: presentRelicDescription(
+            label: localization.t(relicKey(relic.id, 'name'), {}, relic.label),
+            description: localizedRelicDescription(
               relic,
               (templateId) => gameRef!.contentPack?.getRelicEffectTemplate(templateId),
             ),
@@ -1435,4 +1441,20 @@ export class GameClient {
     this.tacticalDrawer = null;
     this.world.dispose();
   }
+}
+
+function localizedRelicDescription(
+  relic: RelicDefinition,
+  templateFor: RelicEffectTemplateLookup,
+): string {
+  const presented = presentRelicDescription(
+    relic,
+    templateFor,
+    (key, params, fallback) => localization.t(key, params, fallback),
+  );
+  // Structured presenters own their interpolation. All other relics resolve
+  // through the typed content catalog and retain authored copy as fallback.
+  return presented !== relic.description
+    ? presented
+    : localization.t(relicKey(relic.id, 'description'), {}, presented);
 }

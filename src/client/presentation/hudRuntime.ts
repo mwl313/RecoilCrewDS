@@ -4,6 +4,8 @@ import { UiComponentRegistry } from './componentRegistry';
 import type { UiComponentInstance } from './componentRegistry';
 import { SceneRuntime } from './sceneRuntime';
 import type { HudViewModel } from './hudViewModel';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService } from '../localization/localizationTypes';
 
 /**
  * HudRuntime renders the content-driven gameplay HUD document and applies
@@ -18,7 +20,7 @@ export class HudRuntime {
   private assetUrlResolver: ((id: string) => string | null) | null = null;
   private readonly themeRoot: HTMLElement;
 
-  constructor(container: HTMLElement, registry: UiComponentRegistry, themeRoot: HTMLElement) {
+  constructor(container: HTMLElement, registry: UiComponentRegistry, themeRoot: HTMLElement, i18n: LocalizationService = localization) {
     this.themeRoot = themeRoot;
     this.actions.register('app.resume', () => this.onResume?.());
     this.actions.register('app.pause', () => this.onPause?.());
@@ -28,6 +30,7 @@ export class HudRuntime {
         registry,
         addPopup: (text, kind) => this.runtime.dispatch({ type: 'floatText', label: text, kind }),
         resolveAssetUrl: (id) => this.assetUrlResolver?.(id) ?? null,
+        localization: i18n,
       },
       container,
     );

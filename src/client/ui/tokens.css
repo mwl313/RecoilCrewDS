@@ -20,6 +20,7 @@
   --ui-safe-y: max(20px, env(safe-area-inset-top));
   --ui-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --ui-body: 'Barlow', 'Segoe UI', sans-serif;
+  --ui-localized-display: var(--ui-display);
   --ui-cut-sm: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   --ui-cut-md: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
   --ui-cut-lg: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
@@ -28,6 +29,11 @@
   --ui-slow: 320ms;
   --role: var(--ui-driver);
   --role-soft: #a7f5f2;
+}
+
+html[lang='ko'] {
+  --ui-body: 'Pretendard Variable', 'Noto Sans KR', system-ui, sans-serif;
+  --ui-localized-display: 'Pretendard Variable', 'Noto Sans KR', system-ui, sans-serif;
 }
 
 .app-root[data-theme='driver'] {

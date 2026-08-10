@@ -1,6 +1,6 @@
 {
   "id": "scene.settings",
-  "label": "Settings",
+  "label": "Settings V2",
   "type": "ui",
   "enterTransition": { "type": "fade", "durationMs": 460 },
   "exitTransition": { "type": "fade", "durationMs": 380 },
@@ -16,22 +16,47 @@
         "class": "ui-overlay-panel ui-settings-panel",
         "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
         "children": [
-          { "id": "settings-kicker", "type": "text", "class": "ui-kicker", "text": "FIELD CONFIG // LOCAL" },
-          { "id": "settings-title", "type": "text", "props": { "tag": "h2" }, "text": "PLAYER SETTINGS" },
+          { "id": "settings-kicker", "type": "text", "class": "ui-kicker", "text": "FIELD CONFIG // LOCAL", "textKey": "ui.settings.kicker" },
+          { "id": "settings-title", "type": "text", "props": { "tag": "h2" }, "text": "PLAYER SETTINGS", "textKey": "ui.settings.title" },
           { "id": "settings-rule", "type": "container", "class": "ui-overlay-rule" },
-          { "id": "settings-nickname-label", "type": "text", "class": "ui-field-label", "text": "CURRENT NICKNAME" },
-          { "id": "nickname-input", "type": "input", "class": "ui-nickname-input", "props": { "mode": "text", "maxlength": 20, "placeholder": "TurboToad07", "spellcheck": false }, "bindings": [{ "target": "value", "source": "nicknameDraft", "fallback": "" }] },
-          { "id": "settings-error", "type": "text", "class": "ui-form-error settings-error", "bindings": [{ "target": "text", "source": "settingsError", "fallback": "" }] },
-          { "id": "settings-hint", "type": "text", "class": "ui-overlay-copy settings-hint", "text": "Shown to your crew in the lobby. Stored on this device only — no account required." },
+          { "id": "settings-player-section", "type": "vertical", "class": "ui-settings-section", "children": [
+            { "id": "settings-player-heading", "type": "text", "class": "ui-settings-section__title", "text": "PLAYER", "textKey": "ui.settings.player" },
+            { "id": "settings-nickname-label", "type": "text", "class": "ui-field-label", "text": "NICKNAME", "textKey": "ui.settings.nickname" },
+            { "id": "settings-nickname-row", "type": "horizontal", "class": "ui-settings-nickname-row", "children": [
+              { "id": "nickname-input", "type": "input", "class": "ui-nickname-input", "placeholderKey": "ui.settings.nicknamePlaceholder", "props": { "mode": "text", "maxlength": 20, "placeholder": "TurboToad07", "spellcheck": false }, "bindings": [{ "target": "value", "source": "nicknameDraft", "fallback": "" }] },
+              { "id": "settings-randomize", "type": "button", "class": "ui-compact-action", "text": "RANDOMIZE", "textKey": "ui.settings.randomize", "actions": [{ "event": "click", "action": "app.randomizeNickname" }] }
+            ] },
+            { "id": "settings-error", "type": "text", "class": "ui-form-error settings-error", "bindings": [{ "target": "text", "source": "settingsError", "fallback": "" }] },
+            { "id": "settings-hint", "type": "text", "class": "ui-overlay-copy settings-hint", "text": "Shown to your crew in the lobby. Stored on this device only — no account required.", "textKey": "ui.settings.hint" }
+          ] },
+          { "id": "settings-language-section", "type": "vertical", "class": "ui-settings-section", "children": [
+            { "id": "settings-language-heading", "type": "text", "class": "ui-settings-section__title", "text": "LANGUAGE", "textKey": "ui.settings.language" },
+            { "id": "settings-language", "type": "segmentedControl", "class": "ui-segmented", "ariaLabelKey": "ui.settings.languageGroup", "props": { "valueSource": "localeDraft", "options": [
+              { "value": "en", "text": "ENGLISH", "textKey": "ui.settings.english" },
+              { "value": "ko", "text": "한국어", "textKey": "ui.settings.korean" }
+            ] }, "actions": [{ "event": "change", "action": "app.previewLocale" }] }
+          ] },
+          { "id": "settings-audio-section", "type": "vertical", "class": "ui-settings-section", "children": [
+            { "id": "settings-audio-heading", "type": "text", "class": "ui-settings-section__title", "text": "AUDIO", "textKey": "ui.settings.audio" },
+            { "id": "settings-bgm-row", "type": "grid", "class": "ui-settings-range-row", "children": [
+              { "id": "settings-bgm-label", "type": "text", "class": "ui-field-label", "text": "BGM", "textKey": "ui.settings.bgm" },
+              { "id": "settings-bgm-range", "type": "range", "class": "ui-settings-range", "ariaLabelKey": "ui.settings.bgmLabel", "props": { "min": 0, "max": 100, "step": 1 }, "bindings": [{ "target": "value", "source": "bgmVolumeDraft", "fallback": 100 }], "actions": [{ "event": "input", "action": "app.previewBgmVolume" }] },
+              { "id": "settings-bgm-value", "type": "statText", "class": "ui-settings-range-value", "text": "100%", "bindings": [{ "target": "text", "source": "bgmVolumeDraft", "format": "{0}%", "formatKey": "ui.settings.volumeValue", "fallback": 100 }] }
+            ] },
+            { "id": "settings-sfx-row", "type": "grid", "class": "ui-settings-range-row", "children": [
+              { "id": "settings-sfx-label", "type": "text", "class": "ui-field-label", "text": "SOUND EFFECTS", "textKey": "ui.settings.sfx" },
+              { "id": "settings-sfx-range", "type": "range", "class": "ui-settings-range", "ariaLabelKey": "ui.settings.sfxLabel", "props": { "min": 0, "max": 100, "step": 1 }, "bindings": [{ "target": "value", "source": "sfxVolumeDraft", "fallback": 100 }], "actions": [{ "event": "input", "action": "app.previewSfxVolume" }] },
+              { "id": "settings-sfx-value", "type": "statText", "class": "ui-settings-range-value", "text": "100%", "bindings": [{ "target": "text", "source": "sfxVolumeDraft", "format": "{0}%", "formatKey": "ui.settings.volumeValue", "fallback": 100 }] }
+            ] }
+          ] },
           {
             "id": "settings-actions",
             "type": "grid",
-            "class": "ui-overlay-actions ui-overlay-actions--three",
-            "layout": { "kind": "grid", "columns": 3 },
+            "class": "ui-overlay-actions ui-overlay-actions--two",
+            "layout": { "kind": "grid", "columns": 2 },
             "children": [
-              { "id": "settings-randomize", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "RANDOMIZE", "actions": [{ "event": "click", "action": "app.randomizeNickname" }] },
-              { "id": "settings-save", "type": "button", "class": "ui-action", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "SAVE", "actions": [{ "event": "click", "action": "app.saveSettings" }] },
-              { "id": "settings-cancel", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "CANCEL", "actions": [{ "event": "click", "action": "app.cancelSettings" }] }
+              { "id": "settings-save", "type": "button", "class": "ui-action", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "text": "SAVE", "textKey": "ui.settings.save", "actions": [{ "event": "click", "action": "app.saveSettings" }] },
+              { "id": "settings-cancel", "type": "button", "class": "ui-action", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "CANCEL", "textKey": "ui.settings.cancel", "actions": [{ "event": "click", "action": "app.cancelSettings" }] }
             ]
           }
         ]
@@ -39,7 +64,7 @@
     ]
   },
   "previewStates": [
-    { "id": "default", "label": "Default", "context": { "nicknameDraft": "TurboToad07", "settingsError": "" } },
-    { "id": "error", "label": "Invalid", "context": { "nicknameDraft": "", "settingsError": "Choose a nickname." } }
+    { "id": "en", "label": "English", "context": { "nicknameDraft": "TurboToad07", "settingsError": "", "localeDraft": "en", "bgmVolumeDraft": 100, "sfxVolumeDraft": 100 } },
+    { "id": "ko", "label": "Korean", "context": { "nicknameDraft": "TurboToad07", "settingsError": "", "localeDraft": "ko", "bgmVolumeDraft": 72, "sfxVolumeDraft": 84 } }
   ]
 }

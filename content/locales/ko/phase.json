@@ -1,0 +1,11 @@
+{
+  "phase.bossWave": "보스 웨이브",
+  "phase.wave1": "웨이브 1",
+  "phase.wave2": "웨이브 2",
+  "phase.stageClear": "스테이지 클리어",
+  "phase.gameOver": "게임 오버",
+  "phase.timeUntilWave": "다음 웨이브까지",
+  "phase.bossIncoming": "보스 접근 중",
+  "phase.wave1Incoming": "웨이브 1 접근 중",
+  "phase.wave2Incoming": "웨이브 2 접근 중"
+}

@@ -4,6 +4,7 @@ import '@fontsource/barlow/latin-700.css';
 import '@fontsource/barlow-condensed/latin-700-italic.css';
 import '@fontsource/barlow-condensed/latin-800-italic.css';
 import '@fontsource/barlow-condensed/latin-900-italic.css';
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import './styles.css';
 import './ui/index.css';
 import { GameClient } from './app/gameClient';
@@ -49,6 +50,8 @@ import { netcodeMetrics } from './netcode/netcodeMetrics';
 import { resolveGameplayPreloadAssetIds } from './assets/gameplayPreload';
 import { runCountdownSequence } from './presentation/countdownSequence';
 import { applyTankIntegrityGain } from '../shared/damage/tankIntegrityGain';
+import { localization } from './localization/localizationService';
+import { localizeServerError } from './localization/errorPresentation';
 
 const assetsPromise = AssetService.load();
 const audio = new AudioManager();
@@ -57,6 +60,9 @@ const hudController = new HudController(hud);
 const net = new NetClient();
 const input = new InputManager();
 const playerSettings = new PlayerSettingsController(createPlayerSettingsStore());
+localization.setLocale(playerSettings.currentLocale);
+audio.setBgmVolume(playerSettings.current.bgmVolume);
+audio.setSfxVolume(playerSettings.current.sfxVolume);
 
 void assetsPromise.then((loadedAssets) => {
   const lowQuality =
@@ -149,7 +155,14 @@ hud.bind({
   },
   onOpenSettings: () => {
     audio.soundtrack.enterContext('menu');
-    hud.setSettingsContext({ nicknameDraft: playerSettings.draftNickname, settingsError: '' });
+    const draft = playerSettings.beginEdit();
+    hud.setSettingsContext({
+      nicknameDraft: draft.nickname,
+      localeDraft: draft.locale,
+      bgmVolumeDraft: draft.bgmVolume,
+      sfxVolumeDraft: draft.sfxVolume,
+      settingsError: '',
+    });
     hud.showScreen('settings');
     flow = 'settings';
   },
@@ -157,16 +170,31 @@ hud.bind({
     const draft = playerSettings.randomize();
     hud.setSettingsContext({ nicknameDraft: draft, settingsError: '' });
   },
+  onPreviewLocale: (locale) => {
+    playerSettings.setDraftLocale(locale);
+    localization.setLocale(locale);
+    hud.setSettingsContext({ localeDraft: locale });
+  },
+  onPreviewBgmVolume: (value) => {
+    playerSettings.setDraftBgmVolume(value);
+    audio.setBgmVolume(playerSettings.draftBgmVolume);
+    hud.setSettingsContext({ bgmVolumeDraft: playerSettings.draftBgmVolume });
+  },
+  onPreviewSfxVolume: (value) => {
+    playerSettings.setDraftSfxVolume(value);
+    audio.setSfxVolume(playerSettings.draftSfxVolume);
+    hud.setSettingsContext({ sfxVolumeDraft: playerSettings.draftSfxVolume });
+  },
   onSaveSettings: (nickname) => {
     playerSettings.setDraft(nickname);
     const result = playerSettings.save();
     if (!result.valid) {
       const message =
         result.reason === 'empty'
-          ? 'Choose a nickname.'
+          ? localization.t('error.nickname.required')
           : result.reason === 'too_long'
-            ? 'Nickname must be 20 characters or fewer.'
-            : 'Nickname contains unsupported control characters.';
+            ? localization.t('error.nickname.tooLong')
+            : localization.t('error.nickname.controlCharacters');
       hud.setSettingsContext({ settingsError: message });
       return;
     }
@@ -176,7 +204,10 @@ hud.bind({
     flow = 'main';
   },
   onCancelSettings: () => {
-    playerSettings.cancel();
+    const restored = playerSettings.cancel();
+    localization.setLocale(restored.locale);
+    audio.setBgmVolume(restored.bgmVolume);
+    audio.setSfxVolume(restored.sfxVolume);
     audio.soundtrack.enterContext('menu');
     hud.showScreen('main');
     flow = 'main';
@@ -201,9 +232,9 @@ hud.bind({
     void navigator.clipboard?.writeText(code).then(() => {
       const btn = document.getElementById('copy-code');
       if (!btn) return;
-      btn.textContent = 'COPIED';
+      btn.textContent = localization.t('ui.create.copied');
       setTimeout(() => {
-        if (document.getElementById('copy-code') === btn) btn.textContent = 'COPY';
+        if (document.getElementById('copy-code') === btn) btn.textContent = localization.t('ui.lobby.copy');
       }, 1400);
     });
   },
@@ -523,9 +554,12 @@ net.onMessage = (msg) => {
     }
     case 'error':
       audio.soundtrack.enterContext('menu');
-      hud.showJoinError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
+      {
+        const error = localizeServerError(msg.code, msg.message);
+        hud.showJoinError(error);
       if (flow === 'join') hud.showScreen('join');
-      else if (flow === 'create') hud.showCreateError(String((msg as { message?: unknown }).message ?? 'Unknown error'));
+        else if (flow === 'create') hud.showCreateError(error);
+      }
       break;
     case 'pong':
       pingMs = Date.now() - lastPingSent;
@@ -544,16 +578,16 @@ net.onStatus = (connected) => {
   if (!connected && sessionKind === 'singlePlayer') return;
   if (!connected && (flow === 'game' || flow === 'results')) {
     audio.soundtrack.enterContext('menu');
-    hud.showError('Connection lost. Retry to rejoin your crew, or play Single Player.');
+    hud.showError(localization.t('error.connectionLost'));
     input.setEnabled(false);
     game?.setInputEnabled(false);
     input.releaseLock();
     flow = 'error';
   } else if (!connected && flow === 'join') {
-    hud.showJoinError('Cannot reach the server. Is it running?');
+    hud.showJoinError(localization.t('error.serverUnreachable'));
   } else if (!connected && flow === 'create') {
     audio.soundtrack.enterContext('menu');
-    hud.showError('Connection lost. Create your crew again.');
+    hud.showError(localization.t('error.connectionLostCreate'));
     flow = 'error';
   }
 };
@@ -598,12 +632,12 @@ function buildSinglePlayerSession(modeId: string): ArenaSessionResult {
 
 function showMapError(reason: string): void {
   const labels: Record<string, string> = {
-    version: 'Map generator version mismatch — reload to update.',
-    profile: 'Map profile mismatch — reload to rejoin.',
-    checksum: 'Map checksum mismatch — reload to rejoin.',
-    validation: 'Map validation failed on this client — reload to rejoin.',
+    version: localization.t('error.map.version'),
+    profile: localization.t('error.map.profile'),
+    checksum: localization.t('error.map.checksum'),
+    validation: localization.t('error.map.validation'),
   };
-  hud.showError(labels[reason] ?? 'Map synchronization failed — reload to rejoin.');
+  hud.showError(labels[reason] ?? localization.t('error.map.unknown'));
   input.setEnabled(false);
   game?.setInputEnabled(false);
   input.releaseLock();
@@ -625,7 +659,7 @@ async function startOnlineWithArena(r: Role, meta: ArenaMetadata, matchId?: stri
 
 /** Hard protocol/content compatibility failure: never start the match. */
 function showProtocolError(reason: string): void {
-  hud.showError(`Incompatible build: ${reason}. Reload to update.`);
+  hud.showError(localization.t('error.incompatibleBuildReason', { reason }));
   input.setEnabled(false);
   game?.setInputEnabled(false);
   input.releaseLock();
@@ -640,7 +674,7 @@ function showGameStartupError(error: unknown): void {
   console.error('[game-startup] unable to initialize the match', error);
   teardownGame();
   document.getElementById('game-canvas')?.remove();
-  hud.showError('Unable to initialize game assets. Reload and try again.');
+  hud.showError(localization.t('error.gameStartup'));
   flow = 'error';
   audio.soundtrack.enterContext('menu');
   mapGateFailed = true;
@@ -968,6 +1002,7 @@ if (TEST_MODE) {
     },
     settings: {
       nickname: () => playerSettings.currentNickname,
+      state: () => ({ saved: playerSettings.current, draft: playerSettings.draftSettings, locale: localization.locale(), audio: audio.userVolumeState() }),
       randomize: () => playerSettings.randomize(),
       save: (name: string) => {
         playerSettings.setDraft(name);

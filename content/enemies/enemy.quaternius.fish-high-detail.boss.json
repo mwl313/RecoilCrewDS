@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.fish-high-detail.boss",
-  "label": "Fish High Detail Boss",
+  "label": "Fish Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",
