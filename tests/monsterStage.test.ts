@@ -147,6 +147,8 @@ describe('monster stage timeline', () => {
     prod.systems.damage.applyEnemy(boss, 99999, 'test');
     expect(prod.state.phase).toBe('results');
     expect(prod.state.matchFlow).toBe('clear');
+    expect(prod.state.stats.score).toBe(800);
+    expect(prod.results?.score).toBe(prod.state.stats.score);
 
     const defeat = MatchRuntime.fromContentPack(pack, 'prod-defeat', 'none', 'mode.mainStage');
     defeat.state.tank.integrity = 0;
@@ -156,6 +158,36 @@ describe('monster stage timeline', () => {
     expect(defeat.state.phase).toBe('results');
     expect(defeat.state.matchFlow).toBe('gameOver');
     expect(defeat.state.tank.deadT).toBeLessThanOrEqual(0);
+  });
+
+  it.each([
+    ['ambient', 'enemy.quaternius.alien', 50],
+    ['wave', 'enemy.quaternius.dragon-evolved', 250],
+    ['elite', 'enemy.quaternius.alien-high-detail', 400],
+  ] as const)('awards %s production monster kills an authoritative score', (_rewardClass, enemyId, expectedScore) => {
+    const prod = MatchRuntime.fromContentPack(pack, `prod-score-${_rewardClass}`, 'none', 'mode.mainStage');
+    const enemy = prod.systems.enemies.spawnEnemyDef(pack.getEnemy(enemyId), 5, 5);
+    if (!enemy) throw new Error(`${enemyId} spawn failed`);
+    prod.systems.damage.applyEnemy(enemy, 99999, 'test');
+    expect(prod.state.stats.kills).toBe(1);
+    expect(prod.state.stats.score).toBe(expectedScore);
+  });
+
+  it('uses only displayed result statistics as main-stage grade gates', () => {
+    const rules = pack.getResults('results.mainStage');
+    const displayed = new Set(['kills', 'chargedCannonShots', 'fullChargeShots', 'bestCombo']);
+    for (const rule of rules.grades) {
+      for (const stat of Object.keys(rule.require ?? {})) expect(displayed.has(stat)).toBe(true);
+    }
+
+    const prod = MatchRuntime.fromContentPack(pack, 'prod-visible-grade', 'none', 'mode.mainStage');
+    prod.state.stats.score = 9000;
+    prod.state.stats.kills = 20;
+    prod.state.stats.chargedCannonShots = 2;
+    prod.state.stats.fullChargeShots = 1;
+    prod.state.combo.best = 4;
+    prod.state.stats.links = 0;
+    expect(prod.mode.computeResults().grade).toBe('A');
   });
 
   it('demo tank destruction still respawns', () => {

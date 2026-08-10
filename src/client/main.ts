@@ -398,6 +398,24 @@ net.onMessage = (msg) => {
       }
       if (flow === 'lobby') {
         hud.updateLobbyState(lobbyState, lobbyChat, localPlayerId);
+      } else if (flow === 'results') {
+        // A multiplayer rematch keeps both sessions in the room and returns
+        // the crew to the authoritative lobby Ready flow.
+        if (game) {
+          const current = game.networkSequenceDiagnostics();
+          latestSequenceBaseline = {
+            inputSeq: Math.max(latestSequenceBaseline.inputSeq, current.inputSeq),
+            actionSeq: Math.max(latestSequenceBaseline.actionSeq, current.actionSeq),
+          };
+        }
+        teardownGame();
+        latestRunConfig = null;
+        latestStageView = undefined;
+        hordeClient?.reset();
+        hud.setGameScreen(false);
+        hud.setCreateCode(roomCode);
+        hud.showLobby(lobbyState, lobbyChat, localPlayerId);
+        flow = 'lobby';
       } else if (flow === 'create' || flow === 'ready') {
         hud.showLobby(lobbyState, lobbyChat, localPlayerId);
         flow = 'lobby';

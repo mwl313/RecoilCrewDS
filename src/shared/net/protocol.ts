@@ -86,8 +86,10 @@ export interface RunConfigMessage extends ProtocolEnvelope {
  * Protocol 20: joined messages carry the server's input/action sequence
  * baseline so a replacement browser can continue exact-once transport
  * without resetting authoritative operation history.
+ * Protocol 21: multiplayer rematch returns the connected room to the lobby;
+ * the lobby Ready flow now owns starting every subsequent round.
  */
-export const PROTOCOL_VERSION = 20;
+export const PROTOCOL_VERSION = 21;
 
 export interface ProtocolEnvelope {
   protocol: number;

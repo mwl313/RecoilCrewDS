@@ -107,7 +107,6 @@ export type ProgressionXpSource =
   | 'elite'
   | 'waveLeader'
   | 'boss'
-  | 'duplicateRelic'
   | 'direct';
 
 export interface TreasureChestState {

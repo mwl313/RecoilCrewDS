@@ -5,6 +5,8 @@
 - Implementation branch: `relic-addition`
 - Integrated companion work: complete 28-relic icon catalog and packaged HUD artwork
 
+> Superseded on 2026-08-10: duplicate-to-XP conversion was removed. Owned unique relics are excluded from future offers, and TWIN SHELL now stacks with +1 Cannon shell per stack. References below describe the earlier implementation state.
+
 ## Scope and source reconciliation
 
 This implementation reconciles:

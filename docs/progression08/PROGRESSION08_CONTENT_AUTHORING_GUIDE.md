@@ -14,7 +14,7 @@
    type is new; otherwise reuse an existing template.
 2. Add `content/relics/<id>.json` referencing templates with parameters.
 3. Add it to the pool in `content/relic-pools/main.json` and the manifest.
-4. Unique relics must include `duplicateReplacement`.
+4. Unique relics use `stackPolicy: "unique"` and are excluded after acquisition; duplicate rewards never convert to XP.
 
 ## Balance knobs
 

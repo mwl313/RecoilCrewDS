@@ -56,6 +56,12 @@ describe('localization catalogs', () => {
     )).toBe('기관총 연사력\n+30%');
   });
 
+  it('uses 크루 consistently for Korean crew-facing text', () => {
+    expect(Object.values(koCatalog).join('\n')).not.toContain('승무원');
+    expect(koCatalog['ui.results.rematch']).toBe('다시하기');
+    expect(koCatalog['ui.results.leave']).toBe('크루 떠나기');
+  });
+
   it('falls back requested locale to English, then authored copy, and warns once', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const service = new RuntimeLocalizationService('ko', {
@@ -100,7 +106,7 @@ describe('localization catalogs', () => {
   it('contains bilingual single-player and multiplayer paths plus Korean responsive rules', () => {
     const required = [
       'ui.main.singlePlayer', 'ui.main.multiplayer', 'ui.lobby.systemReady', 'ui.lobby.readyForWave',
-      'ui.results.playAgain', 'ui.results.rematchLoadout', 'hud.role.driver', 'hud.role.gunner',
+      'ui.results.playAgain', 'ui.results.rematch', 'hud.role.driver', 'hud.role.gunner',
     ];
     for (const key of required) {
       expect(enCatalog[key]).toBeTruthy();

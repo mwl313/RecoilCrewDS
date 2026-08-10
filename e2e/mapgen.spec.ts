@@ -185,8 +185,13 @@ test('rematch rerolls the arena seed and does not leak scene objects', async ({ 
   await a.evaluate(() => (window as unknown as { __stop?: () => void }).__stop?.());
   await b.evaluate(() => (window as unknown as { __stop?: () => void }).__stop?.());
 
-  await a.click('.mod[data-mod="doubleBarrel"]');
-  await b.click('.mod[data-mod="doubleBarrel"]');
+  await a.click('#rematch-btn');
+  for (const page of [a, b]) {
+    await page.waitForFunction(() =>
+      (window as unknown as { __recoil: Recoil }).__recoil.flow() === 'lobby',
+    );
+    await page.click('#lobby-ready');
+  }
   await a.waitForFunction(
     () => {
       const w = window as unknown as { __recoil: Recoil };

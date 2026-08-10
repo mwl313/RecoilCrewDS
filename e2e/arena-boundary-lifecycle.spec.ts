@@ -129,7 +129,13 @@ test('two clients retain a clean boundary through reconnect and arena reroll', a
     await page.evaluate(() =>
       (window as unknown as { __stopBoundaryInput?: () => void }).__stopBoundaryInput?.(),
     );
-    await page.click('.mod[data-mod="doubleBarrel"]');
+  }
+  await rejoinedDriver.click('#rematch-btn');
+  for (const page of [rejoinedDriver, gunner]) {
+    await page.waitForFunction(() =>
+      (window as unknown as { __recoil: { flow(): string } }).__recoil.flow() === 'lobby',
+    );
+    await page.click('#lobby-ready');
   }
   await rejoinedDriver.waitForFunction((oldSeed) => {
     const hooks = (window as unknown as { __recoil: RecoilLifecycleHooks }).__recoil;

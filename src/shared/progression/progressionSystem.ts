@@ -15,7 +15,7 @@ import { applyUpgradeCard } from './upgradeEffectApplier';
 import { createProgressionTelemetry, type ProgressionTelemetry } from './progressionTelemetry';
 import type { DamageSource } from '../damage/damageTypes';
 import { hash32 } from '../mapgen/seed';
-import type { LevelCurveDefinition, ProgressionDefinition } from '../content/schemas/progression';
+import type { LevelCurveDefinition } from '../content/schemas/progression';
 import type { RelicChestSpawnPolicyDefinition } from '../content/schemas/progression';
 import { RelicChestSpawnDirector } from './relicChestSpawnDirector';
 import { resolveRelicEffectParameters } from './relicEffectParameters';
@@ -100,7 +100,6 @@ export class ProgressionSystem {
     this.rng = new ProgressionRng(hash32('progression', s.matchId));
     this.enemyChestRandom = this.rng.stream('progression.enemyChestDrop');
     const curve = rules.levelCurveContent;
-    const def = rules.progressionContent;
     const xpMult = () => {
       if (!rules.progressionEnabled) return 1;
       const policy = this.modePolicy();
@@ -114,7 +113,7 @@ export class ProgressionSystem {
         this.telemetry.chestsPerStage++;
       },
     );
-    this.inventory = new RelicInventory(s, def ?? emptyDefinition(), (capabilityId, sourceId) =>
+    this.inventory = new RelicInventory(s, (capabilityId, sourceId) =>
       ctx.capabilities.grant(capabilityId, sourceId),
     );
     this.chestPolicy = rules.relicChestSpawnPolicy;
@@ -509,17 +508,11 @@ export class ProgressionSystem {
       .map((id) => this.ctx.rules.relicsById.get(id))
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
     const eligible = pool.filter((relic) => this.inventory.canAcquire(relic));
-    // A fully exhausted unique-only fixture can still resolve through the
-    // authored duplicate-XP path. Finite non-unique relics never re-enter once
-    // their authored stack ceiling has been reached.
-    const fallbackPool = eligible.length > 0
-      ? eligible
-      : pool.filter((relic) => relic.stackPolicy === 'unique');
-    const candidates = fallbackPool.filter((relic) => relic.rarity === rarity);
+    const candidates = eligible.filter((relic) => relic.rarity === rarity);
     // Deterministic rarity fallback: preserve the rolled rarity whenever it
     // has an eligible candidate, otherwise draw only from remaining eligible
     // content in canonical pool order. Maxed finite relics never re-enter.
-    const pickPool = candidates.length > 0 ? candidates : fallbackPool;
+    const pickPool = candidates.length > 0 ? candidates : eligible;
     if (pickPool.length === 0) return null;
     const relic = pickPool[Math.floor(this.rng.stream('progression.relicSelection')() * pickPool.length)];
     const offer: RelicRewardOffer = {
@@ -586,9 +579,6 @@ export class ProgressionSystem {
     }
     this.ctx.eventBus.emit('progressionEvent', { type: 'relicAcquired', relicId: relic.id, rarity: relic.rarity, duplicateConverted: acquire.duplicateConverted });
     this.beginRelicReveal(roll, nowMs, chest, offer);
-    if (acquire.duplicateConverted && acquire.replacementXp > 0) {
-      this.grantXp(acquire.replacementXp, 'duplicateRelic', s.tank);
-    }
     return roll;
   }
 
@@ -964,15 +954,21 @@ export class ProgressionSystem {
   twinShellCooldownMultiplier(): number {
     if (!this.isEnabled) return 1;
     const relic = this.ctx.rules.relicsById.get('relic.twin_shell');
-    if (!relic || this.inventory.getStack('relic.twin_shell') <= 0) return 1;
+    if (!relic || this.twinShellAdditionalShots <= 0) return 1;
     const effect = relic.effects.find((e) => e.templateId === 'relicEffect.twinShell');
     const template = effect ? this.ctx.rules.relicEffectTemplatesById.get(effect.templateId) : undefined;
     const params = effect && template ? resolveRelicEffectParameters(template, effect) : undefined;
     return (params?.cooldownMultiplier as number) ?? 1;
   }
 
+  /** Every TWIN SHELL stack adds one follow-up Cannon projectile. */
+  get twinShellAdditionalShots(): number {
+    if (!this.isEnabled) return 0;
+    return Math.max(0, Math.floor(this.inventory.getStack('relic.twin_shell')));
+  }
+
   get hasTwinShell(): boolean {
-    return this.isEnabled && this.inventory.getStack('relic.twin_shell') > 0;
+    return this.twinShellAdditionalShots > 0;
   }
 
   /** Reproject relic stat aggregates (tests/debug). */
@@ -1112,24 +1108,4 @@ function isRelicAcknowledged(active: ProgressionSelectionState, role: SelectionR
   if (role === 'single') return active.singlePlayerRelicAcknowledged === true;
   if (role === 'driver') return active.driverRelicAcknowledged === true;
   return active.gunnerRelicAcknowledged === true;
-}
-
-function emptyDefinition(): ProgressionDefinition {
-  return {
-    id: 'progression.empty',
-    label: 'Empty',
-    behaviors: [],
-    levelCurveId: 'levelCurve.empty',
-    xpPickupDefinitionId: 'xpPickup.empty',
-    upgradeRarityTableId: 'rarity.upgrade.empty',
-    upgradeFirstExperienceRuleId: 'firstExperience.empty',
-    treasureRarityTableId: 'rarity.treasure.empty',
-    firstTreasureRuleId: 'firstExperience.treasure.empty',
-    relicPoolId: 'relicPool.empty',
-    multiplayerPolicyId: 'progressionMode.multiplayer',
-    singlePlayerPolicyId: 'progressionMode.singlePlayer',
-    relicChestSpawnPolicyId: 'relicChestSpawn.empty',
-    enemyXpRewards: { ambient: 0, wave: 0, elite: 0, boss: 0 },
-    duplicateUniqueRelicXp: 0,
-  };
 }

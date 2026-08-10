@@ -895,8 +895,8 @@
     },
     {
       "key": "relic.relic_twin_shell.description",
-      "en": "Fire two Cannon shells in succession, but increase Cannon cooldown by 20%. Can only be acquired once.",
-      "ko": "주포탄을 연속 두 발 발사하지만 주포 재사용 대기시간이 20% 증가합니다. 한 번만 획득할 수 있습니다."
+      "en": "Each stack adds one Cannon shell to every firing sequence. Cannon cooldown is increased by 20% while owned.",
+      "ko": "중첩마다 주포 발사 시 포탄을 한 발 추가합니다. 보유 중 주포 재사용 대기시간이 20% 증가합니다."
     },
     {
       "key": "relic.relic_twin_shell.name",
@@ -3822,7 +3822,7 @@
       "file": "content/relics/twin_shell.json",
       "line": 1,
       "field": "description",
-      "value": "Cannon fires two shells in succession (cooldown x1.2). Unique."
+      "value": "Each stack adds one Cannon shell to every firing sequence (cooldown x1.2 while owned)."
     },
     {
       "file": "content/relics/unstoppable.json",

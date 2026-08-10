@@ -118,6 +118,8 @@ export interface AudioDebugStats {
   lastRecipe: ProceduralSoundRecipe | null;
   lastWorldDistance: number;
   lastPan: number;
+  /** Read-only presentation diagnostic for the shared cannon charge sweep. */
+  cannonChargeActive: boolean;
   hordePresence: number;
   listener: ListenerPose;
 }

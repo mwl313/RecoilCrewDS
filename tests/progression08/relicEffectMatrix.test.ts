@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { BASE_CONFIG } from '../../src/shared/config';
 import { makeMatch, spawnEnemy, killEnemy } from './helpers';
 
@@ -136,18 +136,24 @@ describe('all 28 shipped relic effects', () => {
     expect(m.state.tank.dashCooldown).toBe(9);
   });
 
-  it('17 TWIN SHELL fires exactly two shells with the same charge ratio', () => {
+  it.each([1, 2, 3])('17 TWIN SHELL stack %i adds one shell per stack with the same charge ratio', (stacks) => {
     const m = makeMatch();
-    own(m, 'relic.twin_shell');
+    own(m, 'relic.twin_shell', stacks);
+    const spawn = vi.spyOn(m.systems.projectiles, 'spawn');
     const before = m.state.nextShellId;
     expect(m.applyGunnerAction('secondaryPressed', 1).accepted).toBe(true);
     for (let i = 0; i < 32; i++) m.step(1 / 30);
     expect(m.applyGunnerAction('secondaryReleased', 2).accepted).toBe(true);
-    for (let i = 0; i < 6; i++) m.step(1 / 30);
-    expect(m.state.nextShellId - before).toBe(2);
-    expect(m.state.shells).toHaveLength(2);
-    expect(m.state.shells[0].chargeRatio).toBeCloseTo(m.state.shells[1].chargeRatio ?? -1);
+    m.step(1 / 30);
     expect(m.state.turret.cannonCooldown).toBeGreaterThan(m.rules.matchConfig.cannonCooldown);
+    for (let i = 0; i < 29; i++) m.step(1 / 30);
+    expect(m.state.nextShellId - before).toBe(1 + stacks);
+    expect(spawn).toHaveBeenCalledTimes(1 + stacks);
+    const spawnedShells = spawn.mock.results.map((result) => result.value);
+    const firstChargeRatio = spawnedShells[0]?.chargeRatio ?? -1;
+    for (const shell of spawnedShells) {
+      expect(shell.chargeRatio).toBeCloseTo(firstChargeRatio);
+    }
   });
 
   it('18 DEATH MARK explodes a cannon-killed enemy', () => {

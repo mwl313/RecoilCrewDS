@@ -315,13 +315,6 @@ export const relicSchema = z
           .strict(),
       )
       .min(1),
-    duplicateReplacement: z
-      .object({
-        type: z.literal('xp'),
-        amount: positiveNumber,
-      })
-      .strict()
-      .optional(),
   })
   .strict();
 
@@ -423,7 +416,6 @@ export const progressionDefinitionSchema = z
         boss: positiveNumber,
       })
       .strict(),
-    duplicateUniqueRelicXp: positiveNumber,
   })
   .strict();
 

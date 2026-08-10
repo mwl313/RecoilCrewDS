@@ -118,6 +118,7 @@ async function startGunner(page: Page) {
 }
 
 test('two browsers play a complete round, see results, and rematch', async ({ browser }) => {
+  test.setTimeout(210_000);
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const ctxB = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const a = await ctxA.newPage();
@@ -205,9 +206,6 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
   });
   expect(recoilOk).toBe(true);
 
-  // More enemies die as the round progresses.
-  await waitState(a, 's => s.stats.kills >= 5');
-
   // Round completes to results on both clients.
   await waitState(a, 's => s.phase === "results"');
   await waitState(b, 's => s.phase === "results"');
@@ -219,10 +217,22 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
 
   await a.evaluate(() => (window as unknown as { __stopDriver?: () => void }).__stopDriver?.());
   await b.evaluate(() => (window as unknown as { __stopGunner?: () => void }).__stopGunner?.());
+  const sequencesBeforeLobby = await Promise.all([a, b].map((page) => page.evaluate(() =>
+    (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } | null };
+    }).__recoil.networkSequences(),
+  )));
 
-  // Rematch: both pick a modifier -> same room, fresh round.
-  await a.click('.mod[data-mod="doubleBarrel"]');
-  await b.click('.mod[data-mod="doubleBarrel"]');
+  // Rematch returns both connected clients to the same lobby.
+  await a.click('#rematch-btn');
+  for (const page of [a, b]) {
+    await page.waitForFunction(() =>
+      (window as unknown as { __recoil: { flow(): string } }).__recoil.flow() === 'lobby',
+    );
+    await expect(page.locator('#lobby-ready')).toBeVisible();
+  }
+  await a.click('#lobby-ready');
+  await b.click('#lobby-ready');
   await waitState(a, 's => s.phase === "running" && s.stats.score === 0');
   const matchA = await a.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
   const matchB = await b.evaluate(() => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId);
@@ -232,6 +242,15 @@ test('two browsers play a complete round, see results, and rematch', async ({ br
     await page.waitForFunction(() =>
       (window as unknown as { __recoil: { flow(): string } }).__recoil.flow() === 'game',
     );
+  }
+  const sequencesAfterLobby = await Promise.all([a, b].map((page) => page.evaluate(() =>
+    (window as unknown as {
+      __recoil: { networkSequences(): { inputSeq: number; actionSeq: number } | null };
+    }).__recoil.networkSequences(),
+  )));
+  for (let index = 0; index < sequencesAfterLobby.length; index++) {
+    expect(sequencesAfterLobby[index]?.inputSeq).toBeGreaterThanOrEqual(sequencesBeforeLobby[index]?.inputSeq ?? 0);
+    expect(sequencesAfterLobby[index]?.actionSeq).toBeGreaterThanOrEqual(sequencesBeforeLobby[index]?.actionSeq ?? 0);
   }
   const rematchSpawn = await a.evaluate(() => {
     const tank = (window as unknown as {

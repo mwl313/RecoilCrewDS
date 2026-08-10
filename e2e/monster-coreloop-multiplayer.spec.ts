@@ -400,13 +400,18 @@ test('production multiplayer agrees on run, wave, and boss presentation across t
     await expect(page.locator('#screen-results:not(.hidden)')).toBeVisible();
   }
 
-  // Rematch vote: both pick a modifier, the room re-runs the preload gate,
-  // and both clients enter a fresh match.
-  await driver.locator('#mods .mod').first().click();
-  await gunner2.locator('#mods .mod').first().click();
+  // Rematch returns both connected clients to their lobby. Ready there to
+  // re-run the preload gate and enter a fresh standard match.
   const oldMatchId = await driver.evaluate(
     () => (window as unknown as { __recoil: { state(): { matchId: string } } }).__recoil.state().matchId,
   );
+  await driver.click('#rematch-btn');
+  for (const page of [driver, gunner2]) {
+    await page.waitForFunction(() =>
+      (window as unknown as { __recoil: { flow(): string } }).__recoil.flow() === 'lobby',
+    );
+    await page.click('#lobby-ready');
+  }
   for (const [label, page] of [['driver', driver], ['gunner2', gunner2]] as const) {
     try {
       await page.waitForFunction(

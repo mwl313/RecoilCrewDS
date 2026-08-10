@@ -6,7 +6,6 @@ import {
 } from '../../generated/presentationContent.generated';
 import { SceneActionRegistry } from './actionRegistry';
 import {
-  MODIFIERS,
   type AppFlowHandlers,
   type FlowStateId,
   type RematchPayload,
@@ -437,7 +436,6 @@ export class SceneFlowPresenter {
         { label: this.i18n.t('ui.results.chargedShots'), value: String(results.chargedCannonShots) },
         { label: this.i18n.t('ui.results.fullCharge'), value: String(results.fullChargeShots) },
         { label: this.i18n.t('ui.results.kills'), value: String(results.kills) },
-        { label: this.i18n.t('ui.results.crewLinks'), value: String(results.links) },
       ],
     });
     this.updateRematch(rematch);
@@ -465,22 +463,9 @@ export class SceneFlowPresenter {
     this.showState('results');
   }
 
-  updateRematch(rematch: RematchPayload): void {
-    this.setSceneContext('scene.results', {
-      modifiers: MODIFIERS.map((m) => ({
-        id: m.id,
-        label: this.i18n.t(`ui.modifier.${m.id}.name`, undefined, m.label),
-        desc: this.i18n.t(`ui.modifier.${m.id}.description`, undefined, m.desc),
-        selected: m.id === rematch.modifier,
-      })),
-      rematchInfo:
-        rematch.driver && rematch.gunner
-          ? this.i18n.t('ui.results.bothReady')
-          : this.i18n.t('ui.results.rematchStatus', {
-              driver: this.i18n.t(rematch.driver ? 'ui.status.ready' : 'ui.status.picking'),
-              gunner: this.i18n.t(rematch.gunner ? 'ui.status.ready' : 'ui.status.picking'),
-            }),
-    });
+  updateRematch(_rematch: RematchPayload): void {
+    // Rematch readiness remains authoritative, but the results scene now uses
+    // one standard rematch action instead of exposing modifier selection.
   }
 
   showCountdown(n: number): void {
@@ -603,7 +588,7 @@ export class SceneFlowPresenter {
     this.actions.register('app.cancelSettings', () => ui(() => h().onCancelSettings?.()));
     this.actions.register('app.back', () => ui(() => h().onBack?.()));
     this.actions.register('app.leave', () => ui(() => h().onLeave?.()));
-    this.actions.register('app.rematch', (payload) => ui(() => h().onRematch?.((payload as string ?? 'none') as never)));
+    this.actions.register('app.rematch', () => ui(() => h().onRematch?.('none')));
     this.actions.register('app.retry', () => ui(() => h().onRetry?.()));
     this.actions.register('app.resume', () => ui(() => h().onResume?.()));
     this.actions.register('app.pause', () => ui(() => h().onPause?.()));

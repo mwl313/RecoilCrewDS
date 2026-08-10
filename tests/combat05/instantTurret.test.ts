@@ -9,9 +9,9 @@ import { wrapAngle } from '../../src/shared/math';
 const DT = 1 / 30;
 
 describe('instant turret response (Combat 05 M3)', () => {
-  it('protocol version was bumped for click-time aim', () => {
-    // Relic movement counters are now part of the authoritative snapshot.
-    expect(PROTOCOL_VERSION).toBe(20);
+  it('uses the current exact-once multiplayer protocol', () => {
+    // Protocol 21 retains exact-once action baselines across lobby rematches.
+    expect(PROTOCOL_VERSION).toBe(21);
   });
 
   it('instant client mode makes predicted yaw/pitch equal the mouse target in the same frame', () => {

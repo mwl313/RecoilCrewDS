@@ -274,6 +274,7 @@ export class AudioManager {
       lastRecipe: this.lastRecipe,
       lastWorldDistance: this.lastWorldDistance,
       lastPan: this.lastPan,
+      cannonChargeActive: this.chargeSweep !== null,
       hordePresence: this.horde?.amount ?? 0,
       listener: { ...this.listener },
     };

@@ -249,7 +249,7 @@
                   {
                     "id": "results-rematch",
                     "type": "container",
-                    "class": "results-rematch",
+                    "class": "results-rematch results-actions",
                     "bindings": [
                       {
                         "target": "visible",
@@ -258,71 +258,23 @@
                     ],
                     "children": [
                       {
-                        "id": "results-mods-title",
-                        "type": "text",
-                        "class": "results-section-label mods-title",
-                        "text": "REMATCH LOADOUT",
-                        "textKey": "ui.results.rematchLoadout"
-                      },
-                      {
-                        "id": "mods",
-                        "type": "repeater",
-                        "class": "mods",
-                        "props": {
-                          "listSource": "modifiers"
+                        "id": "rematch-btn",
+                        "type": "button",
+                        "class": "ui-action results-leave",
+                        "appearance": {
+                          "tone": "neutral",
+                          "emphasis": "standard",
+                          "density": "comfortable",
+                          "shape": "plate"
                         },
-                        "children": [
+                        "text": "REMATCH",
+                        "actions": [
                           {
-                            "id": "mod-chip",
-                            "type": "button",
-                            "class": "ui-compact-action mod",
-                            "bindings": [
-                              {
-                                "target": "text",
-                                "source": "item.label"
-                              },
-                              {
-                                "target": "class",
-                                "source": "item.selected",
-                                "transform": "booleanClass",
-                                "attribute": "selected"
-                              },
-                              {
-                                "target": "attribute",
-                                "source": "item.desc",
-                                "attribute": "title"
-                              },
-                              {
-                                "target": "attribute",
-                                "source": "item.id",
-                                "attribute": "data-mod"
-                              }
-                            ],
-                            "actions": [
-                              {
-                                "event": "click",
-                                "action": "app.rematch",
-                                "payload": {
-                                  "__itemId": true
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "id": "rematch-info",
-                        "type": "text",
-                        "class": "rematch-info",
-                        "text": "PICK A MODIFIER TO REMATCH",
-                        "bindings": [
-                          {
-                            "target": "text",
-                            "source": "rematchInfo",
-                            "fallback": "PICK A MODIFIER TO REMATCH"
+                            "event": "click",
+                            "action": "app.rematch"
                           }
                         ],
-                        "textKey": "ui.results.pickModifier"
+                        "textKey": "ui.results.rematch"
                       },
                       {
                         "id": "leave-btn",

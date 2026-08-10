@@ -114,10 +114,11 @@ describe('SceneRuntime components', () => {
     runtime.unload();
   });
 
-  it('results scene renders modifier chips with labels and data-mod', async () => {
+  it('results scene renders one standard rematch action matching leave', async () => {
     const container = document.createElement('div');
     const { runtime, actions } = makeRuntime(container);
-    actions.register('app.rematch', () => undefined);
+    let rematches = 0;
+    actions.register('app.rematch', () => { rematches++; });
     await runtime.load(PRESENTATION_SCENES['scene.results'], {
       grade: 'D',
       title: 'T',
@@ -125,13 +126,16 @@ describe('SceneRuntime components', () => {
       crewMode: true,
       singleMode: false,
       stats: [{ label: 'KILLS', value: '4' }],
-      modifiers: [{ id: 'doubleBarrel', label: 'DOUBLE BARREL', desc: 'x', selected: false }],
-      rematchInfo: 'DRIVER READY · GUNNER PICKING',
     });
-    const chips = Array.from(container.querySelectorAll('.mod')) as HTMLElement[];
-    expect(chips.length).toBe(1);
-    expect(chips[0].textContent).toBe('DOUBLE BARREL');
-    expect(chips[0].getAttribute('data-mod')).toBe('doubleBarrel');
+    const rematch = container.querySelector('#rematch-btn') as HTMLButtonElement;
+    const leave = container.querySelector('#leave-btn') as HTMLButtonElement;
+    expect(rematch.textContent).toBe('REMATCH');
+    expect(container.querySelectorAll('.mod')).toHaveLength(0);
+    expect(rematch.className).toBe(leave.className);
+    expect(rematch.dataset.uiTone).toBe(leave.dataset.uiTone);
+    expect(rematch.dataset.uiEmphasis).toBe(leave.dataset.uiEmphasis);
+    rematch.click();
+    expect(rematches).toBe(1);
     const stats = Array.from(container.querySelectorAll('.results-stat')) as HTMLElement[];
     expect(stats.length).toBe(1);
     expect(stats[0].textContent).toContain('KILLS');
@@ -488,7 +492,8 @@ describe('SceneFlowPresenter overlay visibility', () => {
     const registry = new UiComponentRegistry();
     registerDefaultUiComponents(registry);
     const flow = new SceneFlowPresenter(container, document.createElement('div'), registry);
-    flow.bind({} as never);
+    const rematches: string[] = [];
+    flow.bind({ onRematch: (modifier: string) => rematches.push(modifier) } as never);
     const results = {
       score: 4200,
       bestCombo: 4,
@@ -520,7 +525,9 @@ describe('SceneFlowPresenter overlay visibility', () => {
     flow.showResults(results, { driver: false, gunner: false, modifier: 'none' }, 'victory');
     const crewStatLabels = [...container.querySelectorAll('#results-stats .results-stat span')]
       .map((node) => node.textContent);
-    expect(crewStatLabels).toEqual(['BEST COMBO', 'CHARGED SHOTS', 'FULL CHARGE', 'KILLS', 'CREW LINKS']);
+    expect(crewStatLabels).toEqual(['BEST COMBO', 'CHARGED SHOTS', 'FULL CHARGE', 'KILLS']);
+    (container.querySelector('#rematch-btn') as HTMLButtonElement).click();
+    expect(rematches).toEqual(['none']);
   });
 });
 

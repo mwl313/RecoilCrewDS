@@ -17,6 +17,8 @@ import { hash32 } from '../mapgen/seed';
 import { selectMonsterRun, type SelectedMonsterRun } from '../monsters/monsterRunSelection';
 import { resolveSelectedSlots } from '../monsters/monsterStage';
 import { resolveHordeDirector, type ResolvedHordeDirector } from '../horde/hordeDirector';
+import { normalizedEnemyClass } from '../enemies/enemyClassification';
+import { isMonster } from '../enemies/monsterCompat';
 import { LoadoutRuntime } from '../weapons/loadoutRuntime';
 import { WeaponSystem } from '../weapons/weaponSystem';
 import type { GunnerActionType } from '../net/protocol';
@@ -735,6 +737,7 @@ export class MatchRuntime {
     // stats, drops, combo, or reward presentation routing.
     if (e.ownership?.rewardSuppressed) return;
     const sc = this.cfg.scoring;
+    const enemyDef = this.systems.enemies.defFor(e);
     s.stats.kills++;
     if (source === 'dash') s.stats.dashKills++;
     let score = 0;
@@ -755,15 +758,25 @@ export class MatchRuntime {
       score = sc.truckScore;
       contributionPoints = 4;
     }
-    if (this.productionMonster && e.defId === this.activeBossEnemyId) {
-      this.endProductionMatch('bossDefeated');
+    if (isMonster(enemyDef)) {
+      const rewardClass = normalizedEnemyClass(e);
+      score = enemyDef.score ?? (
+        rewardClass === 'boss' ? sc.truckScore
+          : rewardClass === 'elite' ? sc.towerScore
+            : rewardClass === 'wave' ? sc.rammerScore
+              : sc.bugScore
+      );
+      contributionPoints = enemyDef.contributionPoints ?? (
+        rewardClass === 'boss' ? 4
+          : rewardClass === 'elite' ? 3
+            : 2
+      );
     }
     this.systems.score.addScore(score, e.type.toUpperCase());
     this.systems.combo.addContribution(contributionRole, contributionPoints);
     // Drops react to the kill through the enemy's validated drop table.
     this.systems.drops.resolveFor(e);
     this.systems.pickups.noteKill(s.time, scrap);
-    const enemyDef = this.systems.enemies.defFor(e);
     const audioMetadata = enemyDef.type === 'monster'
       ? {
           tier: enemyDef.tier,
@@ -778,6 +791,11 @@ export class MatchRuntime {
       label: `+${Math.floor(score * this.state.combo.multiplier)}`,
       ...audioMetadata,
     });
+    // Freeze production results only after the terminal boss kill has been
+    // fully reflected in score, combo, drops, and the result statistics.
+    if (this.productionMonster && e.defId === this.activeBossEnemyId) {
+      this.endProductionMatch('bossDefeated');
+    }
   }
 
   /** True once a mode references a horde director (Core Loop 06 M3+). */

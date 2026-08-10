@@ -230,7 +230,7 @@ describe('input handling', () => {
 });
 
 describe('full round and rematch', () => {
-  it('runs a complete 90-second round to results and rematches in the same room', () => {
+  it('returns both connected players to the lobby before a fresh round', () => {
     const { manager, advance } = makeManager();
     const a = new FakeSocket();
     const b = new FakeSocket();
@@ -265,15 +265,25 @@ describe('full round and rematch', () => {
     expect(resultsMsg.results).toBeDefined();
     expect(resultsMsg.results.score).toBeGreaterThanOrEqual(0);
 
-    // Rematch: both choose a modifier -> new countdown -> fresh match in same room.
-    manager.handle(a, { t: 'rematch', modifier: 'soapTracks' });
-    manager.handle(b, { t: 'rematch', modifier: 'soapTracks' });
+    // Either results-screen Rematch returns the connected room to its lobby.
+    manager.handle(a, { t: 'rematch', modifier: 'none' });
+    expect(room.phase).toBe('lobby');
+    expect(room.match).toBeNull();
+    expect(room.players.every((player) => !player.ready)).toBe(true);
+    expect(manager.getClient(a)?.room).toBe(room);
+    expect(manager.getClient(b)?.room).toBe(room);
+    expect(a.last('lobbyState')).toBeDefined();
+    expect(b.last('lobbyState')).toBeDefined();
+
+    // The normal lobby Ready handshake starts the next standard round.
+    manager.handle(a, { t: 'ready', ready: true });
+    manager.handle(b, { t: 'ready', ready: true });
     expect(room.phase).toBe('countdown');
     stepSeconds(manager, 3.5);
     expect(room.phase).toBe('running');
     expect(room.match!.state.matchId).not.toBe(firstMatchId);
     expect(room.match!.state.stats.score).toBe(0);
-    expect(room.match!.mcfg.modifier).toBe('soapTracks');
+    expect(room.match!.mcfg.modifier).toBe('none');
     expect(room.code).toBe(a.last('created')!.code);
 
     // Transport sequences are connection-scoped, so the first rematch

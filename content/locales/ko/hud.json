@@ -4,7 +4,7 @@
   "hud.connection.online": "온라인",
   "hud.connection.offline": "오프라인",
   "hud.monsterLevel": "몬스터 레벨 {value}",
-  "hud.crewLevel": "승무원 레벨 {value}",
+  "hud.crewLevel": "크루 레벨 {value}",
   "hud.xp": "XP {value}",
   "hud.pauseAria": "일시정지",
   "hud.eliteContact": "정예 출현",

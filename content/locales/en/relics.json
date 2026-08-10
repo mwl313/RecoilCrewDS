@@ -48,7 +48,7 @@
   "relic.relic_safe_haven.name": "SAFE HAVEN",
   "relic.relic_safe_haven.description": "Repair {amount} integrity when a wave is cleared.",
   "relic.relic_twin_shell.name": "TWIN SHELL",
-  "relic.relic_twin_shell.description": "Fire two Cannon shells in succession, but increase Cannon cooldown by 20%. Can only be acquired once.",
+  "relic.relic_twin_shell.description": "Each stack adds one Cannon shell to every firing sequence. Cannon cooldown is increased by 20% while owned.",
   "relic.relic_unstoppable.name": "UNSTOPPABLE",
   "relic.relic_unstoppable.description": "Dash has no cooldown. Increase Dash damage by 50%.",
   "relic.relic_vampire_rounds.name": "VAMPIRE ROUNDS",

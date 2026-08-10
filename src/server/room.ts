@@ -613,19 +613,9 @@ export class RoomManager {
     }
     if (t === 'rematch') {
       if (room.phase !== 'results' || !client.role || !room.match) return;
-      const modifier = typeof raw.modifier === 'string' && raw.modifier.length > 0 ? (raw.modifier as ModifierId) : 'none';
-      room.rematch[client.role] = modifier;
-      room.rematchModifier = modifier;
-      this.broadcastResults(room);
-      if (room.rematch.driver && room.rematch.gunner) {
-        room.rematch = { driver: null, gunner: null };
-        room.ready = { driver: false, gunner: false };
-        if (this.isProductionRoom()) {
-          this.beginProductionLoading(room);
-        } else {
-          this.beginCountdown(room, room.rematchModifier);
-        }
-      }
+      // Results Rematch returns the whole connected crew to its existing
+      // lobby. The lobby Ready flow owns mutual consent and the next preload.
+      this.returnResultsToLobby(room);
       return;
     }
     if (t === 'assetReady') {
@@ -1328,6 +1318,30 @@ export class RoomManager {
       driverConnected: !!room.driver?.socket,
       gunnerConnected: !!room.gunner?.socket,
     });
+  }
+
+  /** Return a completed room to its lobby without dropping either session. */
+  private returnResultsToLobby(room: Room): void {
+    room.match?.clearDriverInput();
+    room.match?.clearGunnerInput();
+    room.phase = 'lobby';
+    room.lobbyPhase = 'lobby';
+    room.match = null;
+    room.arenaSession = null;
+    room.hordeReplication = null;
+    room.pendingMatchId = null;
+    room.loadingT = 0;
+    room.countdownT = 0;
+    room.countdownEndsAtWallMs = null;
+    room.assetReady = { driver: false, gunner: false };
+    room.ready = { driver: false, gunner: false };
+    room.rematch = { driver: null, gunner: null };
+    room.rematchModifier = 'none';
+    room.roleSwap = null;
+    for (const player of room.players) player.ready = false;
+    room.lobbyRevision++;
+    this.broadcastLobby(room);
+    this.broadcastPeers(room);
   }
 
   private clearDisconnectedRoleInput(room: Room, client: Client): void {

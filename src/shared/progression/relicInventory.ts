@@ -1,6 +1,5 @@
 import type { RelicDefinition } from '../content/schemas/progression';
 import type { MatchState } from '../types';
-import type { ProgressionDefinition } from '../content/schemas/progression';
 import type { RelicAcquireResult } from './progressionTypes';
 
 /**
@@ -10,7 +9,6 @@ import type { RelicAcquireResult } from './progressionTypes';
 export class RelicInventory {
   constructor(
     private readonly state: MatchState,
-    private readonly definition: ProgressionDefinition,
     private readonly grantCapability: (capabilityId: string, sourceId: string) => void,
   ) {}
 
@@ -33,14 +31,11 @@ export class RelicInventory {
     const stacks = this.state.teamProgression.relicStacks;
     const current = stacks[relic.id] ?? 0;
     if (!this.canAcquire(relic)) {
-      const replacementXp = relic.stackPolicy === 'unique'
-        ? (relic.duplicateReplacement?.amount ?? this.definition.duplicateUniqueRelicXp)
-        : 0;
       return {
         relicId: relic.id,
         stackCount: current,
-        duplicateConverted: replacementXp > 0,
-        replacementXp,
+        duplicateConverted: false,
+        replacementXp: 0,
         capabilityGranted: false,
       };
     }

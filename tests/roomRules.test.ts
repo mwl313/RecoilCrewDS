@@ -81,17 +81,23 @@ describe('server rules flow: ContentPack -> mode -> difficulty -> MatchRules', (
 });
 
 describe('two simultaneous rooms with different rules', () => {
-  it('rematched rooms resolve different rules without contamination', () => {
+  it('rooms returning through the lobby still resolve isolated rules', () => {
     const manager = new RoomManager({ content: CONTENT_META, pack });
     const crewA = startCrew(manager);
     const crewB = startCrew(manager);
     stepSeconds(manager, 91); // both rounds finish
     expect(crewA.room.phase).toBe('results');
     expect(crewB.room.phase).toBe('results');
-    manager.handle(crewA.a, { t: 'rematch', modifier: 'doubleBarrel' });
-    manager.handle(crewA.b, { t: 'rematch', modifier: 'doubleBarrel' });
-    manager.handle(crewB.a, { t: 'rematch', modifier: 'moonYard' });
-    manager.handle(crewB.b, { t: 'rematch', modifier: 'moonYard' });
+    manager.handle(crewA.a, { t: 'rematch', modifier: 'none' });
+    manager.handle(crewB.a, { t: 'rematch', modifier: 'none' });
+    // Preserve the low-level per-room rules isolation fixture; the public
+    // results UI always enters the lobby with the standard `none` modifier.
+    crewA.room.rematchModifier = 'doubleBarrel';
+    crewB.room.rematchModifier = 'moonYard';
+    manager.handle(crewA.a, { t: 'ready', ready: true });
+    manager.handle(crewA.b, { t: 'ready', ready: true });
+    manager.handle(crewB.a, { t: 'ready', ready: true });
+    manager.handle(crewB.b, { t: 'ready', ready: true });
     stepSeconds(manager, 3.5);
 
     const rulesA = crewA.room.match!.rules;

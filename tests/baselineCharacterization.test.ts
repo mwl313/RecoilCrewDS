@@ -385,7 +385,7 @@ describe('single-player/online rule parity', () => {
 
 // ------------------------------------------------ 6. per-room config isolation
 describe('per-room config isolation', () => {
-  it('two rooms can rematch into different modifiers without contamination', () => {
+  it('two rooms can return through the lobby without rules contamination', () => {
     const { manager } = makeManager();
     const crewA = startCrew(manager);
     const crewB = startCrew(manager);
@@ -398,11 +398,16 @@ describe('per-room config isolation', () => {
     expect(roomA.phase).toBe('results');
     expect(roomB.phase).toBe('results');
 
-    // Rematch A into Double Barrel, B into Moon Yard.
-    manager.handle(crewA.a, { t: 'rematch', modifier: 'doubleBarrel' });
-    manager.handle(crewA.b, { t: 'rematch', modifier: 'doubleBarrel' });
-    manager.handle(crewB.a, { t: 'rematch', modifier: 'moonYard' });
-    manager.handle(crewB.b, { t: 'rematch', modifier: 'moonYard' });
+    manager.handle(crewA.a, { t: 'rematch', modifier: 'none' });
+    manager.handle(crewB.a, { t: 'rematch', modifier: 'none' });
+    // Keep this characterization focused on low-level rules isolation. The
+    // player-facing rematch path itself always selects the standard rules.
+    roomA.rematchModifier = 'doubleBarrel';
+    roomB.rematchModifier = 'moonYard';
+    manager.handle(crewA.a, { t: 'ready', ready: true });
+    manager.handle(crewA.b, { t: 'ready', ready: true });
+    manager.handle(crewB.a, { t: 'ready', ready: true });
+    manager.handle(crewB.b, { t: 'ready', ready: true });
     stepSeconds(manager, 3.5);
     expect(roomA.phase).toBe('running');
     expect(roomB.phase).toBe('running');

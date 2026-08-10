@@ -50,12 +50,17 @@ describe('progression content schemas (progression08)', () => {
     expect(categories.filter((c) => c.role === 'gunner').length).toBe(8);
   });
 
-  it('unique relics specify duplicate replacement', () => {
-    for (const id of ['relic.twin_shell', 'relic.phase_dash', 'relic.phoenix_core']) {
+  it('keeps only the intended relics unique', () => {
+    for (const id of ['relic.phase_dash', 'relic.phoenix_core']) {
       const relic = CLIENT_CONTENT_PACK.getRelic(id);
       expect(relic.stackPolicy).toBe('unique');
-      expect(relic.duplicateReplacement?.amount).toBe(250);
     }
+  });
+
+  it('allows TWIN SHELL to stack without a maximum', () => {
+    const relic = CLIENT_CONTENT_PACK.getRelic('relic.twin_shell');
+    expect(relic.stackPolicy).toBe('addFlat');
+    expect(relic.maximumStacks).toBeUndefined();
   });
 
   it('relic effect templates resolve to known handler types', () => {

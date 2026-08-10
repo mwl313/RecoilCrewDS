@@ -48,7 +48,7 @@
   "relic.relic_safe_haven.name": "안식처",
   "relic.relic_safe_haven.description": "웨이브를 클리어하면 내구도를 {amount} 수리합니다.",
   "relic.relic_twin_shell.name": "쌍둥이 포탄",
-  "relic.relic_twin_shell.description": "주포탄을 연속 두 발 발사하지만 주포 재사용 대기시간이 20% 증가합니다. 한 번만 획득할 수 있습니다.",
+  "relic.relic_twin_shell.description": "중첩마다 주포 발사 시 포탄을 한 발 추가합니다. 보유 중 주포 재사용 대기시간이 20% 증가합니다.",
   "relic.relic_unstoppable.name": "멈출 수 없는 돌진",
   "relic.relic_unstoppable.description": "대시에 재사용 대기시간이 없어지고 대시 피해가 50% 증가합니다.",
   "relic.relic_vampire_rounds.name": "흡혈탄",

@@ -219,11 +219,13 @@ describe('server room arena lifecycle', () => {
     const manager = new RoomManager({ content: CONTENT_META, pack });
     const { a, b, code, room } = startCrew(manager);
     const first = room.arenaSession!.metadata;
-    // Play to results then rematch.
+    // Play to results, return to the connected lobby, then ready a new round.
     for (let i = 0; i < 30 * 90; i++) manager.tick(1 / 30);
     expect(room.phase).toBe('results');
-    manager.handle(a, { t: 'rematch', modifier: 'moonYard' });
-    manager.handle(b, { t: 'rematch', modifier: 'moonYard' });
+    manager.handle(a, { t: 'rematch', modifier: 'none' });
+    expect(room.phase).toBe('lobby');
+    manager.handle(a, { t: 'ready', ready: true });
+    manager.handle(b, { t: 'ready', ready: true });
     for (let i = 0; i < 105; i++) manager.tick(1 / 30);
     expect(room.phase).toBe('running');
     const second = room.arenaSession!.metadata;

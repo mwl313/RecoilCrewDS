@@ -408,12 +408,6 @@ export class ReferenceValidator {
     for (const relic of this.registries.relics.all()) {
       const file = this.fileOf(relic.id, this.registries.relics);
       this.checkCommon(issues, relic, file);
-      if (relic.stackPolicy === 'unique' && !relic.duplicateReplacement) {
-        issues.push(`${file}: duplicateReplacement — unique relics must specify replacement behavior`);
-      }
-      if (relic.stackPolicy !== 'unique' && relic.duplicateReplacement) {
-        issues.push(`${file}: duplicateReplacement — only unique relics use replacement`);
-      }
       relic.effects.forEach((effect, i) => {
         if (!this.registries.relicEffectTemplates.has(effect.templateId)) {
           issues.push(`${file}: effects[${i}].templateId — unknown relic effect template '${effect.templateId}'`);

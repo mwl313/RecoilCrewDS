@@ -4,7 +4,7 @@
   "behaviors": ["behavior.results.demo"],
   "grades": [
     { "grade": "S", "minScore": 12000, "require": { "fullChargeShots": 2 } },
-    { "grade": "A", "minScore": 8000, "require": { "bestCombo": 4, "links": 2 } },
+    { "grade": "A", "minScore": 8000, "require": { "bestCombo": 4, "chargedCannonShots": 2 } },
     { "grade": "B", "minScore": 4000, "require": { "fullChargeShots": 1 } },
     { "grade": "C", "minScore": 1500, "require": { "kills": 5 } },
     { "grade": "D", "minScore": 0 }

@@ -164,6 +164,15 @@ test('gunner charge HUD fills locally and releases exactly one full-charge shot'
       && state?.turret.cannonHeld === true && state.turret.cannonChargeFull === true
       && state.turret.cannonChargeRatio >= 0.999;
   }, undefined, { timeout: 5000 });
+  await driver.waitForFunction(() => {
+    const recoil = (window as unknown as {
+      __recoil: {
+        state(): { turret: { cannonHeld: boolean } } | null;
+        audioStats(): { cannonChargeActive: boolean };
+      };
+    }).__recoil;
+    return recoil.state()?.turret.cannonHeld === true && recoil.audioStats().cannonChargeActive;
+  }, undefined, { timeout: 5000 });
 
   const chargePresentation = await gunner.evaluate(() => {
     const local = (window as unknown as {
@@ -197,6 +206,12 @@ test('gunner charge HUD fills locally and releases exactly one full-charge shot'
     const local = recoil.localCharge();
     return state?.stats.fullChargeShots === expected && local?.held === false && local.pendingTransportActions === 0;
   }, beforeShots + 1, { timeout: 5000 });
+  await driver.waitForFunction(() => {
+    const recoil = (window as unknown as {
+      __recoil: { audioStats(): { cannonChargeActive: boolean } };
+    }).__recoil;
+    return !recoil.audioStats().cannonChargeActive;
+  }, undefined, { timeout: 5000 });
   await gunner.waitForTimeout(400);
   const afterShots = await gunner.evaluate(() =>
     (window as unknown as { __recoil: { state(): { stats: { fullChargeShots: number } } } }).__recoil.state().stats.fullChargeShots,

@@ -4,11 +4,10 @@ import type { RelicDefinition } from '../../src/shared/content/schemas/progressi
 import { RelicInventory } from '../../src/shared/progression/relicInventory';
 import { makeMatch } from './helpers';
 
-const progression = CLIENT_CONTENT_PACK.getProgressionDefinition('progression.mainStage');
-const uniqueIds = ['relic.phase_dash', 'relic.phoenix_core', 'relic.twin_shell'] as const;
+const uniqueIds = ['relic.phase_dash', 'relic.phoenix_core'] as const;
 
 describe('unique relic rolling and activation limits', () => {
-  it('only the three intended relic definitions are unique', () => {
+  it('only the two intended relic definitions are unique', () => {
     const actual = CLIENT_CONTENT_PACK.all<RelicDefinition>('relics')
       .filter((relic) => relic.stackPolicy === 'unique')
       .map((relic) => relic.id)
@@ -16,11 +15,26 @@ describe('unique relic rolling and activation limits', () => {
     expect(actual).toEqual([...uniqueIds].sort());
   });
 
-  it.each(uniqueIds)('%s remains stack one and converts a defensive duplicate add to authored XP', (relicId) => {
+  it('allows TWIN SHELL to be acquired repeatedly without duplicate conversion', () => {
+    const m = makeMatch('mode.singlePlayerScoreAttack', 'twin-shell-stacking');
+    const inventory = new RelicInventory(
+      m.state,
+      (id, source) => m.systems.capabilities.grant(id, source),
+    );
+    const relic = CLIENT_CONTENT_PACK.getRelic('relic.twin_shell');
+    for (let expectedStacks = 1; expectedStacks <= 4; expectedStacks++) {
+      const result = inventory.add(relic);
+      expect(result.stackCount).toBe(expectedStacks);
+      expect(result.duplicateConverted).toBe(false);
+      expect(result.replacementXp).toBe(0);
+    }
+    expect(inventory.getStack(relic.id)).toBe(4);
+  });
+
+  it.each(uniqueIds)('%s remains stack one and grants nothing on a defensive duplicate add', (relicId) => {
     const m = makeMatch('mode.singlePlayerScoreAttack', `unique-${relicId}`);
     const inventory = new RelicInventory(
       m.state,
-      progression,
       (id, source) => m.systems.capabilities.grant(id, source),
     );
     const relic = CLIENT_CONTENT_PACK.getRelic(relicId);
@@ -28,8 +42,8 @@ describe('unique relic rolling and activation limits', () => {
     const second = inventory.add(relic);
     expect(first.stackCount).toBe(1);
     expect(second.stackCount).toBe(1);
-    expect(second.duplicateConverted).toBe(true);
-    expect(second.replacementXp).toBe(250);
+    expect(second.duplicateConverted).toBe(false);
+    expect(second.replacementXp).toBe(0);
     expect(inventory.getStack(relicId)).toBe(1);
     if (relic.capabilityId) {
       expect(m.systems.capabilities.debugSources()[relic.capabilityId]).toEqual([`relic:${relicId}`]);

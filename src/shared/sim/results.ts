@@ -5,6 +5,7 @@ export interface GradeRule {
   minScore: number;
   require?: {
     kills?: number;
+    chargedCannonShots?: number;
     fullChargeShots?: number;
     bestCombo?: number;
     links?: number;
@@ -76,6 +77,7 @@ export function gradeFromRules(state: MatchState, rules: readonly GradeRule[]): 
   for (const rule of rules) {
     if (rule.minScore > state.stats.score) continue;
     if (rule.require?.kills !== undefined && state.stats.kills < rule.require.kills) continue;
+    if (rule.require?.chargedCannonShots !== undefined && state.stats.chargedCannonShots < rule.require.chargedCannonShots) continue;
     if (rule.require?.fullChargeShots !== undefined && state.stats.fullChargeShots < rule.require.fullChargeShots) continue;
     if (rule.require?.bestCombo !== undefined && state.combo.best < rule.require.bestCombo) continue;
     if (rule.require?.links !== undefined && state.stats.links < rule.require.links) continue;

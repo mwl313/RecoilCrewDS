@@ -203,11 +203,12 @@ export class WeaponSystem {
     const slot = this.loadout.secondary;
     if (tur.cannonCooldown > 0) return;
     this.ctx.progression?.notifyCannonFired();
-    const twin = this.ctx.progression?.hasTwinShell ?? false;
+    const twinShellAdditionalShots = this.ctx.progression?.twinShellAdditionalShots ?? 0;
+    const hasTwinShell = twinShellAdditionalShots > 0;
     tur.cannonCooldown =
       this.ctx.rules.matchConfig.cannonCooldown *
-      (twin ? this.ctx.progression!.twinShellCooldownMultiplier() : 1);
-    slot.state.burstsRemaining = this.ctx.rules.matchConfig.cannonBurst - 1 + (twin ? 1 : 0);
+      (hasTwinShell ? this.ctx.progression!.twinShellCooldownMultiplier() : 1);
+    slot.state.burstsRemaining = this.ctx.rules.matchConfig.cannonBurst - 1 + twinShellAdditionalShots;
     slot.state.burstT = 0;
     slot.state.burstChargeRatio = chargeRatio;
     this.behaviors.require(slot.definition.behaviorId).fire(this.ctx, slot.definition, slot.state, {

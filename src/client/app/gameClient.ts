@@ -1491,12 +1491,29 @@ export class GameClient {
 
   /**
    * Charge sound starts only after the hold passes the tap threshold (a tap
-   * is silent) and stops the moment the shot launches/cancels.
+   * is silent) and stops the moment the shot launches/cancels. The Gunner
+   * uses same-frame local presentation; the Driver follows authoritative
+   * synchronized turret state so both roles hear the shared cannon charging.
    */
   private updateChargeSound(): void {
     const latest = this.presenter.latest;
     if (latest?.tank.deadT && latest.tank.deadT > 0) {
-      this.cancelLocalCharge();
+      if (this.session.kind === 'multiplayer' && this.role === 'driver') this.stopChargeSound();
+      else this.cancelLocalCharge();
+      return;
+    }
+    if (this.session.kind === 'multiplayer' && this.role === 'driver') {
+      if (!latest?.turret.cannonHeld) {
+        if (this.chargeSoundStarted) this.stopChargeSound();
+        return;
+      }
+      if (this.chargeSoundStarted) return;
+      const block = this.prediction.movementRules();
+      const tapMax = block?.weapon?.chargeTapMaxSeconds ?? BASE_CONFIG.weapons.chargeTapMaxSeconds;
+      if (latest.turret.cannonHoldT >= tapMax) {
+        this.audio.play('cannonChargeStart');
+        this.chargeSoundStarted = true;
+      }
       return;
     }
     if (this.chargeHoldActive && (latest?.turret.cannonCooldown ?? 0) > 0) {
