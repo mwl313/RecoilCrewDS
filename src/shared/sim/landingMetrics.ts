@@ -2,7 +2,6 @@ export interface LandingMetrics {
   fallDistance: number;
   impactSpeed: number;
 }
-
 export type LandingPresentationTier = 'none' | 'light' | 'heavy' | 'massive';
 
 export const LANDING_FEEDBACK_MIN_FALL = 2.5;

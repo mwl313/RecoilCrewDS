@@ -6,7 +6,6 @@ export interface GroundPoundVfx {
   spawnRadialDebris(x: number, y: number, z: number, color: number, count: number, speed: number, life: number): void;
   spawnFlash(x: number, y: number, z: number, color: number, size: number, life?: number): void;
 }
-
 /** Outer-edge radius throughout the pooled shockwave lifecycle. */
 export function groundShockwaveRadiusAt(authoritativeRadius: number, progress: number): number {
   const radius = Math.max(0, Number.isFinite(authoritativeRadius) ? authoritativeRadius : 0);

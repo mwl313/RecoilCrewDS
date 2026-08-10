@@ -99,4 +99,27 @@ describe('authoritative fall-distance tracking', () => {
     runtime.step(1 / 30);
     expect(runtime.takeEvents().some((event) => event.type === 'tankLanding')).toBe(false);
   });
+
+  it('starts a rematch with a fresh grounded tracker and no spawn landing', () => {
+    const firstMatch = MatchRuntime.fromContentPack(
+      CLIENT_CONTENT_PACK,
+      'landing-rematch',
+      'none',
+      'mode.singlePlayerMainStage',
+    );
+    firstMatch.state.tank.grounded = false;
+    firstMatch.state.tank.y += 15;
+    firstMatch.state.tank.vy = -5;
+    firstMatch.step(1 / 60);
+
+    const rematch = MatchRuntime.fromContentPack(
+      CLIENT_CONTENT_PACK,
+      'landing-rematch',
+      'none',
+      'mode.singlePlayerMainStage',
+    );
+    rematch.step(1 / 60);
+
+    expect(rematch.takeEvents().some((event) => event.type === 'tankLanding')).toBe(false);
+  });
 });

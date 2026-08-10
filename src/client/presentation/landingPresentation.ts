@@ -10,7 +10,6 @@ export interface LandingPresentationPlan {
   cameraImpulse: number;
   groundPound: boolean;
 }
-
 export function landingCameraImpulse(fallDistance: number): number {
   const normalized = clamp((finiteNonNegative(fallDistance) - 2.5) / 10, 0, 1);
   return lerp(0.12, 0.65, normalized);
