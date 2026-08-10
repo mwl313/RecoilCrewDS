@@ -47,11 +47,20 @@ import {
   presentRelicDescription,
   type RelicEffectTemplateLookup,
 } from '../../shared/presentation/relicDescriptionPresentation';
-import type { RelicDefinition } from '../../shared/content/schemas/progression';
+import type {
+  RelicDefinition,
+  UpgradeCategoryDefinition,
+  UpgradeRarity,
+} from '../../shared/content/schemas/progression';
 import { TankDamageFeedbackLayer } from '../presentation/tankDamageFeedback';
 import { localization } from '../localization/localizationService';
-import { relicKey } from '../localization/contentKeys';
+import { relicKey, upgradeKey } from '../localization/contentKeys';
 import type { MachineGunMuzzlePose } from '../weapons/machineGunPresentation';
+import type {
+  ProgressionDebugActionResult as TacticalDebugActionResult,
+  ProgressionDebugCatalog,
+  ProgressionDebugControls,
+} from '../tactical/progressionDebugPanel';
 
 const SINGLE_PLAYER_STEP = 1 / 30;
 
@@ -204,6 +213,7 @@ export class GameClient {
     input: InputSource,
     onReady: () => void,
     world: ArenaWorld,
+    options: { progressionDebug?: boolean } = {},
   ): Promise<GameClient> {
     const renderWorld = new RenderWorld(container, assets, world);
     const factory = new EntityViewFactory(assets);
@@ -279,7 +289,14 @@ export class GameClient {
     const game = new GameClient(deps);
     gameRef = game;
     game.enemyWorldUi = new EnemyWorldUiLayer(container);
-    game.tacticalDrawer = new TacticalDrawer(container, world);
+    const debugControls: ProgressionDebugControls | undefined = options.progressionDebug
+      ? {
+          catalog: () => gameRef!.progressionDebugCatalog(),
+          addRelic: (relicId) => gameRef!.debugAddRelic(relicId),
+          addUpgrade: (categoryId, rarity) => gameRef!.debugAddUpgrade(categoryId, rarity),
+        }
+      : undefined;
+    game.tacticalDrawer = new TacticalDrawer(container, world, localization, debugControls);
     game.progressionOverlay = new ProgressionOverlay(container, {
       selectUpgrade: (index) => gameRef!.submitUpgrade(index),
       acknowledgeRelic: () => gameRef!.acknowledgeRelicPresentation(),
@@ -834,7 +851,12 @@ export class GameClient {
     const tacticalToggle = this.input.consumeTacticalToggle?.() ?? false;
     const tacticalState = this.presenter.latest;
     if (tacticalState?.matchFlow === 'playing' && this.inputEnabled) {
-      if (tacticalToggle) this.tacticalDrawer?.toggle();
+      if (tacticalToggle) {
+        this.tacticalDrawer?.toggle();
+        if (this.tacticalDrawer?.isDebugMode() && this.tacticalDrawer.isOpen()) {
+          this.input.releaseLock?.();
+        }
+      }
     } else {
       this.tacticalDrawer?.close();
     }
@@ -1433,8 +1455,73 @@ export class GameClient {
     return this.world.composerPassCount();
   }
 
-  tacticalDiagnostics(): { open: boolean; chassisYaw: number; renderedEffects: number } | null {
+  tacticalDiagnostics(): ReturnType<TacticalDrawer['diagnostics']> | null {
     return this.tacticalDrawer?.diagnostics() ?? null;
+  }
+
+  progressionDebugCatalog(): ProgressionDebugCatalog {
+    const pack = this.contentPack;
+    const available = this.session.kind === 'singlePlayer' && this.singlePlayerMatch !== null;
+    if (!pack) {
+      return { available: false, message: 'Load a progression-enabled single-player run first.', relics: [], upgrades: [] };
+    }
+    const relics = this.singlePlayerMatch
+      ? [...this.singlePlayerMatch.runtime.rules.relicsById.values()]
+      : pack.all<RelicDefinition>('relics');
+    const upgrades = this.singlePlayerMatch
+      ? [...this.singlePlayerMatch.runtime.rules.upgradeCategories.values()]
+      : pack.all<UpgradeCategoryDefinition>('upgradeCategories');
+    return {
+      available,
+      message: available ? undefined : 'Debug loadout editing is available in single-player only.',
+      relics: relics.map((relic) => ({
+        id: relic.id,
+        label: localization.t(relicKey(relic.id, 'name'), {}, relic.label),
+        rarity: relic.rarity,
+        role: relic.role,
+        maximumStacks: relic.stackPolicy === 'unique' ? 1 : relic.maximumStacks ?? null,
+      })),
+      upgrades: upgrades.map((category) => ({
+        id: category.id,
+        label: localization.t(upgradeKey(category.id), {}, category.label),
+        role: category.role,
+        statIds: category.effects.map((effect) => effect.statId),
+      })),
+    };
+  }
+
+  debugAddRelic(relicId: string): TacticalDebugActionResult {
+    const progression = this.singlePlayerMatch?.runtime.systems.progression;
+    if (this.session.kind !== 'singlePlayer' || !progression) {
+      return { accepted: false, message: 'Single-player authority is not active.' };
+    }
+    const result = progression.debugAcquireRelic(relicId);
+    if (result.accepted) {
+      this.syncDebugMovementRules();
+      return { accepted: true, message: `Added ${relicId} · stack ${result.stackCount ?? 1}` };
+    }
+    return {
+      accepted: false,
+      message: result.reason === 'maximum_stacks' ? `${relicId} is already at maximum stacks.` : `Could not add ${relicId}.`,
+    };
+  }
+
+  debugAddUpgrade(categoryId: string, rarity: UpgradeRarity): TacticalDebugActionResult {
+    const progression = this.singlePlayerMatch?.runtime.systems.progression;
+    if (this.session.kind !== 'singlePlayer' || !progression) {
+      return { accepted: false, message: 'Single-player authority is not active.' };
+    }
+    const result = progression.debugApplyUpgrade(categoryId, rarity);
+    if (result.accepted) {
+      this.syncDebugMovementRules();
+      return { accepted: true, message: `Added ${rarity} ${categoryId}.` };
+    }
+    return { accepted: false, message: `Could not add ${categoryId}.` };
+  }
+
+  private syncDebugMovementRules(): void {
+    if (!this.singlePlayerMatch) return;
+    this.prediction.setMovementRules(this.singlePlayerMatch.runtime.rules.movementBlock());
   }
 
   worldFeedbackDiagnostics(): { queued: number; popups: Array<{ kind: string; amount: number; source: string }> } {

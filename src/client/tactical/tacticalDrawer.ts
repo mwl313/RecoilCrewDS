@@ -5,6 +5,7 @@ import { presentLevelUpgradeSummary, type TacticalStatGroup } from './statPresen
 import type { AggregateSectorRecord } from '../enemies/aggregateSectorRenderer';
 import { localization } from '../localization/localizationService';
 import type { LocalizationService } from '../localization/localizationTypes';
+import { ProgressionDebugPanel, type ProgressionDebugControls } from './progressionDebugPanel';
 
 export interface TacticalDrawerFrame {
   state: MatchState;
@@ -18,8 +19,9 @@ export class TacticalDrawer {
   private readonly levelLabel: HTMLSpanElement;
   private readonly upgradeCount: HTMLSpanElement;
   private readonly rows: HTMLDivElement;
-  private readonly map = document.createElement('canvas');
-  private readonly miniMap: MiniMapRenderer;
+  private readonly map: HTMLCanvasElement | null;
+  private readonly miniMap: MiniMapRenderer | null;
+  private readonly debugPanel: ProgressionDebugPanel | null;
   private openState = false;
   private summarySignature = '';
   private lastYaw = 0;
@@ -31,6 +33,7 @@ export class TacticalDrawer {
     private readonly container: HTMLElement,
     world: ArenaWorld,
     private readonly i18n: LocalizationService = localization,
+    debugControls?: ProgressionDebugControls,
   ) {
     this.root.id = 'tactical-drawer';
     this.root.className = 'tactical-drawer';
@@ -42,7 +45,7 @@ export class TacticalDrawer {
           <div><span class="tactical-drawer__eyebrow" data-i18n="ui.tactical.eyebrow"></span><h2 data-i18n="ui.tactical.title"></h2></div>
           <div class="tactical-drawer__meta"><span data-tactical-level></span><kbd data-i18n="ui.tactical.close"></kbd></div>
         </header>
-        <section class="tactical-drawer__map-wrap"><div class="tactical-drawer__section-title"><span data-i18n="ui.tactical.areaMap"></span><span data-i18n="ui.tactical.northUp"></span></div></section>
+        <section class="tactical-drawer__map-wrap"><div class="tactical-drawer__section-title"><span ${debugControls ? '' : 'data-i18n="ui.tactical.areaMap"'}>${debugControls ? 'DEBUG LOADOUT' : ''}</span><span ${debugControls ? '' : 'data-i18n="ui.tactical.northUp"'}>${debugControls ? 'SINGLE PLAYER' : ''}</span></div></section>
         <section class="tactical-drawer__modifiers">
           <div class="tactical-drawer__section-title"><span data-i18n="ui.tactical.modifiers"></span><span data-tactical-count></span></div>
           <div class="tactical-drawer__rows"></div>
@@ -57,12 +60,18 @@ export class TacticalDrawer {
     this.levelLabel = this.root.querySelector('[data-tactical-level]') as HTMLSpanElement;
     this.upgradeCount = this.root.querySelector('[data-tactical-count]') as HTMLSpanElement;
     this.rows = this.root.querySelector('.tactical-drawer__rows') as HTMLDivElement;
-    this.map.id = 'tactical-minimap';
-    this.map.className = 'tactical-minimap';
+    this.map = debugControls ? null : document.createElement('canvas');
+    this.miniMap = this.map ? new MiniMapRenderer(this.map, world) : null;
+    this.debugPanel = debugControls ? new ProgressionDebugPanel(debugControls) : null;
+    if (this.map) {
+      this.map.id = 'tactical-minimap';
+      this.map.className = 'tactical-minimap';
+    }
     this.applyStaticLocalization();
-    this.root.querySelector('.tactical-drawer__map-wrap')!.appendChild(this.map);
+    const mapWrap = this.root.querySelector('.tactical-drawer__map-wrap')!;
+    if (this.map) mapWrap.appendChild(this.map);
+    if (this.debugPanel) mapWrap.appendChild(this.debugPanel.element);
     container.appendChild(this.root);
-    this.miniMap = new MiniMapRenderer(this.map, world);
     this.unsubscribeLocalization = this.i18n.subscribe(() => {
       this.summarySignature = '';
       this.applyStaticLocalization();
@@ -76,7 +85,9 @@ export class TacticalDrawer {
 
   close(): void { this.setOpen(false); }
 
-  rebuild(world: ArenaWorld): void { this.miniMap.rebuild(world); }
+  rebuild(world: ArenaWorld): void { this.miniMap?.rebuild(world); }
+
+  isDebugMode(): boolean { return this.debugPanel !== null; }
 
   update({ state, tank, role, sectors }: TacticalDrawerFrame): void {
     this.lastFrame = { state, tank, role, sectors };
@@ -86,7 +97,8 @@ export class TacticalDrawer {
     this.lastYaw = tank.yaw;
     this.lastRenderedSectorCount = sectors.length;
     this.rebuildRows(state);
-    this.miniMap.render({ tank, enemies: state.enemies, chests: state.chests, sectors });
+    this.miniMap?.render({ tank, enemies: state.enemies, chests: state.chests, sectors });
+    this.debugPanel?.update(state);
   }
 
   diagnostics(): { open: boolean; chassisYaw: number; renderedEffects: number; renderedSectors: number } {
@@ -101,6 +113,7 @@ export class TacticalDrawer {
   dispose(): void {
     this.setOpen(false);
     this.unsubscribeLocalization();
+    this.debugPanel?.dispose();
     this.root.remove();
   }
 
@@ -156,6 +169,6 @@ export class TacticalDrawer {
       const key = node.dataset.i18n;
       if (key) node.textContent = this.i18n.t(key);
     }
-    this.map.setAttribute('aria-label', this.i18n.t('ui.tactical.mapAria', {}, 'North-up tactical minimap'));
+    this.map?.setAttribute('aria-label', this.i18n.t('ui.tactical.mapAria', {}, 'North-up tactical minimap'));
   }
 }
