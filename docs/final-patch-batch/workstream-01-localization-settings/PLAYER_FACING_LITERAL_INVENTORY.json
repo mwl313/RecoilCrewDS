@@ -4305,12 +4305,24 @@
       "line": 234,
       "field": "sourceLiteral",
       "value": "RC"
+    },
+    {
+      "file": "src/client/tactical/progressionDebugPanel.ts",
+      "line": 64,
+      "field": "sourceLiteral",
+      "value": "FILTER LOADOUT…"
+    },
+    {
+      "file": "src/client/tactical/progressionDebugPanel.ts",
+      "line": 146,
+      "field": "sourceLiteral",
+      "value": "NO MATCHES"
     }
   ],
   "summary": {
     "catalogKeyCount": 460,
     "koreanKeyCount": 460,
-    "authoredLiteralCount": 317,
+    "authoredLiteralCount": 319,
     "authoredWithLocalizationKey": 99,
     "missingKoreanKeys": [],
     "extraKoreanKeys": []

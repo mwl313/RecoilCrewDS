@@ -38,6 +38,7 @@ export interface InputSource {
   setContext(context: InputContext): void;
   consumeProgressionInput(): ProgressionInputFrame;
   consumeTacticalToggle?(): boolean;
+  releaseLock?(): void;
 }
 
 export interface PresenterDeps {

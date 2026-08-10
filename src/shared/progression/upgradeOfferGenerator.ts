@@ -34,7 +34,7 @@ export function generateUpgradeOffer(ctx: UpgradeOfferContext): UpgradeCard[] {
       cardId: `${offerIdFor(ctx)}.${i}`,
       categoryId: category.id,
       rarity,
-      rolledEffects: rollEffects(category, rarity, ctx.valueRoll),
+      rolledEffects: rollUpgradeEffects(category, rarity, ctx.valueRoll),
     });
   }
   return cards;
@@ -75,7 +75,8 @@ function pickCategory(ctx: UpgradeOfferContext, _index: number): UpgradeCategory
   return pool[Math.min(pool.length - 1, index)];
 }
 
-function rollEffects(
+/** Resolve one authored category at a rarity using the supplied value roll. */
+export function rollUpgradeEffects(
   category: UpgradeCategoryDefinition,
   rarity: UpgradeRarity,
   rand: () => number,

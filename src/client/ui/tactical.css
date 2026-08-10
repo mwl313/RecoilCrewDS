@@ -105,6 +105,68 @@
 .tactical-drawer__map-wrap { padding: 13px 19px 0; }
 .tactical-drawer__section-title { display: flex; justify-content: space-between; margin-bottom: 7px; }
 .tactical-minimap { display: block; width: 100%; max-height: min(35vh, 320px); aspect-ratio: 1; background: #101719; image-rendering: auto; }
+.tactical-debug {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: min(35vh, 320px);
+  min-height: 230px;
+  overflow: hidden;
+  pointer-events: auto;
+  color: #dfe7df;
+  background: #101719;
+  border: 1px solid rgba(149, 171, 171, .28);
+  box-sizing: border-box;
+}
+.tactical-debug__toolbar { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid rgba(149,171,171,.18); }
+.tactical-debug__tabs { display: flex; flex: 1; gap: 4px; }
+.tactical-debug button,
+.tactical-debug select,
+.tactical-debug input { font: 700 10px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .09em; }
+.tactical-debug__tabs button,
+.tactical-debug__rarity,
+.tactical-debug-row button {
+  border: 1px solid #475656;
+  color: #9dacab;
+  background: #182123;
+}
+.tactical-debug__tabs button { flex: 1; padding: 7px 5px; cursor: pointer; }
+.tactical-debug__tabs button.is-active { color: #101719; border-color: #ffb31a; background: #ffb31a; }
+.tactical-debug__rarity { width: 94px; padding: 0 6px; cursor: pointer; }
+.tactical-debug__search {
+  width: calc(100% - 16px);
+  margin: 7px 8px;
+  padding: 8px 9px;
+  box-sizing: border-box;
+  border: 1px solid #394748;
+  outline: none;
+  color: #dfe7df;
+  background: #0c1214;
+}
+.tactical-debug__search:focus { border-color: #ffb31a; }
+.tactical-debug__list { min-height: 0; overflow: hidden auto; scrollbar-width: thin; }
+.tactical-debug-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 42px;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 5px 8px;
+  border-top: 1px solid rgba(141,161,160,.12);
+  box-sizing: border-box;
+}
+.tactical-debug-row__copy { display: grid; min-width: 0; gap: 2px; }
+.tactical-debug-row__copy strong { overflow: hidden; font-size: 12px; letter-spacing: .055em; text-overflow: ellipsis; white-space: nowrap; }
+.tactical-debug-row__copy small { overflow: hidden; color: #708281; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; }
+.tactical-debug-row__count { color: #ffbd35; font-size: 11px; font-weight: 800; }
+.tactical-debug-row button { min-height: 28px; padding: 0 5px; cursor: pointer; }
+.tactical-debug-row button:hover:not(:disabled) { color: #101719; border-color: #ffb31a; background: #ffb31a; }
+.tactical-debug-row button:disabled { cursor: default; color: #667473; opacity: .55; }
+.tactical-debug__status { min-height: 25px; padding: 7px 8px; box-sizing: border-box; border-top: 1px solid rgba(149,171,171,.18); color: #85d7ab; font: 700 9px/1.2 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .065em; }
+.tactical-debug__status.is-error { color: #ff776f; }
+.tactical-debug__empty { margin: 0; padding: 28px 16px; color: #718181; text-align: center; font-size: 11px; letter-spacing: .1em; }
+.tactical-debug.is-disabled .tactical-debug__search,
+.tactical-debug.is-disabled .tactical-debug__rarity { opacity: .5; pointer-events: none; }
 .tactical-drawer__modifiers { padding: 13px 19px 18px; }
 .tactical-drawer__rows { overflow: hidden auto; max-height: calc(100vh - 500px); min-height: 58px; scrollbar-width: thin; }
 .tactical-drawer__rows h3 { margin: 10px 0 3px; padding: 4px 7px; color: #9baaaa; background: #151d1f; font-size: 10px; letter-spacing: .16em; }

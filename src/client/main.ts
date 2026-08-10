@@ -867,7 +867,15 @@ function setupEnemyReadabilityQualification(requestedCount: string | null, ordin
 async function createGame(world: ArenaWorld): Promise<GameClient> {
   const loaded = assets ?? (await assetsPromise);
   assets = loaded;
-  const created = await GameClient.create(document.getElementById('app')!, loaded, audio, input, () => undefined, world);
+  const created = await GameClient.create(
+    document.getElementById('app')!,
+    loaded,
+    audio,
+    input,
+    () => undefined,
+    world,
+    { progressionDebug: DEBUG_MODE },
+  );
   created.onHudEvent = (ev) => {
     recordLandingDebugEvent(ev);
     hud.onEvent(ev);

@@ -10,7 +10,7 @@ import { RelicInventory } from './relicInventory';
 import { RelicStatProjector, type RelicDamageModifiers } from './relicStatProjector';
 import { RelicEffectRegistry, createRelicEffectRegistry, type RelicTriggerEvent } from './relicEffectRegistry';
 import { UpgradeSelectionController } from './upgradeSelectionController';
-import { generateUpgradeOffer } from './upgradeOfferGenerator';
+import { generateUpgradeOffer, rollUpgradeEffects } from './upgradeOfferGenerator';
 import { applyUpgradeCard } from './upgradeEffectApplier';
 import { createProgressionTelemetry, type ProgressionTelemetry } from './progressionTelemetry';
 import type { DamageSource } from '../damage/damageTypes';
@@ -59,6 +59,13 @@ export interface ProgressionDebugState {
   lastRelicResult: { acquisitionSequence: number; relicId: string; duplicateConverted: boolean; replacementXp: number } | null;
 }
 
+export interface ProgressionDebugActionResult {
+  accepted: boolean;
+  reason?: 'disabled' | 'unknown_relic' | 'maximum_stacks' | 'unknown_upgrade';
+  stackCount?: number;
+  effects?: UpgradeCard['rolledEffects'];
+}
+
 /**
  * Authoritative progression orchestrator: team XP, queued level-ups,
  * deterministic offers, selection pause/timeout, treasure chests, relic
@@ -85,6 +92,7 @@ export class ProgressionSystem {
   private readonly leaderChestRewardedWaveIds = new Set<number>();
   private lastSafeHavenWaveId: number | null = null;
   private lastRoadkill: { speed: number; maxSpeed: number; ratio: number; damage: number } = { speed: 0, maxSpeed: 0, ratio: 0, damage: 0 };
+  private debugUpgradeSequence = 0;
 
   constructor(private readonly ctx: SystemContext) {
     const s = ctx.state;
@@ -970,6 +978,67 @@ export class ProgressionSystem {
   /** Reproject relic stat aggregates (tests/debug). */
   projectionRefresh(): void {
     this.projector.reproject(this.ctx.state.teamProgression);
+  }
+
+  /**
+   * Debug-only direct relic acquisition. The caller owns the debug-mode gate;
+   * this method still uses inventory limits, capability grants, projection,
+   * and max-integrity repair so the resulting build behaves like a real one.
+   */
+  debugAcquireRelic(relicId: string): ProgressionDebugActionResult {
+    if (!this.isEnabled) return { accepted: false, reason: 'disabled' };
+    const relic = this.ctx.rules.relicsById.get(relicId);
+    if (!relic) return { accepted: false, reason: 'unknown_relic' };
+    const stackBefore = this.inventory.getStack(relicId);
+    if (!this.inventory.canAcquire(relic)) {
+      return { accepted: false, reason: 'maximum_stacks', stackCount: stackBefore };
+    }
+    const maxIntegrityBefore = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+    const acquire = this.inventory.add(relic);
+    this.projector.reproject(this.ctx.state.teamProgression);
+    const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+    applyMaxIntegrityRewardRepair(this.ctx, maxIntegrityBefore, maxIntegrityAfter);
+    this.telemetry.relicsAcquired++;
+    this.telemetry.rarityDistribution[relic.rarity] = (this.telemetry.rarityDistribution[relic.rarity] ?? 0) + 1;
+    this.telemetry.relicDistribution[relic.id] = (this.telemetry.relicDistribution[relic.id] ?? 0) + 1;
+    if (acquire.capabilityGranted) {
+      this.ctx.eventBus.emit('progressionEvent', {
+        type: 'progressionCapabilityChanged',
+        capabilityId: relic.capabilityId,
+      });
+    }
+    this.ctx.eventBus.emit('progressionEvent', {
+      type: 'relicAcquired',
+      relicId: relic.id,
+      rarity: relic.rarity,
+      duplicateConverted: false,
+    });
+    return { accepted: true, stackCount: acquire.stackCount };
+  }
+
+  /** Apply the midpoint value of an authored upgrade rarity without opening a reward flow. */
+  debugApplyUpgrade(categoryId: string, rarity: UpgradeCard['rarity']): ProgressionDebugActionResult {
+    if (!this.isEnabled) return { accepted: false, reason: 'disabled' };
+    const category = this.ctx.rules.upgradeCategories.get(categoryId);
+    if (!category) return { accepted: false, reason: 'unknown_upgrade' };
+    const effects = rollUpgradeEffects(category, rarity, () => 0.5);
+    const card: UpgradeCard = {
+      cardId: `debug-${++this.debugUpgradeSequence}`,
+      categoryId,
+      rarity,
+      rolledEffects: effects,
+    };
+    const maxIntegrityBefore = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+    applyUpgradeCard(
+      this.ctx.rules,
+      `debug-${this.debugUpgradeSequence}`,
+      card,
+      this.telemetry,
+      this.ctx.state.teamProgression.levelUpgradeSummary,
+    );
+    const maxIntegrityAfter = this.ctx.rules.resolver.resolve('tank.maxIntegrity');
+    applyMaxIntegrityRewardRepair(this.ctx, maxIntegrityBefore, maxIntegrityAfter);
+    return { accepted: true, effects };
   }
 
   debugState(): ProgressionDebugState {
