@@ -6,9 +6,9 @@ Branch: `feature/final-machine-gun-pass`
 ## Revision audit
 
 - Starting SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
-- Ending HEAD SHA: `4fd9af32605b04d8ff95f7d11bffc4c72885a988`
+- Ending product SHA: `606aa07bd19f3fcbc7096271a172aed82e8841c2`
 - Audited `origin/main`: `7717abcaab7a41a0ef2268985f507733d909f58b`
-- The implementation is an uncommitted working tree on the requested branch, so the ending HEAD remains the starting SHA.
+- The implementation was committed on the requested branch at the ending product SHA above. The subsequent report-only commit records that immutable product revision.
 - `feature/final-localization-settings-copy` was an ancestor at the same starting SHA. Its implementation had not diverged when this work began; rebase this branch onto the eventual localization/settings integration before final merge.
 
 ## Final base weapon
