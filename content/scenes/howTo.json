@@ -2,38 +2,106 @@
   "id": "scene.howTo",
   "label": "How To Play",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 460 },
-  "exitTransition": { "type": "fade", "durationMs": 380 },
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 460
+  },
+  "exitTransition": {
+    "type": "fade",
+    "durationMs": 380
+  },
   "root": {
     "id": "screen-howto",
     "type": "container",
     "class": "screen ui-overlay-screen howto-overlay",
     "children": [
-      { "id": "howto-scrim", "type": "container", "class": "ui-overlay-scrim" },
+      {
+        "id": "howto-scrim",
+        "type": "container",
+        "class": "ui-overlay-scrim"
+      },
       {
         "id": "howto-panel",
         "type": "panel",
         "class": "ui-overlay-panel ui-howto-panel",
-        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
+        "appearance": {
+          "tone": "neutral",
+          "emphasis": "hero",
+          "density": "comfortable",
+          "shape": "plate"
+        },
         "children": [
-          { "id": "howto-kicker", "type": "text", "class": "ui-kicker", "text": "FIELD MANUAL // SHARED CHASSIS" },
-          { "id": "howto-title", "type": "text", "props": { "tag": "h2" }, "text": "HOW TO PLAY" },
-          { "id": "howto-rule", "type": "container", "class": "ui-overlay-rule" },
+          {
+            "id": "howto-kicker",
+            "type": "text",
+            "class": "ui-kicker",
+            "text": "FIELD MANUAL // SHARED CHASSIS",
+            "textKey": "ui.howTo.kicker"
+          },
+          {
+            "id": "howto-title",
+            "type": "text",
+            "props": {
+              "tag": "h2"
+            },
+            "text": "HOW TO PLAY",
+            "textKey": "ui.howTo.title"
+          },
+          {
+            "id": "howto-rule",
+            "type": "container",
+            "class": "ui-overlay-rule"
+          },
           {
             "id": "howto-grid",
             "type": "grid",
             "class": "ui-howto-grid",
-            "layout": { "kind": "grid", "columns": 2 },
+            "layout": {
+              "kind": "grid",
+              "columns": 2
+            },
             "children": [
               {
                 "id": "howto-driver",
                 "type": "container",
                 "class": "ui-role-card ui-role-card--driver",
                 "children": [
-                  { "id": "howto-driver-index", "type": "text", "class": "ui-role-index", "text": "01 // MOBILITY" },
-                  { "id": "howto-driver-h", "type": "text", "props": { "tag": "h3" }, "text": "DRIVER" },
-                  { "id": "howto-driver-p", "type": "text", "props": { "tag": "p" }, "class": "ui-control-copy", "text": "WASD  DRIVE + STEER\nSHIFT  DASH\nSPACE  JUMP\nR  RECENTER CAMERA" },
-                  { "id": "howto-driver-p2", "type": "text", "props": { "tag": "p" }, "class": "ui-role-note", "text": "Steer in the air to face your landing. Carry speed through scrap, evade Rammers, and time movement around cannon recoil." }
+                  {
+                    "id": "howto-driver-index",
+                    "type": "text",
+                    "class": "ui-role-index",
+                    "text": "01 // MOBILITY",
+                    "textKey": "ui.howTo.driverIndex"
+                  },
+                  {
+                    "id": "howto-driver-h",
+                    "type": "text",
+                    "props": {
+                      "tag": "h3"
+                    },
+                    "text": "DRIVER",
+                    "textKey": "ui.howTo.driver"
+                  },
+                  {
+                    "id": "howto-driver-p",
+                    "type": "text",
+                    "props": {
+                      "tag": "p"
+                    },
+                    "class": "ui-control-copy",
+                    "text": "WASD  DRIVE + STEER\nSHIFT  DASH\nSPACE  JUMP\nR  RECENTER CAMERA",
+                    "textKey": "ui.howTo.driverControls"
+                  },
+                  {
+                    "id": "howto-driver-p2",
+                    "type": "text",
+                    "props": {
+                      "tag": "p"
+                    },
+                    "class": "ui-role-note",
+                    "text": "Steer in the air to face your landing. Carry speed through scrap, evade Rammers, and time movement around cannon recoil.",
+                    "textKey": "ui.howTo.driverHelp"
+                  }
                 ]
               },
               {
@@ -41,19 +109,87 @@
                 "type": "container",
                 "class": "ui-role-card ui-role-card--gunner",
                 "children": [
-                  { "id": "howto-gunner-index", "type": "text", "class": "ui-role-index", "text": "02 // FIRE CONTROL" },
-                  { "id": "howto-gunner-h", "type": "text", "props": { "tag": "h3" }, "text": "GUNNER" },
-                  { "id": "howto-gunner-p", "type": "text", "props": { "tag": "p" }, "class": "ui-control-copy", "text": "MOUSE  AIM\nLMB  MACHINE GUN\nRMB  CANNON\nHOLD RMB  CHARGE" },
-                  { "id": "howto-gunner-p2", "type": "text", "props": { "tag": "p" }, "class": "ui-role-note", "text": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links." }
+                  {
+                    "id": "howto-gunner-index",
+                    "type": "text",
+                    "class": "ui-role-index",
+                    "text": "02 // FIRE CONTROL",
+                    "textKey": "ui.howTo.gunnerIndex"
+                  },
+                  {
+                    "id": "howto-gunner-h",
+                    "type": "text",
+                    "props": {
+                      "tag": "h3"
+                    },
+                    "text": "GUNNER",
+                    "textKey": "ui.howTo.gunner"
+                  },
+                  {
+                    "id": "howto-gunner-p",
+                    "type": "text",
+                    "props": {
+                      "tag": "p"
+                    },
+                    "class": "ui-control-copy",
+                    "text": "MOUSE  AIM\nLMB  MACHINE GUN\nRMB  CANNON\nHOLD RMB  CHARGE",
+                    "textKey": "ui.howTo.gunnerControls"
+                  },
+                  {
+                    "id": "howto-gunner-p2",
+                    "type": "text",
+                    "props": {
+                      "tag": "p"
+                    },
+                    "class": "ui-role-note",
+                    "text": "Fire downward to launch the tank. Chain barrels, manage cannon timing, and coordinate hits to build Crew Links.",
+                    "textKey": "ui.howTo.gunnerHelp"
+                  }
                 ]
               }
             ]
           },
-          { "id": "howto-foot", "type": "text", "class": "ui-overlay-copy ui-howto-foot", "props": { "tag": "p" }, "text": "ONE VEHICLE. TWO ROLES. EVERY SHOT CHANGES THE ROUTE." },
-          { "id": "howto-back", "type": "button", "class": "ui-action ui-overlay-close", "appearance": { "tone": "action", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "back" }, "text": "BACK TO MENU", "actions": [{ "event": "click", "action": "app.back" }] }
+          {
+            "id": "howto-foot",
+            "type": "text",
+            "class": "ui-overlay-copy ui-howto-foot",
+            "props": {
+              "tag": "p"
+            },
+            "text": "ONE VEHICLE. TWO ROLES. EVERY SHOT CHANGES THE ROUTE.",
+            "textKey": "ui.howTo.footer"
+          },
+          {
+            "id": "howto-back",
+            "type": "button",
+            "class": "ui-action ui-overlay-close",
+            "appearance": {
+              "tone": "action",
+              "emphasis": "standard",
+              "density": "comfortable",
+              "shape": "plate"
+            },
+            "props": {
+              "dataAct": "back"
+            },
+            "text": "BACK TO MENU",
+            "actions": [
+              {
+                "event": "click",
+                "action": "app.back"
+              }
+            ],
+            "textKey": "ui.howTo.back"
+          }
         ]
       }
     ]
   },
-  "previewStates": [{ "id": "howto", "label": "How To Play", "context": {} }]
+  "previewStates": [
+    {
+      "id": "howto",
+      "label": "How To Play",
+      "context": {}
+    }
+  ]
 }

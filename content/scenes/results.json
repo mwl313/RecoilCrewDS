@@ -2,24 +2,59 @@
   "id": "scene.results",
   "label": "Results",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 320 },
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 320
+  },
   "root": {
     "id": "screen-results",
     "type": "container",
     "class": "screen ui-screen results-screen",
     "bindings": [
-      { "target": "class", "source": "victory", "transform": "booleanClass", "attribute": "is-victory" },
-      { "target": "class", "source": "defeat", "transform": "booleanClass", "attribute": "is-defeat" }
+      {
+        "target": "class",
+        "source": "victory",
+        "transform": "booleanClass",
+        "attribute": "is-victory"
+      },
+      {
+        "target": "class",
+        "source": "defeat",
+        "transform": "booleanClass",
+        "attribute": "is-defeat"
+      }
     ],
     "children": [
-      { "id": "results-frame", "type": "container", "class": "ui-safe-frame" },
+      {
+        "id": "results-frame",
+        "type": "container",
+        "class": "ui-safe-frame"
+      },
       {
         "id": "results-topbar",
         "type": "horizontal",
         "class": "ui-topbar results-topbar",
         "children": [
-          { "id": "results-unit", "type": "text", "class": "ui-unit-mark", "text": "RC / FIELD UNIT 07" },
-          { "id": "results-system", "type": "text", "class": "ui-system-state results-system-state", "text": "RUN COMPLETE", "bindings": [{ "target": "text", "source": "outcomeState", "fallback": "RUN COMPLETE" }] }
+          {
+            "id": "results-unit",
+            "type": "text",
+            "class": "ui-unit-mark",
+            "text": "RC / FIELD UNIT 07"
+          },
+          {
+            "id": "results-system",
+            "type": "text",
+            "class": "ui-system-state results-system-state",
+            "text": "RUN COMPLETE",
+            "bindings": [
+              {
+                "target": "text",
+                "source": "outcomeState",
+                "fallback": "RUN COMPLETE"
+              }
+            ],
+            "textKey": "ui.results.system"
+          }
         ]
       },
       {
@@ -37,17 +72,81 @@
                 "type": "container",
                 "class": "results-outcome",
                 "children": [
-                  { "id": "results-kicker", "type": "text", "class": "ui-kicker results-kicker", "text": "MISSION REPORT // CLOSED", "bindings": [{ "target": "text", "source": "outcomeKicker", "fallback": "MISSION REPORT // CLOSED" }] },
-                  { "id": "results-heading", "type": "text", "class": "results-heading", "props": { "tag": "h2" }, "text": "ROUND COMPLETE", "bindings": [{ "target": "text", "source": "outcomeHeading", "fallback": "ROUND COMPLETE" }] },
-                  { "id": "results-outcome-rule", "type": "container", "class": "results-outcome-rule" },
-                  { "id": "results-outcome-copy", "type": "text", "class": "results-outcome-copy", "text": "Field run logged. Crew performance is ready for review.", "bindings": [{ "target": "text", "source": "outcomeCopy", "fallback": "Field run logged. Crew performance is ready for review." }] },
+                  {
+                    "id": "results-kicker",
+                    "type": "text",
+                    "class": "ui-kicker results-kicker",
+                    "text": "MISSION REPORT // CLOSED",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "outcomeKicker",
+                        "fallback": "MISSION REPORT // CLOSED"
+                      }
+                    ],
+                    "textKey": "ui.results.kicker"
+                  },
+                  {
+                    "id": "results-heading",
+                    "type": "text",
+                    "class": "results-heading",
+                    "props": {
+                      "tag": "h2"
+                    },
+                    "text": "ROUND COMPLETE",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "outcomeHeading",
+                        "fallback": "ROUND COMPLETE"
+                      }
+                    ],
+                    "textKey": "ui.results.complete"
+                  },
+                  {
+                    "id": "results-outcome-rule",
+                    "type": "container",
+                    "class": "results-outcome-rule"
+                  },
+                  {
+                    "id": "results-outcome-copy",
+                    "type": "text",
+                    "class": "results-outcome-copy",
+                    "text": "Field run logged. Crew performance is ready for review.",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "outcomeCopy",
+                        "fallback": "Field run logged. Crew performance is ready for review."
+                      }
+                    ],
+                    "textKey": "ui.results.defaultCopy"
+                  },
                   {
                     "id": "results-grade-block",
                     "type": "container",
                     "class": "results-grade-block",
                     "children": [
-                      { "id": "results-grade-label", "type": "text", "class": "results-grade-label", "text": "RUN GRADE" },
-                      { "id": "results-grade", "type": "text", "class": "results-grade", "text": "B", "bindings": [{ "target": "text", "source": "grade", "fallback": "B" }] }
+                      {
+                        "id": "results-grade-label",
+                        "type": "text",
+                        "class": "results-grade-label",
+                        "text": "RUN GRADE",
+                        "textKey": "ui.results.grade"
+                      },
+                      {
+                        "id": "results-grade",
+                        "type": "text",
+                        "class": "results-grade",
+                        "text": "B",
+                        "bindings": [
+                          {
+                            "target": "text",
+                            "source": "grade",
+                            "fallback": "B"
+                          }
+                        ]
+                      }
                     ]
                   }
                 ]
@@ -57,30 +156,92 @@
                 "type": "container",
                 "class": "results-debrief",
                 "children": [
-                  { "id": "results-debrief-label", "type": "text", "class": "results-section-label", "text": "AFTER-ACTION DEBRIEF" },
-                  { "id": "results-title", "type": "text", "class": "results-title", "text": "SCRAP GOBLINS", "bindings": [{ "target": "text", "source": "title", "fallback": "SCRAP GOBLINS" }] },
+                  {
+                    "id": "results-debrief-label",
+                    "type": "text",
+                    "class": "results-section-label",
+                    "text": "AFTER-ACTION DEBRIEF",
+                    "textKey": "ui.results.debrief"
+                  },
+                  {
+                    "id": "results-title",
+                    "type": "text",
+                    "class": "results-title",
+                    "text": "SCRAP GOBLINS",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "title",
+                        "fallback": "SCRAP GOBLINS"
+                      }
+                    ]
+                  },
                   {
                     "id": "results-score-block",
                     "type": "horizontal",
                     "class": "results-score-block",
                     "children": [
-                      { "id": "results-score-label", "type": "text", "class": "results-section-label", "text": "FINAL SCORE" },
-                      { "id": "results-score", "type": "text", "class": "results-score", "text": "0", "bindings": [{ "target": "text", "source": "score", "fallback": "0" }] }
+                      {
+                        "id": "results-score-label",
+                        "type": "text",
+                        "class": "results-section-label",
+                        "text": "FINAL SCORE",
+                        "textKey": "ui.results.finalScore"
+                      },
+                      {
+                        "id": "results-score",
+                        "type": "text",
+                        "class": "results-score",
+                        "text": "0",
+                        "bindings": [
+                          {
+                            "target": "text",
+                            "source": "score",
+                            "fallback": "0"
+                          }
+                        ]
+                      }
                     ]
                   },
                   {
                     "id": "results-stats",
                     "type": "repeater",
                     "class": "results-stats",
-                    "props": { "listSource": "stats" },
+                    "props": {
+                      "listSource": "stats"
+                    },
                     "children": [
                       {
                         "id": "results-stat-item",
                         "type": "horizontal",
                         "class": "results-stat",
                         "children": [
-                          { "id": "results-stat-label", "type": "text", "props": { "tag": "span" }, "bindings": [{ "target": "text", "source": "item.label" }] },
-                          { "id": "results-stat-value", "type": "text", "props": { "tag": "b" }, "bindings": [{ "target": "text", "source": "item.value" }] }
+                          {
+                            "id": "results-stat-label",
+                            "type": "text",
+                            "props": {
+                              "tag": "span"
+                            },
+                            "bindings": [
+                              {
+                                "target": "text",
+                                "source": "item.label"
+                              }
+                            ]
+                          },
+                          {
+                            "id": "results-stat-value",
+                            "type": "text",
+                            "props": {
+                              "tag": "b"
+                            },
+                            "bindings": [
+                              {
+                                "target": "text",
+                                "source": "item.value"
+                              }
+                            ]
+                          }
                         ]
                       }
                     ]
@@ -89,38 +250,104 @@
                     "id": "results-rematch",
                     "type": "container",
                     "class": "results-rematch",
-                    "bindings": [{ "target": "visible", "source": "crewMode" }],
+                    "bindings": [
+                      {
+                        "target": "visible",
+                        "source": "crewMode"
+                      }
+                    ],
                     "children": [
-                      { "id": "results-mods-title", "type": "text", "class": "results-section-label mods-title", "text": "REMATCH LOADOUT" },
+                      {
+                        "id": "results-mods-title",
+                        "type": "text",
+                        "class": "results-section-label mods-title",
+                        "text": "REMATCH LOADOUT",
+                        "textKey": "ui.results.rematchLoadout"
+                      },
                       {
                         "id": "mods",
                         "type": "repeater",
                         "class": "mods",
-                        "props": { "listSource": "modifiers" },
+                        "props": {
+                          "listSource": "modifiers"
+                        },
                         "children": [
                           {
                             "id": "mod-chip",
                             "type": "button",
                             "class": "ui-compact-action mod",
                             "bindings": [
-                              { "target": "text", "source": "item.label" },
-                              { "target": "class", "source": "item.selected", "transform": "booleanClass", "attribute": "selected" },
-                              { "target": "attribute", "source": "item.desc", "attribute": "title" },
-                              { "target": "attribute", "source": "item.id", "attribute": "data-mod" }
+                              {
+                                "target": "text",
+                                "source": "item.label"
+                              },
+                              {
+                                "target": "class",
+                                "source": "item.selected",
+                                "transform": "booleanClass",
+                                "attribute": "selected"
+                              },
+                              {
+                                "target": "attribute",
+                                "source": "item.desc",
+                                "attribute": "title"
+                              },
+                              {
+                                "target": "attribute",
+                                "source": "item.id",
+                                "attribute": "data-mod"
+                              }
                             ],
-                            "actions": [{ "event": "click", "action": "app.rematch", "payload": { "__itemId": true } }]
+                            "actions": [
+                              {
+                                "event": "click",
+                                "action": "app.rematch",
+                                "payload": {
+                                  "__itemId": true
+                                }
+                              }
+                            ]
                           }
                         ]
                       },
-                      { "id": "rematch-info", "type": "text", "class": "rematch-info", "text": "PICK A MODIFIER TO REMATCH", "bindings": [{ "target": "text", "source": "rematchInfo", "fallback": "PICK A MODIFIER TO REMATCH" }] },
+                      {
+                        "id": "rematch-info",
+                        "type": "text",
+                        "class": "rematch-info",
+                        "text": "PICK A MODIFIER TO REMATCH",
+                        "bindings": [
+                          {
+                            "target": "text",
+                            "source": "rematchInfo",
+                            "fallback": "PICK A MODIFIER TO REMATCH"
+                          }
+                        ],
+                        "textKey": "ui.results.pickModifier"
+                      },
                       {
                         "id": "leave-btn",
                         "type": "button",
                         "class": "ui-action results-leave",
-                        "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" },
+                        "appearance": {
+                          "tone": "neutral",
+                          "emphasis": "standard",
+                          "density": "comfortable",
+                          "shape": "plate"
+                        },
                         "text": "LEAVE CREW",
-                        "actions": [{ "event": "click", "action": "app.leave" }],
-                        "bindings": [{ "target": "visible", "source": "crewMode" }]
+                        "actions": [
+                          {
+                            "event": "click",
+                            "action": "app.leave"
+                          }
+                        ],
+                        "bindings": [
+                          {
+                            "target": "visible",
+                            "source": "crewMode"
+                          }
+                        ],
+                        "textKey": "ui.results.leave"
                       }
                     ]
                   },
@@ -128,23 +355,50 @@
                     "id": "sp-actions",
                     "type": "vertical",
                     "class": "sp-actions results-actions",
-                    "bindings": [{ "target": "visible", "source": "singleMode" }],
+                    "bindings": [
+                      {
+                        "target": "visible",
+                        "source": "singleMode"
+                      }
+                    ],
                     "children": [
                       {
                         "id": "sp-play-again",
                         "type": "button",
                         "class": "ui-action",
-                        "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" },
+                        "appearance": {
+                          "tone": "action",
+                          "emphasis": "hero",
+                          "density": "comfortable",
+                          "shape": "plate"
+                        },
                         "text": "PLAY AGAIN",
-                        "actions": [{ "event": "click", "action": "app.restartSinglePlayer" }]
+                        "actions": [
+                          {
+                            "event": "click",
+                            "action": "app.restartSinglePlayer"
+                          }
+                        ],
+                        "textKey": "ui.results.playAgain"
                       },
                       {
                         "id": "sp-main",
                         "type": "button",
                         "class": "ui-action",
-                        "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" },
+                        "appearance": {
+                          "tone": "neutral",
+                          "emphasis": "standard",
+                          "density": "comfortable",
+                          "shape": "plate"
+                        },
                         "text": "RETURN TO MAIN MENU",
-                        "actions": [{ "event": "click", "action": "app.returnToMenu" }]
+                        "actions": [
+                          {
+                            "event": "click",
+                            "action": "app.returnToMenu"
+                          }
+                        ],
+                        "textKey": "ui.results.mainMenu"
                       }
                     ]
                   }
@@ -173,13 +427,32 @@
         "crewMode": true,
         "singleMode": false,
         "stats": [
-          { "label": "BEST COMBO", "value": "×5" },
-          { "label": "CHARGED SHOTS", "value": "4" },
-          { "label": "KILLS", "value": "39" }
+          {
+            "label": "BEST COMBO",
+            "value": "×5"
+          },
+          {
+            "label": "CHARGED SHOTS",
+            "value": "4"
+          },
+          {
+            "label": "KILLS",
+            "value": "39"
+          }
         ],
         "modifiers": [
-          { "id": "none", "label": "STANDARD", "desc": "The classic Recoil Crew experience.", "selected": true },
-          { "id": "moonYard", "label": "MOON YARD", "desc": "Lower gravity and longer airtime.", "selected": false }
+          {
+            "id": "none",
+            "label": "STANDARD",
+            "desc": "The classic Recoil Crew experience.",
+            "selected": true
+          },
+          {
+            "id": "moonYard",
+            "label": "MOON YARD",
+            "desc": "Lower gravity and longer airtime.",
+            "selected": false
+          }
         ],
         "rematchInfo": "DRIVER READY · GUNNER PICKING"
       }
@@ -200,9 +473,18 @@
         "crewMode": false,
         "singleMode": true,
         "stats": [
-          { "label": "BEST COMBO", "value": "×3" },
-          { "label": "CHARGED SHOTS", "value": "2" },
-          { "label": "KILLS", "value": "18" }
+          {
+            "label": "BEST COMBO",
+            "value": "×3"
+          },
+          {
+            "label": "CHARGED SHOTS",
+            "value": "2"
+          },
+          {
+            "label": "KILLS",
+            "value": "18"
+          }
         ]
       }
     }

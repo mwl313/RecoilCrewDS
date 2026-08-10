@@ -16,6 +16,8 @@ import {
 import { SceneRuntime, type SceneRuntimeServices } from './sceneRuntime';
 import { UiComponentRegistry } from './componentRegistry';
 import type { PresentationWorldFactory } from './presentationWorld';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService, Locale } from '../localization/localizationTypes';
 
 /**
  * SceneFlowPresenter: presentation-side flow presenter.
@@ -49,6 +51,7 @@ export class SceneFlowPresenter {
     private readonly screensContainer: HTMLElement,
     private readonly themeRoot: HTMLElement,
     private readonly registry: UiComponentRegistry,
+    private readonly i18n: LocalizationService = localization,
   ) {
     this.registerDefaultActions();
   }
@@ -384,6 +387,7 @@ export class SceneFlowPresenter {
       registry: this.registry,
       addPopup: () => undefined,
       resolveAssetUrl: (id) => this.assetUrlResolver?.(id) ?? null,
+      localization: this.i18n,
     };
   }
 
@@ -422,18 +426,18 @@ export class SceneFlowPresenter {
 
   showResults(results: ResultsPayload, rematch: RematchPayload, outcome: ResultOutcome = 'complete'): void {
     this.setSceneContext('scene.results', {
-      ...resultOutcomeContext(outcome),
+      ...resultOutcomeContext(outcome, this.i18n),
       grade: results.grade,
-      title: results.title,
+      title: localizedResultTitle(results, this.i18n),
       score: results.score.toLocaleString(),
       crewMode: true,
       singleMode: false,
       stats: [
-        { label: 'BEST COMBO', value: `×${results.bestCombo}` },
-        { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
-        { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
-        { label: 'KILLS', value: String(results.kills) },
-        { label: 'CREW LINKS', value: String(results.links) },
+        { label: this.i18n.t('ui.results.bestCombo'), value: `×${results.bestCombo}` },
+        { label: this.i18n.t('ui.results.chargedShots'), value: String(results.chargedCannonShots) },
+        { label: this.i18n.t('ui.results.fullCharge'), value: String(results.fullChargeShots) },
+        { label: this.i18n.t('ui.results.kills'), value: String(results.kills) },
+        { label: this.i18n.t('ui.results.crewLinks'), value: String(results.links) },
       ],
     });
     this.updateRematch(rematch);
@@ -444,17 +448,17 @@ export class SceneFlowPresenter {
   /** Single Player results: local restart, no crew rematch vote. */
   showSinglePlayerResults(results: ResultsPayload, outcome: ResultOutcome = 'complete'): void {
     this.setSceneContext('scene.results', {
-      ...resultOutcomeContext(outcome),
+      ...resultOutcomeContext(outcome, this.i18n),
       grade: results.grade,
-      title: results.title,
+      title: localizedResultTitle(results, this.i18n),
       score: results.score.toLocaleString(),
       crewMode: false,
       singleMode: true,
       stats: [
-        { label: 'BEST COMBO', value: `×${results.bestCombo}` },
-        { label: 'CHARGED SHOTS', value: String(results.chargedCannonShots) },
-        { label: 'FULL CHARGE', value: String(results.fullChargeShots) },
-        { label: 'KILLS', value: String(results.kills) },
+        { label: this.i18n.t('ui.results.bestCombo'), value: `×${results.bestCombo}` },
+        { label: this.i18n.t('ui.results.chargedShots'), value: String(results.chargedCannonShots) },
+        { label: this.i18n.t('ui.results.fullCharge'), value: String(results.fullChargeShots) },
+        { label: this.i18n.t('ui.results.kills'), value: String(results.kills) },
       ],
     });
     this.ensureRuntimeFor('scene.results');
@@ -465,24 +469,27 @@ export class SceneFlowPresenter {
     this.setSceneContext('scene.results', {
       modifiers: MODIFIERS.map((m) => ({
         id: m.id,
-        label: m.label,
-        desc: m.desc,
+        label: this.i18n.t(`ui.modifier.${m.id}.name`, undefined, m.label),
+        desc: this.i18n.t(`ui.modifier.${m.id}.description`, undefined, m.desc),
         selected: m.id === rematch.modifier,
       })),
       rematchInfo:
         rematch.driver && rematch.gunner
-          ? 'BOTH READY — REMATCH INCOMING'
-          : `DRIVER ${rematch.driver ? 'READY' : 'PICKING'} · GUNNER ${rematch.gunner ? 'READY' : 'PICKING'}`,
+          ? this.i18n.t('ui.results.bothReady')
+          : this.i18n.t('ui.results.rematchStatus', {
+              driver: this.i18n.t(rematch.driver ? 'ui.status.ready' : 'ui.status.picking'),
+              gunner: this.i18n.t(rematch.gunner ? 'ui.status.ready' : 'ui.status.picking'),
+            }),
     });
   }
 
   showCountdown(n: number): void {
     if (n <= 0) {
-      this.setSceneContext('scene.countdown', { value: 'GO!', sub: '' });
+      this.setSceneContext('scene.countdown', { value: this.i18n.t('ui.countdown.go'), sub: '' });
     } else {
       this.setSceneContext('scene.countdown', {
         value: String(n),
-        sub: n === 3 ? 'GET READY' : n === 2 ? 'DRIVER · GUNNER' : 'BRACE YOURSELF',
+        sub: n === 3 ? this.i18n.t('ui.countdown.ready') : n === 2 ? this.i18n.t('ui.countdown.roles') : this.i18n.t('ui.countdown.brace'),
       });
     }
     const runtime = this.ensureRuntimeFor('scene.countdown');
@@ -507,12 +514,12 @@ export class SceneFlowPresenter {
 
   /** Surface a create-room failure on the create screen (never a silent empty code). */
   setCreateError(message: string): void {
-    this.setSceneContext('scene.createCrew', { status: message, copyLabel: 'COPY', copyDisabled: true });
+    this.setSceneContext('scene.createCrew', { status: message, copyLabel: this.i18n.t('ui.create.copy'), copyDisabled: true });
   }
 
   setCreateCode(code: string): void {
     const valid = isValidRoomCode(code);
-    this.setSceneContext('scene.createCrew', { code, copyLabel: 'COPY', copyDisabled: !valid });
+    this.setSceneContext('scene.createCrew', { code, copyLabel: this.i18n.t('ui.create.copy'), copyDisabled: !valid });
     this.setSceneContext('scene.readyLobby', { roomCode: code });
   }
 
@@ -521,9 +528,9 @@ export class SceneFlowPresenter {
     this.setSceneContext('scene.readyLobby', {
       driverReady,
       gunnerReady,
-      driverState: driverReady ? 'READY' : 'WAITING',
-      gunnerState: gunnerReady ? 'READY' : 'WAITING',
-      readyLabel: mine ? 'READY ✓' : 'READY',
+      driverState: this.i18n.t(driverReady ? 'ui.status.ready' : 'ui.status.waiting'),
+      gunnerState: this.i18n.t(gunnerReady ? 'ui.status.ready' : 'ui.status.waiting'),
+      readyLabel: `${this.i18n.t('ui.status.ready')}${mine ? ' ✓' : ''}`,
     });
   }
 
@@ -531,15 +538,15 @@ export class SceneFlowPresenter {
     const runtime = this.runtimes.get('scene.createCrew');
     const code = runtime?.getNode('create-code')?.element.textContent ?? '';
     if (!isValidRoomCode(code)) {
-      this.setSceneContext('scene.createCrew', { copyLabel: 'COPY FAILED — SELECT CODE', copyDisabled: true });
+      this.setSceneContext('scene.createCrew', { copyLabel: this.i18n.t('ui.create.copyFailed'), copyDisabled: true });
       return;
     }
     const ok = await copyText(code);
-    this.setSceneContext('scene.createCrew', { copyLabel: ok ? 'COPIED' : 'COPY FAILED — SELECT CODE' });
+    this.setSceneContext('scene.createCrew', { copyLabel: this.i18n.t(ok ? 'ui.create.copied' : 'ui.create.copyFailed') });
     const token = ++this.copyFeedbackT;
     setTimeout(() => {
       if (token === this.copyFeedbackT) {
-        this.setSceneContext('scene.createCrew', { copyLabel: 'COPY' });
+        this.setSceneContext('scene.createCrew', { copyLabel: this.i18n.t('ui.create.copy') });
         const btn = this.runtimes.get('scene.createCrew')?.getNode('copy-code');
         btn?.element.classList.remove('copied', 'failed');
       }
@@ -580,6 +587,19 @@ export class SceneFlowPresenter {
       ui(() => h().onSaveSettings?.(input?.value ?? ''));
     });
     this.actions.register('app.randomizeNickname', () => ui(() => h().onRandomizeNickname?.()));
+    this.actions.register('app.previewLocale', (_p, runtime) => {
+      const control = runtime?.getNode('settings-language')?.element;
+      const locale = control?.dataset.value;
+      if (locale === 'en' || locale === 'ko') h().onPreviewLocale?.(locale as Locale);
+    });
+    this.actions.register('app.previewBgmVolume', (_p, runtime) => {
+      const input = runtime?.getNode('settings-bgm-range')?.element as HTMLInputElement | undefined;
+      if (input) h().onPreviewBgmVolume?.(Number(input.value));
+    });
+    this.actions.register('app.previewSfxVolume', (_p, runtime) => {
+      const input = runtime?.getNode('settings-sfx-range')?.element as HTMLInputElement | undefined;
+      if (input) h().onPreviewSfxVolume?.(Number(input.value));
+    });
     this.actions.register('app.cancelSettings', () => ui(() => h().onCancelSettings?.()));
     this.actions.register('app.back', () => ui(() => h().onBack?.()));
     this.actions.register('app.leave', () => ui(() => h().onLeave?.()));
@@ -592,33 +612,50 @@ export class SceneFlowPresenter {
   }
 }
 
-function resultOutcomeContext(outcome: ResultOutcome): Record<string, unknown> {
+function resultOutcomeContext(outcome: ResultOutcome, i18n: LocalizationService): Record<string, unknown> {
   if (outcome === 'victory') {
     return {
       victory: true,
       defeat: false,
-      outcomeHeading: 'VICTORY',
-      outcomeKicker: 'BOSS NEUTRALIZED // STAGE CLEAR',
-      outcomeCopy: 'The boss is down. Shared chassis survived the full operation.',
-      outcomeState: 'STAGE CLEAR',
+      outcomeHeading: i18n.t('ui.results.victory'),
+      outcomeKicker: i18n.t('ui.results.victoryKicker'),
+      outcomeCopy: i18n.t('ui.results.victoryCopy'),
+      outcomeState: i18n.t('ui.results.stageClear'),
     };
   }
   if (outcome === 'defeat') {
     return {
       victory: false,
       defeat: true,
-      outcomeHeading: 'GAME OVER',
-      outcomeKicker: 'CHASSIS LOST // RUN TERMINATED',
-      outcomeCopy: 'Field unit integrity reached zero before the boss was neutralized.',
-      outcomeState: 'CHASSIS OFFLINE',
+      outcomeHeading: i18n.t('ui.results.defeat'),
+      outcomeKicker: i18n.t('ui.results.defeatKicker'),
+      outcomeCopy: i18n.t('ui.results.defeatCopy'),
+      outcomeState: i18n.t('ui.results.chassisOffline'),
     };
   }
   return {
     victory: false,
     defeat: false,
-    outcomeHeading: 'ROUND COMPLETE',
-    outcomeKicker: 'MISSION REPORT // CLOSED',
-    outcomeCopy: 'Field run logged. Crew performance is ready for review.',
-    outcomeState: 'RUN COMPLETE',
+    outcomeHeading: i18n.t('ui.results.complete'),
+    outcomeKicker: i18n.t('ui.results.kicker'),
+    outcomeCopy: i18n.t('ui.results.defaultCopy'),
+    outcomeState: i18n.t('ui.results.system'),
   };
+}
+
+const LEGACY_RESULT_TITLE_IDS: Readonly<Record<string, string>> = {
+  'Airborne Division': 'title.airborneDivision',
+  'Recoil Accountants': 'title.recoilAccountants',
+  'Friendly Fire Department': 'title.friendlyFire',
+  'The Brakes Were Optional': 'title.brakesOptional',
+  'One Brain, Two Browsers': 'title.oneBrain',
+  'Perfectly Coordinated Accident': 'title.perfectlyCoordinated',
+  'Unlicensed Ballistics': 'title.unlicensed',
+  'Scrap Goblins': 'title.scrapGoblins',
+  'Boss Slayer': 'title.bossSlayer',
+};
+
+function localizedResultTitle(results: ResultsPayload, i18n: LocalizationService): string {
+  const titleId = results.titleId ?? LEGACY_RESULT_TITLE_IDS[results.title];
+  return titleId ? i18n.t(`result.${titleId}`, {}, results.title) : results.title;
 }

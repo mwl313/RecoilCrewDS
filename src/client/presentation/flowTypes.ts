@@ -1,5 +1,6 @@
 import type { ModifierId, Role } from '../../shared/types';
 import type { CrewSeat } from '../../shared/lobby/lobbyTypes';
+import type { Locale } from '../localization/localizationTypes';
 
 /** Application commands owned by code (scene content only references ids). */
 export interface AppFlowHandlers {
@@ -13,6 +14,9 @@ export interface AppFlowHandlers {
   onOpenSettings(): void;
   onSaveSettings(nickname: string): void;
   onRandomizeNickname(): void;
+  onPreviewLocale?(locale: Locale): void;
+  onPreviewBgmVolume?(value: number): void;
+  onPreviewSfxVolume?(value: number): void;
   onCancelSettings(): void;
   onLobbySeat(seat: CrewSeat): void;
   onLobbyRequestRoleSwap(): void;
@@ -54,6 +58,7 @@ export interface ResultsPayload {
   links: number;
   wipeouts: number;
   grade: string;
+  titleId?: string;
   title: string;
   modifier: string;
 }

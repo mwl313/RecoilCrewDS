@@ -1,4 +1,5 @@
 import type { SceneDefinition, UiNodeInput } from '../../shared/presentation/schemas';
+import type { LocalizationService } from '../localization/localizationTypes';
 import { attachActionBindings, type SceneActionRegistry } from './actionRegistry';
 import type { UiComponentInstance, UiComponentServices } from './componentRegistry';
 import type { UiComponentRegistry } from './componentRegistry';
@@ -9,6 +10,7 @@ export interface SceneRuntimeServices {
   registry: UiComponentRegistry;
   addPopup?(text: string, kind: string): void;
   resolveAssetUrl?(id: string): string | null;
+  localization?: LocalizationService;
 }
 
 /**
@@ -25,11 +27,15 @@ export class SceneRuntime {
   private rootInstance: UiComponentInstance | null = null;
   private scene: SceneDefinition | null = null;
   private transitionToken = 0;
+  private readonly localizationJobs: Array<() => void> = [];
+  private readonly unsubscribeLocalization: (() => void) | null;
 
   constructor(
     private readonly services: SceneRuntimeServices,
     private readonly container: HTMLElement,
-  ) {}
+  ) {
+    this.unsubscribeLocalization = this.services.localization?.subscribe(() => this.applyAll()) ?? null;
+  }
 
   get element(): HTMLElement | null {
     return this.rootInstance?.element ?? null;
@@ -47,6 +53,7 @@ export class SceneRuntime {
       node: (id) => this.instances.get(id),
       addPopup: (text, kind) => this.services.addPopup?.(text, kind),
       resolveAssetUrl: (id) => this.services.resolveAssetUrl?.(id) ?? null,
+      localize: (key, params, fallback) => this.services.localization?.t(key, params, fallback) ?? fallback ?? '',
     };
     this.rootInstance = this.buildNode(scene.root, undefined, services);
     if (this.rootInstance) {
@@ -65,7 +72,11 @@ export class SceneRuntime {
   ): UiComponentInstance | null {
     const instance = createUiComponent(node, services, this.services.registry);
     this.instances.set(node.id, instance);
-    const appliers = compileNodeBindings(node, instance.element);
+    const appliers = compileNodeBindings(
+      node,
+      instance.element,
+      (key, params, fallback) => this.services.localization?.t(key, params, fallback) ?? fallback ?? '',
+    );
     for (const applier of appliers) {
       const job = { apply: applier.apply, el: instance.element };
       if (inRepeater) this.itemJobs.push({ ...job, scope: repeaterScope });
@@ -74,6 +85,20 @@ export class SceneRuntime {
     const actions = node.actions ?? [];
     if (actions.length > 0) {
       attachActionBindings(instance.element, actions, this.services.actions, this, resolveItem);
+    }
+    const applyLocalization = (): void => {
+      const service = this.services.localization;
+      if (!service) return;
+      if (node.textKey) instance.element.textContent = service.t(node.textKey, undefined, node.text ?? '');
+      if (node.placeholderKey && instance.element instanceof HTMLInputElement) {
+        instance.element.placeholder = service.t(node.placeholderKey, undefined, String((node.props ?? {})['placeholder'] ?? ''));
+      }
+      if (node.titleKey) instance.element.title = service.t(node.titleKey, undefined, String((node.props ?? {})['title'] ?? ''));
+      if (node.ariaLabelKey) instance.element.setAttribute('aria-label', service.t(node.ariaLabelKey));
+    };
+    if (node.textKey || node.placeholderKey || node.titleKey || node.ariaLabelKey) {
+      this.localizationJobs.push(applyLocalization);
+      applyLocalization();
     }
     const props = (node.props ?? {}) as { enterAction?: string };
     if (node.type === 'input' && props.enterAction) {
@@ -145,6 +170,7 @@ export class SceneRuntime {
   }
 
   private applyAll(): void {
+    for (const job of this.localizationJobs) job();
     for (const job of this.bindingJobs) job.apply(this.context, job.el);
     for (const instance of this.instances.values()) instance.update?.(this.context);
   }
@@ -199,6 +225,7 @@ export class SceneRuntime {
     for (const instance of this.instances.values()) instance.dispose();
     this.instances.clear();
     this.bindingJobs.length = 0;
+    this.localizationJobs.length = 0;
     this.itemJobs.length = 0;
     this.repeaterItems.clear();
     this.rootInstance = null;
@@ -207,5 +234,6 @@ export class SceneRuntime {
 
   dispose(): void {
     this.unload();
+    this.unsubscribeLocalization?.();
   }
 }

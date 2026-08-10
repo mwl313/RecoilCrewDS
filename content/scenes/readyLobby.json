@@ -2,7 +2,10 @@
   "id": "scene.readyLobby",
   "label": "Ready Lobby",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 140 },
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 140
+  },
   "root": {
     "id": "screen-ready",
     "type": "container",
@@ -13,10 +16,34 @@
         "type": "panel",
         "class": "panel",
         "children": [
-          { "id": "ready-title", "type": "text", "props": { "tag": "h2" }, "text": "CREW LINKED" },
-          { "id": "ready-codebox", "type": "container", "class": "code-box small", "children": [
-            { "id": "ready-code", "type": "text", "class": "code", "bindings": [{ "target": "text", "source": "roomCode", "fallback": "" }] }
-          ] },
+          {
+            "id": "ready-title",
+            "type": "text",
+            "props": {
+              "tag": "h2"
+            },
+            "text": "CREW LINKED",
+            "textKey": "ui.ready.title"
+          },
+          {
+            "id": "ready-codebox",
+            "type": "container",
+            "class": "code-box small",
+            "children": [
+              {
+                "id": "ready-code",
+                "type": "text",
+                "class": "code",
+                "bindings": [
+                  {
+                    "target": "text",
+                    "source": "roomCode",
+                    "fallback": ""
+                  }
+                ]
+              }
+            ]
+          },
           {
             "id": "ready-rows",
             "type": "vertical",
@@ -26,34 +53,144 @@
                 "id": "ready-driver",
                 "type": "horizontal",
                 "class": "ready-row",
-                "bindings": [{ "target": "class", "source": "driverReady", "transform": "booleanClass", "attribute": "ready" }],
+                "bindings": [
+                  {
+                    "target": "class",
+                    "source": "driverReady",
+                    "transform": "booleanClass",
+                    "attribute": "ready"
+                  }
+                ],
                 "children": [
-                  { "id": "ready-driver-dot", "type": "container", "class": "dot cyan" },
-                  { "id": "ready-driver-label", "type": "text", "text": "DRIVER" },
-                  { "id": "driver-state", "type": "text", "class": "state", "bindings": [{ "target": "text", "source": "driverState", "fallback": "WAITING" }] }
+                  {
+                    "id": "ready-driver-dot",
+                    "type": "container",
+                    "class": "dot cyan"
+                  },
+                  {
+                    "id": "ready-driver-label",
+                    "type": "text",
+                    "text": "DRIVER",
+                    "textKey": "ui.role.driver"
+                  },
+                  {
+                    "id": "driver-state",
+                    "type": "text",
+                    "class": "state",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "driverState",
+                        "fallback": "WAITING"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "id": "ready-gunner",
                 "type": "horizontal",
                 "class": "ready-row",
-                "bindings": [{ "target": "class", "source": "gunnerReady", "transform": "booleanClass", "attribute": "ready" }],
+                "bindings": [
+                  {
+                    "target": "class",
+                    "source": "gunnerReady",
+                    "transform": "booleanClass",
+                    "attribute": "ready"
+                  }
+                ],
                 "children": [
-                  { "id": "ready-gunner-dot", "type": "container", "class": "dot orange" },
-                  { "id": "ready-gunner-label", "type": "text", "text": "GUNNER" },
-                  { "id": "gunner-state", "type": "text", "class": "state", "bindings": [{ "target": "text", "source": "gunnerState", "fallback": "WAITING" }] }
+                  {
+                    "id": "ready-gunner-dot",
+                    "type": "container",
+                    "class": "dot orange"
+                  },
+                  {
+                    "id": "ready-gunner-label",
+                    "type": "text",
+                    "text": "GUNNER",
+                    "textKey": "ui.role.gunner"
+                  },
+                  {
+                    "id": "gunner-state",
+                    "type": "text",
+                    "class": "state",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "gunnerState",
+                        "fallback": "WAITING"
+                      }
+                    ]
+                  }
                 ]
               }
             ]
           },
-          { "id": "ready-go", "type": "button", "class": "btn primary", "text": "READY", "bindings": [{ "target": "text", "source": "readyLabel", "fallback": "READY" }], "actions": [{ "event": "click", "action": "app.ready" }] },
-          { "id": "ready-leave", "type": "button", "class": "btn ghost", "props": { "dataAct": "back" }, "text": "LEAVE", "actions": [{ "event": "click", "action": "app.back" }] }
+          {
+            "id": "ready-go",
+            "type": "button",
+            "class": "btn primary",
+            "text": "READY",
+            "bindings": [
+              {
+                "target": "text",
+                "source": "readyLabel",
+                "fallback": "READY"
+              }
+            ],
+            "actions": [
+              {
+                "event": "click",
+                "action": "app.ready"
+              }
+            ],
+            "textKey": "ui.ready.ready"
+          },
+          {
+            "id": "ready-leave",
+            "type": "button",
+            "class": "btn ghost",
+            "props": {
+              "dataAct": "back"
+            },
+            "text": "LEAVE",
+            "actions": [
+              {
+                "event": "click",
+                "action": "app.back"
+              }
+            ],
+            "textKey": "ui.ready.leave"
+          }
         ]
       }
     ]
   },
   "previewStates": [
-    { "id": "waiting", "label": "Waiting", "context": { "roomCode": "AB12CD", "driverReady": false, "gunnerReady": false, "driverState": "WAITING", "gunnerState": "WAITING", "readyLabel": "READY" } },
-    { "id": "ready", "label": "Both ready", "context": { "roomCode": "AB12CD", "driverReady": true, "gunnerReady": true, "driverState": "READY", "gunnerState": "READY", "readyLabel": "READY ✓" } }
+    {
+      "id": "waiting",
+      "label": "Waiting",
+      "context": {
+        "roomCode": "AB12CD",
+        "driverReady": false,
+        "gunnerReady": false,
+        "driverState": "WAITING",
+        "gunnerState": "WAITING",
+        "readyLabel": "READY"
+      }
+    },
+    {
+      "id": "ready",
+      "label": "Both ready",
+      "context": {
+        "roomCode": "AB12CD",
+        "driverReady": true,
+        "gunnerReady": true,
+        "driverState": "READY",
+        "gunnerState": "READY",
+        "readyLabel": "READY ✓"
+      }
+    }
   ]
 }

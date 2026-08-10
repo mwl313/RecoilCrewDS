@@ -273,6 +273,31 @@ describe('relic chest world integration', () => {
     expect(chest.rewardOffer?.candidates).toHaveLength(1);
   });
 
+  it('does not claim a chest outside the vertical detection radius', () => {
+    const match = productionMatch('proximity-vertical-separation');
+    const [chest, ...otherChests] = match.state.chests;
+    match.state.tank.x = 0;
+    match.state.tank.y = 0;
+    match.state.tank.z = 0;
+    chest.x = 0;
+    chest.y = policy.claimRadius + 1;
+    chest.z = 0;
+    chest.lifecycle = 'closed';
+    for (const other of otherChests) other.lifecycle = 'spawning';
+
+    match.systems.progression.step(0.01);
+
+    expect(match.state.matchFlow).toBe('playing');
+    expect(chest.lifecycle).toBe('closed');
+    expect(chest.rewardOffer).toBeUndefined();
+
+    chest.y = match.state.tank.y;
+    match.systems.progression.step(0.01);
+
+    expect(match.state.matchFlow).toBe('relicOpening');
+    expect(chest.lifecycle).toBe('opening');
+  });
+
   it('captures first claim, active peak, and unopened terminal telemetry once', () => {
     const match = productionMatch('telemetry-terminal');
     expect(match.systems.progression.telemetry.initialMapChestsSpawned).toBe(10);

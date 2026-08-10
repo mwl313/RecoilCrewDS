@@ -44,7 +44,13 @@ export function getPath(context: BindingContext, path: string): unknown {
   return compilePath(path)(context);
 }
 
-function applyFormat(format: string | undefined, value: unknown): string {
+function applyFormat(
+  format: string | undefined,
+  value: unknown,
+  formatKey?: string,
+  localize?: (key: string, params?: Record<string, string | number>, fallback?: string) => string,
+): string {
+  if (formatKey && localize) return localize(formatKey, { value: String(value ?? ''), 0: String(value ?? '') }, format);
   if (format === undefined) return String(value ?? '');
   return format.replace(/\{0\}/g, String(value ?? ''));
 }
@@ -54,6 +60,7 @@ export function transformValue(
   value: unknown,
   context: BindingContext,
   binding: BindingDefinition,
+  localize?: (key: string, params?: Record<string, string | number>, fallback?: string) => string,
 ): unknown {
   if (transform === undefined) return value;
   switch (transform) {
@@ -73,10 +80,12 @@ export function transformValue(
     }
     case 'booleanClass':
       return Boolean(value);
-    case 'roleLabel':
-      return String(value ?? '').toUpperCase();
+    case 'roleLabel': {
+      const role = String(value ?? '');
+      return role ? localize?.(`hud.role.${role}`, undefined, role.toUpperCase()) ?? role.toUpperCase() : '';
+    }
     case 'connectionLabel':
-      return value ? 'ONLINE' : 'OFFLINE';
+      return localize?.(value ? 'hud.connection.online' : 'hud.connection.offline', undefined, value ? 'ONLINE' : 'OFFLINE') ?? (value ? 'ONLINE' : 'OFFLINE');
     default:
       return value;
   }
@@ -89,6 +98,7 @@ export interface BindingApplier {
 export function compileBindingApplier(
   definition: BindingDefinition,
   element: HTMLElement,
+  localize?: (key: string, params?: Record<string, string | number>, fallback?: string) => string,
 ): BindingApplier {
   const compiled = compileBinding(definition);
   const target = definition.target;
@@ -103,10 +113,10 @@ export function compileBindingApplier(
     apply(context, el) {
       let raw = compiled.read(context);
       if (raw === undefined && definition.fallback !== undefined) raw = definition.fallback;
-      const value = transformValue(transform, raw, context, definition);
+      const value = transformValue(transform, raw, context, definition, localize);
       switch (target) {
         case 'text': {
-          const text = applyFormat(definition.format, value);
+          const text = applyFormat(definition.format, value, definition.formatKey, localize);
           if (text !== lastText) {
             lastText = text;
             el.textContent = text;
@@ -115,7 +125,7 @@ export function compileBindingApplier(
         }
         case 'value': {
           const input = el as HTMLInputElement;
-          const text = applyFormat(definition.format, value);
+          const text = applyFormat(definition.format, value, definition.formatKey, localize);
           if (typeof input.value === 'string' && text !== lastText) {
             lastText = text;
             input.value = text;
@@ -147,7 +157,7 @@ export function compileBindingApplier(
         case 'style': {
           if (!attribute) break;
           const cssName = attribute.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-          const css = applyFormat(definition.format, value);
+          const css = applyFormat(definition.format, value, definition.formatKey, localize);
           if (css !== lastStyle) {
             lastStyle = css;
             el.style.setProperty(cssName, css);
@@ -156,7 +166,7 @@ export function compileBindingApplier(
         }
         case 'attribute': {
           if (!attribute) break;
-          const text = applyFormat(definition.format, value);
+          const text = applyFormat(definition.format, value, definition.formatKey, localize);
           if (text !== lastAttribute) {
             lastAttribute = text;
             el.setAttribute(attribute, text);

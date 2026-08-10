@@ -31,6 +31,8 @@ export const UI_COMPONENT_TYPES = [
   'arcMeter',
   'popupLayer',
   'pauseButton',
+  'segmentedControl',
+  'range',
 ] as const;
 
 /** Scene entity component types with a runtime implementation. */
@@ -81,6 +83,9 @@ export const ACTION_IDS = [
   'app.openSettings',
   'app.saveSettings',
   'app.randomizeNickname',
+  'app.previewLocale',
+  'app.previewBgmVolume',
+  'app.previewSfxVolume',
   'app.cancelSettings',
 ] as const;
 
@@ -133,6 +138,9 @@ export const SCENE_BINDING_PATHS = [
   'currentNickname',
   'nicknameDraft',
   'settingsError',
+  'localeDraft',
+  'bgmVolumeDraft',
+  'sfxVolumeDraft',
 ] as const;
 
 /** Allowed binding source paths for gameplay HUD documents (HudViewModel). */
@@ -268,6 +276,7 @@ export const bindingSchema = z
     target: z.enum(BINDING_TARGETS),
     source: z.string(),
     format: z.string().optional(),
+    formatKey: z.string().optional(),
     transform: z.enum(BINDING_TRANSFORMS).optional(),
     fallback: z.unknown().optional(),
     attribute: z.string().optional(),
@@ -315,6 +324,10 @@ export const uiNodeSchema: z.ZodType<UiNodeInput> = z.lazy(() =>
       style: styleSchema.optional(),
       class: z.string().optional(),
       text: z.string().optional(),
+      textKey: z.string().optional(),
+      placeholderKey: z.string().optional(),
+      titleKey: z.string().optional(),
+      ariaLabelKey: z.string().optional(),
       assetId: z.string().optional(),
       bindings: z.array(bindingSchema).optional(),
       actions: z.array(actionBindingSchema).optional(),
@@ -335,6 +348,10 @@ export interface UiNodeInput {
   style?: z.infer<typeof styleSchema>;
   class?: string;
   text?: string;
+  textKey?: string;
+  placeholderKey?: string;
+  titleKey?: string;
+  ariaLabelKey?: string;
   assetId?: string;
   bindings?: z.infer<typeof bindingSchema>[];
   actions?: z.infer<typeof actionBindingSchema>[];

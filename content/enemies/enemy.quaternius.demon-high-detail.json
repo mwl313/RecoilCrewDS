@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.demon-high-detail",
-  "label": "Demon High Detail Boss",
+  "label": "Demon Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",

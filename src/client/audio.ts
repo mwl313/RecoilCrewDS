@@ -67,12 +67,21 @@ const BUS_GAINS: Record<ProceduralBusName, number> = {
   uiReward: 0.72,
 };
 
+export function perceptualVolumeGain(value0to100: number): number {
+  const normalized = Math.max(0, Math.min(100, Number.isFinite(value0to100) ? value0to100 : 100)) / 100;
+  return normalized ** 2;
+}
+
 export class AudioManager {
   ctx: AudioContext | null = null;
   master: GainNode | null = null;
   musicGain: GainNode | null = null;
   readonly soundtrack: SoundtrackController;
   private sfxBus: GainNode | null = null;
+  private sfxUserGain: GainNode | null = null;
+  private musicUserGain: GainNode | null = null;
+  private bgmVolume = 100;
+  private sfxVolume = 100;
   private readonly buses = new Map<ProceduralBusName, GainNode>();
   private readonly voiceManager = new ProceduralVoiceManager();
   private engineNodes: EngineNodes | null = null;
@@ -136,7 +145,9 @@ export class AudioManager {
 
     this.sfxBus = this.ctx.createGain();
     this.sfxBus.gain.value = 0.9;
-    this.sfxBus.connect(this.master);
+    this.sfxUserGain = this.ctx.createGain();
+    this.sfxUserGain.gain.value = perceptualVolumeGain(this.sfxVolume);
+    this.sfxBus.connect(this.sfxUserGain).connect(this.master);
     for (const [name, gainValue] of Object.entries(BUS_GAINS) as Array<[ProceduralBusName, number]>) {
       const gain = this.ctx.createGain();
       gain.gain.value = gainValue;
@@ -152,17 +163,20 @@ export class AudioManager {
     const lowPass = this.ctx.createBiquadFilter();
     const contextGain = this.ctx.createGain();
     const duckGain = this.ctx.createGain();
+    this.musicUserGain = this.ctx.createGain();
     trackFadeGain.gain.value = 0;
     lowPass.type = 'lowpass';
     lowPass.frequency.value = 2_300;
     lowPass.Q.value = 0.7;
     contextGain.gain.value = 0.72;
     duckGain.gain.value = 1;
+    this.musicUserGain.gain.value = perceptualVolumeGain(this.bgmVolume);
     soundtrackSource
       .connect(trackFadeGain)
       .connect(lowPass)
       .connect(contextGain)
       .connect(duckGain)
+      .connect(this.musicUserGain)
       .connect(this.master);
     this.musicGain = contextGain;
     this.soundtrackAutomation.bind(new WebAudioSoundtrackAutomation(
@@ -182,6 +196,33 @@ export class AudioManager {
   private prepareSoundtrackPlayback(): void {
     this.ensureInitialized();
     if (this.ctx?.state === 'suspended') void this.ctx.resume();
+  }
+
+  setBgmVolume(value0to100: number): void {
+    this.bgmVolume = Math.max(0, Math.min(100, Math.round(value0to100)));
+    this.rampUserGain(this.musicUserGain, perceptualVolumeGain(this.bgmVolume));
+  }
+
+  setSfxVolume(value0to100: number): void {
+    this.sfxVolume = Math.max(0, Math.min(100, Math.round(value0to100)));
+    this.rampUserGain(this.sfxUserGain, perceptualVolumeGain(this.sfxVolume));
+  }
+
+  userVolumeState(): { bgmVolume: number; sfxVolume: number; bgmGain: number; sfxGain: number } {
+    return {
+      bgmVolume: this.bgmVolume,
+      sfxVolume: this.sfxVolume,
+      bgmGain: perceptualVolumeGain(this.bgmVolume),
+      sfxGain: perceptualVolumeGain(this.sfxVolume),
+    };
+  }
+
+  private rampUserGain(node: GainNode | null, target: number): void {
+    if (!node || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    node.gain.cancelScheduledValues(now);
+    node.gain.setValueAtTime(node.gain.value, now);
+    node.gain.linearRampToValueAtTime(target, now + 0.03);
   }
 
   setListenerPose(pose: ListenerPose): void {
@@ -649,6 +690,8 @@ export class AudioManager {
     this.master = null;
     this.musicGain = null;
     this.sfxBus = null;
+    this.musicUserGain = null;
+    this.sfxUserGain = null;
     this.buses.clear();
   }
 }

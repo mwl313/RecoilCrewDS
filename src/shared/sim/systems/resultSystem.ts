@@ -1,4 +1,4 @@
-import { gradeFromRules, titleFromRules, type GradeRule, type TitleRule } from '../results';
+import { gradeFromRules, titleRuleFromRules, type GradeRule, type TitleRule } from '../results';
 import type { MatchResults } from '../../types';
 import type { SystemContext } from './systemContext';
 
@@ -14,7 +14,7 @@ export class ResultSystem {
     const s = this.ctx.state;
     const rules = this.ctx.rules.results;
     const grade = gradeFromRules(s, rules.grades as unknown as GradeRule[]);
-    const title = titleFromRules(s, grade, rules.titles as unknown as TitleRule[]);
+    const titleRule = titleRuleFromRules(s, grade, rules.titles as unknown as TitleRule[]);
     return {
       score: Math.floor(s.stats.score),
       bestCombo: s.combo.best,
@@ -25,7 +25,8 @@ export class ResultSystem {
       links: s.stats.links,
       wipeouts: s.stats.wipeouts,
       grade,
-      title,
+      titleId: titleRule.id,
+      title: titleRule.text,
       modifier: s.modifier,
     };
   }

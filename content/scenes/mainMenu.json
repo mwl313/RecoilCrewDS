@@ -6,63 +6,181 @@
     "background": "#101516",
     "transparentBackground": true,
     "lights": [
-      { "type": "hemisphere", "color": "#b8c5c0", "groundColor": "#241b12", "intensity": 1.05 },
-      { "type": "directional", "color": "#ffd18a", "intensity": 1.75, "direction": [-0.35, 0.72, 0.55] }
+      {
+        "type": "hemisphere",
+        "color": "#b8c5c0",
+        "groundColor": "#241b12",
+        "intensity": 1.05
+      },
+      {
+        "type": "directional",
+        "color": "#ffd18a",
+        "intensity": 1.75,
+        "direction": [
+          -0.35,
+          0.72,
+          0.55
+        ]
+      }
     ]
   },
   "entities": [
     {
       "id": "menuTank",
-      "transform": { "position": [1.55, -1.35, 0], "rotation": [0, -0.42, 0], "scale": [1.05, 1.05, 1.05] },
+      "transform": {
+        "position": [
+          1.55,
+          -1.35,
+          0
+        ],
+        "rotation": [
+          0,
+          -0.42,
+          0
+        ],
+        "scale": [
+          1.05,
+          1.05,
+          1.05
+        ]
+      },
       "components": [
         {
           "type": "model",
           "props": {
             "assetId": "scene.menuTank",
             "responsiveMaxWidth": 720,
-            "responsivePosition": [0.1, -2.55, 0],
-            "responsiveScale": [0.48, 0.48, 0.48]
+            "responsivePosition": [
+              0.1,
+              -2.55,
+              0
+            ],
+            "responsiveScale": [
+              0.48,
+              0.48,
+              0.48
+            ]
           }
         },
-        { "type": "rotateAnimation", "props": { "speed": 0.055 } },
-        { "type": "floatAnimation", "props": { "amplitude": 0.08, "speed": 0.65 } },
-        { "type": "dragRotate", "props": { "regionStart": 0.46, "sensitivity": 0.009 } }
+        {
+          "type": "rotateAnimation",
+          "props": {
+            "speed": 0.055
+          }
+        },
+        {
+          "type": "floatAnimation",
+          "props": {
+            "amplitude": 0.08,
+            "speed": 0.65
+          }
+        },
+        {
+          "type": "dragRotate",
+          "props": {
+            "regionStart": 0.46,
+            "sensitivity": 0.009
+          }
+        }
       ]
     }
   ],
-  "cameras": [{ "position": [0, 0.75, 6.3], "rotation": [0, 0, 0] }],
-  "enterTransition": { "type": "fade", "durationMs": 180 },
+  "cameras": [
+    {
+      "position": [
+        0,
+        0.75,
+        6.3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 180
+  },
   "root": {
     "id": "screen-main",
     "type": "container",
     "class": "screen ui-screen menu-screen",
-    "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plain" },
+    "appearance": {
+      "tone": "neutral",
+      "emphasis": "hero",
+      "density": "comfortable",
+      "shape": "plain"
+    },
     "children": [
-      { "id": "main-backdrop", "type": "container", "class": "ui-menu-backdrop" },
-      { "id": "main-frame", "type": "container", "class": "ui-safe-frame" },
+      {
+        "id": "main-backdrop",
+        "type": "container",
+        "class": "ui-menu-backdrop"
+      },
+      {
+        "id": "main-frame",
+        "type": "container",
+        "class": "ui-safe-frame"
+      },
       {
         "id": "main-topbar",
         "type": "horizontal",
         "class": "ui-topbar",
         "children": [
-          { "id": "main-unit", "type": "text", "class": "ui-unit-mark ui-enter-from-left", "text": "RC / FIELD UNIT 07" },
-          { "id": "main-system", "type": "text", "class": "ui-system-state ui-shared-status", "text": "SYSTEM STATUS: READY" }
+          {
+            "id": "main-unit",
+            "type": "text",
+            "class": "ui-unit-mark ui-enter-from-left",
+            "text": "RC / FIELD UNIT 07"
+          },
+          {
+            "id": "main-system",
+            "type": "text",
+            "class": "ui-system-state ui-shared-status",
+            "text": "SYSTEM STATUS: READY",
+            "textKey": "ui.main.systemReady"
+          }
         ]
       },
       {
         "id": "main-panel",
         "type": "panel",
         "class": "ui-menu-rail ui-enter-from-left",
-        "appearance": { "tone": "neutral", "emphasis": "hero", "density": "comfortable", "shape": "plain" },
+        "appearance": {
+          "tone": "neutral",
+          "emphasis": "hero",
+          "density": "comfortable",
+          "shape": "plain"
+        },
         "children": [
-          { "id": "main-kicker", "type": "text", "class": "ui-kicker", "text": "CO-OP TANK SURVIVAL" },
+          {
+            "id": "main-kicker",
+            "type": "text",
+            "class": "ui-kicker",
+            "text": "CO-OP TANK SURVIVAL",
+            "textKey": "ui.main.kicker"
+          },
           {
             "id": "main-logo",
             "type": "container",
             "class": "ui-wordmark ui-wordmark--menu",
             "children": [
-              { "id": "main-title", "type": "text", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
-              { "id": "main-title-crew", "type": "text", "class": "ui-wordmark-crew", "text": "CREW" }
+              {
+                "id": "main-title",
+                "type": "text",
+                "props": {
+                  "tag": "h1"
+                },
+                "text": "RECOI L"
+              },
+              {
+                "id": "main-title-crew",
+                "type": "text",
+                "class": "ui-wordmark-crew",
+                "text": "CREW"
+              }
             ]
           },
           {
@@ -75,11 +193,109 @@
                 "type": "container",
                 "class": "ui-menu-page ui-menu-page--main",
                 "children": [
-                  { "id": "main-multiplayer", "type": "button", "class": "ui-action ui-action--01", "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "multiplayer" }, "text": "MULTIPLAYER", "actions": [{ "event": "click", "action": "app.openMultiplayer" }] },
-                  { "id": "main-single", "type": "button", "class": "ui-action ui-action--02", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "single" }, "text": "SINGLE PLAYER", "actions": [{ "event": "click", "action": "app.startSinglePlayer" }] },
-                  { "id": "main-settings", "type": "button", "class": "ui-action ui-action--03", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "settings" }, "text": "SETTINGS", "actions": [{ "event": "click", "action": "app.openSettings" }] },
-                  { "id": "main-howto", "type": "button", "class": "ui-action ui-action--04", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "howto" }, "text": "HOW TO PLAY", "actions": [{ "event": "click", "action": "app.openHowTo" }] },
-                  { "id": "main-playing-as", "type": "text", "class": "playing-as", "bindings": [{ "target": "text", "source": "currentNickname", "fallback": "CURRENT NICKNAME: ---" }] }
+                  {
+                    "id": "main-multiplayer",
+                    "type": "button",
+                    "class": "ui-action ui-action--01",
+                    "appearance": {
+                      "tone": "action",
+                      "emphasis": "hero",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "multiplayer"
+                    },
+                    "text": "MULTIPLAYER",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.openMultiplayer"
+                      }
+                    ],
+                    "textKey": "ui.main.multiplayer"
+                  },
+                  {
+                    "id": "main-single",
+                    "type": "button",
+                    "class": "ui-action ui-action--02",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "single"
+                    },
+                    "text": "SINGLE PLAYER",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.startSinglePlayer"
+                      }
+                    ],
+                    "textKey": "ui.main.singlePlayer"
+                  },
+                  {
+                    "id": "main-settings",
+                    "type": "button",
+                    "class": "ui-action ui-action--03",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "settings"
+                    },
+                    "text": "SETTINGS",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.openSettings"
+                      }
+                    ],
+                    "textKey": "ui.main.settings"
+                  },
+                  {
+                    "id": "main-howto",
+                    "type": "button",
+                    "class": "ui-action ui-action--04",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "howto"
+                    },
+                    "text": "HOW TO PLAY",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.openHowTo"
+                      }
+                    ],
+                    "textKey": "ui.main.howTo"
+                  },
+                  {
+                    "id": "main-playing-as",
+                    "type": "text",
+                    "class": "playing-as",
+                    "text": "CURRENT NICKNAME: ---",
+                    "bindings": [
+                      {
+                        "target": "text",
+                        "source": "currentNickname",
+                        "fallback": "---",
+                        "format": "CURRENT NICKNAME: {0}",
+                        "formatKey": "ui.main.currentNickname"
+                      }
+                    ]
+                  }
                 ]
               },
               {
@@ -87,9 +303,72 @@
                 "type": "container",
                 "class": "ui-menu-page ui-menu-page--multiplayer hidden",
                 "children": [
-                  { "id": "multiplayer-create", "type": "button", "class": "ui-action ui-action--01", "appearance": { "tone": "action", "emphasis": "hero", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "create" }, "text": "CREATE CREW", "actions": [{ "event": "click", "action": "app.createCrew" }] },
-                  { "id": "multiplayer-join", "type": "button", "class": "ui-action ui-action--02", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "join" }, "text": "JOIN CREW", "actions": [{ "event": "click", "action": "app.openJoin" }] },
-                  { "id": "multiplayer-back", "type": "button", "class": "ui-action ui-action--03", "appearance": { "tone": "neutral", "emphasis": "standard", "density": "comfortable", "shape": "plate" }, "props": { "dataAct": "menu-back" }, "text": "GO BACK", "actions": [{ "event": "click", "action": "app.closeMultiplayer" }] }
+                  {
+                    "id": "multiplayer-create",
+                    "type": "button",
+                    "class": "ui-action ui-action--01",
+                    "appearance": {
+                      "tone": "action",
+                      "emphasis": "hero",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "create"
+                    },
+                    "text": "CREATE CREW",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.createCrew"
+                      }
+                    ],
+                    "textKey": "ui.main.createCrew"
+                  },
+                  {
+                    "id": "multiplayer-join",
+                    "type": "button",
+                    "class": "ui-action ui-action--02",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "join"
+                    },
+                    "text": "JOIN CREW",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.openJoin"
+                      }
+                    ],
+                    "textKey": "ui.main.joinCrew"
+                  },
+                  {
+                    "id": "multiplayer-back",
+                    "type": "button",
+                    "class": "ui-action ui-action--03",
+                    "appearance": {
+                      "tone": "neutral",
+                      "emphasis": "standard",
+                      "density": "comfortable",
+                      "shape": "plate"
+                    },
+                    "props": {
+                      "dataAct": "menu-back"
+                    },
+                    "text": "GO BACK",
+                    "actions": [
+                      {
+                        "event": "click",
+                        "action": "app.closeMultiplayer"
+                      }
+                    ],
+                    "textKey": "ui.main.back"
+                  }
                 ]
               }
             ]
@@ -101,11 +380,28 @@
         "type": "container",
         "class": "ui-hero-caption ui-enter-from-right",
         "children": [
-          { "id": "main-hero-label", "type": "text", "text": "DRAG TO ROTATE" },
-          { "id": "main-hero-id", "type": "text", "text": "RC–07" }
+          {
+            "id": "main-hero-label",
+            "type": "text",
+            "text": "DRAG TO ROTATE",
+            "textKey": "ui.main.drag"
+          },
+          {
+            "id": "main-hero-id",
+            "type": "text",
+            "text": "RC–07"
+          }
         ]
       }
     ]
   },
-  "previewStates": [{ "id": "idle", "label": "Idle", "context": { "currentNickname": "TurboToad07" } }]
+  "previewStates": [
+    {
+      "id": "idle",
+      "label": "Idle",
+      "context": {
+        "currentNickname": "TurboToad07"
+      }
+    }
+  ]
 }

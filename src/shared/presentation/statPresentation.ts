@@ -18,6 +18,8 @@ export interface StatPresentationMetadata {
   lowerIsBetterLabel?: 'FASTER' | 'TIGHTER';
 }
 
+export type PresentationTranslator = (key: string, params?: Record<string, string | number>, fallback?: string) => string;
+
 /** Canonical semantics for upgrade-card and tactical-status presentation. */
 export const STAT_PRESENTATION: Readonly<Record<string, StatPresentationMetadata>> = {
   'tank.maxIntegrity': { label: 'MAX INTEGRITY', unit: 'combatHp', group: 'CREW' },
@@ -43,12 +45,15 @@ export const STAT_PRESENTATION: Readonly<Record<string, StatPresentationMetadata
   'weapon.mgSpread': { label: 'MG PRECISION', unit: 'plain', group: 'GUNNER', lowerIsBetterLabel: 'TIGHTER' },
 };
 
-export function statPresentationMetadata(statId: string): StatPresentationMetadata {
-  return STAT_PRESENTATION[statId] ?? {
+export function statPresentationMetadata(statId: string, translate?: PresentationTranslator): StatPresentationMetadata {
+  const metadata = STAT_PRESENTATION[statId] ?? {
     label: humanizeStatId(statId),
     unit: 'plain',
     group: fallbackGroup(statId),
   };
+  return translate
+    ? { ...metadata, label: translate(`upgrade.stat.${statId.replace(/[.-]/g, '_')}`, undefined, metadata.label) }
+    : metadata;
 }
 
 export function formatStatAdditive(statId: string, value: number): string {
@@ -69,8 +74,11 @@ export function formatUpgradeEffectValue(effect: { statId: string; operation: 'a
   return `${percentage >= 0 ? '+' : '−'}${Math.abs(percentage)}%`;
 }
 
-export function formatUpgradeEffect(effect: { statId: string; operation: 'add' | 'multiply'; value: number }): string {
-  const metadata = statPresentationMetadata(effect.statId);
+export function formatUpgradeEffect(
+  effect: { statId: string; operation: 'add' | 'multiply'; value: number },
+  translate?: PresentationTranslator,
+): string {
+  const metadata = statPresentationMetadata(effect.statId, translate);
   return `${metadata.label}\n${formatUpgradeEffectValue(effect)}`;
 }
 

@@ -344,6 +344,8 @@ export interface MatchResults {
   links: number;
   wipeouts: number;
   grade: string;
+  /** Semantic title identity for client-side localization; `title` is the legacy fallback. */
+  titleId?: string;
   title: string;
   modifier: ModifierId;
 }

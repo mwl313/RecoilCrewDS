@@ -2,30 +2,86 @@
   "id": "scene.boot",
   "label": "Boot",
   "type": "ui",
-  "enterTransition": { "type": "fade", "durationMs": 180 },
-  "exitTransition": { "type": "fade", "durationMs": 120 },
+  "enterTransition": {
+    "type": "fade",
+    "durationMs": 180
+  },
+  "exitTransition": {
+    "type": "fade",
+    "durationMs": 120
+  },
   "root": {
     "id": "screen-boot",
     "type": "container",
     "class": "screen ui-screen boot-screen",
-    "appearance": { "tone": "neutral", "emphasis": "hero", "density": "cinematic", "shape": "plain" },
-    "actions": [{ "event": "click", "action": "app.enter" }],
+    "appearance": {
+      "tone": "neutral",
+      "emphasis": "hero",
+      "density": "cinematic",
+      "shape": "plain"
+    },
+    "actions": [
+      {
+        "event": "click",
+        "action": "app.enter"
+      }
+    ],
     "children": [
-      { "id": "boot-frame", "type": "container", "class": "ui-safe-frame" },
+      {
+        "id": "boot-frame",
+        "type": "container",
+        "class": "ui-safe-frame"
+      },
       {
         "id": "boot-inner",
         "type": "vertical",
         "class": "boot-inner",
         "children": [
-          { "id": "boot-kicker", "type": "text", "class": "ui-kicker ui-exit-zoom-up", "text": "SHARED TANK FIELD UNIT // 07" },
-          { "id": "boot-logo", "type": "container", "class": "ui-wordmark", "children": [
-            { "id": "boot-title", "type": "text", "class": "ui-exit-to-right", "props": { "tag": "h1" }, "text": "RECOI\u2009L" },
-            { "id": "boot-title-crew", "type": "text", "class": "ui-wordmark-crew ui-exit-to-left", "text": "CREW" }
-          ] },
-          { "id": "boot-hint", "type": "text", "class": "boot-hint ui-exit-to-bottom", "text": "CLICK TO ENTER" }
+          {
+            "id": "boot-kicker",
+            "type": "text",
+            "class": "ui-kicker ui-exit-zoom-up",
+            "text": "SHARED TANK FIELD UNIT // 07",
+            "textKey": "ui.boot.kicker"
+          },
+          {
+            "id": "boot-logo",
+            "type": "container",
+            "class": "ui-wordmark",
+            "children": [
+              {
+                "id": "boot-title",
+                "type": "text",
+                "class": "ui-exit-to-right",
+                "props": {
+                  "tag": "h1"
+                },
+                "text": "RECOI L"
+              },
+              {
+                "id": "boot-title-crew",
+                "type": "text",
+                "class": "ui-wordmark-crew ui-exit-to-left",
+                "text": "CREW"
+              }
+            ]
+          },
+          {
+            "id": "boot-hint",
+            "type": "text",
+            "class": "boot-hint ui-exit-to-bottom",
+            "text": "CLICK TO ENTER",
+            "textKey": "ui.boot.enter"
+          }
         ]
       }
     ]
   },
-  "previewStates": [{ "id": "idle", "label": "Idle", "context": {} }]
+  "previewStates": [
+    {
+      "id": "idle",
+      "label": "Idle",
+      "context": {}
+    }
+  ]
 }

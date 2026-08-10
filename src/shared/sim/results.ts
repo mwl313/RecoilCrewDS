@@ -54,7 +54,7 @@ export const DEMO_TITLE_RULES: readonly TitleRule[] = [
 export function computeResults(state: MatchState): MatchResults {
   const s = state.stats;
   const grade = gradeFromRules(state, DEMO_GRADE_RULES);
-  const title = titleFromRules(state, grade, DEMO_TITLE_RULES);
+  const titleRule = titleRuleFromRules(state, grade, DEMO_TITLE_RULES);
 
   return {
     score: Math.floor(s.score),
@@ -66,7 +66,8 @@ export function computeResults(state: MatchState): MatchResults {
     links: s.links,
     wipeouts: s.wipeouts,
     grade,
-    title,
+    titleId: titleRule.id,
+    title: titleRule.text,
     modifier: state.modifier,
   };
 }
@@ -88,6 +89,14 @@ export function titleFromRules(
   grade: 'D' | 'C' | 'B' | 'A' | 'S',
   rules: readonly TitleRule[],
 ): string {
+  return titleRuleFromRules(state, grade, rules).text;
+}
+
+export function titleRuleFromRules(
+  state: MatchState,
+  grade: 'D' | 'C' | 'B' | 'A' | 'S',
+  rules: readonly TitleRule[],
+): TitleRule {
   for (const rule of rules) {
     const req = rule.require ?? {};
     if (req.wipeouts !== undefined && state.stats.wipeouts < req.wipeouts) continue;
@@ -97,7 +106,7 @@ export function titleFromRules(
     if (req.dashKills !== undefined && state.stats.dashKills < req.dashKills) continue;
     if (req.minScore !== undefined && state.stats.score < req.minScore) continue;
     if (req.grade !== undefined && grade !== req.grade) continue;
-    return rule.text;
+    return rule;
   }
-  return 'Scrap Goblins';
+  return { id: 'title.scrapGoblins', text: 'Scrap Goblins', require: {} };
 }

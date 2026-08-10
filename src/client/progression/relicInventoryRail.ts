@@ -1,5 +1,7 @@
 import type { MatchState } from '../../shared/types';
 import type { UpgradeRarity } from '../../shared/content/schemas/progression';
+import { localization } from '../localization/localizationService';
+import type { LocalizationService } from '../localization/localizationTypes';
 
 export interface RelicRailItemInfo {
   label: string;
@@ -19,18 +21,30 @@ interface RailCell {
 export class RelicInventoryRail {
   private readonly root: HTMLElement;
   private readonly cells = new Map<string, RailCell>();
+  private lastState: MatchState | null = null;
+  private readonly unsubscribeLocalization: () => void;
 
   constructor(
     container: HTMLElement,
     private readonly infoFor: (relicId: string) => RelicRailItemInfo | null,
+    private readonly i18n: LocalizationService = localization,
   ) {
     this.root = document.createElement('aside');
     this.root.id = 'relic-inventory-rail';
-    this.root.setAttribute('aria-label', 'Owned relics');
+    this.root.setAttribute('aria-label', this.i18n.t('ui.relic.owned', {}, 'Owned relics'));
     container.appendChild(this.root);
+    this.unsubscribeLocalization = this.i18n.subscribe(() => {
+      this.root.setAttribute('aria-label', this.i18n.t('ui.relic.owned', {}, 'Owned relics'));
+      if (!this.lastState) return;
+      for (const [relicId, cell] of this.cells) {
+        const info = this.infoFor(relicId);
+        if (info) this.updateAccessibleDescription(cell.root, info, cell.stack);
+      }
+    });
   }
 
   update(state: MatchState): void {
+    this.lastState = state;
     const stacks = state.teamProgression.relicStacks;
     const order = state.teamProgression.relicAcquisitionOrder ?? Object.keys(stacks);
     const live = new Set(order.filter((relicId) => (stacks[relicId] ?? 0) > 0));
@@ -61,6 +75,7 @@ export class RelicInventoryRail {
   }
 
   dispose(): void {
+    this.unsubscribeLocalization();
     this.cells.clear();
     this.root.remove();
   }

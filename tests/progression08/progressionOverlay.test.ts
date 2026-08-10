@@ -211,7 +211,7 @@ describe('progression overlay lifecycle (progression08 hardening)', () => {
     );
     const effects = [...selectionHost.querySelectorAll<HTMLElement>('.reward-card__effect')]
       .map((node) => node.textContent ?? '');
-    expect(effects[1]).toContain('MG DAMAGE\n+10%');
+    expect(effects[1]).toContain('MACHINE GUN DAMAGE\n+10%');
     expect(effects[2]).toContain('MAX INTEGRITY\n+100');
     expect(effects[2]).not.toContain('+1,000');
   });

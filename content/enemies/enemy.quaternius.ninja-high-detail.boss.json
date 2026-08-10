@@ -1,6 +1,6 @@
 {
   "id": "enemy.quaternius.ninja-high-detail.boss",
-  "label": "Ninja High Detail Boss",
+  "label": "Ninja Boss",
   "type": "monster",
   "tier": "boss",
   "sizeClass": "large",
